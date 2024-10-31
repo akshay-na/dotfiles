@@ -9,7 +9,7 @@ local g = vim.g
 
 -- Basic settings for efficiency
 opt.number = true                  -- Show line numbers
-opt.relativenumber = false         -- Enable relative line numbers for easier line jumps
+opt.relativenumber = true          -- Enable relative line numbers for easier line jumps
 opt.smartindent = true             -- Smart indentation
 opt.expandtab = true               -- Use spaces instead of tabs
 opt.tabstop = 4                    -- Tab width
