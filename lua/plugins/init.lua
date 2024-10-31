@@ -4,13 +4,18 @@ local telescope = require "plugins.configs.telescope"
 
 -- Plugin configurations
 return {
-
-  -- Core Language Server Protocol (LSP) setup
+  -- LSP and Autocompletion
   {
-    "neovim/nvim-lspconfig",
-    config = function()
-      require "plugins.configs.lspconfig" -- Load custom LSP configuration
-    end,
+    'VonHeikemen/lsp-zero.nvim',
+    branch = 'v1.x',
+    dependencies = {
+      { 'neovim/nvim-lspconfig' },             -- Required for LSP support
+      { 'williamboman/mason.nvim' },           -- Mason for managing language servers
+      { 'williamboman/mason-lspconfig.nvim' }, -- Integration with Mason
+      { 'hrsh7th/nvim-cmp' },                  -- Autocompletion plugin
+      { 'hrsh7th/cmp-nvim-lsp' },              -- LSP completion source for nvim-cmp
+      { 'L3MON4D3/LuaSnip' },                  -- Snippet engine
+    }
   },
 
   {
@@ -29,11 +34,6 @@ return {
     end
   },
 
-  -- Material Icon Theme
-  {
-    "nvim-tree/nvim-web-devicons",
-    cmd = { "NvimTreeToggle", "NvimTreeOpen" },
-  },
 
   {
     "simrat39/symbols-outline.nvim",
@@ -56,15 +56,6 @@ return {
     opts = nvim_tree.opts,
   },
 
-  -- LSP-related plugins
-  {
-    "williamboman/mason.nvim", -- LSP server manager
-  },
-  {
-    "williamboman/mason-lspconfig.nvim", -- Mason and LSP integration
-    after = "mason.nvim",
-  },
-
   -- Debugging and Console Log
   {
     "andrewferrier/debugprint.nvim", -- Quick console log tool
@@ -84,20 +75,12 @@ return {
   -- Session Management
   {
     "rmagatti/auto-session", -- Auto-session management
-    config = function()
-      require("auto-session").setup {
-        log_level = "info",
-        auto_session_enable_last_session = true,
-        auto_save_enabled = true,
-        auto_restore_enabled = true,
-      }
-    end,
   },
 
   -- Bookmark Management
   {
     "ThePrimeagen/harpoon", -- Fast bookmarking tool
-    requires = { "nvim-lua/plenary.nvim" },
+    dependencies = { "nvim-lua/plenary.nvim" },
     cmd = "Harpoon",
     config = function()
       require("harpoon").setup { menu = { width = vim.api.nvim_get_option("columns") * 0.5 } }
@@ -107,22 +90,13 @@ return {
   -- Project Management and Navigation
   {
     "ahmedkhalf/project.nvim", -- Project manager for Telescope
-    config = function()
-      require("project_nvim").setup {
-        detection_methods = { "lsp", "pattern" },
-        patterns = { ".git", "Makefile", "package.json" },
-      }
-      require("telescope").load_extension("projects")
-    end,
+    dependencies = { "nvim-telescope/telescope.nvim" },
   },
 
   -- Autopairs and Tag Auto-closing
   {
     "windwp/nvim-autopairs", -- Auto-pair brackets
     event = "InsertEnter",
-    config = function()
-      require("nvim-autopairs").setup({})
-    end,
   },
   {
     "windwp/nvim-ts-autotag", -- Auto-close HTML/JSX tags
@@ -159,10 +133,6 @@ return {
   {
     "junegunn/vim-easy-align", -- Align text easily
     cmd = "EasyAlign",
-    config = function()
-      vim.keymap.set("n", "ga", "<Plug>(EasyAlign)", { desc = "Align text" })
-      vim.keymap.set("x", "ga", "<Plug>(EasyAlign)", { desc = "Align text in visual mode" })
-    end,
   },
 
   -- Code Commenting
@@ -176,15 +146,12 @@ return {
   {
     "p00f/nvim-ts-rainbow", -- Rainbow parentheses
     event = "BufRead",
-    requires = "nvim-treesitter/nvim-treesitter",
+    dependencies = "nvim-treesitter/nvim-treesitter",
     config = function()
       require("nvim-treesitter.configs").setup({
         rainbow = { enable = true, extended_mode = true },
       })
     end,
-  },
-  {
-    "nvim-treesitter/nvim-treesitter", -- Treesitter configurations
   },
 
   {
@@ -194,21 +161,12 @@ return {
     end,
   },
 
-  { "ray-x/guihua.lua" },
-
   {
     "ray-x/navigator.lua",
     dependencies = {
       "neovim/nvim-lspconfig",
-      "ray-x/guihua.lua", -- required GUI components for navigator.nvim
+      "ray-x/guihua.lua",
     },
-    config = function()
-      require("navigator").setup({
-        lsp = {
-          disable_lsp = "all", -- Disable built-in LSP to let Navigator handle it
-        },
-      })
-    end,
   },
 
   -- Git Integration
@@ -224,37 +182,23 @@ return {
     ft = { "markdown" },
     run = "cd app && yarn install",
     cmd = "MarkdownPreview",
-    config = function()
-      vim.g.mkdp_auto_start = 0
-      vim.g.mkdp_refresh_slow = 1
-    end,
   },
 
   -- Formatting and Linting
   {
-    "jose-elias-alvarez/null-ls.nvim", -- Interface for formatters/linters
+    "jose-elias-alvarez/null-ls.nvim",
     event = "BufReadPre",
-    requires = {
+    dependencies = {
       "nvim-lua/plenary.nvim",
-      { "nvim-treesitter/nvim-treesitter", event = "BufRead", run = ":TSUpdate" }
+      { "nvim-treesitter/nvim-treesitter", event = "BufRead", run = ":TSUpdate" },
     },
-    config = function()
-      local null_ls = require("null-ls")
-      null_ls.setup({
-        sources = {
-          null_ls.builtins.formatting.prettier.with({
-            extra_args = { "--config-precedence", "prefer-file" },
-          }),
-        },
-      })
-    end,
   },
 
   -- Highlight TODO Comments
   {
     "folke/todo-comments.nvim", -- Highlight TODO comments
     event = "BufRead",
-    requires = "nvim-lua/plenary.nvim",
+    dependencies = "nvim-lua/plenary.nvim",
     config = true,
   },
 
@@ -267,9 +211,5 @@ return {
   {
     "ntpeters/vim-better-whitespace", -- Highlight and remove trailing spaces
     event = "BufRead",
-    config = function()
-      vim.g.better_whitespace_enabled = 1
-      vim.g.strip_whitespace_on_save = 1
-    end,
   },
 }
