@@ -35,7 +35,10 @@ opt.wrap = false                   -- Disable line wrapping
 o.timeoutlen = 300                 -- Shorter key timeout for faster mappings
 o.completeopt = "menuone,noselect" -- Completion menu optimized
 
-g.loaded_matchparen = 1            -- Disable matchparen for less flicker
+g.better_whitespace_enabled = 1
+g.strip_whitespace_on_save = 1
+
+g.loaded_matchparen = 1 -- Disable matchparen for less flicker
 
 -- Miscellaneous productivity tweaks
 vim.cmd("syntax on")                 -- Enable syntax highlighting
