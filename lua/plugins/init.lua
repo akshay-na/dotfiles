@@ -53,7 +53,6 @@ return {
   -- Trouble (Load only on command for diagnostics)
   {
     "folke/trouble.nvim",
-    cmd = { "TroubleToggle", "Trouble" },
     dependencies = "nvim-tree/nvim-web-devicons",
     config = function()
       require("trouble").setup()
@@ -130,15 +129,6 @@ return {
     "lewis6991/impatient.nvim",
     config = function()
       require("impatient").enable_profile()
-    end,
-  },
-
-  -- Enhanced Error Display (Lazy load on diagnostics display)
-  {
-    "chikko80/error-lens.nvim",
-    event = "BufRead",
-    config = function()
-      require("plugins.configs.error-lense")
     end,
   },
 
