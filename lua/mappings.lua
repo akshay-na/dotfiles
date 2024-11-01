@@ -37,6 +37,16 @@ map("n", "<leader>gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)  -- Go to 
 map("n", "<leader>gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)  -- Find references
 map("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)      -- Rename symbol
 
+-- Optional: Key mappings for quick Harpoon actions
+map("n", "<leader>a", ":lua require('harpoon.mark').add_file()<CR>",
+  opts)
+map("n", "<leader>h", ":lua require('harpoon.ui').toggle_quick_menu()<CR>",
+  opts)
+map("n", "<leader>1", ":lua require('harpoon.ui').nav_file(1)<CR>", opts)
+map("n", "<leader>2", ":lua require('harpoon.ui').nav_file(2)<CR>", opts)
+map("n", "<leader>3", ":lua require('harpoon.ui').nav_file(3)<CR>", opts)
+map("n", "<leader>4", ":lua require('harpoon.ui').nav_file(4)<CR>", opts)
+
 -- File Explorer Toggle (NvimTree)
 map("n", "<leader>e", ":NvimTreeToggle<CR>", opts)
 

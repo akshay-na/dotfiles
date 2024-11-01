@@ -9,147 +9,155 @@ return {
     'VonHeikemen/lsp-zero.nvim',
     branch = 'v1.x',
     dependencies = {
-      { 'neovim/nvim-lspconfig' },             -- Required for LSP support
-      { 'williamboman/mason.nvim' },           -- Mason for managing language servers
-      { 'williamboman/mason-lspconfig.nvim' }, -- Integration with Mason
-      { 'hrsh7th/nvim-cmp' },                  -- Autocompletion plugin
-      { 'hrsh7th/cmp-nvim-lsp' },              -- LSP completion source for nvim-cmp
-      { 'L3MON4D3/LuaSnip' },                  -- Snippet engine
+      { 'neovim/nvim-lspconfig' },                                   -- Core LSP support
+      { 'williamboman/mason.nvim',          cmd = "Mason" },         -- Lazy load Mason on command
+      { 'williamboman/mason-lspconfig.nvim' },                       -- Mason integration for LSP
+      { 'hrsh7th/nvim-cmp',                 event = "InsertEnter" }, -- Autocomplete in insert mode
+      { 'hrsh7th/cmp-nvim-lsp' },                                    -- LSP source for autocompletion
+      { 'L3MON4D3/LuaSnip',                 event = "InsertEnter" }, -- Snippet support in insert mode
     }
   },
 
+  -- Git Commands (Lazy load on Git commands)
   {
     "tpope/vim-fugitive",
-    cmd = { "Git", "Gstatus", "Gcommit" }, -- Load only when these commands are run
+    cmd = { "Git", "Gstatus", "Gcommit" },
   },
 
+  -- Telescope (Load only on command)
   {
     "nvim-telescope/telescope.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
+    dependencies = { "nvim-lua/plenary.nvim" },
     cmd = "Telescope",
     opts = telescope.opts,
   },
 
+  -- Colorizer for highlighting color codes (Lazy load on BufRead for certain file types)
   {
     "norcalli/nvim-colorizer.lua",
+    ft = { "css", "html", "javascript" },
     config = function()
       require("colorizer").setup()
     end
   },
 
-
+  -- Symbols Outline (Lazy load for structured code outline on command)
   {
     "simrat39/symbols-outline.nvim",
+    cmd = "SymbolsOutline",
     config = function()
       require("symbols-outline").setup()
     end
   },
 
+  -- Trouble (Load only on command for diagnostics)
   {
     "folke/trouble.nvim",
+    cmd = { "TroubleToggle", "Trouble" },
     dependencies = "nvim-tree/nvim-web-devicons",
     config = function()
       require("trouble").setup()
     end
   },
-  -- File Explorer and File Management
+
+  -- File Explorer and File Management (Keep nvim-tree as is)
   {
-    "nvim-tree/nvim-tree.lua",                         -- File explorer
-    dependencies = { "kyazdani42/nvim-web-devicons" }, -- Icon support
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "kyazdani42/nvim-web-devicons" },
     opts = nvim_tree.opts,
   },
 
-  -- Debugging and Console Log
+  -- Debugging Console Logs (Lazy load on LSP attach)
   {
-    "andrewferrier/debugprint.nvim", -- Quick console log tool
+    "andrewferrier/debugprint.nvim",
     event = "LspAttach",
     config = function()
       require("debugprint").setup()
     end,
   },
 
-  -- Surround and Bracket Handling
+  -- Text Surround (Lazy load on buffer read)
   {
-    "kylechui/nvim-surround", -- Surround text with custom characters
+    "kylechui/nvim-surround",
     event = "BufReadPre",
     config = true,
   },
 
-  -- Session Management
+  -- Session Management (Auto-session with lazy load)
   {
-    "rmagatti/auto-session", -- Auto-session management
+    "rmagatti/auto-session",
+    event = "VimEnter",
   },
 
-  -- Bookmark Management
+  -- Bookmark Management (Lazy load on command)
   {
-    "ThePrimeagen/harpoon", -- Fast bookmarking tool
-    dependencies = { "nvim-lua/plenary.nvim" },
+    "ThePrimeagen/harpoon",
     cmd = "Harpoon",
+    dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       require("harpoon").setup { menu = { width = vim.api.nvim_get_option("columns") * 0.5 } }
     end,
   },
 
-  -- Project Management and Navigation
+  -- Project Management (Lazy load with Telescope)
   {
-    "ahmedkhalf/project.nvim", -- Project manager for Telescope
+    "ahmedkhalf/project.nvim",
     dependencies = { "nvim-telescope/telescope.nvim" },
+    event = "BufReadPre",
   },
 
-  -- Autopairs and Tag Auto-closing
+  -- Autopairs and Tag Auto-closing (Lazy load on InsertEnter)
   {
-    "windwp/nvim-autopairs", -- Auto-pair brackets
+    "windwp/nvim-autopairs",
     event = "InsertEnter",
   },
   {
-    "windwp/nvim-ts-autotag", -- Auto-close HTML/JSX tags
+    "windwp/nvim-ts-autotag",
     event = "InsertEnter",
     after = "nvim-treesitter.nvim",
     config = true,
   },
 
-  -- Multi-Cursor Editing
+  -- Multi-Cursor Editing (Lazy load on key press)
   {
-    "mg979/vim-visual-multi",    -- Multi-cursor support
+    "mg979/vim-visual-multi",
     branch = "master",
-    keys = { "<C-n>", "<C-p>" }, -- Optional key bindings
+    keys = { "<C-n>", "<C-p>" },
   },
 
   -- Performance Optimization
   {
-    "lewis6991/impatient.nvim", -- Speed up plugin loading
+    "lewis6991/impatient.nvim",
     config = function()
       require("impatient").enable_profile()
     end,
   },
 
-  -- Enhanced Error Display
+  -- Enhanced Error Display (Lazy load on diagnostics display)
   {
-    "chikko80/error-lens.nvim", -- Enhanced error highlighting
-    mazy = false,
+    "chikko80/error-lens.nvim",
+    event = "BufRead",
     config = function()
-      require("error-lens").setup({ auto_enable = true, hl_priority = 100 })
+      require("plugins.configs.error-lense")
     end,
   },
 
-  -- Text Alignment
+  -- Text Alignment (Lazy load on EasyAlign command)
   {
-    "junegunn/vim-easy-align", -- Align text easily
+    "junegunn/vim-easy-align",
     cmd = "EasyAlign",
   },
 
-  -- Code Commenting
+  -- Code Commenting (Lazy load on commenting keys)
   {
-    "numToStr/Comment.nvim", -- Comment out code blocks
+    "numToStr/Comment.nvim",
     keys = { "gc", "gcc", "gbc" },
     config = true,
   },
 
-  -- Parentheses Highlighting and Treesitter Config
+  -- Parentheses Highlighting and Treesitter Config (Lazy load on buffer read)
   {
-    "p00f/nvim-ts-rainbow", -- Rainbow parentheses
+    "p00f/nvim-ts-rainbow",
     event = "BufRead",
     dependencies = "nvim-treesitter/nvim-treesitter",
     config = function()
@@ -159,37 +167,38 @@ return {
     end,
   },
 
+  -- Notification System (Lazy load on first use)
   {
     "rcarriga/nvim-notify",
     config = function()
       vim.notify = require("notify")
     end,
+    event = "VimEnter",
   },
 
+  -- Navigator for enhanced LSP features (Lazy load on LSP attach)
   {
     "ray-x/navigator.lua",
-    dependencies = {
-      "neovim/nvim-lspconfig",
-      "ray-x/guihua.lua",
-    },
+    dependencies = { "neovim/nvim-lspconfig", "ray-x/guihua.lua" },
+    event = "LspAttach",
   },
 
-  -- Git Integration
+  -- Git Integration (Lazy load on buffer read)
   {
-    "lewis6991/gitsigns.nvim", -- Git signs in gutter
+    "lewis6991/gitsigns.nvim",
     event = "BufRead",
     config = true,
   },
 
-  -- Markdown Preview
+  -- Markdown Preview (Lazy load on Markdown filetype)
   {
-    "iamcco/markdown-preview.nvim", -- Preview markdown files
+    "iamcco/markdown-preview.nvim",
     ft = { "markdown" },
     run = "cd app && yarn install",
     cmd = "MarkdownPreview",
   },
 
-  -- Formatting and Linting
+  -- Formatting and Linting (Lazy load on buffer read)
   {
     "jose-elias-alvarez/null-ls.nvim",
     event = "BufReadPre",
@@ -199,22 +208,23 @@ return {
     },
   },
 
-  -- Highlight TODO Comments
+  -- Highlight TODO Comments (Lazy load on buffer read)
   {
-    "folke/todo-comments.nvim", -- Highlight TODO comments
+    "folke/todo-comments.nvim",
     event = "BufRead",
     dependencies = "nvim-lua/plenary.nvim",
     config = true,
   },
 
+  -- Key Binding Help (Eager load for quick access)
   {
     "folke/which-key.nvim",
-    lazy = false, -- Ensure lazy loading is disabled
+    lazy = false,
   },
 
-  -- Whitespace Management
+  -- Whitespace Management (Lazy load on buffer read)
   {
-    "ntpeters/vim-better-whitespace", -- Highlight and remove trailing spaces
+    "ntpeters/vim-better-whitespace",
     event = "BufRead",
   },
 }
