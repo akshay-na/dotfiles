@@ -1,14 +1,21 @@
 -- ~/.config/nvim/lua/chadrc.lua
 
----@type ChadrcConfig
+---@class ChadrcConfig
 local M = {}
 
-M.plugins = require "custom.plugins"
-M.mappings = require "custom.mappings"
+M.plugins = require "plugins"
+require "plugins.configs"
+
+M.ui = {
+  statusline = {
+    theme = "vscode_colored",
+    separator_style = "arrow", -- Choose from "round", "block", "arrow"
+  },
+}
 
 -- Theme and highlight configuration
 M.base46 = {
-  theme = "onedark", -- You can set this to a preferred theme, like "gruvbox", "tokyonight", etc.
+  theme = "tokyonight", -- You can set this to a preferred theme, like "gruvbox", "tokyonight", etc.
 
   -- Optional: Override highlights for productivity (e.g., italics for comments)
   hl_override = {
@@ -17,6 +24,12 @@ M.base46 = {
   },
 }
 
+M.mappings = require "mappings"
+
 -- Add any additional configurations here to improve startup efficiency and --
+
+require "options"
+require "configs.autocmds"
+require "configs.clipboard"
 
 return M

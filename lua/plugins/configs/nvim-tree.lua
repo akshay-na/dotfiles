@@ -11,8 +11,19 @@ M.opts = {
     width = 30,     -- Set tree width
   },
 
+  update_focused_file = {
+    enable = true,
+    update_cwd = true,
+  },
+
+  git = {
+    enable = true,
+    ignore = true, -- Set this to true if you don’t want to track .gitignored files
+  },
+
   -- Renderer settings
   renderer = {
+    highlight_git = true,
     icons = {
       show = {
         file = true,

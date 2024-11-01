@@ -19,6 +19,11 @@ return {
   },
 
   {
+    "tpope/vim-fugitive",
+    cmd = { "Git", "Gstatus", "Gcommit" }, -- Load only when these commands are run
+  },
+
+  {
     "nvim-telescope/telescope.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
@@ -61,7 +66,7 @@ return {
     "andrewferrier/debugprint.nvim", -- Quick console log tool
     event = "LspAttach",
     config = function()
-      require("debugprint").setup({ create_keymaps = true })
+      require("debugprint").setup()
     end,
   },
 
