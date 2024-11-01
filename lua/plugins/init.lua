@@ -117,6 +117,14 @@ return {
     config = true,
   },
 
+  -- {
+  --   "NvChad/nvterm",
+  --   keys = { "<M-h>", "<M-v>", "<leader>v" }, -- Only load nvterm on these keypresses
+  --   config = function()
+  --     require("nvterm").setup()
+  --   end,
+  -- },
+
   -- Multi-Cursor Editing (Lazy load on key press)
   {
     "mg979/vim-visual-multi",
