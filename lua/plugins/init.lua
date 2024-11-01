@@ -117,13 +117,17 @@ return {
     config = true,
   },
 
-  -- {
-  --   "NvChad/nvterm",
-  --   keys = { "<M-h>", "<M-v>", "<leader>v" }, -- Only load nvterm on these keypresses
-  --   config = function()
-  --     require("nvterm").setup()
-  --   end,
-  -- },
+  {
+    "ianding1/leetcode.vim",
+    cmd = { "LeetCode", "LeetCodeTest" },
+    config = function()
+      -- Set the default browser to use for LeetCode
+      vim.g.leetcode_browser = 'chrome'               -- use 'firefox' if preferred
+      vim.g.leetcode_solution_filetype = 'Typescript' -- change to your preferred language
+      -- Uncomment this line if using the LeetCode China site
+      -- vim.g.leetcode_china = 1
+    end
+  },
 
   -- Multi-Cursor Editing (Lazy load on key press)
   {
