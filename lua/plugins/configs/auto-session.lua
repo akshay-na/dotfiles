@@ -5,7 +5,7 @@ vim.o.sessionoptions = "buffers,curdir,help,tabpages,winsize,localoptions"
 
 require("auto-session").setup {
   log_level = "info",
-  auto_session_enable_last_session = true,
+  auto_session_enable_last_session = false,
   auto_save_enabled = true,
   auto_restore_enabled = true,
   auto_session_suppress_dirs = { "~/" }, -- Suppress sessions in the home directory
