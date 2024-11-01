@@ -47,6 +47,12 @@ map("n", "<leader>2", ":lua require('harpoon.ui').nav_file(2)<CR>", opts)
 map("n", "<leader>3", ":lua require('harpoon.ui').nav_file(3)<CR>", opts)
 map("n", "<leader>4", ":lua require('harpoon.ui').nav_file(4)<CR>", opts)
 
+-- Terminal Mapping
+map('t', '<M-h>', '<C-\\><C-n><C-w>h', opts)
+map('t', '<M-j>', '<C-\\><C-n><C-w>j', opts)
+map('t', '<M-k>', '<C-\\><C-n><C-w>k', opts)
+map('t', '<M-l>', '<C-\\><C-n><C-w>l', opts)
+
 -- File Explorer Toggle (NvimTree)
 map("n", "<leader>e", ":NvimTreeToggle<CR>", opts)
 
