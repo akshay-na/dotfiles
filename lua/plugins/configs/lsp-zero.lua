@@ -1,12 +1,11 @@
--- lua/plugins/configs/lsp.lua
+-- File: ~/.config/nvim/lua/plugins/configs/lsp.lua
 
 local lsp = require('lsp-zero').preset({
-  -- Choose 'recommended' for sensible defaults, but customize as needed
   name = 'recommended',
-  set_lsp_keymaps = false, -- We’ll set keymaps manually to match your existing setup
+  set_lsp_keymaps = false, -- Manually manage keymaps
 })
 
--- Define your language servers and filetypes, as you did previously
+-- Define language servers and filetypes
 local servers = {
   ["html"] = "html",
   ["cssls"] = "css",
@@ -21,57 +20,61 @@ local servers = {
   ["dockerls"] = "dockerfile",
   ["prismals"] = "prisma",
   ["lua_ls"] = "lua",
-  -- Uncomment any additional servers here
+  -- Uncomment additional servers as needed
   -- ["graphql"] = "graphql",
   -- ["rust_analyzer"] = "rust",
   -- ["solidity_ls"] = "solidity",
 }
 
--- Automatically install and configure servers with Mason-LSPConfig
+-- Install LSP servers with Mason
 lsp.ensure_installed(vim.tbl_keys(servers))
 
--- Setting up servers with specific file types, capabilities, and on_attach
+-- Define common on_attach function for all LSPs
+lsp.on_attach(function(client, bufnr)
+  -- Disable formatting capabilities for all language servers to defer to null-ls
+  client.server_capabilities.documentFormattingProvider = false
+  client.server_capabilities.documentRangeFormattingProvider = false
+
+  -- Optionally set up navigator mappings if available
+  if package.loaded["navigator"] then
+    require("navigator.lspclient.mapping").setup({ bufnr = bufnr })
+  end
+end)
+
+-- Configure language servers
 local lspconfig = require("lspconfig")
 for server_name, filetypes in pairs(servers) do
   lspconfig[server_name].setup({
-    on_attach = function(client, bufnr)
-      lsp.build_options('on_attach')(client, bufnr)                   -- lsp-zero on_attach function
-      require("navigator.lspclient.mapping").setup({ bufnr = bufnr }) -- Use navigator.nvim’s mappings
-    end,
-    capabilities = lsp.capabilities,
     filetypes = type(filetypes) == "table" and filetypes or { filetypes },
   })
 end
 
--- Define custom settings for the Lua language server
+-- Custom configuration for Lua language server
 lsp.configure('lua_ls', {
   settings = {
     Lua = {
-      runtime = {
-        -- Tell the language server which version of Lua you're using (LuaJIT in Neovim)
-        version = 'LuaJIT',
-      },
-      diagnostics = {
-        -- Get the language server to recognize the `vim` global
-        globals = { 'vim' },
-      },
+      runtime = { version = 'LuaJIT' },
+      diagnostics = { globals = { 'vim' } },
       workspace = {
-        -- Make the server aware of Neovim runtime files
         library = vim.api.nvim_get_runtime_file("", true),
-        checkThirdParty = false, -- Avoids prompt about third-party workspace libraries
+        checkThirdParty = false,
       },
-      telemetry = {
-        enable = false, -- Disable telemetry for privacy
-      },
+      telemetry = { enable = false },
     },
   },
 })
 
+-- Enhanced diagnostics with floating previews and icons
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+  vim.lsp.diagnostic.on_publish_diagnostics, {
+    underline = true,
+    virtual_text = { spacing = 4, prefix = "●" },
+    update_in_insert = false,
+  }
+)
 
--- Enable caching for LSP handlers (preserving the definition reuse functionality)
-vim.lsp.handlers["textDocument/definition"] = vim.lsp.with(vim.lsp.handlers.definition, {
-  reuse_win = true,
-})
+-- Reuse window for go-to definition
+vim.lsp.handlers["textDocument/definition"] = vim.lsp.with(vim.lsp.handlers.definition, { reuse_win = true })
 
--- Finalize `lsp-zero` setup
+-- Finalize LSP-zero setup
 lsp.setup()
