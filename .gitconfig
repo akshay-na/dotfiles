@@ -1,0 +1,130 @@
+############################################################## COMMON ############################################################
+
+[alias]
+  amend = commit --amend --no-edit  # Amend the last commit without modifying the message
+  br = branch  # Alias for git branch
+  ci = commit  # Alias for git commit
+  co = checkout  # Alias for git checkout
+  hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short  # View commit history with a graph and formatted output
+  last = log -1 HEAD  # Show the latest commit
+  lg = log --oneline --graph --decorate --all  # View all commits in a simple graph format
+  save = stash save "WIP on $(git symbolic-ref --short HEAD)"  # Stash current changes with a WIP message
+  savepop = stash save "WIP on $(git symbolic-ref --short HEAD)" && stash pop  # Stash changes and then pop them
+  st = status  # Alias for git status
+  unstage = reset HEAD --  # Unstage changes without affecting working directory
+
+[checkout]
+  defaultParallelism = true  # Enable parallelism during checkout for faster operations
+
+[color]
+  ui = auto  # Enable automatic colorization in Git output
+
+[commit]
+  gpgsign = true  # Sign commits with GPG by default
+
+[core]
+  commitGraph = true  # Enable commit graph for faster Git operations
+  excludesFile = ~/.gitignore  # Path to global gitignore file
+  fileMode = false  # Ignore file permission changes
+  fscache = true  # Enable file system cache to improve performance
+  gitproxy = auto  # Automatically select the appropriate proxy
+  packedGitLimit = 256m  # Increase the packed Git limit for handling larger packfiles
+  packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing
+  deltaBaseCacheLimit = 512M  # Increase delta base cache limit for large repositories
+  preloadindex = true  # Preload index to reduce I/O operations
+
+[credential]
+  helper = cache --timeout=3600  # Cache credentials for 1 hour
+
+[diff]
+  algorithm = histogram  # Use the histogram algorithm for more accurate diffs
+  compactionHeuristic = true  # Enable heuristic for better diff compaction
+  renames = true  # Detect file renames during diffs
+
+[fetch]
+  negotiate = true  # Use negotiation for faster fetches by transferring fewer objects
+  prune = true  # Remove stale branches from remote during fetch
+
+[filter "lfs"]
+  clean = git-lfs clean -- %f  # Clean files for Git LFS
+  process = git-lfs filter-process  # Use Git LFS for filtering large files
+  required = true  # Ensure LFS is used
+  smudge = git-lfs smudge -- %f  # Smudge files for Git LFS
+
+[format]
+  pretty = format:%C(auto)%h%d %s %C(black)%C(bold)%cr %C(bold blue)<%an>%Creset  # Custom log format for Git output
+
+[gc]
+  auto = 256  # Set threshold for auto garbage collection
+  pruneExpire = now  # Prune unreachable objects immediately
+  reflogExpire = 90 days  # Extend reflog expiration period to 90 days
+  reflogExpireUnreachable = 180 days  # Keep unreachable reflog entries for 180 days
+
+[gpg]
+  program = gpg  # Specify GPG program to use
+  sign = true  # Always sign commits and tags
+
+[help]
+  autocorrect = 1  # Automatically correct mistyped commands
+
+[http]
+  sslVerify = true  # Verify SSL certificates
+  sslbackend = schannel  # Use the Schannel SSL backend (for Windows)
+
+[pager]
+  diff = true  # Use pager for diff output
+  log = true  # Use pager for log output
+  show = true  # Use pager for show command
+
+[pack]
+  autoDetach = true  # Run garbage collection in the background
+  autoPackLimit = 50  # Perform garbage collection after 50 loose objects
+  compression = 9  # Use maximum compression level for packfiles
+  threads = 4  # Set number of threads for packing (based on CPU cores)
+  window = 10  # Set delta compression window size
+  windowMemory = 100m  # Cap memory usage for delta compression
+
+[pull]
+  rebase = true  # Always rebase instead of merging when pulling
+
+[push]
+  autoSetupRemote = true  # Automatically set up remote tracking
+  default = simple  # Push the current branch to its upstream branch
+
+[rebase]
+  autoUpgrade = true  # Automatically use the improved rebase merge behavior
+  verbose = true  # Show detailed output during rebase operations
+
+[status]
+  branch = true  # Show branch information in status
+  showUntrackedFiles = all  # Show all untracked files
+  showWorktreeGitDir = true  # Display the Git directory when using worktrees
+
+[tag]
+  gpgSign = true  # Always sign tags with GPG
+
+[url "git@github.com:"]
+  insteadOf = https://github.com/  # Use SSH instead of HTTPS for GitHub
+
+[url "git@gitlab.com:"]
+  insteadOf = https://gitlab.com/  # Use SSH instead of HTTPS for GitLab
+
+[worktree]
+  bare = false  # Worktrees are not bare repositories
+  clean = true  # Clean worktrees automatically
+  prune = true  # Automatically remove stale worktrees
+  recomputeUntracked = true  # Recompute untracked files in worktrees
+
+############################################################## CHANGES BASED ON SYSTEM ############################################################
+
+[includeIf "hasconfig:remote.*.url:github.com"]
+  [user]
+    name = YOUR_GITHUB_USERNAME # Set user name for GitHub
+    email = YOUR_GITHUB_EMAIL@users.noreply.github.com # Set email for GitHub
+    signingkey = YOUR_GITHUB_GPG_KEY # Set GPG signing key for GitHub
+
+[includeIf "hasconfig:remote.*.url:gitlab.com"]
+  [user]
+    name = YOUR_GITLAB_USERNAME # Set user name for GitLab
+    email = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
+    signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab

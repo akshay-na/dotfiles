@@ -1,0 +1,218 @@
+# -----------------------
+# Operating System Files
+# -----------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.Trash-*
+
+# -----------------------
+# IDE and Editor Files
+# -----------------------
+
+# JetBrains IDEs (IntelliJ, PyCharm, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*.swn
+
+# Emacs
+*~
+\#*\#
+
+# Eclipse
+.metadata/
+*.tmp
+*.bak
+*.swp
+*~.nib
+.localstore/
+
+# NetBeans
+nbproject/
+nbproject/private/
+build/
+dist/
+
+# Visual Studio
+.vs/
+*.csproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.hmap
+*.ipa
+
+# -----------------------
+# Programming Languages
+# -----------------------
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.python-version
+*.env
+*.venv
+env/
+venv/
+Pipfile.lock
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log
+.yarn-integrity
+.pnp.*
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# C/C++
+*.o
+*.obj
+*.so
+*.exe
+*.dll
+*.out
+
+# Ruby
+*.gem
+*.rbc
+.ruby-version
+.ruby-gemset
+.rake_tasks~
+
+# Go
+*.exe
+*.test
+*.out
+*.tmp
+*.mod
+*.sum
+
+# PHP
+*.log
+*.pid
+*.seed
+*.bak
+
+# R
+*.Rhistory
+*.RData
+*.Ruserdata
+*.Rproj.user
+
+# Swift
+*.xcodeproj/
+*.xcworkspace/
+.build/
+*.pbxuser
+*.xccheckout
+*.xcuserstate
+
+# Rust
+target/
+Cargo.lock
+
+# Kotlin
+*.jar
+*.war
+*.ear
+*.class
+
+# -----------------------
+# Common Build Directories
+# -----------------------
+
+/build/
+/dist/
+/out/
+/target/
+/coverage/
+/release/
+
+# -----------------------
+# Specific Frameworks
+# -----------------------
+
+# Django
+*.sqlite3
+*.log
+local_settings.py
+db.sqlite3
+media/
+
+# Laravel
+/vendor/
+.env
+.env.*
+
+# Rails
+/log/*
+/tmp/*
+/public/system/*
+/public/uploads
+.byebug_history
+
+# Flutter
+/build/
+.flutter-plugins
+.packages
+.pubspec.lock
+
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+UserSettings/
+*.pidb*
+*.sln
+*.userprefs
+*.csproj
+*.unityproj
+*.meta
+*.prefs
+sysinfo.txt
