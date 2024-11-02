@@ -1,0 +1,80 @@
+{
+  "semi": true,
+  "arrowParens": "always",
+  "trailingComma": "es5",
+  "bracketSpacing": true,
+  "printWidth": 80,
+  "proseWrap": "preserve",
+  "quoteProps": "consistent",
+  "tabWidth": 2,
+  "endOfLine": "lf",
+  "useTabs": false,
+  "overrides": [
+    {
+      "files": "**/*.ts",
+      "options": {
+        "parser": "typescript"
+      }
+    },
+    {
+      "files": "**/*.js",
+      "options": {
+        "parser": "babel"
+      }
+    },
+    {
+      "files": "**/*.json",
+      "options": {
+        "parser": "json",
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": [
+        "**/*.md"
+      ],
+      "options": {
+        "parser": "markdown"
+      }
+    },
+    {
+      "files": [
+        "**/*.css",
+        "**/*.scss"
+      ],
+      "options": {
+        "parser": "css"
+      }
+    },
+    {
+      "files": [
+        "**/*.html"
+      ],
+      "options": {
+        "parser": "html"
+      }
+    },
+    {
+      "files": [
+        "**/*.yaml",
+        "**/*.yml"
+      ],
+      "options": {
+        "parser": "yaml"
+      }
+    },
+    {
+      "files": [
+        "**/*.cmd",
+        "**/*.bat",
+        "**/*.[cC][mM][dD]",
+        "**/*.[bB][aA][tT]",
+        "**/*.ps1",
+        "**/*.[pP][sS]1"
+      ],
+      "options": {
+        "endOfLine": "crlf"
+      }
+    }
+  ]
+}
