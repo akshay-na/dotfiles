@@ -15,7 +15,7 @@ M.ui = {
 
 -- Theme and highlight configuration
 M.base46 = {
-  theme = "tokyonight", -- You can set this to a preferred theme, like "gruvbox", "tokyonight", etc.
+  theme = "onedark", -- You can set this to a preferred theme, like "gruvbox", "tokyonight", etc.
 
   -- Optional: Override highlights for productivity (e.g., italics for comments)
   hl_override = {
