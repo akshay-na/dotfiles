@@ -2,8 +2,7 @@ alias c='clear'
 alias service-logs="c && kubectl logs --tail=1000 --timestamps -f"
 alias kd="kubectl get deploy,po,svc"
 alias get-node-process="ps -eo pid,lstart,cmd | grep node"
-alias ls="ls -h"
-alias vi="nvim"
+alias ls='ls --color -alh'
 
 ## For windows (wt - windows terminal)
 alias new='wt.exe -w 0 -d "$(pwd)"'
