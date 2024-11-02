@@ -1,40 +1,82 @@
-# nvim-config
-A personal, fully customized Neovim configuration, tailored for an efficient and enhanced coding experience. This setup is built on NvChad, combining robust plugin management and a polished UI to optimize your workflow.
+# Untitled
 
-## Features
-Plugin Management: Powered by NvChad’s modular structure and Packer for plugin organization.
-Custom Mappings: Key mappings to streamline navigation, editing, and project management.
-Optimized for Coding: Preconfigured with language servers, autocompletion, and syntax highlighting.
-UI Enhancements: Sleek UI adjustments to improve readability and interface consistency.
+# Dotfiles Repository
+
+This repository includes a collection of configuration files (dotfiles) to set up a development environment with custom shell, Git, Neovim, and SSH settings. Follow the instructions below to install and configure these files on your system.
+
+## Contents
+
+- `.zshrc`: Zsh configuration with custom aliases and environment setup.
+- `.custom_alias.sh`: Shell script with additional aliases.
+- `.gitconfig` & `.gitignore`: Git configuration and global ignore file.
+- `.prettierrc`: Prettier configuration file.
+- `.tmux.conf`: Configuration for tmux terminal multiplexer.
+- `.config/starship.toml`: Configuration for Starship prompt.
+- `.config/nvim`: Neovim configuration directory with plugins and custom settings.
+- `.ssh/config`: SSH configuration file.
+- `setup_debian.sh`: Script to set up the environment on a Debian-based system.
+
 ## Installation
-### Windows
-If you're using Command Prompt (CMD):
 
-```
-git clone https://github.com/akshay-na/nvim-config %USERPROFILE%\AppData\Local\nvim && nvim
-```
+### 1. Clone the Repository
 
-If you're using PowerShell (pwsh):
-
-```
-git clone https://github.com/akshay-na/nvim-config $ENV:USERPROFILE\AppData\Local\nvim && nvim
+```bash
+git clone <repository-url> ~/dotfiles
+cd ~/dotfiles
 ```
 
-### Linux/Mac
+### 2. Run Setup Script (Debian-Based Systems)
+
+For Debian-based systems, you can use the `setup_debian.sh` script to install essential packages and set up symlinks.
+
+```bash
+bash setup_debian.sh
 ```
-git clone https://github.com/akshay-na/nvim-config ~/.config/nvim && nvim
+
+This will:
+
+- Install necessary packages for development.
+- Symlink configuration files to your home directory.
+
+### 3. Manual Installation
+
+If you’re not using Debian, manually link files to your home directory as follows:
+
+```bash
+ln -s ~/dotfiles/.zshrc ~/.zshrc
+ln -s ~/dotfiles/.gitconfig ~/.gitconfig
+# Repeat for other files as necessary
 ```
 
-## Usage
-- **Launching Neovim:** Simply open Neovim by running nvim in your terminal.
-- **Key Mappings:** Check the mappings.lua file for custom key bindings that enhance navigation and editing.
-- **Plugin Configuration:** Refer to the `plugins/` folder for plugin-specific configurations.
+### 4. Neovim Setup
 
-## Customization
-This configuration is modular, allowing for easy customization. Adjust settings in:
+The Neovim configuration is in `.config/nvim`. To set up Neovim with this configuration:
 
-`init.lua` for core configurations.
-`lua/custom/` for personal tweaks and overrides.
+1. Install Neovim.
+2. Ensure you have [Packer](https://github.com/wbthomason/packer.nvim) installed for managing plugins.
+3. Start Neovim and run `:PackerSync` to install plugins.
 
-## Contributing
-Feel free to fork this repository, add your own configurations, and open pull requests if you think others might benefit from your changes!
+### 5. Starship Prompt
+
+If using Starship for your prompt, link the `starship.toml` configuration:
+
+```bash
+ln -s ~/dotfiles/.config/starship.toml ~/.config/starship.toml
+```
+
+## Custom Aliases and Scripts
+
+- **Aliases**: Additional custom aliases can be found in `.custom_alias.sh`.
+- **Git Aliases**: Git-specific aliases are set in `.gitconfig`.
+
+## SSH Configuration
+
+The SSH configuration in `.ssh/config` provides shortcuts for SSH connections. Ensure proper permissions with:
+
+```bash
+chmod 600 ~/.ssh/config
+```
+
+## License
+
+This repository is licensed under the MIT License. See `LICENSE` for more details.
