@@ -2,7 +2,7 @@
 
 # Update and install prerequisites
 sudo apt update
-sudo apt install -y curl git zsh fzf tmux neovim zoxide
+sudo apt install -y curl git zsh fzf tmux neovim zoxide unzip
 
 # Install nvm and the latest node version
 if ! command -v nvm &>/dev/null; then
@@ -64,6 +64,9 @@ pyenv global "$latest_python"
 
 # Clone nvim configuration
 git clone https://github.com/akshay-na/nvim-config ~/.config/nvim
+
+# Install TPM Tmux plugin manager
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Copy miscellaneous config files
 cp -rf ~/.config/nvim/misc_config/ $HOME
