@@ -1,5 +1,10 @@
 # .zshrc file
 
+[ -f ~/.custom_alias.sh ] && source ~/.custom_alias.sh
+
+# Aliases
+alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
+
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   # If you're using macOS, you'll want this enabled
   eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -78,16 +83,9 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
 export YSU_MESSAGE_POSITION="after"
 
-# Aliases
-alias ls='ls --color -alh'
-alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
-alias vim='nvim'
-alias c='clear'
-
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1
-[ -f ~/.custom_alias.sh ] && source ~/.custom_alias.sh
 
 export NVM_DIR="$HOME/.nvm"
 export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin"
