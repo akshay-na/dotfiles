@@ -1,0 +1,14 @@
+*
+!.config/fontconfig/fonts.conf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-Bold.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-BoldItalic.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-ExtraLight.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-ExtraLightItalic.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-Italic.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-Light.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-LightItalic.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-Regular.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-SemiBold.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-SemiBoldItalic.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-SemiLight.ttf
+!.config/fontconfig/CaskaydiaCoveNerdFontMono-SemiLightItalic.ttf
