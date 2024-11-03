@@ -10,9 +10,6 @@ if ! command -v nvm &>/dev/null; then
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # Load nvm
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
-  # Installs the latest node version
-  nvm install node
 fi
 
 # Install pyenv and the latest Python version
