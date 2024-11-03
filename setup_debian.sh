@@ -45,7 +45,6 @@ fi
 # Try installing Starship using the provided curl command
 if ! command -v starship >/dev/null 2>&1; then
   if yes | sh -c "$(curl -sSL https://starship.rs/install.sh)"; then
-    echo "Starship installed successfully using the curl command."
   else
     # Download the latest Starship release
     download_url=$(curl -s "https://api.github.com/repos/starship/starship/releases/latest" | grep "browser_download_url.*starship-x86_64-unknown-linux-gnu.tar.gz" | cut -d '"' -f 4)
