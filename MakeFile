@@ -1,25 +1,49 @@
-# Makefile for dotfiles management
+# Makefile for Dotfiles Management
+# This Makefile provides an easy interface for managing dotfiles using the `DotMate.sh` script.
 
-.PHONY: all backup stow unstow clean
+# Variables
+SCRIPT := ./DotMate.sh
 
-all: stow          # Default target is to stow all dotfiles
+# Colors for output
+GREEN := \033[1;32m
+YELLOW := \033[1;33m
+RESET := \033[0m
 
-setup:              # Setup the environment with all neccessary tools
-    @echo "Setting up your environment..."
-    ./setup_debian.sh
+# Default target to show available commands and usage
+.PHONY: help
+help:
+	@echo -e "${YELLOW}Usage: make <target>${RESET}"
+	@echo -e "${GREEN}Available targets:${RESET}"
+	@echo "  backup      - Backup existing dotfiles"
+	@echo "  update      - Check for updates in the dotfiles repository"
+	@echo "  install     - Install necessary tools and set up environment"
+	@echo "  stow        - Create symlinks for dotfiles using stow"
+	@echo "  unstow      - Remove symlinks created by stow"
+	@echo "  clean       - Clean up broken symlinks in the home directory"
+	@echo "  help        - Show this help message"
 
-backup:             # Backup existing dotfiles in the target locations
-    @echo "Backing up existing dotfiles..."
-    ./stow-dotfiles.sh backup
+# Targets
 
-stow:               # Stow all dotfiles based on directory structure
-    @echo "Stowing dotfiles..."
-    ./stow-dotfiles.sh stow
+.PHONY: backup
+backup: ## Backup existing dotfiles
+	$(SCRIPT) backup
 
-unstow:             # Unstow all dotfiles, removing symlinks
-    @echo "Unstowing dotfiles..."
-    ./stow-dotfiles.sh unstow
+.PHONY: update
+update: ## Check for updates in the dotfiles repository
+	$(SCRIPT) update
 
-clean:              # Clean up broken symlinks in the target directory
-    @echo "Cleaning broken symlinks..."
-    ./stow-dotfiles.sh clean
+.PHONY: install
+install: ## Install tools and set up environment
+	$(SCRIPT) install
+
+.PHONY: stow
+stow: ## Create symlinks for dotfiles using stow
+	$(SCRIPT) stow
+
+.PHONY: unstow
+unstow: ## Remove symlinks created by stow
+	$(SCRIPT) unstow
+
+.PHONY: clean
+clean: ## Clean up broken symlinks
+	$(SCRIPT) clean
