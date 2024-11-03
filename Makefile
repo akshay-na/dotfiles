@@ -10,9 +10,12 @@ YELLOW := \033[1;33m
 RESET := \033[0m
 
 # Ensure script is executable before running any target
-.PHONY: ensure-executable
+.PHONY: prep
 prep:
 	@chmod +x $(SCRIPT)
+	@chmod 600 ~/dotfiles/gnupg/.gnupg/*
+	@chmod 600 ~/dotfiles/ssh/.ssh/*
+	@chmod 700 ~/dotfiles/ssh/.ssh/sockets*
 
 # Default target to show available commands and usage
 .PHONY: help
@@ -43,7 +46,7 @@ update: prep ## Check for updates in the dotfiles repository
 install: prep ## Install tools and set up environment
 	$(SCRIPT) install
 
-.PHONY: stow
+.PHONY: stow prep
 stow: prep ## Create symlinks for specified dotfiles
 	@$(SCRIPT) stow $(CONFIGS)
 
