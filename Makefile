@@ -13,9 +13,9 @@ RESET := \033[0m
 .PHONY: prep
 prep:
 	@chmod +x $(SCRIPT)
-	@chmod 600 ~/dotfiles/gnupg/.gnupg/*
 	@chmod 600 ~/dotfiles/ssh/.ssh/*
 	@chmod 700 ~/dotfiles/ssh/.ssh/sockets*
+	@chmod 700 ~/dotfiles/gnupg/.gnupg/*
 
 # Default target to show available commands and usage
 .PHONY: help
