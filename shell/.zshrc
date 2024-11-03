@@ -116,7 +116,7 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # Tool Initializations (Starship, Zoxide, Fzf)
 # ---------------------------------------------------------------
 if command -v starship >/dev/null; then
-  eval "$(starship init zsh)" &! # Initialize Starship prompt
+  eval "$(starship init zsh)"  # Initialize Starship prompt
 fi
 
 autoload -Uz compinit && compinit -u &!
