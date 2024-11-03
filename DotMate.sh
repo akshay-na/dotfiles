@@ -31,39 +31,42 @@ backup_dotfiles() {
 
 # Check for updates in the dotfiles repository
 check_dotfiles_update() {
-    # Checks if the dotfiles repository is up-to-date and prompts for update if not
-    cd "$DOTFILES_DIR" || return
-    git fetch origin
-    LOCAL=$(git rev-parse @)
-    REMOTE=$(git rev-parse "@{u}")
+    # Run in a subshell to avoid changing the current directory in the parent shell
+    (
+        # Checks if the dotfiles repository is up-to-date and prompts for update if not
+        cd "$DOTFILES_DIR" || return
+        git fetch origin
+        LOCAL=$(git rev-parse @)
+        REMOTE=$(git rev-parse "@{u}")
 
-    if [ "$LOCAL" != "$REMOTE" ]; then
-        echo "\n🚀 Updates are available for your dotfiles repository!\n"
+        if [ "$LOCAL" != "$REMOTE" ]; then
+            echo "\n🚀 Updates are available for your dotfiles repository!\n"
 
-        # Create a nicely formatted box for the update prompt
-        echo "┌──────────────────────────────────────────────┐"
-        echo "│                                              │"
-        echo "│   🌟 New updates have been detected! 🌟     │"
-        echo "│                                              │"
-        echo "│   Take a moment to review the changes:       │"
-        echo "│                                              │"
-        echo "└──────────────────────────────────────────────┘"
+            # Create a nicely formatted box for the update prompt
+            echo "┌──────────────────────────────────────────────┐"
+            echo "│                                              │"
+            echo "│   🌟 New updates have been detected! 🌟     │"
+            echo "│                                              │"
+            echo "│   Take a moment to review the changes:       │"
+            echo "│                                              │"
+            echo "└──────────────────────────────────────────────┘"
 
-        # Show a summary of incoming changes for better user context
-        echo "\nHere's a summary of new changes:"
-        git log --oneline --decorate --color "$LOCAL..$REMOTE"
+            # Show a summary of incoming changes for better user context
+            echo "\nHere's a summary of new changes:"
+            git log --oneline --decorate --color "$LOCAL..$REMOTE"
 
-        # Prompt for update
-        echo "\nDo you want to update now? (y/n):"
-        read -r REPLY
-        echo # Move to a new line
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git pull
-            echo "✅ Dotfiles repository updated successfully!"
-        else
-            echo "🚫 Update skipped. Remember to update later to stay in sync!"
+            # Prompt for update
+            echo "\nDo you want to update now? (y/n):"
+            read -r REPLY
+            echo # Move to a new line
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                git pull
+                echo "✅ Dotfiles repository updated successfully!"
+            else
+                echo "🚫 Update skipped. Remember to update later to stay in sync!"
+            fi
         fi
-    fi
+    )
 }
 # Install necessary tools and set up environment
 install() {
