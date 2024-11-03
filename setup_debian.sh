@@ -2,7 +2,7 @@
 
 # Update and install prerequisites
 sudo apt update
-sudo apt install -y curl git zsh fzf tmux neovim zoxide unzip
+sudo apt install -y curl git zsh fzf tmux neovim zoxide unzip stow
 
 # Install nvm and the latest node version
 if ! command -v nvm &>/dev/null; then
