@@ -1,145 +1,125 @@
-# Untitled
+# DotMate 🛠️ — Your Companion for Effortless Dotfile Management
 
-# Dotfiles Setup - DotMate.sh 🛠️
-
-Welcome to **DotMate.sh**, a versatile dotfile management tool that helps you back up, update, install, and manage your configuration files. With DotMate, setting up a new system or maintaining dotfile consistency across multiple systems becomes effortless.
-
-## Features 🌟
-
-- **Automated Backups**: Easily back up existing dotfiles to prevent accidental data loss.
-- **Repository Updates**: Keep your dotfiles repository up-to-date with a simple command.
-- **Environment Setup**: Install essential tools and set up your environment for optimal productivity.
-- **Dotfile Management**: Use `stow` for seamless symlink management, making it easy to apply or remove configurations.
-- **Clean-Up**: Identify and clean up broken symlinks, keeping your environment tidy.
+Welcome to **DotMate**, the streamlined solution for managing and syncing dotfiles across multiple systems. Whether you're setting up a new machine, organizing configurations, or maintaining consistency across environments, DotMate simplifies the entire process, saving you time, hassle, and manual work.
 
 ---
 
-## Installation 🚀
+## 🌟 Why DotMate?
 
-1. **Clone the Repository**
+DotMate goes beyond basic dotfile management. Here’s what makes it stand out:
 
-    ```
-    git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
-    cd ~/dotfiles
-    ```
-
-2. **Run DotMate.sh**
-
-    ```
-./DotMate.sh install
-
-    ```
-
-    This command will install essential tools, set up your environment, back up existing configurations, and create symlinks for the dotfiles.
-
+- **Automatic Backups**: DotMate backs up your current configurations automatically, so you’ll never lose a setup.
+- **Seamless Syncing**: Keep your dotfiles synchronized across devices with a single update command.
+- **Fast Environment Setup**: Install essential tools automatically, making new machine setups faster than ever.
+- **Clean Symlink Management with Stow**: Use `stow` to create organized symlinks for all configurations, ensuring a tidy setup.
+- **Simple Clean-Up Tools**: Quickly detect and remove broken symlinks, keeping your environment neat.
 
 ---
 
-## Usage 📋
+## 🚀 Getting Started
 
-Run DotMate with the following commands to perform various tasks:
+### Step 1: Clone the DotMate Repository
 
-- **Backup existing dotfiles**
+Start by cloning the DotMate repository to your home directory (or a preferred location):
 
-    ```
-./DotMate.sh backup
+```bash
+git clone https://github.com/akshay-na/DotMate.git ~/dotfiles
+cd ~/dotfiles
+```
 
-    ```
+### Step 2: Install DotMate
 
-    Backs up current dotfiles to a timestamped directory in `~/dotfiles_backup`.
+Run the setup with:
 
-- **Update repository**
+```bash
+make install
+```
 
-    ```
-./DotMate.sh update
+This command:
 
-    ```
+- **Installs essential tools** for your environment.
+- **Backs up any existing configurations** to prevent accidental overwrites.
+- **Creates symlinks** for dotfiles in the repository for easy configuration management.
 
-    Checks for updates in your dotfiles repository and prompts you to pull the latest changes if available.
+**Need only the symlinks?** Use:
 
-- **Install tools and set up environment**
+```bash
+make stow
+```
 
-    ```
-./DotMate.sh install
-
-    ```
-
-    Installs essential tools and sets up your environment, also handling backup and symlinking of dotfiles.
-
-- **Stow dotfiles**
-
-    ```
-./DotMate.sh stow
-
-    ```
-
-    Creates symlinks for all dotfiles in your repository, applying your configurations.
-
-- **Unstow dotfiles**
-
-    ```
-./DotMate.sh unstow
-
-    ```
-
-    Removes symlinks created by `stow`, reverting to default configurations.
-
-- **Clean broken symlinks**
-
-    ```
-./DotMate.sh clean
-
-    ```
-
-    Deletes broken symlinks in your home directory.
-
-
-### Example Workflow 🌈
-
-1. **Backup** current dotfiles before making changes:
-
-    ```
-./DotMate.sh backup
-
-    ```
-
-2. **Install** essential tools and apply configurations:
-
-    ```
-./DotMate.sh install
-
-    ```
-
-3. **Stow** or **unstow** configurations as needed to customize your setup.
+This command skips tool installation and only creates symlinks for your dotfiles.
 
 ---
 
-## Customization 🧩
+## 📋 Using DotMate
 
-You can modify DotMate.sh to include additional tools or customize paths. The default configuration includes:
+### Update Your Dotfiles
 
-- **Utilities**: `curl`, `git`, `zsh`, `fzf`, `tmux`, `neovim`, `zoxide`, `unzip`, `stow`
-- **Shell**: Automatically sets Zsh as the default shell
+Keeping your dotfiles up-to-date is as simple as running:
+
+```bash
+make update
+```
+
+If you’re using `.bashrc` or `.zshrc` from this repository, DotMate has an **auto-update feature** that notifies you of available updates, so you always stay current.
+
+### Avoid Accidental Overwrites
+
+DotMate automatically backs up any existing configurations in `~/dotfiles_backup/<timestamp>`. So if you run `make install` or `make stow` by mistake, your previous settings are saved, making it easy to revert if needed.
+
+### Selective Configuration with Stow
+
+Apply only the configurations you need with Stow. For example, to set up just the `shell` and `nvim` configurations:
+
+```bash
+make stow CONFIGS="shell nvim"
+```
+
+This flexibility lets you sync only the configurations you want, giving you control over what gets applied to each machine.
 
 ---
 
-## Troubleshooting & Tips 💡
+## 🧩 Customizing Your Dotfiles
 
-- **Permissions**: DotMate sets strict permissions on sensitive files (`.gnupg` and `.ssh/config`). Ensure you have the necessary privileges to modify these.
-- **Restore Backups**: Use your backup directory (`~/dotfiles_backup`) to revert changes if needed.
+DotMate comes with a set of essential configurations, but customization is easy! For personal tweaks without overwriting shared configurations, create a `.<config_name>_local` file. This way, you can keep global settings while adding machine-specific customizations.
+
+### Supported Customizations:
+
+| Configuration File | Local Customization File |
+| --- | --- |
+| `.gitconfig` | `~/.gitconfig_local` |
+| `starship.toml` | `~/.config/starship_local.toml` |
+| `.taskrc` | `~/.taskrc_local` |
+| `.npmrc` | `~/.npmrc_local` |
+| `.bashrc` | `~/.bashrc_local` |
+| `.commonrc` | `~/.commonrc_local` |
+| `.tmux.conf` | `~/.tmux_local.conf` |
+| `.zshrc` | `~/.zshrc_local` |
+
+For example, to add your own Starship prompt configuration, create a `~/.config/starship_local.toml` file and add your customizations there. DotMate will load these local files if they exist, giving you full control.
+
+**Note**: Local files override initial configurations, so double-check before saving to ensure it’s set up the way you want.
 
 ---
 
-## Contributing 🤝
+## 💡 Tips & Troubleshooting
 
-Feel free to contribute! Submit issues or pull requests to enhance DotMate's functionality.
-
----
-
-## License 📜
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+- **Permissions**: DotMate applies strict permissions on sensitive files, like `.gnupg` and `.ssh/config`, to protect your data. Ensure you have permission to edit these files if needed.
+- **Restoring Backups**: Backups are saved in `~/dotfiles_backup/<timestamp>`. To restore a previous configuration, simply copy files from this directory back to your home folder.
+- **Need Help?** Run `make help` to view available DotMate commands and their descriptions.
 
 ---
 
-Happy dotfiling with DotMate! 🎉
+## 🤝 Contributing to DotMate
+
+DotMate is open-source and always welcomes contributions! If you find issues, have feature requests, or want to contribute, please submit an issue or a pull request. Your feedback and contributions help improve DotMate for the community.
+
+---
+
+## 📜 License
+
+DotMate is licensed under the MIT License. See the `LICENSE` file for more details.
+
+---
+
+Take the hassle out of dotfile management and setup with DotMate. 🎉 Get organized, stay consistent, and make dotfiling a breeze!
