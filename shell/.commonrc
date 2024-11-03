@@ -29,7 +29,7 @@ HISTSIZE=10000                                                       # Shell his
 # Function Definitions
 # ---------------------------------------------------------------
 
-# Dotfiles Repository Update Check
+# Dotfiles Repository Update Checker
 check_dotfiles_update() {
   # Checks if the dotfiles repository is up-to-date and prompts for update if not
   cd "$DOTFILES_DIR" || return
@@ -38,11 +38,30 @@ check_dotfiles_update() {
   REMOTE=$(git rev-parse "@{u}")
 
   if [ "$LOCAL" != "$REMOTE" ]; then
-    echo "Updates are available for the dotfiles repository."
-    read -p "Do you want to update now? (y/n): " -n 1 -r
+    echo "\n🚀 Updates are available for your dotfiles repository!\n"
+
+    # Create a nicely formatted box for the update prompt
+    echo "┌──────────────────────────────────────────────┐"
+    echo "│                                              │"
+    echo "│   🌟 New updates have been detected! 🌟     │"
+    echo "│                                              │"
+    echo "│   Take a moment to review the changes:       │"
+    echo "│                                              │"
+    echo "└──────────────────────────────────────────────┘"
+
+    # Show a summary of incoming changes for better user context
+    echo "\nHere's a summary of new changes:"
+    git log --oneline --decorate --color "$LOCAL..$REMOTE"
+
+    # Prompt for update
+    echo "\nDo you want to update now? (y/n):"
+    read -r REPLY
     echo # Move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       git pull
+      echo "✅ Dotfiles repository updated successfully!"
+    else
+      echo "🚫 Update skipped. Remember to update later to stay in sync!"
     fi
   fi
 }

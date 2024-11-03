@@ -30,22 +30,41 @@ backup_dotfiles() {
 }
 
 # Check for updates in the dotfiles repository
-check_for_update() {
-    cd "$DOTFILES_DIR" || exit
+check_dotfiles_update() {
+    # Checks if the dotfiles repository is up-to-date and prompts for update if not
+    cd "$DOTFILES_DIR" || return
     git fetch origin
-    if [ "$(git rev-parse @)" != "$(git rev-parse @{u})" ]; then
-        echo_with_color "$YELLOW" "Updates available for the dotfiles repository."
-        read -p "Do you want to update now? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git pull && echo_with_color "$GREEN" "Repository updated."
-        fi
-    else
-        echo_with_color "$GREEN" "Dotfiles repository is up-to-date."
-    fi
-    cd - >/dev/null || exit
-}
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse "@{u}")
 
+    if [ "$LOCAL" != "$REMOTE" ]; then
+        echo "\n🚀 Updates are available for your dotfiles repository!\n"
+
+        # Create a nicely formatted box for the update prompt
+        echo "┌──────────────────────────────────────────────┐"
+        echo "│                                              │"
+        echo "│   🌟 New updates have been detected! 🌟     │"
+        echo "│                                              │"
+        echo "│   Take a moment to review the changes:       │"
+        echo "│                                              │"
+        echo "└──────────────────────────────────────────────┘"
+
+        # Show a summary of incoming changes for better user context
+        echo "\nHere's a summary of new changes:"
+        git log --oneline --decorate --color "$LOCAL..$REMOTE"
+
+        # Prompt for update
+        echo "\nDo you want to update now? (y/n):"
+        read -r REPLY
+        echo # Move to a new line
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git pull
+            echo "✅ Dotfiles repository updated successfully!"
+        else
+            echo "🚫 Update skipped. Remember to update later to stay in sync!"
+        fi
+    fi
+}
 # Install necessary tools and set up environment
 install() {
     echo_with_color "$GREEN" "Installing tools and setting up environment..."
@@ -122,8 +141,7 @@ backup)
     backup_dotfiles
     ;;
 update)
-    clean_symlinks
-    check_for_update
+    check_dotfiles_update
     ;;
 install)
     install
@@ -131,6 +149,7 @@ install)
     stow_dotfiles
     ;;
 stow)
+    check_dotfiles_update
     shift
     if [ "$#" -gt 0 ]; then
         stow_multiple_dotfiles "$@"
@@ -139,13 +158,13 @@ stow)
     fi
     ;;
 unstow)
-    clean_symlinks
     shift
     if [ "$#" -gt 0 ]; then
         unstow_multiple_dotfiles "$@"
     else
         unstow_dotfiles
     fi
+    clean_symlinks
     ;;
 clean)
     clean_symlinks
