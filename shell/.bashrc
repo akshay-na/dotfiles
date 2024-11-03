@@ -30,12 +30,12 @@ shopt -s histappend                     # Append to history file, avoid overwrit
 
 # Initialize Starship prompt if available
 if command -v starship >/dev/null; then
-  eval "$(starship init bash)"
+  eval "$(starship init bash)" &!
 fi
 
 # Initialize Zoxide for quick directory navigation if available
 if command -v zoxide >/dev/null; then
-  eval "$(zoxide init bash)"
+  eval "$(zoxide init bash)" &!
 fi
 
 # Initialize Fzf if available, with custom completion, key-bindings, and history

@@ -25,6 +25,8 @@ export NVM_DIR="$HOME/.nvm"                                          # NVM direc
 export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
 HISTSIZE=10000                                                       # Shell history size
 
+# Set dir colour to constent across the syste
+export LS_COLORS="di=38;5;75:fi=38;5;252:ln=38;5;141:so=38;5;215:pi=38;5;136:bd=38;5;136:cd=38;5;136:su=38;5;208:sg=38;5;208:tw=38;5;168:ow=38;5;168:st=38;5;168:ex=38;5;114"
 # ---------------------------------------------------------------
 # Function Definitions
 # ---------------------------------------------------------------
@@ -36,10 +38,12 @@ check_dotfiles_update() {
     # Checks if the dotfiles repository is up-to-date and prompts for update if not
     cd "$DOTFILES_DIR" || return
     git fetch origin
-    LOCAL=$(git rev-parse @)
-    REMOTE=$(git rev-parse "@{u}")
 
-    if [ "$LOCAL" != "$REMOTE" ]; then
+    # Check if the local branch is behind the remote branch
+    BEHIND_COUNT=$(git rev-list --count HEAD..origin/$(git rev-parse --abbrev-ref HEAD))
+
+    # If there are commits in the remote that aren't in the local branch, prompt the user
+    if [ "$BEHIND_COUNT" -gt 0 ]; then
       echo "\n🚀 Updates are available for your dotfiles repository!\n"
 
       # Create a nicely formatted box for the update prompt
@@ -69,6 +73,16 @@ check_dotfiles_update() {
   )
 }
 
+# ---------------------------------------------------------------
+# Dotfiles Repository Initialization
+# ---------------------------------------------------------------
+if [ -d "$DOTFILES_DIR" ]; then
+  { check_dotfiles_update; } > "$(tty)" 2>&1 &!
+else
+  # Clone dotfiles repository if not available
+  git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
+fi
+
 # Directory Navigation Helper (using Zoxide)
 fcd() {
   # Quickly navigate to frequently accessed directories using Zoxide
@@ -85,7 +99,7 @@ fcd() {
 
 # Check for and initialize Pyenv
 if command -v pyenv >/dev/null; then
-  eval "$(pyenv init --path >/dev/null 2>&1)"
+  eval "$(pyenv init --path >/dev/null 2>&1)" &!
 else
   # Install Pyenv if not available
   git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
@@ -113,16 +127,6 @@ if [ -d "/opt/homebrew/bin" ]; then
   export PATH="/opt/homebrew/bin:$PATH" # macOS (Homebrew)
 elif [ -d "$HOME/.local/bin" ]; then
   export PATH="$HOME/.local/bin:$PATH" # Linux
-fi
-
-# ---------------------------------------------------------------
-# Dotfiles Repository Initialization
-# ---------------------------------------------------------------
-if [ -d "$DOTFILES_DIR" ]; then
-  check_dotfiles_update
-else
-  # Clone dotfiles repository if not available
-  git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
 fi
 
 # Load custom local common configurations, if available
