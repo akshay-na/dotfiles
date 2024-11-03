@@ -9,6 +9,11 @@ GREEN := \033[1;32m
 YELLOW := \033[1;33m
 RESET := \033[0m
 
+# Ensure script is executable before running any target
+.PHONY: ensure-executable
+prep:
+	@chmod +x $(SCRIPT)
+
 # Default target to show available commands and usage
 .PHONY: help
 help:
@@ -27,25 +32,25 @@ help:
 # Targets
 
 .PHONY: backup
-backup: ## Backup existing dotfiles
+backup: prep ## Backup existing dotfiles
 	$(SCRIPT) backup
 
 .PHONY: update
-update: ## Check for updates in the dotfiles repository
+update: prep ## Check for updates in the dotfiles repository
 	$(SCRIPT) update
 
 .PHONY: install
-install: ## Install tools and set up environment
+install: prep ## Install tools and set up environment
 	$(SCRIPT) install
 
 .PHONY: stow
-stow: ## Create symlinks for specified dotfiles
+stow: prep ## Create symlinks for specified dotfiles
 	@$(SCRIPT) stow $(CONFIGS)
 
 .PHONY: unstow
-unstow: ## Remove symlinks for specified dotfiles
+unstow: prep ## Remove symlinks for specified dotfiles
 	@$(SCRIPT) unstow $(CONFIGS)
 
 .PHONY: clean
-clean: ## Clean up broken symlinks
+clean: prep ## Clean up broken symlinks
 	$(SCRIPT) clean
