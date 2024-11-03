@@ -56,7 +56,7 @@ check_dotfiles_update() {
             git log --oneline --decorate --color "$LOCAL..$REMOTE"
 
             # Prompt for update
-            echo "\nDo you want to update now? (y/n):"
+            echo -e "\nDo you want to update now? (y/n):"
             read -r REPLY
             echo # Move to a new line
             if [[ $REPLY =~ ^[Yy]$ ]]; then
