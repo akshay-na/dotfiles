@@ -22,29 +22,10 @@
 # ---------------------------------------------------------------
 source ~/.commonrc
 
-# Zoxide alias for interactive directory selection with Fzf
-alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
-
 # ---------------------------------------------------------------
 # Path Configuration
 # ---------------------------------------------------------------
-export PATH="/opt/homebrew/bin:$PATH"   # macOS (Homebrew)
-export PATH="$HOME/.local/bin:$PATH"    # Linux
 export YSU_MESSAGE_POSITION="after"                                  # Custom message positioning
-
-# ---------------------------------------------------------------
-# Dotfiles Repository Update Check
-# ---------------------------------------------------------------
-check_dotfiles_update() {
-  git pull
-}
-
-# ---------------------------------------------------------------
-# NVM Version Management Update (if required)
-# ---------------------------------------------------------------
-update_nvm() {
-  cd "$NVM_DIR" && git checkout "$(git describe --abbrev=0 --tags)"
-}
 
 # ---------------------------------------------------------------
 # Zinit Plugin Manager Initialization and Plugins
@@ -60,13 +41,14 @@ fi
 # Source Zinit
 source "${ZINIT_HOME}/zinit.zsh"
 
-# Load Zinit plugins
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-completions
-zinit light zsh-users/zsh-autosuggestions
-zinit light Aloxaf/fzf-tab
-zinit light MichaelAquilina/zsh-you-should-use
-zinit light zsh-users/zsh-history-substring-search
+# Load essential Zinit plugins
+zinit light-mode for \
+  zsh-users/zsh-syntax-highlighting \
+  zsh-users/zsh-completions \
+  zsh-users/zsh-autosuggestions \
+  Aloxaf/fzf-tab \
+  MichaelAquilina/zsh-you-should-use \
+  zsh-users/zsh-history-substring-search
 
 # OMZ (Oh My Zsh) Plugins via Zinit snippets
 zinit snippet OMZP::git
@@ -118,8 +100,6 @@ zstyle ':compinstall:*' skip 'yes'
 zstyle ':autocomplete:*' async true
 zstyle ':completion:*' menu no
 
-autoload -Uz compinit && compinit -u
-
 # Fzf-tab completion preview
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
@@ -132,13 +112,20 @@ zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
 
-
 # ---------------------------------------------------------------
 # Tool Initializations (Starship, Zoxide, Fzf)
 # ---------------------------------------------------------------
-eval "$(starship init zsh)"         # Initialize Starship
-eval "$(zoxide init zsh)"           # Initialize Zoxide
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 # Initialize Fzf if available
+if command -v starship >/dev/null; then
+  eval "$(starship init zsh)" &! # Initialize Starship prompt
+fi
+
+autoload -Uz compinit && compinit -u &!
+
+# Initialize Zoxide for quick directory navigation if available
+if command -v zoxide >/dev/null; then
+  eval "$(zoxide init zsh)" &!  #Initialize Zoxide
+fi
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 &! # Initialize Fzf if available
 
 # ---------------------------------------------------------------
 # Load Additional Local Configurations
