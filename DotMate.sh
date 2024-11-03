@@ -15,13 +15,6 @@ echo_with_color() {
     echo -e "${1}${2}${RESET}"
 }
 
-# Set permissions for sensitive files
-set_permissions() {
-    chmod 700 ~/dotfiles/gnupg/.gnupg
-    chmod 600 ~/dotfiles/gnupg/.gnupg/*
-    chmod 600 ~/dotfiles/ssh/.ssh/config
-}
-
 # Backup existing dotfiles to avoid data loss
 backup_dotfiles() {
     echo_with_color "$GREEN" "Backing up existing dotfiles to $BACKUP_DIR"
@@ -79,7 +72,7 @@ install() {
 stow_dotfiles() {
     echo_with_color "$GREEN" "Stowing dotfiles..."
     for dir in "$DOTFILES_DIR"/*/; do
-        stow -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+        stow --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
     done
 }
 
@@ -106,7 +99,7 @@ stow_multiple_dotfiles() {
 
     for tool in "$@"; do
         echo_with_color "$GREEN" "Stowing $tool..."
-        stow -d "$DOTFILES_DIR" -t "$HOME" "$tool"
+        stow --override=$tool -d "$DOTFILES_DIR" -t "$HOME" "$tool"
     done
 }
 
@@ -126,22 +119,18 @@ unstow_multiple_dotfiles() {
 # Main logic to handle arguments
 case "$1" in
 backup)
-    set_permissions
     backup_dotfiles
     ;;
 update)
     clean_symlinks
-    set_permissions
     check_for_update
     ;;
 install)
-    set_permissions
     install
     backup_dotfiles
     stow_dotfiles
     ;;
 stow)
-    set_permissions
     shift
     if [ "$#" -gt 0 ]; then
         stow_multiple_dotfiles "$@"
