@@ -56,7 +56,14 @@ check_for_update() {
 # Install necessary tools and set up environment
 install() {
     echo_with_color "$GREEN" "Installing tools and setting up environment..."
-    sudo apt update && sudo apt install -y curl git zsh fzf tmux neovim zoxide unzip stow make
+    sudo apt update && sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make
+
+    if ! command -v nvim >/dev/null 2>&1; then
+        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+        sudo rm -rf /opt/nvim
+        sudo tar -C /opt -xzf nvim-linux64.tar.gz
+        rm -rf nvim-linux64.tar.gz
+    fi
 
     # Install Starship if not already installed
     if ! command -v starship >/dev/null 2>&1; then
