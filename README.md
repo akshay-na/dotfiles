@@ -32,6 +32,7 @@ cd ~/dotfiles
 Run the setup with:
 
 ```bash
+sudo apt install make
 make install
 ```
 
