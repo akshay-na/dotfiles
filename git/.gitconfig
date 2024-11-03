@@ -70,7 +70,6 @@
 
 [http]
   sslVerify = true  # Verify SSL certificates
-  sslbackend = schannel  # Use the Schannel SSL backend (for Windows)
 
 [pager]
   diff = true  # Use pager for diff output
