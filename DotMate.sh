@@ -56,7 +56,7 @@ check_for_update() {
 # Install necessary tools and set up environment
 install() {
     echo_with_color "$GREEN" "Installing tools and setting up environment..."
-    sudo apt update && sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make
+    sudo apt update && sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make gcc
 
     if ! command -v nvim >/dev/null 2>&1; then
         curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
