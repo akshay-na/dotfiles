@@ -54,3 +54,6 @@ alias.t="today"  # Shortcut for filtering today's tasks
 
 # Taskwarrior Hooks
 hooks=on
+
+# Include machine-specific configurations if present
+include = "~/.taskrc_local"

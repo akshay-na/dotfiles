@@ -1,0 +1,107 @@
+# ---------------------------------------------------------------
+# Dotfiles Environment Initialization Script
+# ---------------------------------------------------------------
+# Purpose:
+# This script initializes environment settings and tools commonly used across
+# multiple shells (e.g., Zsh and Bash). It includes:
+# - Essential path configurations for tools like Pyenv, NVM, and Homebrew.
+# - Functions for checking and updating the dotfiles repository.
+# - Tool initializations for Pyenv, NVM, and optional Tmux auto-start.
+# - Customizations for improved navigation with Zoxide.
+
+# Usage:
+# Place this file as `.commonrc` in the home directory and source it in `.bashrc`
+# or `.zshrc` for automatic initialization. Ensure tools like Pyenv, NVM, and Tmux
+# are installed for optimal usage. For personal adjustments, add configurations
+# in `.commonrc_local` to keep them separate from core settings.
+# ---------------------------------------------------------------
+
+# ---------------------------------------------------------------
+# Define Environment Variables
+# ---------------------------------------------------------------
+export DOTFILES_DIR="$HOME/dotfiles"                                 # Root directory for dotfiles
+export PYENV_ROOT="$HOME/.pyenv"                                     # Pyenv root directory
+export NVM_DIR="$HOME/.nvm"                                          # NVM directory
+export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
+HISTSIZE=10000                                                       # Shell history size
+
+# ---------------------------------------------------------------
+# Function Definitions
+# ---------------------------------------------------------------
+
+# Dotfiles Repository Update Check
+check_dotfiles_update() {
+  # Checks if the dotfiles repository is up-to-date and prompts for update if not
+  cd "$DOTFILES_DIR" || return
+  git fetch origin
+  LOCAL=$(git rev-parse @)
+  REMOTE=$(git rev-parse "@{u}")
+
+  if [ "$LOCAL" != "$REMOTE" ]; then
+    echo "Updates are available for the dotfiles repository."
+    read -p "Do you want to update now? (y/n): " -n 1 -r
+    echo # Move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      git pull
+    fi
+  fi
+}
+
+# Directory Navigation Helper (using Zoxide)
+fcd() {
+  # Quickly navigate to frequently accessed directories using Zoxide
+  local dir
+  dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
+}
+
+# ---------------------------------------------------------------
+# Initializations and Conditions
+# ---------------------------------------------------------------
+
+# Load custom aliases if available
+[ -f ~/.aliases ] && source ~/.aliases
+
+# Check for and initialize Pyenv
+if command -v pyenv >/dev/null; then
+  eval "$(pyenv init --path)"
+else
+  # Install Pyenv if not available
+  git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
+fi
+
+# Check for and initialize NVM
+if [ -d "$NVM_DIR" ]; then
+  # Load NVM and bash completion if available
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+else
+  # Install NVM if not available
+  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+fi
+
+# Automatically start tmux if not already inside a session
+if command -v tmux >/dev/null 2>&1 && [[ -z "$TMUX" ]]; then
+  tmux attach -t default || tmux new -s default
+fi
+
+# ---------------------------------------------------------------
+# Homebrew Initialization (macOS specific)
+# ---------------------------------------------------------------
+if [ -d "/opt/homebrew/bin" ]; then
+  export PATH="/opt/homebrew/bin:$PATH" # macOS (Homebrew)
+elif [ -d "$HOME/.local/bin" ]; then
+  export PATH="$HOME/.local/bin:$PATH" # Linux
+fi
+
+# ---------------------------------------------------------------
+# Dotfiles Repository Initialization
+# ---------------------------------------------------------------
+if [ -d "$DOTFILES_DIR" ]; then
+  check_dotfiles_update
+else
+  # Clone dotfiles repository if not available
+  git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
+fi
+
+# Load custom local common configurations, if available
+[ -f ~/.commonrc_local ] && source ~/.commonrc_local
