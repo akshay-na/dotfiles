@@ -10,8 +10,45 @@ if [[ -f "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# Set the dir where we want to store the zinit
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}}/.zinit"
+# pyenv initialization and installation if missing
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+export ZINIT_HOME="${XDG_DATA_HOME:-${HOME}}/.zinit"
+
+# nvm initialization and installation if missing
+export NVM_DIR="$HOME/.nvm"
+
+# Check if nvm is installed
+if [ ! -d "$NVM_DIR" ]; then
+  # Download and install nvm
+  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+  cd "$NVM_DIR" && git checkout `git describe --abbrev=0 --tags`
+  popd
+  # Load nvm to make it available in the current session
+  . "$NVM_DIR/nvm.sh"
+fi
+
+# Initialize nvm
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  . "$NVM_DIR/nvm.sh"
+fi
+
+if [ -s "$NVM_DIR/bash_completion" ]; then
+  . "$NVM_DIR/bash_completion"
+fi
+
+# Check if pyenv is installed
+if ! command -v pyenv >/dev/null 2>&1; then
+  # Clone pyenv from GitHub
+  git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
+fi
+
+# Initialize pyenv
+if command -v pyenv >/dev/null; then
+  eval "$(pyenv init --path)"
+fi
+
+
 
 # Download Zinit, if it's not there yet
 if [ ! -d "$ZINIT_HOME" ]; then
