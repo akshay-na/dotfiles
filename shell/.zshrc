@@ -80,9 +80,6 @@ zinit snippet OMZP::aws
 zinit snippet OMZP::kubectx
 zinit snippet OMZP::command-not-found
 
-# Load completions
-autoload -Uz compinit && compinit
-
 # Replay Zinit history quietly
 zinit cdreplay -q
 
@@ -117,8 +114,11 @@ zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache/
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':compinstall:*' skip 'yes'
 zstyle ':autocomplete:*' async true
 zstyle ':completion:*' menu no
+
+autoload -Uz compinit && compinit -u
 
 # Fzf-tab completion preview
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
