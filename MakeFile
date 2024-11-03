@@ -1,0 +1,25 @@
+# Makefile for dotfiles management
+
+.PHONY: all backup stow unstow clean
+
+all: stow          # Default target is to stow all dotfiles
+
+setup:              # Setup the environment with all neccessary tools
+    @echo "Setting up your environment..."
+    ./setup_debian.sh
+
+backup:             # Backup existing dotfiles in the target locations
+    @echo "Backing up existing dotfiles..."
+    ./stow-dotfiles.sh backup
+
+stow:               # Stow all dotfiles based on directory structure
+    @echo "Stowing dotfiles..."
+    ./stow-dotfiles.sh stow
+
+unstow:             # Unstow all dotfiles, removing symlinks
+    @echo "Unstowing dotfiles..."
+    ./stow-dotfiles.sh unstow
+
+clean:              # Clean up broken symlinks in the target directory
+    @echo "Cleaning broken symlinks..."
+    ./stow-dotfiles.sh clean
