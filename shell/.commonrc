@@ -63,7 +63,7 @@ fcd() {
 
 # Check for and initialize Pyenv
 if command -v pyenv >/dev/null; then
-  eval "$(pyenv init --path)"
+  eval "$(pyenv init --path >/dev/null 2>&1)"
 else
   # Install Pyenv if not available
   git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"

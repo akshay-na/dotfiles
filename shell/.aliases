@@ -167,7 +167,7 @@ gitworktree_add() {
 
 # Git semantic commit helper
 gac() {
-  if [ $# -eq 0 ] || [[ "$1" =~ ^-h|--help$ ]]; then
+  if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "Usage: gac <type> <message>"
     echo "Semantic prefixes: c (chore), d (docs), f (feat), r (refactor), s (style), t (test), x (fix)"
     return 1
