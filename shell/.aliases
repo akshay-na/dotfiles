@@ -111,6 +111,20 @@ alias H='wt.exe sp -d "$(pwd)" -H'
 alias cmd='start "" "C:\Windows\system32\cmd.exe"'
 alias bash='start "" "C:\Program Files\Git\git-bash.exe"'
 
+# Check if running in WSL
+if grep -i "WSL" /proc/version &>/dev/null; then
+  # Convert the current directory path from WSL to Windows format
+  alias new='wt.exe -w 0 -d "$(wslpath -w "$(pwd)")"'
+  alias V='wt.exe sp -d "$(wslpath -w "$(pwd)")" -V'
+  alias H='wt.exe sp -d "$(wslpath -w "$(pwd)")" -H'
+else
+  alias new='wt.exe -w 0 -d "$(pwd)"'
+  alias V='wt.exe sp -d "$(pwd)" -V'
+  alias H='wt.exe sp -d "$(pwd)" -H'
+  alias cmd='start "" "C:\Windows\system32\cmd.exe"'
+  alias bash='start "" "C:\Program Files\Git\git-bash.exe"'
+fi
+
 # ---------------------------------------------------------------
 # Path Settings
 # ---------------------------------------------------------------
