@@ -1,82 +1,145 @@
 # Untitled
 
-# Dotfiles Repository
+# Dotfiles Setup - DotMate.sh 🛠️
 
-This repository includes a collection of configuration files (dotfiles) to set up a development environment with custom shell, Git, Neovim, and SSH settings. Follow the instructions below to install and configure these files on your system.
+Welcome to **DotMate.sh**, a versatile dotfile management tool that helps you back up, update, install, and manage your configuration files. With DotMate, setting up a new system or maintaining dotfile consistency across multiple systems becomes effortless.
 
-## Contents
+## Features 🌟
 
-- `.zshrc`: Zsh configuration with custom aliases and environment setup.
-- `.custom_alias.sh`: Shell script with additional aliases.
-- `.gitconfig` & `.gitignore`: Git configuration and global ignore file.
-- `.prettierrc`: Prettier configuration file.
-- `.tmux.conf`: Configuration for tmux terminal multiplexer.
-- `.config/starship.toml`: Configuration for Starship prompt.
-- `.config/nvim`: Neovim configuration directory with plugins and custom settings.
-- `.ssh/config`: SSH configuration file.
-- `setup_debian.sh`: Script to set up the environment on a Debian-based system.
+- **Automated Backups**: Easily back up existing dotfiles to prevent accidental data loss.
+- **Repository Updates**: Keep your dotfiles repository up-to-date with a simple command.
+- **Environment Setup**: Install essential tools and set up your environment for optimal productivity.
+- **Dotfile Management**: Use `stow` for seamless symlink management, making it easy to apply or remove configurations.
+- **Clean-Up**: Identify and clean up broken symlinks, keeping your environment tidy.
 
-## Installation
+---
 
-### 1. Clone the Repository
+## Installation 🚀
 
-```bash
-git clone <repository-url> ~/dotfiles
-cd ~/dotfiles
-```
+1. **Clone the Repository**
 
-### 2. Run Setup Script (Debian-Based Systems)
+    ```
+    git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+    cd ~/dotfiles
+    ```
 
-For Debian-based systems, you can use the `setup_debian.sh` script to install essential packages and set up symlinks.
+2. **Run DotMate.sh**
 
-```bash
-bash setup_debian.sh
-```
+    ```
+./DotMate.sh install
 
-This will:
+    ```
 
-- Install necessary packages for development.
-- Symlink configuration files to your home directory.
+    This command will install essential tools, set up your environment, back up existing configurations, and create symlinks for the dotfiles.
 
-### 3. Manual Installation
 
-If you’re not using Debian, manually link files to your home directory as follows:
+---
 
-```bash
-ln -s ~/dotfiles/.zshrc ~/.zshrc
-ln -s ~/dotfiles/.gitconfig ~/.gitconfig
-# Repeat for other files as necessary
-```
+## Usage 📋
 
-### 4. Neovim Setup
+Run DotMate with the following commands to perform various tasks:
 
-The Neovim configuration is in `.config/nvim`. To set up Neovim with this configuration:
+- **Backup existing dotfiles**
 
-1. Install Neovim.
-2. Ensure you have [Packer](https://github.com/wbthomason/packer.nvim) installed for managing plugins.
-3. Start Neovim and run `:PackerSync` to install plugins.
+    ```
+./DotMate.sh backup
 
-### 5. Starship Prompt
+    ```
 
-If using Starship for your prompt, link the `starship.toml` configuration:
+    Backs up current dotfiles to a timestamped directory in `~/dotfiles_backup`.
 
-```bash
-ln -s ~/dotfiles/.config/starship.toml ~/.config/starship.toml
-```
+- **Update repository**
 
-## Custom Aliases and Scripts
+    ```
+./DotMate.sh update
 
-- **Aliases**: Additional custom aliases can be found in `.custom_alias.sh`.
-- **Git Aliases**: Git-specific aliases are set in `.gitconfig`.
+    ```
 
-## SSH Configuration
+    Checks for updates in your dotfiles repository and prompts you to pull the latest changes if available.
 
-The SSH configuration in `.ssh/config` provides shortcuts for SSH connections. Ensure proper permissions with:
+- **Install tools and set up environment**
 
-```bash
-chmod 600 ~/.ssh/config
-```
+    ```
+./DotMate.sh install
 
-## License
+    ```
 
-This repository is licensed under the MIT License. See `LICENSE` for more details.
+    Installs essential tools and sets up your environment, also handling backup and symlinking of dotfiles.
+
+- **Stow dotfiles**
+
+    ```
+./DotMate.sh stow
+
+    ```
+
+    Creates symlinks for all dotfiles in your repository, applying your configurations.
+
+- **Unstow dotfiles**
+
+    ```
+./DotMate.sh unstow
+
+    ```
+
+    Removes symlinks created by `stow`, reverting to default configurations.
+
+- **Clean broken symlinks**
+
+    ```
+./DotMate.sh clean
+
+    ```
+
+    Deletes broken symlinks in your home directory.
+
+
+### Example Workflow 🌈
+
+1. **Backup** current dotfiles before making changes:
+
+    ```
+./DotMate.sh backup
+
+    ```
+
+2. **Install** essential tools and apply configurations:
+
+    ```
+./DotMate.sh install
+
+    ```
+
+3. **Stow** or **unstow** configurations as needed to customize your setup.
+
+---
+
+## Customization 🧩
+
+You can modify DotMate.sh to include additional tools or customize paths. The default configuration includes:
+
+- **Utilities**: `curl`, `git`, `zsh`, `fzf`, `tmux`, `neovim`, `zoxide`, `unzip`, `stow`
+- **Shell**: Automatically sets Zsh as the default shell
+
+---
+
+## Troubleshooting & Tips 💡
+
+- **Permissions**: DotMate sets strict permissions on sensitive files (`.gnupg` and `.ssh/config`). Ensure you have the necessary privileges to modify these.
+- **Restore Backups**: Use your backup directory (`~/dotfiles_backup`) to revert changes if needed.
+
+---
+
+## Contributing 🤝
+
+Feel free to contribute! Submit issues or pull requests to enhance DotMate's functionality.
+
+---
+
+## License 📜
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+---
+
+Happy dotfiling with DotMate! 🎉

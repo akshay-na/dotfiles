@@ -12,13 +12,15 @@ RESET := \033[0m
 # Default target to show available commands and usage
 .PHONY: help
 help:
-	@echo -e "${YELLOW}Usage: make <target>${RESET}"
+	@echo -e "${YELLOW}Usage: make <target> [CONFIGS=\"tool1 tool2 ...\"]${RESET}"
 	@echo -e "${GREEN}Available targets:${RESET}"
 	@echo "  backup      - Backup existing dotfiles"
 	@echo "  update      - Check for updates in the dotfiles repository"
 	@echo "  install     - Install necessary tools and set up environment"
-	@echo "  stow        - Create symlinks for dotfiles using stow"
-	@echo "  unstow      - Remove symlinks created by stow"
+	@echo "  stow        - Create symlinks for dotfiles using stow. Use CONFIGS to specify specific tools."
+	@echo "                Example: make stow CONFIGS=\"git ssh nvim\""
+	@echo "  unstow      - Remove symlinks created by stow. Use CONFIGS to specify specific tools."
+	@echo "                Example: make unstow CONFIGS=\"git ssh nvim\""
 	@echo "  clean       - Clean up broken symlinks in the home directory"
 	@echo "  help        - Show this help message"
 
@@ -37,12 +39,12 @@ install: ## Install tools and set up environment
 	$(SCRIPT) install
 
 .PHONY: stow
-stow: ## Create symlinks for dotfiles using stow
-	$(SCRIPT) stow
+stow: ## Create symlinks for specified dotfiles
+	@$(SCRIPT) stow $(CONFIGS)
 
 .PHONY: unstow
-unstow: ## Remove symlinks created by stow
-	$(SCRIPT) unstow
+unstow: ## Remove symlinks for specified dotfiles
+	@$(SCRIPT) unstow $(CONFIGS)
 
 .PHONY: clean
 clean: ## Clean up broken symlinks

@@ -90,6 +90,32 @@ clean_symlinks() {
     find ~ -xtype l -delete
 }
 
+# Create symlinks for specific dotfiles (support multiple arguments)
+stow_multiple_dotfiles() {
+    if [ "$#" -eq 0 ]; then
+        echo_with_color "$RED" "No repository or tool specified. Usage: $0 stow <tool1> <tool2> ..."
+        exit 1
+    fi
+
+    for tool in "$@"; do
+        echo_with_color "$GREEN" "Stowing $tool..."
+        stow -d "$DOTFILES_DIR" -t "$HOME" "$tool"
+    done
+}
+
+# Remove symlinks for specific dotfiles (support multiple arguments)
+unstow_multiple_dotfiles() {
+    if [ "$#" -eq 0 ]; then
+        echo_with_color "$RED" "No repository or tool specified. Usage: $0 unstow <tool1> <tool2> ..."
+        exit 1
+    fi
+
+    for tool in "$@"; do
+        echo_with_color "$RED" "Unstowing $tool..."
+        stow -D -d "$DOTFILES_DIR" -t "$HOME" "$tool"
+    done
+}
+
 # Main logic to handle arguments
 case "$1" in
 backup)
@@ -109,11 +135,21 @@ install)
     ;;
 stow)
     set_permissions
-    stow_dotfiles
+    shift
+    if [ "$#" -gt 0 ]; then
+        stow_multiple_dotfiles "$@"
+    else
+        stow_dotfiles
+    fi
     ;;
 unstow)
     clean_symlinks
-    unstow_dotfiles
+    shift
+    if [ "$#" -gt 0 ]; then
+        unstow_multiple_dotfiles "$@"
+    else
+        unstow_dotfiles
+    fi
     ;;
 clean)
     clean_symlinks
