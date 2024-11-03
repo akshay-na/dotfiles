@@ -37,14 +37,6 @@ else
   git clone https://github.com/akshay-na/dotfiles "$HOME/dotfiles"
 fi
 
-rsync -av \
-  --exclude='.git' \
-  --exclude='.gitconfig' \
-  --exclude='.ssh' \
-  --exclude='.gitignore' \
-  --exclude='README.md' \
-  --exclude='LICENSE' ~/dotfiles/ ~/
-
 # Install TPM Tmux plugin manager
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -65,20 +57,7 @@ if ! command -v starship >/dev/null 2>&1; then
   fi
 fi
 
-# Check if Cascadia Code Nerd Font is already installed
-if ! fc-list | grep -qi "CaskaydiaCove Nerd Font Mono"; then
-  # Download and install the Cascadia Code Nerd Font
-  curl -L -o "$HOME/CascadiaCode.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/CascadiaCode.zip"
-  unzip "$HOME/CascadiaCode.zip" -d "$HOME/CascadiaCode" >/dev/null 2>&1
-
-  # Assuming the font is named "CascadiaMono*" in the zip; adjust if different
-  mkdir -p ~/.local/share/fonts
-  cp $HOME/CascadiaCode/CaskaydiaCoveNerdFontMono* ~/.local/share/fonts/
-  fc-cache -f -v >/dev/null 2>&1
-
-  # Clean up the downloaded files
-  rm -rf "$HOME/CascadiaCode.zip" "$HOME/CascadiaCode"
-fi
+fc-cache -f -v >/dev/null 2>&1
 
 # Set zsh as the default shell
 chsh -s $(which zsh)
