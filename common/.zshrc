@@ -1,45 +1,24 @@
-# .zshrc file
-
+# Load custom aliases if available
 [ -f ~/.custom_alias.sh ] && source ~/.custom_alias.sh
 
 # Aliases
 alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
 
+# ---------------------------------------------------------------
+# Homebrew Initialization (macOS specific)
+# ---------------------------------------------------------------
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
-  # If you're using macOS, you'll want this enabled
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# pyenv initialization and installation if missing
+# ---------------------------------------------------------------
+# Pyenv Initialization and Installation
+# ---------------------------------------------------------------
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
-export ZINIT_HOME="${XDG_DATA_HOME:-${HOME}}/.zinit"
 
-# nvm initialization and installation if missing
-export NVM_DIR="$HOME/.nvm"
-
-# Check if nvm is installed
-if [ ! -d "$NVM_DIR" ]; then
-  # Download and install nvm
-  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
-  cd "$NVM_DIR" && git checkout `git describe --abbrev=0 --tags`
-  popd
-  # Load nvm to make it available in the current session
-  . "$NVM_DIR/nvm.sh"
-fi
-
-# Initialize nvm
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  . "$NVM_DIR/nvm.sh"
-fi
-
-if [ -s "$NVM_DIR/bash_completion" ]; then
-  . "$NVM_DIR/bash_completion"
-fi
-
-# Check if pyenv is installed
+# Check if pyenv is installed; if not, clone it from GitHub
 if ! command -v pyenv >/dev/null 2>&1; then
-  # Clone pyenv from GitHub
   git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
 fi
 
@@ -48,9 +27,28 @@ if command -v pyenv >/dev/null; then
   eval "$(pyenv init --path)"
 fi
 
+# ---------------------------------------------------------------
+# NVM (Node Version Manager) Initialization and Installation
+# ---------------------------------------------------------------
+export NVM_DIR="$HOME/.nvm"
 
+# Check if nvm is installed; if not, clone it from GitHub
+if [ ! -d "$NVM_DIR" ]; then
+  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+  cd "$NVM_DIR" && git checkout `git describe --abbrev=0 --tags`
+  popd
+fi
 
-# Download Zinit, if it's not there yet
+# Load nvm and its bash completion if available
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# ---------------------------------------------------------------
+# Zinit Plugin Manager Initialization and Plugins
+# ---------------------------------------------------------------
+export ZINIT_HOME="${XDG_DATA_HOME:-${HOME}}/.zinit"
+
+# Download Zinit if not already installed
 if [ ! -d "$ZINIT_HOME" ]; then
   mkdir -p "$(dirname $ZINIT_HOME)"
   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
@@ -66,33 +64,35 @@ zinit light Aloxaf/fzf-tab
 zinit light MichaelAquilina/zsh-you-should-use
 zinit light zsh-users/zsh-history-substring-search
 
-
-# OMZ plugins with equivalent `zinit` snippets
-zinit snippet OMZP::git            # Git plugin from OMZ
-zinit snippet OMZP::kubectl        # Kubectl plugin from OMZ
-zinit snippet OMZP::npm            # NPM plugin from OMZ
-zinit snippet OMZP::vscode         # VSCode plugin from OMZ
-zinit snippet OMZP::z              # Z plugin from OMZ for directory navigation
-
-# Additional OMZ snippets
-zinit snippet OMZP::sudo              # Adds functionality to re-run commands with `sudo`
-zinit snippet OMZP::archlinux         # Arch Linux plugin for Arch-specific aliases
-zinit snippet OMZP::aws               # AWS plugin for AWS CLI aliases and functions
-zinit snippet OMZP::kubectx           # Kubectx plugin for Kubernetes context switching
-zinit snippet OMZP::command-not-found # Suggests commands when not installed
+# OMZ plugins (via Zinit snippets)
+zinit snippet OMZP::git
+zinit snippet OMZP::kubectl
+zinit snippet OMZP::npm
+zinit snippet OMZP::vscode
+zinit snippet OMZP::z
+zinit snippet OMZP::sudo
+zinit snippet OMZP::archlinux
+zinit snippet OMZP::aws
+zinit snippet OMZP::kubectx
+zinit snippet OMZP::command-not-found
 
 # Load completions
 autoload -Uz compinit && compinit
 
+# Zinit replay history quietly
 zinit cdreplay -q
 
+# ---------------------------------------------------------------
 # Keybindings
+# ---------------------------------------------------------------
 bindkey -e
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 bindkey '^[w' kill-region
 
-# History
+# ---------------------------------------------------------------
+# Shell History Settings
+# ---------------------------------------------------------------
 HISTSIZE=10000
 HISTFILE=~/.zsh_history
 SAVEHIST=$HISTSIZE
@@ -105,7 +105,9 @@ setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
 
-# Completion styling
+# ---------------------------------------------------------------
+# Completion Styling and Options
+# ---------------------------------------------------------------
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache/
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
@@ -118,28 +120,32 @@ zstyle ':vcs_info:git:*:-all-' get-revision true
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
+# ---------------------------------------------------------------
+# Additional Environment Settings
+# ---------------------------------------------------------------
 export YSU_MESSAGE_POSITION="after"
+export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin"
 
+# ---------------------------------------------------------------
+# Initialize Starship, Zoxide, and Fzf if available
+# ---------------------------------------------------------------
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1
 
-export NVM_DIR="$HOME/.nvm"
-export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin"
-
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
-
+# ---------------------------------------------------------------
+# Directory Navigation Helper
+# ---------------------------------------------------------------
 fcd() {
   local dir
   dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
 }
 
-# Automatically start Tmux if not already inside a Tmux session
+# ---------------------------------------------------------------
+# Automatically Start Tmux if Not Already Inside a Session
+# ---------------------------------------------------------------
 if command -v tmux >/dev/null 2>&1; then
-  # Only start Tmux if not already in a Tmux session
   if [[ -z "$TMUX" ]]; then
     tmux attach -t default || tmux new -s default
   fi
 fi
-
