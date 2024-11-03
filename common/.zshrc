@@ -14,6 +14,34 @@ elif [ -d "$HOME/.local/bin" ]; then
 fi
 
 # ---------------------------------------------------------------
+# Dotfile Repo update Check
+# ---------------------------------------------------------------
+# Check for updates in the dotfiles repository
+export DOTFILES_DIR="$HOME/dotfiles" # Root directory containing all dotfiles packages
+
+# Check if the repository already exists
+if [ -d "$DOTFILES_DIR" ]; then
+  # If it exists, navigate to the directory and pull the latest changes
+  cd "$DOTFILES_DIR" && git pull
+  git fetch origin
+  UPSTREAM=${1:-'@{u}'}
+  LOCAL=$(git rev-parse @)
+  REMOTE=$(git rev-parse "$UPSTREAM")
+  if [ "$LOCAL" != "$REMOTE" ]; then
+    echo "Updates are available for the dotfiles repository."
+    read -p "Do you want to update now? (y/n): " -n 1 -r
+    echo # Move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        git pull
+    fi
+  fi
+  popd
+else
+  # If it doesn't exist, clone the repository
+  git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
+fi
+
+# ---------------------------------------------------------------
 # Pyenv Initialization and Installation
 # ---------------------------------------------------------------
 export PYENV_ROOT="$HOME/.pyenv"
