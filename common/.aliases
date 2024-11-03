@@ -1,0 +1,196 @@
+# ---------------------------------------------------------------
+# Custom Aliases and Functions
+# ---------------------------------------------------------------
+# Purpose:
+# This `.aliases` file provides a range of command aliases and functions
+# to streamline frequently used commands. It covers general shortcuts,
+# `kubectl` commands for Kubernetes, `git` commands for version control,
+# `npm` for Node.js package management, and Windows terminal shortcuts.
+
+# Usage:
+# Place this file as `.aliases` in the home directory and source it in `.bashrc` or `.zshrc`.
+# For additional custom aliases, add them in `.custom_alias.sh` as suggested, to avoid modifying this core file.
+# ---------------------------------------------------------------
+
+# General Aliases
+alias c='clear'
+alias ls='ls --color -alh'
+alias open='explorer .' # Open current directory in Windows Explorer
+alias stowall="cd ~/dotfiles && stow *"
+alias unstow="stow -D"
+alias stowls="stow --no -v"
+alias vsc="code ." # Open VSCode in current directory
+
+# ---------------------------------------------------------------
+# Kubectl Aliases
+# ---------------------------------------------------------------
+alias k=kubectl
+alias kca='kubectl --all-namespaces' # Use across all namespaces
+alias kaf='kubectl apply -f'         # Apply resources
+alias keti='kubectl exec -t -i'      # Execute in pod
+alias kcuc='kubectl config use-context'
+alias kgs='kubectl get svc'
+alias kgp='kubectl get pods'
+alias kl='kubectl logs'
+alias kpf="kubectl port-forward"
+alias kgi='kubectl get ingress'
+alias kgcm='kubectl get configmaps'
+alias kgsec='kubectl get secret'
+alias kgd='kubectl get deployment'
+alias kgss='kubectl get statefulset'
+alias kgno='kubectl get nodes'
+alias kgpvc='kubectl get pvc'
+alias kgds='kubectl get daemonset'
+alias kgcj='kubectl get cronjob'
+alias kgj='kubectl get job'
+alias kgns='kubectl get namespaces'
+
+# Specialized Kubectl commands with options
+alias kgpa='kubectl get pods --all-namespaces'
+alias kgpwide='kubectl get pods -o wide'
+alias kgswide='kubectl get svc -o wide'
+alias kga='kubectl get all'
+alias kgaa='kubectl get all --all-namespaces'
+alias klf='kubectl logs -f' # Follow logs
+alias kl1h='kubectl logs --since 1h'
+alias kl1m='kubectl logs --since 1m'
+alias klf1h='kubectl logs --since 1h -f'
+
+# ---------------------------------------------------------------
+# Git Aliases
+# ---------------------------------------------------------------
+alias g='git'
+alias ga='git add'
+alias gaa='git add --all'
+alias gco='git checkout'
+alias gc='git commit -v'
+alias gca='git commit -v --all'
+alias gcm='git commit -m'
+alias gp='git push'
+alias gl='git pull'
+alias gst='git status'
+alias gcl='git clone --recurse-submodules'
+alias gcf='git config --list'
+alias grb='git rebase'
+alias gpr='git pull --rebase'
+alias gpsup='git push --set-upstream origin $(git symbolic-ref --short HEAD)'
+
+# Git Log
+alias glgg='git log --graph'
+alias glola='git log --graph --pretty="%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ar) %C(bold blue)<%an>%Creset" --all'
+alias glo='git log --oneline --decorate'
+alias glod='git log --graph --pretty="%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset"'
+
+# Git Worktree Management
+alias gwt='git worktree'
+alias gwta='git worktree add'
+alias gwtls='git worktree list'
+
+# ---------------------------------------------------------------
+# npm Aliases
+# ---------------------------------------------------------------
+alias npmg='npm install -g'
+alias npmS='npm install -S'
+alias npmD='npm install -D'
+alias npmF='npm install -f'
+alias npmL='npm list'
+alias npmL0='npm ls --depth=0'
+alias npmrd='npm run dev'
+alias npmt='npm test'
+alias npmR='npm run'
+alias npmst='npm start'
+alias npmU='npm update'
+alias npmP='npm publish'
+
+# ---------------------------------------------------------------
+# Windows Terminal Aliases (for Windows)
+# ---------------------------------------------------------------
+alias new='wt.exe -w 0 -d "$(pwd)"'
+alias V='wt.exe sp -d "$(pwd)" -V'
+alias H='wt.exe sp -d "$(pwd)" -H'
+alias cmd='start "" "C:\Windows\system32\cmd.exe"'
+alias bash='start "" "C:\Program Files\Git\git-bash.exe"'
+
+# ---------------------------------------------------------------
+# Path Settings
+# ---------------------------------------------------------------
+export PATH=$PATH:"~/bin":"~/.local/bin"
+
+# ---------------------------------------------------------------
+# Custom Functions
+# ---------------------------------------------------------------
+
+# Delete a branch both locally and remotely
+delete_branch() {
+  branch=$1
+  if git show-ref --verify --quiet refs/heads/$branch; then
+    echo "Deleting $branch from local repo"
+    git branch -d $branch
+  fi
+  if git ls-remote --heads origin $branch | grep $branch; then
+    echo "Deleting $branch from remote repo"
+    git push origin --delete $branch
+  fi
+}
+
+# Add a new worktree for a specific branch
+gitworktree_add() {
+  BRANCH_NAME=$1
+  WORKTREE_PATH="../$BRANCH_NAME"
+  GIT_ROOT=$(git rev-parse --show-toplevel)
+
+  case "$(uname -s)" in
+  MINGW* | CYGWIN*) GIT_ROOT=$(cygpath -u "$GIT_ROOT") ;;
+  esac
+
+  if [ -z "$GIT_ROOT" ]; then
+    echo "Error: Must be run inside a git repository."
+    return 1
+  fi
+
+  cd "$GIT_ROOT"
+  REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH_NAME")
+
+  if [ -z "$REMOTE_BRANCH" ]; then
+    echo "Branch '$BRANCH_NAME' does not exist remotely. Creating..."
+    git checkout -b "$BRANCH_NAME"
+    git push -u origin "$BRANCH_NAME"
+  else
+    echo "Branch '$BRANCH_NAME' exists remotely. Setting up locally..."
+    git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
+  fi
+
+  git worktree add -B "$WORKTREE_PATH" "$BRANCH_NAME"
+  cd "$WORKTREE_PATH"
+  echo "Worktree added for branch '$BRANCH_NAME'."
+}
+
+# Git semantic commit helper
+gac() {
+  if [ $# -eq 0 ] || [[ "$1" =~ ^-h|--help$ ]]; then
+    echo "Usage: gac <type> <message>"
+    echo "Semantic prefixes: c (chore), d (docs), f (feat), r (refactor), s (style), t (test), x (fix)"
+    return 1
+  fi
+
+  case "$1" in
+  c) prefix="chore:" ;;
+  u) prefix="USAPBT-776" ;;
+  d) prefix="docs:" ;;
+  f) prefix="feat:" ;;
+  r) prefix="refactor:" ;;
+  s) prefix="style:" ;;
+  t) prefix="test:" ;;
+  x) prefix="fix:" ;;
+  *)
+    echo "Unknown prefix"
+    return 1
+    ;;
+  esac
+
+  shift
+  git add -A && git commit -m "$prefix $*"
+}
+
+# Directory Navigation with Zoxide and Fzf
+alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
