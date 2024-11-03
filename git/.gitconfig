@@ -116,16 +116,23 @@
   prune = true  # Automatically remove stale worktrees
   recomputeUntracked = true  # Recompute untracked files in worktrees
 
+# Include a separate custom configuration file
+[include]
+    path = ~/.gitconfig_local
+
 ############################################################## CHANGES BASED ON SYSTEM ############################################################
 
-[includeIf "hasconfig:remote.*.url:github.com"]
-  [user]
-    name = YOUR_GITHUB_USERNAME # Set user name for GitHub
-    email = YOUR_GITHUB_EMAIL@users.noreply.github.com # Set email for GitHub
-    signingkey = YOUR_GITHUB_GPG_KEY # Set GPG signing key for GitHub
 
-[includeIf "hasconfig:remote.*.url:gitlab.com"]
-  [user]
-    name = YOUR_GITLAB_USERNAME # Set user name for GitLab
-    email = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
-    signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab
+#Create a new file called .gitconfig_local and make the followign changes there.
+
+# [includeIf "hasconfig:remote.*.url:github.com"]
+#   [user]
+#     name = YOUR_GITHUB_USERNAME # Set user name for GitHub
+#     email = YOUR_GITHUB_EMAIL@users.noreply.github.com # Set email for GitHub
+#     signingkey = YOUR_GITHUB_GPG_KEY # Set GPG signing key for GitHub
+
+# [includeIf "hasconfig:remote.*.url:gitlab.com"]
+#   [user]
+#     name = YOUR_GITLAB_USERNAME # Set user name for GitLab
+#     email = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
+#     signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab

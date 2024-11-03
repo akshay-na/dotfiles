@@ -7,8 +7,10 @@ alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
 # ---------------------------------------------------------------
 # Homebrew Initialization (macOS specific)
 # ---------------------------------------------------------------
-if [[ -f "/opt/homebrew/bin/brew" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+if [ -d "/opt/homebrew/bin" ]; then
+    export PATH="/opt/homebrew/bin:$PATH"  # macOS (Homebrew)
+elif [ -d "$HOME/.local/bin" ]; then
+    export PATH="$HOME/.local/bin:$PATH"   # Linux
 fi
 
 # ---------------------------------------------------------------
@@ -149,3 +151,8 @@ if command -v tmux >/dev/null 2>&1; then
     tmux attach -t default || tmux new -s default
   fi
 fi
+
+# ---------------------------------------------------------------
+# Load Custom config from the local user
+# ---------------------------------------------------------------
+[ -f ~/.zshrc_local ] && source ~/.zshrc_local
