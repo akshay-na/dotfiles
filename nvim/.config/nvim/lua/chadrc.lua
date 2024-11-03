@@ -3,8 +3,8 @@
 ---@class ChadrcConfig
 local M = {}
 
-M.plugins = require "plugins"
-require "plugins.configs"
+M.plugins = pcall(require, "plugins")
+pcall(require, "plugins.configs")
 
 M.ui = {
   statusline = {
@@ -24,12 +24,12 @@ M.base46 = {
   },
 }
 
-M.mappings = require "mappings"
+M.mappings = pcall(require, "mappings")
 
 -- Add any additional configurations here to improve startup efficiency and --
 
-require "options"
-require "configs.autocmds"
-require "configs.clipboard"
+pcall(require, "options")
+pcall(require, "configs.autocmds")
+pcall(require, "configs.clipboard")
 
 return M

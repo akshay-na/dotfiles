@@ -29,7 +29,10 @@ vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
     -- Only open nvim-tree if no file was specified on the command line
     if #vim.fn.argv() == 0 then
-      require("nvim-tree.api").tree.toggle({ focus = false })
+      local status, nvim_tree = pcall(require, "nvim-tree.api")
+      if status then
+        nvim_tree.tree.toggle({ focus = false })
+      end
     end
   end,
 })
