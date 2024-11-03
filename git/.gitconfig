@@ -104,12 +104,6 @@
 [tag]
   gpgSign = true  # Always sign tags with GPG
 
-[url "git@github.com:"]
-  insteadOf = https://github.com/  # Use SSH instead of HTTPS for GitHub
-
-[url "git@gitlab.com:"]
-  insteadOf = https://gitlab.com/  # Use SSH instead of HTTPS for GitLab
-
 [worktree]
   bare = false  # Worktrees are not bare repositories
   clean = true  # Clean worktrees automatically
@@ -124,6 +118,12 @@
 
 
 #Create a new file called .gitconfig_local and make the followign changes there.
+
+# [url "git@github.com:"]
+#   insteadOf = https://github.com/  # Use SSH instead of HTTPS for GitHub
+
+# [url "git@gitlab.com:"]
+#   insteadOf = https://gitlab.com/  # Use SSH instead of HTTPS for GitLab
 
 # [includeIf "hasconfig:remote.*.url:github.com"]
 #   [user]
