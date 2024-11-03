@@ -56,7 +56,7 @@ check_for_update() {
 # Install necessary tools and set up environment
 install() {
     echo_with_color "$GREEN" "Installing tools and setting up environment..."
-    sudo apt update && sudo apt install -y curl git zsh fzf tmux neovim zoxide unzip stow
+    sudo apt update && sudo apt install -y curl git zsh fzf tmux neovim zoxide unzip stow make
 
     # Install Starship if not already installed
     if ! command -v starship >/dev/null 2>&1; then
