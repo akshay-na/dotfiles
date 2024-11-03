@@ -243,3 +243,6 @@ detect_extensions = []
 disabled = false
 detect_files = ["v.mod"]
 detect_extensions = []
+
+# Include machine-specific configurations if present
+include = "~/.config/starship_local.toml"
