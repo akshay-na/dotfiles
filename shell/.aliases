@@ -120,77 +120,124 @@ export PATH=$PATH:"~/bin":"~/.local/bin"
 # Custom Functions
 # ---------------------------------------------------------------
 
-# Delete a branch both locally and remotely
-delete_branch() {
+# Function to delete branch locally and remotely
+function delete_branch() {
   branch=$1
+  # Check if branch exists locally
   if git show-ref --verify --quiet refs/heads/$branch; then
-    echo "Deleting $branch from local repo"
+    # Delete branch locally
+    echo -e "Deleting $branch from local repo"
     git branch -d $branch
   fi
+
+  # Check if branch exists on remote
   if git ls-remote --heads origin $branch | grep $branch; then
-    echo "Deleting $branch from remote repo"
+    # Delete branch on remote
+    echo -e "Deleting $branch from remote repo \n"
     git push origin --delete $branch
   fi
 }
 
-# Add a new worktree for a specific branch
-gitworktree_add() {
+function gitworktree_add() {
+  # Variables
   BRANCH_NAME=$1
   WORKTREE_PATH="../$BRANCH_NAME"
+
+  # Find the root of the git repository
   GIT_ROOT=$(git rev-parse --show-toplevel)
 
+  # Convert to Windows path format if on Git Bash or Cygwin on Windows
   case "$(uname -s)" in
-  MINGW* | CYGWIN*) GIT_ROOT=$(cygpath -u "$GIT_ROOT") ;;
+  MINGW* | CYGWIN*)
+    GIT_ROOT=$(cygpath -u "$GIT_ROOT")
+    ;;
   esac
 
+  # Check if we are inside a git repository
   if [ -z "$GIT_ROOT" ]; then
-    echo "Error: Must be run inside a git repository."
+    echo "Error: This command must be run inside a git repository."
     return 1
   fi
 
   cd "$GIT_ROOT"
+
+  # Check if the branch exists remotely
   REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH_NAME")
 
   if [ -z "$REMOTE_BRANCH" ]; then
-    echo "Branch '$BRANCH_NAME' does not exist remotely. Creating..."
+    # If the branch doesn't exist remotely, create a new branch from the current branch
+    echo "Branch '$BRANCH_NAME' does not exist remotely. Creating a new branch..."
     git checkout -b "$BRANCH_NAME"
     git push -u origin "$BRANCH_NAME"
   else
+    # If the branch exists remotely, set it up locally
     echo "Branch '$BRANCH_NAME' exists remotely. Setting up locally..."
     git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
   fi
 
+  # Add the worktree for the specified branch from the Git root
   git worktree add -B "$WORKTREE_PATH" "$BRANCH_NAME"
+
   cd "$WORKTREE_PATH"
+
   echo "Worktree added for branch '$BRANCH_NAME'."
 }
 
-# Git semantic commit helper
-gac() {
+function gac() {
   if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-    echo "Usage: gac <type> <message>"
-    echo "Semantic prefixes: c (chore), d (docs), f (feat), r (refactor), s (style), t (test), x (fix)"
+    # displays help with
+    # gac | gac -h | gac --help
+    echo "------"
+    echo "Cannot commit without comments. Semantic reminder:"
+    echo "chore:        c"
+    echo "docs:         d"
+    echo "feat:         f"
+    echo "refactor:     r"
+    echo "style:        s"
+    echo "test:         t"
+    echo "fix:          x"
+    echo "------"
     return 1
   fi
 
-  case "$1" in
-  c) prefix="chore:" ;;
-  u) prefix="USAPBT-776" ;;
-  d) prefix="docs:" ;;
-  f) prefix="feat:" ;;
-  r) prefix="refactor:" ;;
-  s) prefix="style:" ;;
-  t) prefix="test:" ;;
-  x) prefix="fix:" ;;
-  *)
-    echo "Unknown prefix"
-    return 1
-    ;;
-  esac
-
+  SHORTCUT=$1
   shift
-  git add -A && git commit -m "$prefix $*"
-}
+  COMMENT=$@
 
-# Directory Navigation with Zoxide and Fzf
-alias zi="zoxide query -ls | fzf | xargs -I {} zoxide cd '{}'"
+  # Chore
+  if [ "$SHORTCUT" = "c" ]; then
+    SHORTCUT="chore:"
+
+  # Chore
+  elif [ "$SHORTCUT" = "u" ]; then
+    SHORTCUT="USAPBT-776"
+
+  # Write or edit existing documentation
+  elif [ "$SHORTCUT" = "d" ]; then
+    SHORTCUT="docs:"
+
+  # Add new feature
+  elif [ "$SHORTCUT" = "f" ]; then
+    SHORTCUT="feat:"
+
+  # Refator your code base
+  elif [ "$SHORTCUT" = "r" ]; then
+    SHORTCUT="refactor:"
+
+  # Styling actions
+  elif [ "$SHORTCUT" = "s" ]; then
+    SHORTCUT="style:"
+
+  # Test your code
+  elif [ "$SHORTCUT" = "t" ]; then
+    SHORTCUT="test:"
+
+  # Working on a feature
+  elif [ "$SHORTCUT" = "x" ]; then
+    SHORTCUT="fix:"
+  fi
+
+  # res with or without semantic
+  git add -A && git commit -m "$SHORTCUT $COMMENT"
+  return 1
+}
