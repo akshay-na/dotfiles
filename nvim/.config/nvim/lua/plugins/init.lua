@@ -1,7 +1,3 @@
--- Import custom configurations for plugins
-local nvim_tree = require "plugins.configs.nvim-tree"
-local telescope = require "plugins.configs.telescope"
-
 -- Plugin configurations
 return {
   -- LSP and Autocompletion
@@ -29,7 +25,7 @@ return {
     "nvim-telescope/telescope.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
     cmd = "Telescope",
-    opts = telescope.opts,
+    opts = require "plugins.configs.telescope".opts,
   },
 
   -- Colorizer for highlighting color codes (Lazy load on BufRead for certain file types)
@@ -63,7 +59,7 @@ return {
   {
     "nvim-tree/nvim-tree.lua",
     dependencies = { "kyazdani42/nvim-web-devicons" },
-    opts = nvim_tree.opts,
+    opts = (require "plugins.configs.nvim-tree").opts,
   },
 
   -- Debugging Console Logs (Lazy load on LSP attach)
