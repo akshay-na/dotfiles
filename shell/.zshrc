@@ -123,7 +123,7 @@ autoload -Uz compinit && compinit -u &!
 
 # Initialize Zoxide for quick directory navigation if available
 if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)" &!  #Initialize Zoxide
+  eval "$(zoxide init zsh)"  #Initialize Zoxide
 fi
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 &! # Initialize Fzf if available
 
