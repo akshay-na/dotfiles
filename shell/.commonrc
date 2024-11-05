@@ -133,5 +133,7 @@ elif [ -d "$HOME/.local/bin" ]; then
   export PATH="$HOME/.local/bin:$PATH" # Linux
 fi
 
+eval $(ssh-agent) 2>/dev/null
+
 # Load custom local common configurations, if available
 [ -f ~/.commonrc_local ] && source ~/.commonrc_local
