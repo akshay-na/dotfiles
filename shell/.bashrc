@@ -35,7 +35,7 @@ fi
 
 # Initialize Zoxide for quick directory navigation if available
 if command -v zoxide >/dev/null; then
-  eval "$(zoxide init bash)" &!
+  eval "$(zoxide init bash)"
 fi
 
 # Initialize Fzf if available, with custom completion, key-bindings, and history
