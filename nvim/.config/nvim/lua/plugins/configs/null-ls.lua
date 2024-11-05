@@ -1,7 +1,5 @@
 -- File: ~/.config/nvim/lua/plugins/configs/null-ls.lua
 
-local null_ls = require("null-ls")
-
 local status, null_ls = pcall(require, "null-ls")
 if status then
   null_ls.setup({
