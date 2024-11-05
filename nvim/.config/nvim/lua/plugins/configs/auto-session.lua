@@ -18,7 +18,6 @@ if status then
 
     -- Automatically clean up outdated sessions
     auto_session_create_enabled = true,                             -- Automatically create sessions for each directory
-    auto_session_allowed_dirs = { "~/projects" },                   -- Only save sessions in specific directories
     auto_session_root_dir = vim.fn.stdpath("data") .. "/sessions/", -- Set custom directory for sessions
 
     -- Optional: Automatically delete old sessions after a number of days
