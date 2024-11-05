@@ -17,10 +17,6 @@ map({ "n", "i", "v" }, "<C-s>", "<cmd> w <CR>", { desc = "Save file" })
 map("n", "ga", "<Plug>(EasyAlign)", { desc = "Align text" })
 map("x", "ga", "<Plug>(EasyAlign)", { desc = "Align text in visual mode" })
 
--- Harpoon for quick file navigation
-map("n", "<leader>a", ":lua require('harpoon.mark').add_file()<CR>", opts)
-map("n", "<leader>e", ":lua require('harpoon.ui').toggle_quick_menu()<CR>", opts)
-
 -- Set keymap for bypassing auto-formatting and organizing imports (Ctrl + Shift + S)
 map('n', '<C-S-s>',
   [[:lua vim.lsp.buf.formatting_sync(nil, 1000)<CR>:lua vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true })<CR>]],
