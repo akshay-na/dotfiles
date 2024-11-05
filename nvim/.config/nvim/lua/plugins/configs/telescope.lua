@@ -29,17 +29,6 @@ M.opts = {
       horizontal = { mirror = false },
       vertical = { mirror = false },
     },
-    -- Mapping for common actions to improve accessibility
-    mappings = {
-      i = {                                                               -- Insert mode mappings
-        ["<C-u>"] = false,                                                -- Clear the prompt with Ctrl+u
-        ["<C-d>"] = require('telescope.actions').delete_buffer,           -- Close buffer with Ctrl+d
-      },
-      n = {                                                               -- Normal mode mappings
-        ["<C-q>"] = require('telescope.actions').send_selected_to_qflist, -- Send selected items to quickfix list
-        ["<C-x>"] = require('telescope.actions').select_horizontal,       -- Open selection in horizontal split
-      },
-    },
   },
   pickers = {
     -- Set up default options for file and text search
@@ -51,11 +40,6 @@ M.opts = {
     },
   },
 }
-
--- Setup function to configure Telescope with the defined options
-M.setup = function()
-  require("telescope").setup(M.opts)
-end
 
 -- Return the module table
 return M

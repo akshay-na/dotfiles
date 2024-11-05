@@ -3,8 +3,12 @@
 ---@class ChadrcConfig
 local M = {}
 
-M.plugins = pcall(require, "plugins")
-pcall(require, "plugins.configs")
+local status, plugins = pcall(require, "plugins")
+if status then
+  M.plugins = plugins
+else
+  error("Plugins Configuration not found")
+end
 
 M.ui = {
   statusline = {
@@ -24,7 +28,17 @@ M.base46 = {
   },
 }
 
-M.mappings = pcall(require, "mappings")
+local status, plugin_configs = pcall(require, "plugins.configs")
+if not status then
+  error("Plugins Configuration not found")
+end
+
+local status, mappings = pcall(require, "mappings")
+if status then
+  M.mappings = mappings
+else
+  error("Custom Mapping not found")
+end
 
 -- Add any additional configurations here to improve startup efficiency and --
 
