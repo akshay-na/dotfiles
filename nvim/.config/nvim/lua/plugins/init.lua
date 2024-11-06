@@ -20,6 +20,23 @@ return {
     cmd = { "Git", "Gstatus", "Gcommit" },
   },
 
+  -- Github Copilot
+  {
+    'github/copilot.vim',
+    lazy = true, -- Loads plugin only when needed
+    config = function()
+      -- Recommended: Set keymaps for GitHub Copilot
+      vim.g.copilot_no_tab_map = true -- Disable automatic Tab mapping
+      vim.api.nvim_set_keymap("i", "<C-l>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
+
+      -- Set Copilot suggestion display mode and other options
+      vim.g.copilot_assume_mapped = true
+      vim.g.copilot_filetypes = {
+        ["*"] = true, -- Enable Copilot for all file types
+      }
+    end,
+  },
+
   -- Telescope (Load only on command)
   {
     "nvim-telescope/telescope.nvim",

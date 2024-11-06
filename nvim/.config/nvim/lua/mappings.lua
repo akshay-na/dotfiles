@@ -8,7 +8,7 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
 map("n", ";", ":", { desc = "CMD enter command mode" })
-map("i", "jk", "<ESC>")
+map("i", "ad", "<ESC>")
 
 -- Save file with Ctrl-s in normal, insert, and visual modes
 map({ "n", "i", "v" }, "<C-s>", "<cmd> w <CR>", { desc = "Save file" })
