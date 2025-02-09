@@ -137,18 +137,6 @@ fi
 # Load Local Configurations
 # ---------------------------------------------------------------
 
-if [ -f ~/.npmrc_local ]; then
-    if command -v npm &> /dev/null; then
-        npm config import ~/.npmrc_local
-    fi
-    if command -v yarn &> /dev/null; then
-        yarn config set --home npmAuthToken "$(grep _authToken ~/.npmrc_local | cut -d '=' -f2)"
-    fi
-    if command -v pnpm &> /dev/null; then
-        pnpm config import ~/.npmrc_local
-    fi
-fi
-
 eval $(ssh-agent) >/dev/null 2>&1
 
 # Load custom local common configurations, if available

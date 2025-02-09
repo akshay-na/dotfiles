@@ -13,9 +13,17 @@ RESET := \033[0m
 .PHONY: prep
 prep:
 	@chmod +x $(SCRIPT)
-	@chmod 600 "~/dotfiles/ssh/.ssh/*"
-	@chmod 700 "~/dotfiles/ssh/.ssh/sockets*"
-	@chmod 700 "~/dotfiles/gnupg/.gnupg/*"
+	@if [ -d "$(HOME)/dotfiles/ssh/.ssh" ]; then \
+	    chmod 600 $(HOME)/dotfiles/ssh/.ssh/*; \
+	    chmod 700 $(HOME)/dotfiles/ssh/.ssh/sockets* 2>/dev/null; \
+	else \
+	    echo "Warning: $(HOME)/dotfiles/ssh/.ssh does not exist, skipping SSH permissions."; \
+	fi
+	@if [ -d "$(HOME)/dotfiles/gnupg/.gnupg" ]; then \
+	    chmod 700 $(HOME)/dotfiles/gnupg/.gnupg/*; \
+	else \
+	    echo "Warning: $(HOME)/dotfiles/gnupg/.gnupg does not exist, skipping GPG permissions."; \
+	fi
 
 # Default target to show available commands and usage
 .PHONY: help
