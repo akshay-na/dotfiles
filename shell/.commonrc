@@ -49,7 +49,7 @@ check_dotfiles_update() {
       # Create a nicely formatted box for the update prompt
       echo "┌──────────────────────────────────────────────┐"
       echo "│                                              │"
-      echo "│   🌟 New updates have been detected! 🌟     │"
+      echo "│   🌟 New updates have been detected! 🌟       │"
       echo "│                                              │"
       echo "│   Take a moment to review the changes:       │"
       echo "│                                              │"
@@ -149,7 +149,7 @@ if [ -f ~/.npmrc_local ]; then
     fi
 fi
 
-eval $(ssh-agent) 2>/dev/null
+eval $(ssh-agent) >/dev/null 2>&1
 
 # Load custom local common configurations, if available
 [ -f ~/.commonrc_local ] && source ~/.commonrc_local
