@@ -79,7 +79,7 @@ check_dotfiles_update() {
 # Dotfiles Repository Initialization
 # ---------------------------------------------------------------
 if [ -d "$DOTFILES_DIR" ]; then
-  { check_dotfiles_update; } > "$(tty)" 2>&1 &!
+  { check_dotfiles_update; } > "$(tty)"
 else
   # Clone dotfiles repository if not available
   git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
@@ -131,6 +131,22 @@ if [ -d "/opt/homebrew/bin" ]; then
   export PATH="/opt/homebrew/bin:$PATH" # macOS (Homebrew)
 elif [ -d "$HOME/.local/bin" ]; then
   export PATH="$HOME/.local/bin:$PATH" # Linux
+fi
+
+# ---------------------------------------------------------------
+# Load Local Configurations
+# ---------------------------------------------------------------
+
+if [ -f ~/.npmrc_local ]; then
+    if command -v npm &> /dev/null; then
+        npm config import ~/.npmrc_local
+    fi
+    if command -v yarn &> /dev/null; then
+        yarn config set --home npmAuthToken "$(grep _authToken ~/.npmrc_local | cut -d '=' -f2)"
+    fi
+    if command -v pnpm &> /dev/null; then
+        pnpm config import ~/.npmrc_local
+    fi
 fi
 
 eval $(ssh-agent) 2>/dev/null
