@@ -19,12 +19,6 @@ prep:
 	else \
 	    echo "Warning: $(HOME)/dotfiles/ssh/.ssh does not exist, skipping SSH permissions."; \
 	fi
-	@if [ -d "$(HOME)/dotfiles/gnupg/.gnupg" ]; then \
-	    chmod 700 $(HOME)/dotfiles/gnupg/.gnupg; \
-	    chmod 600 $(HOME)/dotfiles/gnupg/.gnupg/* 2>/dev/null; \
-	else \
-	    echo "Warning: $(HOME)/dotfiles/gnupg/.gnupg does not exist, skipping GPG permissions."; \
-	fi
 
 # Default target to show available commands and usage
 .PHONY: help
