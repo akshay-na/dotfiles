@@ -1,8 +1,1 @@
-*
-!.config/starship.toml
-.aliases
-.bashrc
-.commonrc
-.tmux.conf
-.wezterm.lua
-.zshrc
+

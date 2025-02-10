@@ -1,0 +1,60 @@
+# Alacritty Configuration File (TOML)
+
+[general]
+import = [
+    "~/.config/alacritty/themes/themes/alabaster_dark.toml"
+]
+
+[font]
+size = 15.0
+
+[font.normal]
+family = "CaskaydiaMono Nerd Font"
+style = "Regular"
+
+[font.bold]
+family = "CaskaydiaMono Nerd Font"
+style = "Bold"
+
+[font.italic]
+family = "CaskaydiaMono Nerd Font"
+style = "Italic"
+
+[window]
+padding = { x = 10, y = 10 }
+opacity = 0.85  # Semi-transparent background
+blur = true  # Enable blur effect if your compositor supports it
+
+[cursor]
+thickness = 0.15  # Slightly thinner cursor for better visibility
+blink_interval = 400  # Faster blinking
+unfocused_hollow = true
+
+[cursor.style]
+shape = "Block"
+blinking = "On"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[selection]
+save_to_clipboard = true
+
+[env]
+TERM = "xterm-256color"
+
+[mouse]
+hide_when_typing = true
+
+[debug]
+persistent_logging = false
+log_level = "Warn"
+print_events = false
+
+[keyboard]
+bindings = [
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+  { key = "Return", mods = "Alt", action = "ToggleFullscreen" }
+]
