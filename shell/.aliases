@@ -208,48 +208,54 @@ function gac() {
     echo "style:        s"
     echo "test:         t"
     echo "fix:          x"
+    echo "perf:         p"
+    echo "ci:           i"
+    echo "build:        b"
+    echo "revert:       v"
+    echo "security:     sec"
+    echo "localization: l10n"
+    echo "internationalization: i18n"
     echo "------"
+    echo "Use -a to amend the previous commit."
     return 1
+  fi
+
+  AMEND=false
+
+  if [ "$1" = "-a" ]; then
+    AMEND=true
+    shift
   fi
 
   SHORTCUT=$1
   shift
   COMMENT=$@
 
-  # Chore
-  if [ "$SHORTCUT" = "c" ]; then
-    SHORTCUT="chore:"
+  case "$SHORTCUT" in
+    c) SHORTCUT="chore:" ;;
+    d) SHORTCUT="docs:" ;;
+    f) SHORTCUT="feat:" ;;
+    r) SHORTCUT="refactor:" ;;
+    s) SHORTCUT="style:" ;;
+    t) SHORTCUT="test:" ;;
+    x) SHORTCUT="fix:" ;;
+    p) SHORTCUT="perf:" ;;  # Performance improvements
+    i) SHORTCUT="ci:" ;;  # Continuous Integration changes
+    b) SHORTCUT="build:" ;;  # Build system changes
+    v) SHORTCUT="revert:" ;;  # Revert previous commits
+    sec) SHORTCUT="security:" ;;  # Security updates
+    l10n) SHORTCUT="localization:" ;;  # Localization updates
+    i18n) SHORTCUT="internationalization:" ;;  # Internationalization changes
+  esac
 
-  # Chore
-  elif [ "$SHORTCUT" = "u" ]; then
-    SHORTCUT="USAPBT-776"
+  git add -A
 
-  # Write or edit existing documentation
-  elif [ "$SHORTCUT" = "d" ]; then
-    SHORTCUT="docs:"
-
-  # Add new feature
-  elif [ "$SHORTCUT" = "f" ]; then
-    SHORTCUT="feat:"
-
-  # Refator your code base
-  elif [ "$SHORTCUT" = "r" ]; then
-    SHORTCUT="refactor:"
-
-  # Styling actions
-  elif [ "$SHORTCUT" = "s" ]; then
-    SHORTCUT="style:"
-
-  # Test your code
-  elif [ "$SHORTCUT" = "t" ]; then
-    SHORTCUT="test:"
-
-  # Working on a feature
-  elif [ "$SHORTCUT" = "x" ]; then
-    SHORTCUT="fix:"
+  if [ "$AMEND" = true ]; then
+    git commit --amend -m "$SHORTCUT $COMMENT"
+  else
+    git commit -m "$SHORTCUT $COMMENT"
   fi
 
-  # res with or without semantic
-  git add -A && git commit -m "$SHORTCUT $COMMENT"
   return 1
 }
+
