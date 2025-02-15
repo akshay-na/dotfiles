@@ -14,7 +14,7 @@ RESET := \033[0m
 prep:
 	@chmod +x $(SCRIPT)
 	@if [ -d "$(HOME)/dotfiles/ssh/.ssh" ]; then \
-	    chmod 600 $(HOME)/dotfiles/ssh/.ssh/*; \
+	    chmod 700 $(HOME)/dotfiles/ssh/.ssh/*; \
 	    chmod 700 $(HOME)/dotfiles/ssh/.ssh/sockets/* 2>/dev/null; \
 	else \
 	    echo "Warning: $(HOME)/dotfiles/ssh/.ssh does not exist, skipping SSH permissions."; \
