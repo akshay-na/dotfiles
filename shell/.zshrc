@@ -132,3 +132,9 @@ fi
 # ---------------------------------------------------------------
 [ -f ~/.aliases_local ] && source ~/.aliases_local
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
+
+# ---------------------------------------------------------------
+# Update Zinit Plugins
+# ---------------------------------------------------------------
+zinit self-update         # Update Zinit itself to the latest version
+zinit update --parallel   # Update all Zinit-managed plugins in parallel for efficiency
