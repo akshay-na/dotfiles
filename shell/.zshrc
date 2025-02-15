@@ -48,7 +48,8 @@ zinit light-mode for \
   zsh-users/zsh-autosuggestions \
   Aloxaf/fzf-tab \
   MichaelAquilina/zsh-you-should-use \
-  zsh-users/zsh-history-substring-search
+  zsh-users/zsh-history-substring-search \
+  sunlei/zsh-ssh
 
 # OMZ (Oh My Zsh) Plugins via Zinit snippets
 zinit snippet OMZP::git
