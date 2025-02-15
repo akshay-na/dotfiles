@@ -56,8 +56,8 @@ print_events = false
 bindings = [
   { key = "V", mods = "Control|Shift", action = "Paste" },
   { key = "C", mods = "Control|Shift", action = "Copy" },
-  { key = "Right", mods = "Alt", chars = "\e[1;3C" },
-  { key = "Left", mods = "Alt", chars = "\e[1;3D" },
-  { key = "Back", mods = "Alt", chars = "\x1b\x7f" },
-  { key = "Delete", mods = "Alt", chars = "\x1b[3;3~" }
+  { key = "Right", mods = "Alt", chars = "\u001b[1;3C" },
+  { key = "Left", mods = "Alt", chars = "\u001b[1;3D" },
+  { key = "Back", mods = "Alt", chars = "\u001b\u007f" },
+  { key = "Delete", mods = "Alt", chars = "\u001b[3;3~" }
 ]
