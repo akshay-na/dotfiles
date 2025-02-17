@@ -128,6 +128,11 @@ if command -v zoxide >/dev/null; then
 fi
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 &! # Initialize Fzf if available
 
+# Set WORDCHARS to only include specific punctuation.
+# This means that when deleting or navigating words, characters
+# not in this list (like "/") are treated as boundaries.
+WORDCHARS=".~&!#$%^[](){}<>"
+
 # ---------------------------------------------------------------
 # Load Additional Local Configurations
 # ---------------------------------------------------------------
