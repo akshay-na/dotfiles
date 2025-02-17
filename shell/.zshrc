@@ -142,5 +142,10 @@ WORDCHARS=".~&!#$%^[](){}<>"
 # ---------------------------------------------------------------
 # Update Zinit Plugins
 # ---------------------------------------------------------------
-nohup zinit self-update         # Update Zinit itself to the latest version
-nohup zinit update --parallel 30   # Update all Zinit-managed plugins in parallel for efficiency
+# Update Zinit itself without any terminal output
+nohup zinit self-update > /dev/null 2>&1 &
+disown
+
+# Update all Zinit-managed plugins in parallel without any terminal output
+nohup zinit update --parallel 30 > /dev/null 2>&1 &
+disown
