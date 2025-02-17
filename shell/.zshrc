@@ -143,4 +143,4 @@ WORDCHARS=".~&!#$%^[](){}<>"
 # Update Zinit Plugins
 # ---------------------------------------------------------------
 zinit self-update         # Update Zinit itself to the latest version
-zinit update --parallel   # Update all Zinit-managed plugins in parallel for efficiency
+zinit update              # Update all Zinit-managed plugins
