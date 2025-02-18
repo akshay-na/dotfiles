@@ -55,11 +55,16 @@ zinit light-mode for \
 zinit snippet OMZP::git
 zinit snippet OMZP::kubectl
 zinit snippet OMZP::npm
+zinit snippet OMZP::nvm
+zinit snippet OMZP::terraform
 zinit snippet OMZP::vscode
 zinit snippet OMZP::z
 zinit snippet OMZP::sudo
 zinit snippet OMZP::archlinux
 zinit snippet OMZP::aws
+zinit snippet OMZP::azure
+zinit snippet OMZP::brew
+zinit snippet OMZP::gcloud
 zinit snippet OMZP::kubectx
 zinit snippet OMZP::command-not-found
 
