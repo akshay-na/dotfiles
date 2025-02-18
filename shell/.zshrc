@@ -162,7 +162,7 @@ WORDCHARS=".~&!#$%^[](){}<>"
 # ------------------------------------------------------------------------------
 # If you want to replace or augment existing commands with the new tools:
 alias cat="bat"
-alias ls="eza -lhaH --git --color=auto --group-directories-first --icons --sort=filename"
+alias ls="eza -lhaH --color=auto --group-directories-first --icons --sort=filename"
 alias grep="rg --color=auto --hidden --smart-case"
 alias find="fd --hidden --exclude .git"
 
