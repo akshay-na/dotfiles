@@ -1,47 +1,47 @@
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Zsh Environment Initialization Script
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Purpose:
-# This script customizes the Zsh environment by:
-# - Setting up path configurations and aliases.
-# - Managing plugins via Zinit.
-# - Configuring history options and keybindings.
-# - Initializing various tools (Starship, Zoxide, Fzf).
-# - Loading additional local configurations if present.
-# ---------------------------------------------------------------
-
+#   - Sets up Zsh environment, paths, and aliases.
+#   - Manages plugins via Zinit.
+#   - Configures history options and keybindings.
+#   - Initializes various tools (Starship, Zoxide, Fzf).
+#   - Loads additional local config if present.
+#
 # Usage:
-# Place this file in the home directory as `.zshrc`. Make sure to install necessary plugins
-# and tools such as Starship, Zoxide, and Fzf for complete functionality. For local customizations,
-# define additional configurations in `.aliases_local` or `.zshrc_local` as needed.
-# ---------------------------------------------------------------
+#   - Place this file in $HOME as ~/.zshrc.
+#   - Ensure required tools (Starship, Zoxide, Fzf) and plugins are installed.
+#   - Local overrides: create ~/.aliases_local or ~/.zshrc_local if desired.
+# ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
+# 1. Source Common Configuration
+# ------------------------------------------------------------------------------
+[ -f ~/.commonrc ] && source ~/.commonrc
 
-# ---------------------------------------------------------------
-# Source Common Configuration and Aliases
-# ---------------------------------------------------------------
-source ~/.commonrc
+# ------------------------------------------------------------------------------
+# 2. Path / Environment Variables
+# ------------------------------------------------------------------------------
+export YSU_MESSAGE_POSITION="after"  # Example custom env var
 
-# ---------------------------------------------------------------
-# Path Configuration
-# ---------------------------------------------------------------
-export YSU_MESSAGE_POSITION="after"                                  # Custom message positioning
-
-# ---------------------------------------------------------------
-# Zinit Plugin Manager Initialization and Plugins
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 3. Zinit Plugin Manager Setup
+# ------------------------------------------------------------------------------
 export ZINIT_HOME="${XDG_DATA_HOME:-$HOME}/.zinit"
 
 # Install Zinit if not already installed
 if [ ! -d "$ZINIT_HOME" ]; then
-  mkdir -p "$(dirname $ZINIT_HOME)"
+  mkdir -p "$(dirname "$ZINIT_HOME")"
   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
 
 # Source Zinit
 source "${ZINIT_HOME}/zinit.zsh"
 
-# Load essential Zinit plugins
+# ------------------------------------------------------------------------------
+# 4. Zinit Plugin Loads
+# ------------------------------------------------------------------------------
+# Load essential plugins
 zinit light-mode for \
   zsh-users/zsh-syntax-highlighting \
   zsh-users/zsh-completions \
@@ -51,7 +51,7 @@ zinit light-mode for \
   zsh-users/zsh-history-substring-search \
   sunlei/zsh-ssh
 
-# OMZ (Oh My Zsh) Plugins via Zinit snippets
+# Oh My Zsh plugin snippets via Zinit
 zinit snippet OMZP::git
 zinit snippet OMZP::kubectl
 zinit snippet OMZP::npm
@@ -63,89 +63,125 @@ zinit snippet OMZP::aws
 zinit snippet OMZP::kubectx
 zinit snippet OMZP::command-not-found
 
-# Replay Zinit history quietly
+# Replay Zinit's plugin history quietly
 zinit cdreplay -q
 
-# ---------------------------------------------------------------
-# Keybindings
-# ---------------------------------------------------------------
-bindkey -e
+# ------------------------------------------------------------------------------
+# 5. Keybindings
+# ------------------------------------------------------------------------------
+bindkey -e                           # Use Emacs-style keybindings
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
-bindkey '^[w' kill-region
+bindkey '^[w' kill-region            # Example custom binding
 
-# ---------------------------------------------------------------
-# Zsh History Settings
-# ---------------------------------------------------------------
-HISTFILE=~/.zsh_history
-SAVEHIST=$HISTSIZE
-HISTDUP=erase
+# ------------------------------------------------------------------------------
+# 6. Zsh Options & History Settings
+# ------------------------------------------------------------------------------
+HISTFILE=~/.zsh_history              # Where to store history
+SAVEHIST=$HISTSIZE                   # Number of history lines to save
+HISTDUP=erase                        # Erase oldest duplicate when a command is repeated
 
-# History options
-setopt appendhistory           # Append to history file
-setopt sharehistory            # Share history between sessions
-setopt hist_ignore_space       # Ignore commands with leading spaces
-setopt hist_ignore_all_dups    # Ignore all duplicates in history
-setopt hist_save_no_dups       # Prevent duplicate entries when saving
-setopt hist_ignore_dups        # Ignore duplicate entries during the session
-setopt hist_find_no_dups       # Ignore duplicates during history search
+# History-related setopts
+setopt appendhistory                 # Append commands to $HISTFILE rather than overwrite
+setopt sharehistory                  # Share command history between sessions
+setopt inc_append_history            # Immediately append commands to history file
+setopt hist_ignore_space             # Don't record commands that start with a space
+setopt hist_ignore_all_dups          # Remove older matching commands from history
+setopt hist_save_no_dups             # Never write duplicate entries to $HISTFILE
+setopt hist_ignore_dups              # Don't store command if it matches the previous one
+setopt hist_find_no_dups             # Skip duplicates when searching history
 
-# ---------------------------------------------------------------
-# Completion Styling and Options
-# ---------------------------------------------------------------
+# Other shell options
+setopt auto_cd                       # "cd dir" by just typing "dir"
+setopt auto_pushd                    # Push to directory stack on cd
+setopt extended_glob                 # Enable advanced globbing
+setopt correct_all                   # Correct command spelling for the entire line
+setopt multios                       # Allow multiple redirections (e.g. echo foo >file1 >file2)
+setopt glob_dots                     # Include dotfiles in glob expansion
+setopt check_jobs                    # Warn about running/stopped jobs when exiting
+
+# Initialize and run compinit quietly in the background
+autoload -Uz compinit bashcompinit
+
+# ------------------------------------------------------------------------------
+# 7. Completion Styling and Options
+# ------------------------------------------------------------------------------
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache/
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' matcher-list \
+  'm:{a-zA-Z}={A-Za-z}' \
+  'r:|.=* r:|=*' \
+  'm:{[:digit:]}={[:digit:]}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':compinstall:*' skip 'yes'
 zstyle ':autocomplete:*' async true
-zstyle ':completion:*' menu no
+zstyle ':completion:*:functions' ignored-patterns '_*'
+zstyle ':completion:*:descriptions' format '%B-- %d --%b'
+zstyle ':completion:*:default' list-grouped true
+zstyle ':completion:*:*:*:*:descriptions' group-name ''
+zstyle ':completion:*:default' menu yes select
+zstyle ':completion:*:approximate:*' max-errors 2
 
-# Fzf-tab completion preview
+
+# fzf-tab previews
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
 # Git VCS info styling
 zstyle ':vcs_info:git:*:-all-' get-revision true
 
-# Docker-specific completion options
+# Docker-specific completion
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
+bashcompinit &!
+compinit -u -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump" &!
 
-# ---------------------------------------------------------------
-# Tool Initializations (Starship, Zoxide, Fzf)
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 8. Tool Initializations (Starship, Zoxide, Fzf, etc.)
+# ------------------------------------------------------------------------------
+# Starship prompt
 if command -v starship >/dev/null; then
-  eval "$(starship init zsh)"  # Initialize Starship prompt
+  eval "$(starship init zsh)"
 fi
 
-autoload -Uz compinit && compinit -u &!
-
-# Initialize Zoxide for quick directory navigation if available
+# Zoxide for quick directory jumping
 if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)"  #Initialize Zoxide
+  eval "$(zoxide init zsh)"
 fi
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 &! # Initialize Fzf if available
 
-# Set WORDCHARS to only include specific punctuation.
-# This means that when deleting or navigating words, characters
-# not in this list (like "/") are treated as boundaries.
+# Fzf initialization (if installed)
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 &!
+
+# Set WORDCHARS to treat certain punctuation as part of words
+# (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)
 WORDCHARS=".~&!#$%^[](){}<>"
 
-# ---------------------------------------------------------------
-# Load Additional Local Configurations
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 9. Aliases for Convenient Usage (Optional)
+# ------------------------------------------------------------------------------
+# If you want to replace or augment existing commands with the new tools:
+alias cat="bat"
+alias ls="exa -lh --color=auto --group-directories-first"
+alias grep="rg --color=auto --hidden --smart-case"
+alias find="fd --hidden --exclude .git"
+
+# ------------------------------------------------------------------------------
+# 10. Local Overrides
+# ------------------------------------------------------------------------------
 [ -f ~/.aliases_local ] && source ~/.aliases_local
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
 
-# ---------------------------------------------------------------
-# Update Zinit Plugins
-# ---------------------------------------------------------------
-# Update Zinit itself without any terminal output
+# ------------------------------------------------------------------------------
+# 11. Background Plugin Updates
+# ------------------------------------------------------------------------------
+# Update Zinit itself silently
 nohup zinit self-update > /dev/null 2>&1 &
 disown
 
-# Update all Zinit-managed plugins in parallel without any terminal output
+# Update all Zinit-managed plugins in parallel silently
 nohup zinit update --parallel 30 > /dev/null 2>&1 &
 disown
+
+# End of ~/.zshrc
+# ------------------------------------------------------------------------------
