@@ -162,7 +162,7 @@ WORDCHARS=".~&!#$%^[](){}<>"
 # ------------------------------------------------------------------------------
 # If you want to replace or augment existing commands with the new tools:
 alias cat="bat"
-alias ls="exa -lh --color=auto --group-directories-first"
+alias ls="eza -lhaH --git --color=auto --group-directories-first --icons --sort=filename"
 alias grep="rg --color=auto --hidden --smart-case"
 alias find="fd --hidden --exclude .git"
 
@@ -176,12 +176,8 @@ alias find="fd --hidden --exclude .git"
 # 11. Background Plugin Updates
 # ------------------------------------------------------------------------------
 # Update Zinit itself silently
-nohup zinit self-update > /dev/null 2>&1 &
-disown
-
-# Update all Zinit-managed plugins in parallel silently
-nohup zinit update --parallel 30 > /dev/null 2>&1 &
-disown
+zinit self-update &> /dev/null &!
+zinit update --parallel 30 &> /dev/null &!
 
 # End of ~/.zshrc
 # ------------------------------------------------------------------------------
