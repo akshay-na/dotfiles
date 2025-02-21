@@ -126,11 +126,18 @@ zstyle ':completion:*:default' list-grouped true
 zstyle ':completion:*:*:*:*:descriptions' group-name ''
 zstyle ':completion:*:default' menu yes select
 zstyle ':completion:*:approximate:*' max-errors 2
+zstyle ':completion:*' menu select
+zstyle ':completion:*' insert-unambiguous yes
 
+# Fzf-tab settings
+zstyle ':fzf-tab:complete:(cd|ls|z|zoxide|mv|cp|rm|fd|rg|find|__zoxide_z):*' fzf-preview 'ls --color=auto -lhA --group-directories-first "$realpath"'
+if command -v eza &>/dev/null; then
+  zstyle ':fzf-tab:complete:(cd|ls|z|zoxide|mv|cp|rm|fd|rg|find|__zoxide_z):*' fzf-preview 'eza --icons --color=auto -lAgh --group-directories-first "$realpath"'
+fi
 
-# fzf-tab previews
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+zstyle ':fzf-tab:*' single true
+zstyle ':fzf-tab:*' trigger-start ''
+zstyle ':fzf-tab:*' fzf-minimum-chars 2  # Adjust if needed
 
 # Git VCS info styling
 zstyle ':vcs_info:git:*:-all-' get-revision true
