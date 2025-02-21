@@ -1,47 +1,40 @@
 {
-  // See https://go.microsoft.com/fwlink/?LinkId=733558
-  // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Install All Recommended Extensions",
-      "type": "shell",
-      "windows": {
-        "command": "foreach ($ext in (Get-Content -Raw .vscode/extensions.json | ConvertFrom-Json).recommendations) { Write-Host Installing $ext; code --install-extension $ext; }"
-      },
-      "linux": {
-        "command": "cat .vscode/extensions.json | jq -r .recommendations[] | xargs -n 1 code --install-extension"
-      },
-      "mac": {
-        "command": "cat .vscode/extensions.json | jq -r .recommendations[] | xargs -n 1 code --install-extension"
-      },
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
-      "presentation": {
-        "reveal": "silent"
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "Merge settings.json with User Settings",
       "type": "shell",
+      "command": "echo",
+      "args": ["Running merge-settings script..."],
       "windows": {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .vscode\\merge-settings.ps1"
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-Command",
+          "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; ${workspaceFolder}\\.vscode\\merge-settings.ps1"
+        ]
       },
       "linux": {
-        "command": "bash .vscode/merge-settings.sh"
+        "command": "/bin/bash",
+        "args": [
+          "-c",
+          "chmod +x ${workspaceFolder}/.vscode/merge-settings.sh && ${workspaceFolder}/.vscode/merge-settings.sh"
+        ]
       },
       "mac": {
-        "command": "bash .vscode/merge-settings.sh"
+        "command": "/bin/bash",
+        "args": [
+          "-c",
+          "chmod +x ${workspaceFolder}/.vscode/merge-settings.sh && ${workspaceFolder}/.vscode/merge-settings.sh"
+        ]
       },
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
-      "presentation": {
-        "reveal": "silent"
-      },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
