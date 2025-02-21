@@ -121,7 +121,7 @@ fi
 
 # Automatically start tmux if not already inside a session
 if command -v tmux >/dev/null 2>&1 && [[ -z "$TMUX" ]]; then
-  tmux has-session -t default 2>/dev/null && tmux attach -t default || tmux new -s default
+  tmux attach -t default || tmux new -s default
 fi
 
 # ---------------------------------------------------------------
