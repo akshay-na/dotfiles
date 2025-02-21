@@ -106,12 +106,36 @@ setopt correct_all                   # Correct command spelling for the entire l
 setopt multios                       # Allow multiple redirections (e.g. echo foo >file1 >file2)
 setopt glob_dots                     # Include dotfiles in glob expansion
 setopt check_jobs                    # Warn about running/stopped jobs when exiting
+setopt extendedglob                  # Enable Extended Globbing
 
 # Initialize and run compinit quietly in the background
 autoload -Uz compinit bashcompinit
 
 # ------------------------------------------------------------------------------
-# 7. Completion Styling and Options
+# 7. Aliases for Convenient Usage (Optional)
+# ------------------------------------------------------------------------------
+# If you want to replace or augment existing commands with the new tools:
+if command -v bat &> /dev/null; then
+    alias cat="bat --paging=never"
+fi
+
+# Check if 'eza' exists before aliasing 'ls'
+if command -v eza &> /dev/null; then
+    alias ls="eza -lhagH --color=auto --group-directories-first --icons --sort=filename"
+fi
+
+# Check if 'rg' (ripgrep) exists before aliasing 'grep'
+if command -v rg &> /dev/null; then
+    alias grep="rg --color=auto --hidden --smart-case"
+fi
+
+# Check if 'fd' exists before aliasing 'find'
+if command -v fd &> /dev/null; then
+    alias find="fd --hidden --exclude .git --exclude node_modules --exclude .pnpm-store --exclude .yarn --exclude yarn-cache --exclude .yarnrc --exclude .pnp.cjs --exclude .pnp.js --exclude .pnp.loader.mjs --exclude .next --exclude out --exclude dist --exclude build"
+fi
+
+# ------------------------------------------------------------------------------
+# 8. Completion Styling and Options
 # ------------------------------------------------------------------------------
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache/
@@ -123,23 +147,17 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':compinstall:*' skip 'yes'
 zstyle ':autocomplete:*' async true
 zstyle ':completion:*:functions' ignored-patterns '_*'
-zstyle ':completion:*:descriptions' format '%B-- %d --%b'
 zstyle ':completion:*:default' list-grouped true
-zstyle ':completion:*:*:*:*:descriptions' group-name ''
-zstyle ':completion:*:default' menu yes select
-zstyle ':completion:*:approximate:*' max-errors 2
-zstyle ':completion:*' menu select
-zstyle ':completion:*' insert-unambiguous yes
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*' menu no
 
 # Fzf-tab settings
-zstyle ':fzf-tab:complete:(cd|ls|z|zoxide|mv|cp|rm|fd|rg|find|__zoxide_z):*' fzf-preview 'ls --color=auto -lhA --group-directories-first "$realpath"'
-if command -v eza &>/dev/null; then
-  zstyle ':fzf-tab:complete:(cd|ls|z|zoxide|mv|cp|rm|fd|rg|find|__zoxide_z):*' fzf-preview 'eza --icons --color=auto -lAgh --group-directories-first "$realpath"'
-fi
-
 zstyle ':fzf-tab:*' single true
 zstyle ':fzf-tab:*' trigger-start ''
-zstyle ':fzf-tab:*' fzf-minimum-chars 2  # Adjust if needed
+zstyle ':fzf-tab:*' switch-group '<' '>'
+zstyle ':fzf-tab:*' fzf-minimum-chars 2
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
 
 # Git VCS info styling
 zstyle ':vcs_info:git:*:-all-' get-revision true
@@ -152,7 +170,7 @@ bashcompinit &!
 compinit -u -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump" &!
 
 # ------------------------------------------------------------------------------
-# 8. Tool Initializations (Starship, Zoxide, Fzf, etc.)
+# 9. Tool Initializations (Starship, Zoxide, Fzf, etc.)
 # ------------------------------------------------------------------------------
 # Starship prompt
 if command -v starship >/dev/null; then
@@ -170,29 +188,6 @@ fi
 # Set WORDCHARS to treat certain punctuation as part of words
 # (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)
 WORDCHARS=".~&!#$%^[](){}<>"
-
-# ------------------------------------------------------------------------------
-# 9. Aliases for Convenient Usage (Optional)
-# ------------------------------------------------------------------------------
-# If you want to replace or augment existing commands with the new tools:
-if command -v bat &> /dev/null; then
-    alias cat="bat --paging=never"
-fi
-
-# Check if 'eza' exists before aliasing 'ls'
-if command -v eza &> /dev/null; then
-    alias ls="eza -lhaH --color=auto --group-directories-first --icons --sort=filename"
-fi
-
-# Check if 'rg' (ripgrep) exists before aliasing 'grep'
-if command -v rg &> /dev/null; then
-    alias grep="rg --color=auto --hidden --smart-case"
-fi
-
-# Check if 'fd' exists before aliasing 'find'
-if command -v fd &> /dev/null; then
-    alias find="fd --hidden --exclude .git --exclude node_modules --exclude .pnpm-store --exclude .yarn --exclude yarn-cache --exclude .yarnrc --exclude .pnp.cjs --exclude .pnp.js --exclude .pnp.loader.mjs --exclude .next --exclude out --exclude dist --exclude build"
-fi
 
 # ------------------------------------------------------------------------------
 # 10. Local Overrides
