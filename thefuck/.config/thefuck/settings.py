@@ -1,26 +1,27 @@
-# The Fuck settings file
-#
-# The rules are defined as in the example bellow:
-#
-# rules = ['cd_parent', 'git_push', 'python_command', 'sudo']
-#
-# The default values are as follows. Uncomment and change to fit your needs.
-# See https://github.com/nvbn/thefuck#settings for more information.
-#
+rules = [<const: All rules enabled>]  # Enable all rules
+exclude_rules = ['rm_dir', 'fsck', 'rm']  # Exclude risky commands
 
-# rules = [<const: All rules enabled>]
-# exclude_rules = []
-# wait_command = 3
-# require_confirmation = True
-# no_colors = False
-# debug = False
-# priority = {}
-# history_limit = None
-# alter_history = True
-# wait_slow_command = 15
-# slow_commands = ['lein', 'react-native', 'gradle', './gradlew', 'vagrant']
-# repeat = False
-# instant_mode = False
-# num_close_matches = 3
-# env = {'LC_ALL': 'C', 'LANG': 'C', 'GIT_TRACE': '1'}
-# excluded_search_path_prefixes = []
+wait_command = 2  # Reduce waiting time
+require_confirmation = False  # Auto-correct without confirmation
+no_colors = False  # Keep colors for readability
+debug = False  # Disable debugging unless troubleshooting
+
+priority = {
+    'git_push': 100,  # Prioritize fixing Git push issues
+    'sudo': 90,  # Prioritize sudo-related fixes
+    'cd_parent': 80,  # Prioritize fixing directory movement
+}
+
+history_limit = 500  # Increase history limit for better suggestions
+alter_history = True  # Apply fixed command to shell history
+
+wait_slow_command = 10  # Reduce wait time for slow commands
+slow_commands = ['lein', 'react-native', 'gradle', './gradlew', 'vagrant', 'docker-compose']
+
+repeat = False  # Avoid repeating incorrect fixes
+instant_mode = True  # Apply fixes instantly if unambiguous
+num_close_matches = 5  # Improve accuracy with more suggestions
+
+env = {'LC_ALL': 'C', 'LANG': 'C', 'GIT_TRACE': '1'}  # Keep consistent env
+
+excluded_search_path_prefixes = ['/snap', '/nix', '/opt']  # Exclude irrelevant system paths
