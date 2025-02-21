@@ -75,7 +75,6 @@ check_dotfiles_update() {
 # Install necessary tools and set up environment
 install() {
     echo_with_color "$GREEN" "Installing tools and setting up environment..."
-    sudo apt update && sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make gcc
 
     if ! command -v nvim >/dev/null 2>&1; then
         curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
@@ -89,8 +88,57 @@ install() {
         curl -sSL https://starship.rs/install.sh | sh || echo_with_color "$RED" "Error installing Starship."
     fi
 
-    fc-cache -f -v >/dev/null 2>&1
     chsh -s "$(which zsh)"
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo_with_color "$YELLOW" "Detected macOS..."
+
+        # Ensure Homebrew is installed
+        if ! command -v brew >/dev/null 2>&1; then
+            echo_with_color "$YELLOW" "Homebrew not found. Installing..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
+
+        echo_with_color "$YELLOW" "Tapping homebrew/cask-fonts..."
+        brew tap homebrew/cask-fonts
+
+        echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
+        brew install \
+            tmux \
+            fzf \
+            ripgrep \
+            exa \
+            wget \
+            bat \
+            coreutils \
+            fontconfig
+
+        echo_with_color "$GREEN" "macOS setup complete!"
+
+    elif command -v apt >/dev/null 2>&1; then
+        echo_with_color "$YELLOW" "Detected Linux with apt..."
+
+        echo_with_color "$YELLOW" "Updating apt and installing base packages..."
+        sudo apt update
+        sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make gcc wget ripgrep exa bat coreutils
+
+        # --- bat (aliased as cat) ---
+        echo_with_color "$YELLOW" "Installing bat..."
+        # Some distros call the binary 'batcat'
+        if [[ ! -x "$(command -v bat)" && -x "$(command -v batcat)" ]]; then
+            sudo ln -sf /usr/bin/batcat /usr/local/bin/bat
+        fi
+
+        echo_with_color "$GREEN" "Linux setup complete!"
+
+    else
+        echo_with_color "$RED" "Unsupported OS or package manager."
+        echo_with_color "$RED" "This script supports macOS (Homebrew) or Debian/Ubuntu (apt). Please install the required things manually"
+        exit 1
+    fi
+
+    fc-cache -f -v >/dev/null 2>&1
+
     echo_with_color "$GREEN" "Setup complete! Restart your terminal to apply changes."
 }
 
