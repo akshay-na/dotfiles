@@ -175,10 +175,24 @@ WORDCHARS=".~&!#$%^[](){}<>"
 # 9. Aliases for Convenient Usage (Optional)
 # ------------------------------------------------------------------------------
 # If you want to replace or augment existing commands with the new tools:
-alias cat="bat"
-alias ls="eza -lhaH --color=auto --group-directories-first --icons --sort=filename"
-alias grep="rg --color=auto --hidden --smart-case"
-alias find="fd --hidden --exclude .git"
+if command -v bat &> /dev/null; then
+    alias cat="bat --paging=never"
+fi
+
+# Check if 'eza' exists before aliasing 'ls'
+if command -v eza &> /dev/null; then
+    alias ls="eza -lhaH --color=auto --group-directories-first --icons --sort=filename"
+fi
+
+# Check if 'rg' (ripgrep) exists before aliasing 'grep'
+if command -v rg &> /dev/null; then
+    alias grep="rg --color=auto --hidden --smart-case"
+fi
+
+# Check if 'fd' exists before aliasing 'find'
+if command -v fd &> /dev/null; then
+    alias find="fd --hidden --exclude .git --exclude node_modules --exclude .pnpm-store --exclude .yarn --exclude yarn-cache --exclude .yarnrc --exclude .pnp.cjs --exclude .pnp.js --exclude .pnp.loader.mjs --exclude .next --exclude out --exclude dist --exclude build"
+fi
 
 # ------------------------------------------------------------------------------
 # 10. Local Overrides
