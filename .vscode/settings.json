@@ -1,0 +1,345 @@
+{
+  // ───────────────────────────────────────────────────────────────────────
+  // UI & Theming
+  // ───────────────────────────────────────────────────────────────────────
+  "workbench.colorTheme": "One Dark Pro",
+  "workbench.iconTheme": "material-icon-theme",
+  "material-icon-theme.activeIconPack": "nest",
+  "workbench.sideBar.location": "right",
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.editor.enablePreview": false,
+  "workbench.list.smoothScrolling": true,
+  "workbench.editor.empty.hint": "hidden",
+  "editor.stickyScroll.enabled": true,
+  "material-icon-theme.folders.associations": {
+    "infrastructure": "Cluster",
+    "stripe": "Resource"
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Editor Configuration
+  // ───────────────────────────────────────────────────────────────────────
+  "editor.fontFamily": "CaskaydiaMono Nerd Font Mono",
+  "editor.fontSize": 15,
+  "editor.fontLigatures": true,
+  "editor.cursorBlinking": "expand",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.minimap.enabled": false,
+  "editor.smoothScrolling": true,
+  "editor.renderWhitespace": "all",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.inlineSuggest.enabled": true,
+  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrapColumn": 120,
+  "editor.trimAutoWhitespace": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always"
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Terminal Configuration
+  // ───────────────────────────────────────────────────────────────────────
+  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font Mono",
+  "terminal.integrated.fontWeight": "normal",
+  "terminal.integrated.fontWeightBold": "normal",
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+
+  // ───────────────────────────────────────────────────────────────────────
+  // File Management
+  // ───────────────────────────────────────────────────────────────────────
+  // Files Settings
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "window.confirmSaveUntitledWorkspace": false,
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/._*": true,
+    "**/.git": true,
+    "**/.hg": true,
+    "**/.svn": true,
+    "**/CVS": true,
+    "**/Thumbs.db": true
+  },
+  "files.associations": {
+    "*.sol": "solidity",
+    ".gitconfig": "ini",
+    "config": "ini",
+    "*.env*": "dotenv",
+    "*.eslintrc": "jsonc",
+    "*.prettierrc": "jsonc",
+    "*.babelrc": "jsonc",
+    "*.stylelintrc": "jsonc",
+    "*.toml": "toml",
+    "*.yml": "yaml",
+    "*.yaml": "yaml",
+    "Dockerfile*": "dockerfile",
+    "Jenkinsfile*": "groovy",
+    "*.mdx": "markdown",
+    "*.tsx": "typescriptreact",
+    "*.jsx": "javascriptreact",
+    "*.jsonc": "jsonc"
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Explorer Settings
+  // ───────────────────────────────────────────────────────────────────────
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Extensions & Plugins
+  // ───────────────────────────────────────────────────────────────────────
+  "trailing-spaces.trimOnSave": true,
+  "rewrap.autoWrap.enabled": true,
+  "indenticator.color.dark": "#999",
+  "indenticator.inner.color.dark": "#62fcb2",
+  "search.useGlobalIgnoreFiles": true,
+  "git.ignoreWindowsGit27Warning": true,
+  "betterAlign.surroundSpace": {
+    "colon": [0, 1],
+    "assignment": [1, 1],
+    "arrow": [1, 1],
+    "comment": 2
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Formatting Configuration for Specific Languages
+  // ───────────────────────────────────────────────────────────────────────
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[dotenv]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[properties]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[ignore]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Language-Specific Configurations
+  // ───────────────────────────────────────────────────────────────────────
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "project-relative",
+  "typescript.preferences.quoteStyle": "auto",
+  "typescript.suggest.paths": true,
+  "typescript.suggest.completeFunctionCalls": true,
+  "typescript.format.insertSpaceBeforeFunctionParenthesis": true,
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "typescript.inlayHints.variableTypes.enabled": true,
+  "typescript.inlayHints.enumMemberValues.enabled": true,
+  "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
+  "typescript.disableAutomaticTypeAcquisition": false,
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/node_modules/**"
+  ],
+
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "javascript.preferences.importModuleSpecifier": "project-relative",
+  "javascript.suggest.paths": true,
+  "javascript.suggest.completeFunctionCalls": true,
+  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+  "javascript.inlayHints.parameterNames.enabled": "all",
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Linting, Error Display & AI Assistance
+  // ───────────────────────────────────────────────────────────────────────
+  "errorLens.statusBarIconsEnabled": true,
+  "errorLens.enabled": true,
+  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+  "errorLens.fontSize": "90%",
+  "errorLens.gutterIconsEnabled": true,
+  "errorLens.gutterIconSize": "auto",
+  "errorLens.messageMaxChars": 120,
+  "errorLens.messageBackgroundMode": "line",
+  "errorLens.scrollbarHackEnabled": false,
+  "errorLens.followCursor": "allLines",
+  "errorLens.gutterIconSet": "emoji",
+  "errorLens.exclude": [],
+
+  // ───────────────────────────────────────────────────────────────────────
+  // GitHub Copilot Privacy & Security
+  // ───────────────────────────────────────────────────────────────────────
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": false,
+    "markdown": true
+  },
+  "github.copilot.advanced": {
+    "enableTelemetry": false,
+    "enableInlineSuggestions": true,
+    "enableChat": false,
+    "showEditorCompletions": true,
+    "networkAccess": "limited"
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // VS Code Telemetry & Data Collection
+  // ───────────────────────────────────────────────────────────────────────
+  "telemetry.telemetryLevel": "off",
+  "redhat.telemetry.enabled": false,
+  "workbench.settings.enableNaturalLanguageSearch": false,
+  "workbench.enableExperiments": false,
+  "update.showReleaseNotes": false,
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Security & Network Restrictions
+  // ───────────────────────────────────────────────────────────────────────
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.untrustedFiles": "newWindow",
+  "security.allowedUNCHosts": [],
+  "terminal.integrated.allowChords": false,
+  "json.schemas": [],
+  "security.workspace.trust.model": "disable",
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Git & Remote Security
+  // ───────────────────────────────────────────────────────────────────────
+  "git.allowForcePush": false,
+  "git.confirmSync": true,
+  "git.suggestSmartCommit": false,
+  "git.autofetch": false,
+  "remote.autoForwardPorts": false,
+  "remote.restoreForwardedPorts": false,
+
+  // ───────────────────────────────────────────────────────────────────────
+  // General Privacy Settings
+  // ───────────────────────────────────────────────────────────────────────
+  "window.titleBarStyle": "custom",
+  "editor.suggestSelection": "first",
+  "editor.suggest.showWords": false,
+  "editor.codeActionsOnSaveMode": "explicit",
+  "files.trimTrailingWhitespace": true,
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Other Configurations
+  // ───────────────────────────────────────────────────────────────────────
+  "crypto-ticker.period": "HOUR",
+  "makefile.configureOnOpen": true,
+
+  "projectManager.showProjectNameInStatusBar": true,
+  "projectManager.openInNewWindowWhenClickingInStatusBar": true,
+  "projectManager.cacheProjectsBetweenSessions": true,
+  "projectManager.openInCurrentWindowIfEmpty": "always",
+  "projectManager.tags": [
+    "Active",
+    "Work",
+    "Personal",
+    "Freelance",
+    "Open Source",
+    "Learning",
+    "Archived"
+  ],
+
+  "better-comments.tags": [
+    // ❗ Critical Issues / Warnings
+    {
+      "tag": "!",
+      "color": "#FF2D00", // Bright Red for high-priority warnings
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // ❓ Questions / Review Notes
+    {
+      "tag": "?",
+      "color": "#3498DB", // Blue for questions
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // ✅ To-Do Tasks
+    {
+      "tag": "TODO",
+      "color": "#FF8C00", // Orange for to-do tasks
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // 🔧 Fixes / Issues
+    {
+      "tag": "FIXME",
+      "color": "#FF4500", // Bright Orange-Red for fixes
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // 📝 Notes / Explanations
+    {
+      "tag": "NOTE",
+      "color": "#00BFFF", // Light Blue for general notes
+      "strikethrough": false,
+      "italic": true
+    },
+
+    // 🔍 Debugging Logs
+    {
+      "tag": "DEBUG",
+      "color": "#FFD700", // Gold/Yellow for debugging
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // ⚡ Performance Optimizations
+    {
+      "tag": "PERF",
+      "color": "#32CD32", // Green for performance-related comments
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // ⚠️ Deprecated Code / Warnings
+    {
+      "tag": "DEPRECATED",
+      "color": "#D2691E", // Brown for deprecated code warnings
+      "strikethrough": true,
+      "bold": true
+    },
+
+    // ✨ Important Highlights
+    {
+      "tag": "*",
+      "color": "#98C379", // Soft green for emphasis
+      "strikethrough": false,
+      "bold": true
+    },
+
+    // 🗑️ Unused Code / Commented-Out Code
+    {
+      "tag": "//",
+      "color": "#474747", // Gray for commented-out sections
+      "strikethrough": true,
+      "bold": false
+    }
+  ]
+}
