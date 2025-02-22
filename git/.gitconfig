@@ -13,6 +13,9 @@
   st = status  # Alias for git status
   unstage = reset HEAD --  # Unstage changes without affecting working directory
 
+[branch]
+  sort = -committerdate  # Sort branches by the most recent commit date
+
 [checkout]
   defaultParallelism = true  # Enable parallelism during checkout for faster operations
 
@@ -22,29 +25,37 @@
 [commit]
   gpgsign = true  # Sign commits with GPG by default
 
+[column]
+  ui = auto  # Automatically format Git output into columns where appropriate
+
 [core]
   commitGraph = true  # Enable commit graph for faster Git operations
-  excludesFile = ~/.gitignore  # Path to global gitignore file
+  deltaBaseCacheLimit = 512M  # Increase delta base cache limit for large repositories
+  excludesfile = ~/.gitignore_global  # Add a global gitignore file
   fileMode = false  # Ignore file permission changes
   fscache = true  # Enable file system cache to improve performance
+  fsmonitor = true  # Enable filesystem monitoring for improved performance
   gitproxy = auto  # Automatically select the appropriate proxy
   packedGitLimit = 256m  # Increase the packed Git limit for handling larger packfiles
   packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing
-  deltaBaseCacheLimit = 512M  # Increase delta base cache limit for large repositories
   preloadindex = true  # Preload index to reduce I/O operations
-  excludesfile = ~/.gitignore_global # Add a global gitignore file
+  untrackedCache = true  # Enable caching of untracked files for faster status checks
 
 [credential]
   helper = cache --timeout=3600  # Cache credentials for 1 hour
 
 [diff]
   algorithm = histogram  # Use the histogram algorithm for more accurate diffs
+  colorMoved = plain  # Highlight moved lines in diffs without additional styling
   compactionHeuristic = true  # Enable heuristic for better diff compaction
+  mnemonicPrefix = true  # Use mnemonic prefixes for easier readability
   renames = true  # Detect file renames during diffs
 
 [fetch]
+  all = true  # Fetch all remotes by default
   negotiate = true  # Use negotiation for faster fetches by transferring fewer objects
   prune = true  # Remove stale branches from remote during fetch
+  pruneTags = true  # Remove obsolete remote tags when fetching
 
 [filter "lfs"]
   clean = git-lfs clean -- %f  # Clean files for Git LFS
@@ -71,6 +82,15 @@
 [http]
   sslVerify = true  # Verify SSL certificates
 
+[include]
+  path = ~/.gitconfig_local  # Load additional user-specific configuration
+
+[init]
+  defaultBranch = main  # New git repo starts with main branch
+
+[merge]
+  conflictstyle = zdiff3  # Use zdiff3 conflict style to provide better context
+
 [pager]
   diff = true  # Use pager for diff output
   log = true  # Use pager for log output
@@ -90,10 +110,18 @@
 [push]
   autoSetupRemote = true  # Automatically set up remote tracking
   default = simple  # Push the current branch to its upstream branch
+  followTags = true  # Push tags along with commits
 
 [rebase]
+  autoSquash = true  # Automatically squash fixup commits
+  autoStash = true  # Stash changes before rebasing to prevent conflicts
   autoUpgrade = true  # Automatically use the improved rebase merge behavior
+  updateRefs = true  # Update branch references after rebase
   verbose = true  # Show detailed output during rebase operations
+
+[rerere]
+  autoupdate = true  # Automatically update rerere records when conflicts are resolved
+  enabled = true  # Enable reuse of recorded resolution for merge conflicts
 
 [status]
   branch = true  # Show branch information in status
@@ -102,16 +130,13 @@
 
 [tag]
   gpgSign = true  # Always sign tags with GPG
+  sort = version:refname  # Sort tags based on version
 
 [worktree]
   bare = false  # Worktrees are not bare repositories
   clean = true  # Clean worktrees automatically
   prune = true  # Automatically remove stale worktrees
   recomputeUntracked = true  # Recompute untracked files in worktrees
-
-# Include a separate custom configuration file
-[include]
-    path = ~/.gitconfig_local
 
 ############################################################## CHANGES BASED ON SYSTEM ############################################################
 
