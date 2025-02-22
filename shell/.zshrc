@@ -158,6 +158,7 @@ zstyle ':fzf-tab:*' trigger-start ''
 zstyle ':fzf-tab:*' switch-group '<' '>'
 zstyle ':fzf-tab:*' fzf-minimum-chars 2
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'zoxide query --list'
 
 # Git VCS info styling
 zstyle ':vcs_info:git:*:-all-' get-revision true
@@ -189,14 +190,37 @@ fi
 # (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)
 WORDCHARS=".~&!#$%^[](){}<>"
 
+
 # ------------------------------------------------------------------------------
-# 10. Local Overrides
+# 10. Custom Funtions
+# ------------------------------------------------------------------------------
+_vscode_z() {
+  local dir
+  if [[ -n "$1" ]]; then
+    dir=$(zoxide query "$1")  # Jump directly if an argument is provided
+  else
+    dir=$(zoxide query -l | fzf)  # Otherwise, show fzf selection
+  fi
+
+  if [[ -n "$dir" ]]; then
+    code "$dir"
+  else
+    echo "No directory selected."
+  fi
+}
+
+alias vz='_vscode_z'
+
+compdef _vscode_z vz
+
+# ------------------------------------------------------------------------------
+# 11. Local Overrides
 # ------------------------------------------------------------------------------
 [ -f ~/.aliases_local ] && source ~/.aliases_local
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
 
 # ------------------------------------------------------------------------------
-# 11. Background Plugin Updates
+# 12. Background Plugin Updates
 # ------------------------------------------------------------------------------
 # Update Zinit itself silently
 zinit self-update &> /dev/null &!
