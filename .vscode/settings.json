@@ -150,10 +150,6 @@
   "typescript.suggest.paths": true,
   "typescript.suggest.completeFunctionCalls": true,
   "typescript.format.insertSpaceBeforeFunctionParenthesis": true,
-  "typescript.inlayHints.parameterNames.enabled": "all",
-  "typescript.inlayHints.variableTypes.enabled": true,
-  "typescript.inlayHints.enumMemberValues.enabled": true,
-  "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
   "typescript.disableAutomaticTypeAcquisition": false,
   "typescript.tsserver.maxTsServerMemory": 4096,
   "typescript.preferences.autoImportFileExcludePatterns": [
@@ -165,7 +161,6 @@
   "javascript.suggest.paths": true,
   "javascript.suggest.completeFunctionCalls": true,
   "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
-  "javascript.inlayHints.parameterNames.enabled": "all",
 
   // ───────────────────────────────────────────────────────────────────────
   // Linting, Error Display & AI Assistance
