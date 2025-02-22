@@ -18,7 +18,8 @@ alias ls='ls --color -alh'
 alias stowall="cd ~/dotfiles && stow *"
 alias unstow="stow -D"
 alias stowls="stow --no -v"
-alias vsc="code ." # Open VSCode in current directory
+alias vsc="code  "                                                                                # Open VSCode in current directory
+alias kill-tmux="nohup rm -rf ~/.local/share/tmux/resurrect ~/.tmux/resurrect; tmux kill-server;" # Kill tmux and remove resurrect files
 
 # ---------------------------------------------------------------
 # Kubectl Aliases
@@ -232,20 +233,20 @@ function gac() {
   COMMENT=$@
 
   case "$SHORTCUT" in
-    c) SHORTCUT="chore:" ;;
-    d) SHORTCUT="docs:" ;;
-    f) SHORTCUT="feat:" ;;
-    r) SHORTCUT="refactor:" ;;
-    s) SHORTCUT="style:" ;;
-    t) SHORTCUT="test:" ;;
-    x) SHORTCUT="fix:" ;;
-    p) SHORTCUT="perf:" ;;  # Performance improvements
-    i) SHORTCUT="ci:" ;;  # Continuous Integration changes
-    b) SHORTCUT="build:" ;;  # Build system changes
-    v) SHORTCUT="revert:" ;;  # Revert previous commits
-    sec) SHORTCUT="security:" ;;  # Security updates
-    l10n) SHORTCUT="localization:" ;;  # Localization updates
-    i18n) SHORTCUT="internationalization:" ;;  # Internationalization changes
+  c) SHORTCUT="chore:" ;;
+  d) SHORTCUT="docs:" ;;
+  f) SHORTCUT="feat:" ;;
+  r) SHORTCUT="refactor:" ;;
+  s) SHORTCUT="style:" ;;
+  t) SHORTCUT="test:" ;;
+  x) SHORTCUT="fix:" ;;
+  p) SHORTCUT="perf:" ;;                    # Performance improvements
+  i) SHORTCUT="ci:" ;;                      # Continuous Integration changes
+  b) SHORTCUT="build:" ;;                   # Build system changes
+  v) SHORTCUT="revert:" ;;                  # Revert previous commits
+  sec) SHORTCUT="security:" ;;              # Security updates
+  l10n) SHORTCUT="localization:" ;;         # Localization updates
+  i18n) SHORTCUT="internationalization:" ;; # Internationalization changes
   esac
 
   git add -A
@@ -258,4 +259,3 @@ function gac() {
 
   return 1
 }
-
