@@ -34,8 +34,6 @@
   "editor.formatOnPaste": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.inlineSuggest.enabled": true,
-  "editor.wordWrap": "wordWrapColumn",
-  "editor.wordWrapColumn": 120,
   "editor.trimAutoWhitespace": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "always"
@@ -95,7 +93,6 @@
   // Extensions & Plugins
   // ───────────────────────────────────────────────────────────────────────
   "trailing-spaces.trimOnSave": true,
-  "rewrap.autoWrap.enabled": true,
   "indenticator.color.dark": "#999",
   "indenticator.inner.color.dark": "#62fcb2",
   "search.useGlobalIgnoreFiles": true,
