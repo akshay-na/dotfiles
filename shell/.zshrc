@@ -154,11 +154,11 @@ zstyle ':completion:*' menu no
 
 # Fzf-tab settings
 zstyle ':fzf-tab:*' single true
-zstyle ':fzf-tab:*' trigger-start ''
 zstyle ':fzf-tab:*' switch-group '<' '>'
 zstyle ':fzf-tab:*' fzf-minimum-chars 2
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'zoxide query --list'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
+zstyle ':fzf-tab:complete:rm:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
 
 # Git VCS info styling
 zstyle ':vcs_info:git:*:-all-' get-revision true
