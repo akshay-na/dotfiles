@@ -52,7 +52,7 @@
   // ───────────────────────────────────────────────────────────────────────
   // Files Settings
   "files.autoSave": "afterDelay",
-  "files.autoSaveDelay": 1000,
+  "files.autoSaveDelay": 10000,
   "window.confirmSaveUntitledWorkspace": false,
   "files.exclude": {
     "**/.DS_Store": true,
