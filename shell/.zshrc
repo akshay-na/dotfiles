@@ -77,8 +77,12 @@ zinit cdreplay -q
 bindkey -e                           # Use Emacs-style keybindings
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
-[[ -n $terminfo[kcuu1] ]] && bindkey "$terminfo[kcuu1]" history-substring-search-up || bindkey "\e[A" history-substring-search-up
-[[ -n $terminfo[kcud1] ]] && bindkey "$terminfo[kcud1]" history-substring-search-down || bindkey "\e[B" history-substring-search-down
+bindkey "\e[A" history-substring-search-up
+bindkey "\e[B" history-substring-search-down
+bindkey "^[OA" history-substring-search-up
+bindkey "^[OB" history-substring-search-down
+bindkey "\eOA" history-substring-search-up
+bindkey "\eOB" history-substring-search-down
 bindkey '^[w' kill-region            # Example custom binding
 
 # ------------------------------------------------------------------------------
