@@ -2,16 +2,24 @@
 
 [alias]
   amend = commit --amend --no-edit  # Amend the last commit without modifying the message
-  br = branch  # Alias for git branch
-  ci = commit  # Alias for git commit
-  co = checkout  # Alias for git checkout
-  hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short  # View commit history with a graph and formatted output
   last = log -1 HEAD  # Show the latest commit
-  lg = log --oneline --graph --decorate --all  # View all commits in a simple graph format
   save = stash save "WIP on $(git symbolic-ref --short HEAD)"  # Stash current changes with a WIP message
   savepop = stash save "WIP on $(git symbolic-ref --short HEAD)" && stash pop  # Stash changes and then pop them
-  st = status  # Alias for git status
   unstage = reset HEAD --  # Unstage changes without affecting working directory
+  revert-file = "!f() { git checkout -- \"$1\"; }; f"  # Reset a single file to HEAD (restore last committed version)
+  set-ssh = "!f() { \
+        git remote set-url origin $(git remote get-url origin | sed -E 's#https://([^/]+)/([^/]+)/(.*)#git@\\1:\\2/\\3#'); \
+        echo 'Changed remote URL to use SSH\n'; \
+        git remote -v; \
+        echo; \
+    }; f"
+  set-https = "!f() { \
+        git remote set-url origin $(git remote get-url origin | sed -E 's#git@([^:]+):([^/]+)/#https://\\1/\\2/#'); \
+        echo 'Changed remote URL to use HTTPS\n'; \
+        git remote -v; \
+        echo; \
+    }; f"
+
 
 [branch]
   sort = -committerdate  # Sort branches by the most recent commit date
