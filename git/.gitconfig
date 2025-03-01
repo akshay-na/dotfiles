@@ -138,16 +138,22 @@
   prune = true  # Automatically remove stale worktrees
   recomputeUntracked = true  # Recompute untracked files in worktrees
 
+# Use SSH instead of HTTPS for all Push OPs.
+# Set fetch url manually on repo level.
+
+[url "git@github.com:"]
+    pushInsteadOf = https://github.com/
+
+[url "git@gitlab.com:"]
+    pushInsteadOf = https://gitlab.com/
+
+[url "git@bitbucket.org:"]
+    pushInsteadOf = https://bitbucket.org/
+
 ############################################################## CHANGES BASED ON SYSTEM ############################################################
 
 
 #Create a new file called .gitconfig_local and make the followign changes there.
-
-# [url "git@github.com:"]
-#   insteadOf = https://github.com/  # Use SSH instead of HTTPS for GitHub
-
-# [url "git@gitlab.com:"]
-#   insteadOf = https://gitlab.com/  # Use SSH instead of HTTPS for GitLab
 
 # [includeIf "hasconfig:remote.*.url:github.com"]
 #   [user]
