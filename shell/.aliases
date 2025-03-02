@@ -18,8 +18,8 @@ alias ls='ls --color -alh'
 alias stowall="cd ~/dotfiles && stow *"
 alias unstow="stow -D"
 alias stowls="stow --no -v"
-alias vsc="code  "                                                                                # Open VSCode in current directory
-alias kill-tmux="nohup rm -rf ~/.local/share/tmux/resurrect ~/.tmux/resurrect; tmux kill-server;" # Kill tmux and remove resurrect files
+alias vsc="code  "                                                                          # Open VSCode in current directory
+alias kill-tmux="rm -rf ~/.local/share/tmux/resurrect ~/.tmux/resurrect; tmux kill-server;" # Kill tmux and remove resurrect files
 
 # ---------------------------------------------------------------
 # Kubectl Aliases

@@ -106,7 +106,6 @@ setopt hist_find_no_dups             # Skip duplicates when searching history
 setopt auto_cd                       # "cd dir" by just typing "dir"
 setopt auto_pushd                    # Push to directory stack on cd
 setopt extended_glob                 # Enable advanced globbing
-setopt correct_all                   # Correct command spelling for the entire line
 setopt multios                       # Allow multiple redirections (e.g. echo foo >file1 >file2)
 setopt glob_dots                     # Include dotfiles in glob expansion
 setopt check_jobs                    # Warn about running/stopped jobs when exiting
