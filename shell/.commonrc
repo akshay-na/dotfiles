@@ -23,6 +23,8 @@ export DOTFILES_DIR="$HOME/dotfiles"                                 # Root dire
 export PYENV_ROOT="$HOME/.pyenv"                                     # Pyenv root directory
 export NVM_DIR="$HOME/.nvm"                                          # NVM directory
 export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
+export GPG_TTY=$(tty)                                                # Ensure GPG can correctly prompt for passphrase in the current terminal
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)         # Use GPG agent for SSH authentication instead of ssh-agent
 HISTSIZE=10000                                                       # Shell history size
 
 # Set dir colour to constent across the syste
