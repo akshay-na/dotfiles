@@ -1,0 +1,262 @@
+# ---------------------------------------------------------------
+# Custom Functions
+# ---------------------------------------------------------------
+# Purpose:
+# This `.functions` file provides a range of functions
+# to streamline frequently used commands.
+
+# Usage:
+# Place this file as `.functions` in the home directory and source it in `.bashrc` or `.zshrc`.
+# For additional custom functions, add them in `.functions_local.sh` as suggested, to avoid modifying this core file.
+# ---------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
+# Function: delete_branch
+# Purpose: Delete a specified Git branch both locally and remotely.
+# Usage: delete_branch <branch-name>
+# -------------------------------------------------------------------------------
+function delete_branch() {
+  branch=$1
+
+  # Check if the branch exists locally
+  if git show-ref --verify --quiet refs/heads/"$branch"; then
+    echo -e "Deleting '$branch' from local repository..."
+    git branch -d "$branch" # Delete the local branch
+  fi
+
+  # Check if the branch exists on the remote repository
+  if git ls-remote --heads origin "$branch" | grep "$branch" >/dev/null; then
+    echo -e "Deleting '$branch' from remote repository...\n"
+    git push origin --delete "$branch" # Delete the remote branch
+  fi
+}
+
+# -------------------------------------------------------------------------------
+# Function: reload
+# Purpose: Reload the shell configuration file for either Zsh or Bash.
+# Usage: reload
+# -------------------------------------------------------------------------------
+reload() {
+  if [ -n "$ZSH_VERSION" ]; then
+    # Reload Zsh configuration
+    source ~/.zshrc && echo "Zsh configuration reloaded!"
+  elif [ -n "$BASH_VERSION" ]; then
+    # Reload Bash configuration
+    source ~/.bashrc && echo "Bash configuration reloaded!"
+  else
+    # Fallback for unknown shells
+    echo "Unknown shell. Please reload your configuration manually."
+  fi
+}
+
+# -------------------------------------------------------------------------------
+# Function: extract
+# Purpose: Extract various archive types based on file extension.
+# Usage: extract <archive-file>
+# -------------------------------------------------------------------------------
+extract() {
+  if [ -f "$1" ]; then
+    case "$1" in
+    *.tar.bz2) tar xjf "$1" ;; # Extract tar.bz2 archives
+    *.tar.gz) tar xzf "$1" ;;  # Extract tar.gz archives
+    *.bz2) bunzip2 "$1" ;;     # Extract bz2 files
+    *.rar) unrar x "$1" ;;     # Extract rar archives
+    *.gz) gunzip "$1" ;;       # Extract gz files
+    *.tar) tar xf "$1" ;;      # Extract tar archives
+    *.tbz2) tar xjf "$1" ;;    # Extract tbz2 archives
+    *.tgz) tar xzf "$1" ;;     # Extract tgz archives
+    *.zip) unzip "$1" ;;       # Extract zip files
+    *.7z) 7z x "$1" ;;         # Extract 7z archives
+    *) echo "Cannot extract '$1' (unsupported file type)" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# -------------------------------------------------------------------------------
+# Function: archive
+# Purpose: Create an archive from files or directories.
+#          The user selects the desired archive format interactively.
+# Usage: archive <base-name> <file(s)/directory(ies)>
+# -------------------------------------------------------------------------------
+archive() {
+  if [ "$#" -lt 2 ]; then
+    echo "Usage: archive <base-name> <file(s)/directory(ies) to archive>"
+    return 1
+  fi
+
+  base_name="$1"
+  shift
+
+  # Present the format selection menu to the user
+  echo "Select archive format:"
+  echo "1) tar.bz2"
+  echo "2) tar.gz"
+  echo "3) tar.xz"
+  echo "4) tar (uncompressed)"
+  echo "5) zip"
+  echo "6) 7z"
+  read -p "Enter your choice [1-6]: " choice
+
+  # Create the archive based on the user's selection
+  case "$choice" in
+  1)
+    archive_name="${base_name}.tar.bz2"
+    tar cjf "$archive_name" "$@" || return 1
+    ;;
+  2)
+    archive_name="${base_name}.tar.gz"
+    tar czf "$archive_name" "$@" || return 1
+    ;;
+  3)
+    archive_name="${base_name}.tar.xz"
+    tar cJf "$archive_name" "$@" || return 1
+    ;;
+  4)
+    archive_name="${base_name}.tar"
+    tar cf "$archive_name" "$@" || return 1
+    ;;
+  5)
+    archive_name="${base_name}.zip"
+    zip -r "$archive_name" "$@" || return 1
+    ;;
+  6)
+    archive_name="${base_name}.7z"
+    7z a "$archive_name" "$@" || return 1
+    ;;
+  *)
+    echo "Invalid choice. Aborting."
+    return 1
+    ;;
+  esac
+
+  echo "Archive created: $archive_name"
+}
+
+# -------------------------------------------------------------------------------
+# Function: gitworktree_add
+# Purpose: Add a Git worktree for a specified branch.
+#          If the branch does not exist remotely, it creates and pushes it.
+# Usage: gitworktree_add <branch-name>
+# -------------------------------------------------------------------------------
+function gitworktree_add() {
+  # Assign branch name and define the worktree path relative to the current repository root
+  BRANCH_NAME=$1
+  WORKTREE_PATH="../$BRANCH_NAME"
+
+  # Get the root directory of the current Git repository
+  GIT_ROOT=$(git rev-parse --show-toplevel)
+
+  # Convert to Unix-style path if running on Windows environments (Git Bash/Cygwin)
+  case "$(uname -s)" in
+  MINGW* | CYGWIN*)
+    GIT_ROOT=$(cygpath -u "$GIT_ROOT")
+    ;;
+  esac
+
+  # Check if inside a Git repository
+  if [ -z "$GIT_ROOT" ]; then
+    echo "Error: This command must be run inside a Git repository."
+    return 1
+  fi
+
+  cd "$GIT_ROOT"
+
+  # Check if the branch exists on the remote repository
+  REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH_NAME")
+  if [ -z "$REMOTE_BRANCH" ]; then
+    # Branch does not exist remotely; create a new branch and push it to remote
+    echo "Branch '$BRANCH_NAME' does not exist remotely. Creating a new branch..."
+    git checkout -b "$BRANCH_NAME"
+    git push -u origin "$BRANCH_NAME"
+  else
+    # Branch exists remotely; fetch and set it up locally
+    echo "Branch '$BRANCH_NAME' exists remotely. Setting up locally..."
+    git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
+  fi
+
+  # Add the new worktree based on the specified branch
+  git worktree add -B "$WORKTREE_PATH" "$BRANCH_NAME"
+  cd "$WORKTREE_PATH"
+
+  echo "Worktree added for branch '$BRANCH_NAME'."
+}
+
+# -------------------------------------------------------------------------------
+# Function: gac
+# Purpose: Commit changes using semantic commit message prefixes.
+#          Provides shortcuts for different types of commits.
+# Usage: gac [ -a ] <shortcut> <commit message>
+#        Use -a to amend the previous commit.
+# -------------------------------------------------------------------------------
+function gac() {
+  # Display help if no arguments or help flag is provided
+  if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "------"
+    echo "Cannot commit without comments. Semantic reminder:"
+    echo "chore:        c"
+    echo "docs:         d"
+    echo "feat:         f"
+    echo "refactor:     r"
+    echo "style:        s"
+    echo "test:         t"
+    echo "fix:          x"
+    echo "perf:         p"
+    echo "ci:           i"
+    echo "build:        b"
+    echo "revert:       v"
+    echo "security:     sec"
+    echo "localization: l10n"
+    echo "internationalization: i18n"
+    echo "------"
+    echo "Use -a to amend the previous commit."
+    return 1
+  fi
+
+  AMEND=false
+
+  # Check if the first argument is the amend flag (-a)
+  if [ "$1" = "-a" ]; then
+    AMEND=true
+    shift # Remove the amend flag from arguments
+  fi
+
+  # Use the first argument as the commit shortcut and the rest as the commit message
+  SHORTCUT=$1
+  shift
+  COMMENT=$@
+
+  # Map shortcut to the full commit message prefix
+  case "$SHORTCUT" in
+  c) SHORTCUT="chore:" ;;
+  d) SHORTCUT="docs:" ;;
+  f) SHORTCUT="feat:" ;;
+  r) SHORTCUT="refactor:" ;;
+  s) SHORTCUT="style:" ;;
+  t) SHORTCUT="test:" ;;
+  x) SHORTCUT="fix:" ;;
+  p) SHORTCUT="perf:" ;;                    # Performance improvements
+  i) SHORTCUT="ci:" ;;                      # Continuous Integration changes
+  b) SHORTCUT="build:" ;;                   # Build system changes
+  v) SHORTCUT="revert:" ;;                  # Revert previous commits
+  sec) SHORTCUT="security:" ;;              # Security updates
+  l10n) SHORTCUT="localization:" ;;         # Localization updates
+  i18n) SHORTCUT="internationalization:" ;; # Internationalization changes
+  esac
+
+  # Stage all changes
+  git add -A
+
+  # Commit changes, either amending the previous commit or creating a new one
+  if [ "$AMEND" = true ]; then
+    git commit --amend -m "$SHORTCUT $COMMENT"
+  else
+    git commit -m "$SHORTCUT $COMMENT"
+  fi
+
+  return 1
+}
+
+# Load custom local common configurations, if available
+[ -f ~/.functions_local ] && source ~/.functions_local
