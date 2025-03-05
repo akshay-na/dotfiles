@@ -39,9 +39,7 @@ if command -v zoxide >/dev/null; then
 fi
 
 # Initialize Fzf if available, with custom completion, key-bindings, and history
-if command -v fzf >/dev/null; then
-  source "$(fzf --completion=bash --key-bindings --history)"
-elif [ -f ~/.fzf.bash ]; then
+if [ -f ~/.fzf.bash ]; then
   # Alternative check if Fzf was manually installed
   source ~/.fzf.bash >/dev/null 2>&1
 fi
@@ -50,5 +48,4 @@ fi
 # Load Additional Local Configurations
 # ---------------------------------------------------------------
 # Load custom local bash configurations, if available
-[ -f ~/.aliases_local ] && source ~/.aliases_local
 [ -f ~/.bashrc_local ] && source ~/.bashrc_local

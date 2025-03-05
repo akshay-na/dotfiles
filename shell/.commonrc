@@ -23,6 +23,7 @@ export DOTFILES_DIR="$HOME/dotfiles"                                 # Root dire
 export PYENV_ROOT="$HOME/.pyenv"                                     # Pyenv root directory
 export NVM_DIR="$HOME/.nvm"                                          # NVM directory
 export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
+export PATH=$PATH:"~/bin":"~/.local/bin"                             # Add local binaries to PATH
 export GPG_TTY=$(tty)                                                # Ensure GPG can correctly prompt for passphrase in the current terminal
 export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)         # Use GPG agent for SSH authentication instead of ssh-agent
 HISTSIZE=10000                                                       # Shell history size
@@ -98,8 +99,9 @@ fcd() {
 # Initializations and Conditions
 # ---------------------------------------------------------------
 
-# Load custom aliases if available
+# Load custom aliases and functions if available
 [ -f ~/.aliases ] && source ~/.aliases
+[ -f ~/.functions ] && source ~/.functions
 
 # Check for and initialize Pyenv
 if command -v pyenv >/dev/null; then
