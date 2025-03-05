@@ -116,30 +116,7 @@ setopt extendedglob                  # Enable Extended Globbing
 autoload -Uz compinit bashcompinit
 
 # ------------------------------------------------------------------------------
-# 7. Aliases for Convenient Usage (Optional)
-# ------------------------------------------------------------------------------
-# If you want to replace or augment existing commands with the new tools:
-if command -v bat &> /dev/null; then
-    alias cat="bat --paging=never"
-fi
-
-# Check if 'eza' exists before aliasing 'ls'
-if command -v eza &> /dev/null; then
-    alias ls="eza -lhagH --color=auto --group-directories-first --icons --sort=filename"
-fi
-
-# Check if 'rg' (ripgrep) exists before aliasing 'grep'
-if command -v rg &> /dev/null; then
-    alias grep="rg --color=auto --hidden --smart-case"
-fi
-
-# Check if 'fd' exists before aliasing 'find'
-if command -v fd &> /dev/null; then
-    alias find="fd --hidden --exclude .git --exclude node_modules --exclude .pnpm-store --exclude .yarn --exclude yarn-cache --exclude .yarnrc --exclude .pnp.cjs --exclude .pnp.js --exclude .pnp.loader.mjs --exclude .next --exclude out --exclude dist --exclude build"
-fi
-
-# ------------------------------------------------------------------------------
-# 8. Completion Styling and Options
+# 7. Completion Styling and Options
 # ------------------------------------------------------------------------------
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache/
@@ -175,7 +152,7 @@ bashcompinit &!
 compinit -u -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump" &!
 
 # ------------------------------------------------------------------------------
-# 9. Tool Initializations (Starship, Zoxide, Fzf, etc.)
+# 8. Tool Initializations (Starship, Zoxide, Fzf, etc.)
 # ------------------------------------------------------------------------------
 # Starship prompt
 if command -v starship >/dev/null; then
@@ -196,7 +173,7 @@ WORDCHARS=".~&!#$%^[](){}<>"
 
 
 # ------------------------------------------------------------------------------
-# 10. Custom Funtions
+# 9. Custom Funtions
 # ------------------------------------------------------------------------------
 _vscode_z() {
   local dir
@@ -218,13 +195,13 @@ alias vz='_vscode_z'
 compdef _vscode_z vz
 
 # ------------------------------------------------------------------------------
-# 11. Local Overrides
+# 10. Local Overrides
 # ------------------------------------------------------------------------------
 [ -f ~/.aliases_local ] && source ~/.aliases_local
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
 
 # ------------------------------------------------------------------------------
-# 12. Background Plugin Updates
+# 11. Background Plugin Updates
 # ------------------------------------------------------------------------------
 # Update Zinit itself silently
 zinit self-update &> /dev/null &!
