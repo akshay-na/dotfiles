@@ -60,6 +60,7 @@ zinit snippet OMZP::terraform
 zinit snippet OMZP::vscode
 zinit snippet OMZP::z
 zinit snippet OMZP::sudo
+zinit snippet OMZP::jsontools
 zinit snippet OMZP::archlinux
 zinit snippet OMZP::aws
 zinit snippet OMZP::azure
