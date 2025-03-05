@@ -1,6 +1,0 @@
-**/.gitignore
-gnupg/.gnupg/*
-!gnupg/.gnupg/scdaemon.conf
-!gnupg/.gnupg/gpg-agent.conf
-!gnupg/.gnupg/dirmngr.conf
-!gnupg/.gnupg/gpg.conf
