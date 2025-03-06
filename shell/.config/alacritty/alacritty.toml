@@ -31,8 +31,9 @@ blink_interval = 400  # Faster blinking
 unfocused_hollow = true
 
 [cursor.style]
-shape = "Block"
+shape = "Beam"
 blinking = "On"
+blink_timeout = 15
 
 [scrolling]
 history = 10000
