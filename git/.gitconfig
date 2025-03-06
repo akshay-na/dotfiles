@@ -3,11 +3,17 @@
 [alias]
   amend = commit --amend --no-edit  # Amend the last commit without modifying the message
   last = log -1 HEAD  # Show the latest commit
-  save = stash save "WIP on $(git symbolic-ref --short HEAD)"  # Stash current changes with a WIP message
-  savepop = stash save "WIP on $(git symbolic-ref --short HEAD)" && stash pop  # Stash changes and then pop them
+  save = "!f() { git stash save \"🚀 WIP $*\"; }; f"  # Stash current changes with a WIP message
   unstage = reset HEAD --  # Unstage changes without affecting working directory
   ignore = update-index --assume-unchanged  # Ignore thje files from the version on local repo
   revert-file = "!f() { git checkout -- \"$1\"; }; f"  # Reset a single file to HEAD (restore last committed version)
+  pop = "!f() { \
+      echo 'Available stashes:'; \
+      git stash list --pretty=format:'%C(yellow)%gd%C(reset): %s'; \
+      echo; \
+      read -p 'Enter stash number to pop (e.g., 0): ' num; \
+      git stash pop stash@{$num}; \
+    }; f"  # Stash changes and then pop them
   set-ssh = "!f() { \
         git remote set-url origin $(git remote get-url origin | sed -E 's#https://([^/]+)/([^/]+)/(.*)#git@\\1:\\2/\\3#'); \
         echo 'Changed remote URL to use SSH\n'; \
