@@ -1,15 +1,15 @@
 ############################################################## COMMON ############################################################
 
 [alias]
-  amend = commit --amend --no-edit  # Amend the last commit without modifying the message
-  last = log -1 HEAD  # Show the latest commit
-  save = "!f() { git stash save \"🚀 WIP $*\"; }; f"  # Stash current changes with a WIP message
-  unstage = reset HEAD --  # Unstage changes without affecting working directory
-  ignore = update-index --assume-unchanged  # Ignore thje files from the version on local repo
+  amend       = commit --amend --no-edit  # Amend the last commit without modifying the message
+  last        = log -1 HEAD  # Show the latest commit
+  save        = "!f() { git stash save \"🚀 WIP $*\"; }; f"  # Stash current changes with a WIP message
+  unstage     = reset HEAD --  # Unstage changes without affecting working directory
+  ignore      = update-index --assume-unchanged  # Ignore thje files from the version on local repo
   revert-file = "!f() { git checkout -- \"$1\"; }; f"  # Reset a single file to HEAD (restore last committed version)
-  pop = "!f() { \
+  pop         = "!f() { \
       echo 'Available stashes:'; \
-      git stash list --pretty=format:'%C(yellow)%gd%C(reset): %s'; \
+      git stash list --pretty = format:'%C(yellow)%gd%C(reset): %s'; \
       echo; \
       read -p 'Enter stash number to pop (e.g., 0): ' num; \
       git stash pop stash@{$num}; \
@@ -44,52 +44,52 @@
   ui = auto  # Automatically format Git output into columns where appropriate
 
 [core]
-  commitGraph = true  # Enable commit graph for faster Git operations
+  commitGraph         = true  # Enable commit graph for faster Git operations
   deltaBaseCacheLimit = 512M  # Increase delta base cache limit for large repositories
-  excludesfile = ~/.gitignore_global  # Add a global gitignore file
-  fileMode = false  # Ignore file permission changes
-  fscache = true  # Enable file system cache to improve performance
-  fsmonitor = true  # Enable filesystem monitoring for improved performance
-  gitproxy = auto  # Automatically select the appropriate proxy
-  packedGitLimit = 256m  # Increase the packed Git limit for handling larger packfiles
+  excludesfile        = ~/.gitignore_global  # Add a global gitignore file
+  fileMode            = false  # Ignore file permission changes
+  fscache             = true  # Enable file system cache to improve performance
+  fsmonitor           = true  # Enable filesystem monitoring for improved performance
+  gitproxy            = auto  # Automatically select the appropriate proxy
+  packedGitLimit      = 256m  # Increase the packed Git limit for handling larger packfiles
   packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing
-  preloadindex = true  # Preload index to reduce I/O operations
-  untrackedCache = true  # Enable caching of untracked files for faster status checks
+  preloadindex        = true  # Preload index to reduce I/O operations
+  untrackedCache      = true  # Enable caching of untracked files for faster status checks
 
 [credential]
-  helper = cache --timeout=3600  # Cache credentials for 1 hour
+  helper = cache --timeout = 3600  # Cache credentials for 1 hour
 
 [diff]
-  algorithm = histogram  # Use the histogram algorithm for more accurate diffs
-  colorMoved = plain  # Highlight moved lines in diffs without additional styling
+  algorithm           = histogram  # Use the histogram algorithm for more accurate diffs
+  colorMoved          = plain  # Highlight moved lines in diffs without additional styling
   compactionHeuristic = true  # Enable heuristic for better diff compaction
-  mnemonicPrefix = true  # Use mnemonic prefixes for easier readability
-  renames = true  # Detect file renames during diffs
+  mnemonicPrefix      = true  # Use mnemonic prefixes for easier readability
+  renames             = true  # Detect file renames during diffs
 
 [fetch]
-  all = true  # Fetch all remotes by default
+  all       = true  # Fetch all remotes by default
   negotiate = true  # Use negotiation for faster fetches by transferring fewer objects
-  prune = true  # Remove stale branches from remote during fetch
+  prune     = true  # Remove stale branches from remote during fetch
   pruneTags = true  # Remove obsolete remote tags when fetching
 
 [filter "lfs"]
-  clean = git-lfs clean -- %f  # Clean files for Git LFS
-  process = git-lfs filter-process  # Use Git LFS for filtering large files
+  clean    = git-lfs clean -- %f  # Clean files for Git LFS
+  process  = git-lfs filter-process  # Use Git LFS for filtering large files
   required = true  # Ensure LFS is used
-  smudge = git-lfs smudge -- %f  # Smudge files for Git LFS
+  smudge   = git-lfs smudge -- %f  # Smudge files for Git LFS
 
 [format]
   pretty = format:%C(auto)%h%d %s %C(black)%C(bold)%cr %C(bold blue)<%an>%Creset  # Custom log format for Git output
 
 [gc]
-  auto = 256  # Set threshold for auto garbage collection
-  pruneExpire = now  # Prune unreachable objects immediately
-  reflogExpire = 90 days  # Extend reflog expiration period to 90 days
+  auto                    = 256  # Set threshold for auto garbage collection
+  pruneExpire             = now  # Prune unreachable objects immediately
+  reflogExpire            = 90 days  # Extend reflog expiration period to 90 days
   reflogExpireUnreachable = 180 days  # Keep unreachable reflog entries for 180 days
 
 [gpg]
   program = gpg  # Specify GPG program to use
-  sign = true  # Always sign commits and tags
+  sign    = true  # Always sign commits and tags
 
 [help]
   autocorrect = 1  # Automatically correct mistyped commands
@@ -108,49 +108,49 @@
 
 [pager]
   diff = true  # Use pager for diff output
-  log = true  # Use pager for log output
+  log  = true  # Use pager for log output
   show = true  # Use pager for show command
 
 [pack]
-  autoDetach = true  # Run garbage collection in the background
+  autoDetach    = true  # Run garbage collection in the background
   autoPackLimit = 50  # Perform garbage collection after 50 loose objects
-  compression = 9  # Use maximum compression level for packfiles
-  threads = 4  # Set number of threads for packing (based on CPU cores)
-  window = 10  # Set delta compression window size
-  windowMemory = 100m  # Cap memory usage for delta compression
+  compression   = 9  # Use maximum compression level for packfiles
+  threads       = 4  # Set number of threads for packing (based on CPU cores)
+  window        = 10  # Set delta compression window size
+  windowMemory  = 100m  # Cap memory usage for delta compression
 
 [pull]
   rebase = true  # Always rebase instead of merging when pulling
 
 [push]
   autoSetupRemote = true  # Automatically set up remote tracking
-  default = simple  # Push the current branch to its upstream branch
-  followTags = true  # Push tags along with commits
+  default         = simple  # Push the current branch to its upstream branch
+  followTags      = true  # Push tags along with commits
 
 [rebase]
-  autoSquash = true  # Automatically squash fixup commits
-  autoStash = true  # Stash changes before rebasing to prevent conflicts
+  autoSquash  = true  # Automatically squash fixup commits
+  autoStash   = true  # Stash changes before rebasing to prevent conflicts
   autoUpgrade = true  # Automatically use the improved rebase merge behavior
-  updateRefs = true  # Update branch references after rebase
-  verbose = true  # Show detailed output during rebase operations
+  updateRefs  = true  # Update branch references after rebase
+  verbose     = true  # Show detailed output during rebase operations
 
 [rerere]
   autoupdate = true  # Automatically update rerere records when conflicts are resolved
-  enabled = true  # Enable reuse of recorded resolution for merge conflicts
+  enabled    = true  # Enable reuse of recorded resolution for merge conflicts
 
 [status]
-  branch = true  # Show branch information in status
+  branch             = true  # Show branch information in status
   showUntrackedFiles = all  # Show all untracked files
   showWorktreeGitDir = true  # Display the Git directory when using worktrees
 
 [tag]
   gpgSign = true  # Always sign tags with GPG
-  sort = version:refname  # Sort tags based on version
+  sort    = version:refname  # Sort tags based on version
 
 [worktree]
-  bare = false  # Worktrees are not bare repositories
-  clean = true  # Clean worktrees automatically
-  prune = true  # Automatically remove stale worktrees
+  bare               = false  # Worktrees are not bare repositories
+  clean              = true  # Clean worktrees automatically
+  prune              = true  # Automatically remove stale worktrees
   recomputeUntracked = true  # Recompute untracked files in worktrees
 
 # Use SSH instead of HTTPS for all Push OPs.
@@ -172,12 +172,12 @@
 
 # [includeIf "hasconfig:remote.*.url:github.com"]
 #   [user]
-#     name = YOUR_GITHUB_USERNAME # Set user name for GitHub
-#     email = YOUR_GITHUB_EMAIL@users.noreply.github.com # Set email for GitHub
-#     signingkey = YOUR_GITHUB_GPG_KEY # Set GPG signing key for GitHub
+# name       = YOUR_GITHUB_USERNAME # Set user name for GitHub
+# email      = YOUR_GITHUB_EMAIL@users.noreply.github.com # Set email for GitHub
+# signingkey = YOUR_GITHUB_GPG_KEY # Set GPG signing key for GitHub
 
 # [includeIf "hasconfig:remote.*.url:gitlab.com"]
 #   [user]
-#     name = YOUR_GITLAB_USERNAME # Set user name for GitLab
-#     email = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
-#     signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab
+# name       = YOUR_GITLAB_USERNAME # Set user name for GitLab
+# email      = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
+# signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab
