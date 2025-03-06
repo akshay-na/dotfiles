@@ -33,7 +33,6 @@ unfocused_hollow = true
 [cursor.style]
 shape = "Beam"
 blinking = "On"
-blink_timeout = 15
 
 [scrolling]
 history = 10000
