@@ -9,7 +9,7 @@
   revert-file = "!f() { git checkout -- \"$1\"; }; f"  # Reset a single file to HEAD (restore last committed version)
   pop         = "!f() { \
       echo 'Available stashes:'; \
-      git stash list --pretty = format:'%C(yellow)%gd%C(reset): %s'; \
+      git stash list --pretty=format:'%C(yellow)%gd%C(reset): %s'; \
       echo; \
       read -p 'Enter stash number to pop (e.g., 0): ' num; \
       git stash pop stash@{$num}; \
