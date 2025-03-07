@@ -24,9 +24,10 @@ export PYENV_ROOT="$HOME/.pyenv"                                     # Pyenv roo
 export NVM_DIR="$HOME/.nvm"                                          # NVM directory
 export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
 export PATH=$PATH:"~/bin":"~/.local/bin"                             # Add local binaries to PATH
-export GPG_TTY=$(tty)                                                # Ensure GPG can correctly prompt for passphrase in the current terminal
-export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)         # Use GPG agent for SSH authentication instead of ssh-agent
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket 2>/dev/null) # Use GPG agent for SSH authentication instead of ssh-agent
 HISTSIZE=10000                                                       # Shell history size
+
+gpg-connect-agent updatestartuptty /bye > /dev/null 2>&1
 
 # Set dir colour to constent across the syste
 export LS_COLORS="di=38;5;75:fi=38;5;252:ln=38;5;141:so=38;5;215:pi=38;5;136:bd=38;5;136:cd=38;5;136:su=38;5;208:sg=38;5;208:tw=38;5;168:ow=38;5;168:st=38;5;168:ex=38;5;114"
