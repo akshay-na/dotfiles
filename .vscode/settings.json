@@ -150,8 +150,7 @@
   "typescript.suggest.paths": true,
   "typescript.suggest.completeFunctionCalls": true,
   "typescript.format.insertSpaceBeforeFunctionParenthesis": true,
-  "typescript.disableAutomaticTypeAcquisition": false,
-  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.preferences.autoImportFileExcludePatterns": [
     "**/node_modules/**"
   ],
