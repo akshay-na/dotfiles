@@ -103,15 +103,7 @@ install() {
         brew tap homebrew/cask-fonts
 
         echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
-        brew install \
-            tmux \
-            fzf \
-            ripgrep \
-            exa \
-            wget \
-            bat \
-            coreutils \
-            fontconfig
+        brew install zoxide zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig
 
         echo_with_color "$GREEN" "macOS setup complete!"
 
@@ -120,7 +112,7 @@ install() {
 
         echo_with_color "$YELLOW" "Updating apt and installing base packages..."
         sudo apt update
-        sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make gcc wget ripgrep exa bat coreutils
+        sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make gcc wget ripgrep eza bat coreutils
 
         # --- bat (aliased as cat) ---
         echo_with_color "$YELLOW" "Installing bat..."
