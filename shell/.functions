@@ -258,5 +258,80 @@ function gac() {
   return 1
 }
 
+# Function to install dependencies using pnpm with optional flags
+install_pnpm() {
+  local use_shamefully_hoist=false
+  local remove_lock=false
+
+  # Define colors for better output readability
+  GREEN='\033[0;32m'
+  YELLOW='\033[1;33m'
+  RED='\033[0;31m'
+  NC='\033[0m' # No Color
+
+  # Help section
+  if [[ "$1" == "--help" ]]; then
+    echo -e "${GREEN}Usage:${NC} install_pnpm [OPTIONS]"
+    echo -e "Installs dependencies using pnpm with optional flags."
+    echo
+    echo -e "${YELLOW}Options:${NC}"
+    echo -e "  --shamefully-hoist   Install dependencies with the --shamefully-hoist flag"
+    echo -e "  --remove-lock        Delete the pnpm-lock.yaml file after installation"
+    echo -e "  --help               Show this help message"
+    return 0
+  fi
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --shamefully-hoist)
+      use_shamefully_hoist=true
+      shift
+      ;;
+    --remove-lock)
+      remove_lock=true
+      shift
+      ;;
+    *)
+      echo -e "${RED}Unknown option:${NC} $1"
+      echo "Run 'install_pnpm --help' for usage information."
+      return 1
+      ;;
+    esac
+  done
+
+  # Construct the pnpm install command
+  local install_cmd="pnpm install"
+  if [ "$use_shamefully_hoist" = true ]; then
+    install_cmd+=" --shamefully-hoist"
+  fi
+
+  # Run the install command
+  echo -e "${GREEN}Running:${NC} $install_cmd"
+  eval "$install_cmd"
+
+  # Remove lock file if required
+  if [ "$remove_lock" = true ]; then
+    echo -e "${YELLOW}Removing pnpm-lock.yaml...${NC}"
+    rm -f pnpm-lock.yaml
+  fi
+}
+
+# Autocomplete function
+_install_pnpm_completions() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  opts="--shamefully-hoist --remove-lock --help"
+
+  # Provide matching options
+  COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+  return 0
+}
+
+# Enable autocomplete for install_pnpm function
+complete -F _install_pnpm_completions install_pnpm
+
 # Load custom local common configurations, if available
 [ -f ~/.functions_local ] && source ~/.functions_local
