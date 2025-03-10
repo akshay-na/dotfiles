@@ -13,13 +13,35 @@
     {
       "files": "**/*.ts",
       "options": {
-        "parser": "typescript"
+        "parser": "typescript",
+        "semi": true,
+        "bracketSpacing": true,
+        "spaceBeforeFunctionParen": true,
+        "spaceAfterConstructor": true,
+        "spaceInsideJsxBraces": true,
+        "spaceInsideBrackets": true,
+        "spaceInsideParentheses": true,
+        "spaceInsideTemplateBraces": true,
+        "placeOpenBraceOnNewLineForControlBlocks": true,
+        "placeOpenBraceOnNewLineForFunctions": true,
+        "insertSpaceAfterTypeAssertion": true
       }
     },
     {
       "files": "**/*.js",
       "options": {
-        "parser": "babel"
+        "parser": "babel",
+        "semi": true,
+        "bracketSpacing": true,
+        "spaceBeforeFunctionParen": true,
+        "spaceAfterConstructor": true,
+        "spaceInsideJsxBraces": true,
+        "spaceInsideBrackets": true,
+        "spaceInsideParentheses": true,
+        "spaceInsideTemplateBraces": true,
+        "placeOpenBraceOnNewLineForControlBlocks": true,
+        "placeOpenBraceOnNewLineForFunctions": true,
+        "insertSpaceAfterTypeAssertion": true
       }
     },
     {
@@ -30,35 +52,25 @@
       }
     },
     {
-      "files": [
-        "**/*.md"
-      ],
+      "files": ["**/*.md"],
       "options": {
         "parser": "markdown"
       }
     },
     {
-      "files": [
-        "**/*.css",
-        "**/*.scss"
-      ],
+      "files": ["**/*.css", "**/*.scss"],
       "options": {
         "parser": "css"
       }
     },
     {
-      "files": [
-        "**/*.html"
-      ],
+      "files": ["**/*.html"],
       "options": {
         "parser": "html"
       }
     },
     {
-      "files": [
-        "**/*.yaml",
-        "**/*.yml"
-      ],
+      "files": ["**/*.yaml", "**/*.yml"],
       "options": {
         "parser": "yaml"
       }
