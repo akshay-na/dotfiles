@@ -26,5 +26,6 @@
     "chakrounanas.turbo-console-log",
     "leojhonsong.coding-assist-extension-pack",
     "franneck94.vscode-coding-tools-extension-pack"
-  ]
+  ],
+  "unwantedRecommendations": ["visualstudioexptteam.vscodeintellicode"]
 }

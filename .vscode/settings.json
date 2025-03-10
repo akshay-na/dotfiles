@@ -30,11 +30,11 @@
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": true,
   "editor.tabSize": 2,
-  "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.inlineSuggest.enabled": true,
   "editor.trimAutoWhitespace": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "always"
   },
@@ -107,6 +107,7 @@
   // ───────────────────────────────────────────────────────────────────────
   // Formatting Configuration for Specific Languages
   // ───────────────────────────────────────────────────────────────────────
+
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -140,17 +141,51 @@
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[yml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[ini]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[config]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[plaintext]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 
   // ───────────────────────────────────────────────────────────────────────
   // Language-Specific Configurations
   // ───────────────────────────────────────────────────────────────────────
+  "typescript.tsserver.maxTsServerMemory": 4096,
   "typescript.updateImportsOnFileMove.enabled": "always",
   "typescript.preferences.importModuleSpecifier": "project-relative",
   "typescript.preferences.quoteStyle": "auto",
   "typescript.suggest.paths": true,
+  "typescript.format.enable": false,
   "typescript.suggest.completeFunctionCalls": true,
-  "typescript.format.insertSpaceBeforeFunctionParenthesis": true,
-  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.disableAutomaticTypeAcquisition": false,
+  "typescript.preferGoToSourceDefinition": true,
+  "typescript.tsserver.enableRegionDiagnostics": false,
+  "typescript.tsserver.log": "terse",
   "typescript.preferences.autoImportFileExcludePatterns": [
     "**/node_modules/**"
   ],
@@ -159,7 +194,9 @@
   "javascript.preferences.importModuleSpecifier": "project-relative",
   "javascript.suggest.paths": true,
   "javascript.suggest.completeFunctionCalls": true,
-  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+  "javascript.format.enable": false,
+  "javascript.format.semicolons": "insert",
+  "javascript.preferGoToSourceDefinition": true,
 
   // ───────────────────────────────────────────────────────────────────────
   // Linting, Error Display & AI Assistance
@@ -208,7 +245,7 @@
   // ───────────────────────────────────────────────────────────────────────
   "security.workspace.trust.enabled": false,
   "security.workspace.trust.untrustedFiles": "newWindow",
-  "security.allowedUNCHosts": [],
+  "security.allowedUNCHosts": ["wsl.localhost"],
   "terminal.integrated.allowChords": false,
   "json.schemas": [],
   "security.workspace.trust.model": "disable",
@@ -220,6 +257,7 @@
   "git.confirmSync": true,
   "git.suggestSmartCommit": false,
   "git.autofetch": false,
+  "git.openRepositoryInParentFolders": "always",
   "remote.autoForwardPorts": false,
   "remote.restoreForwardedPorts": false,
 
@@ -229,7 +267,6 @@
   "window.titleBarStyle": "custom",
   "editor.suggestSelection": "first",
   "editor.suggest.showWords": false,
-  "editor.codeActionsOnSaveMode": "explicit",
   "files.trimTrailingWhitespace": true,
 
   // ───────────────────────────────────────────────────────────────────────
@@ -237,6 +274,13 @@
   // ───────────────────────────────────────────────────────────────────────
   "crypto-ticker.period": "HOUR",
   "makefile.configureOnOpen": true,
+
+  "evenBetterToml.formatter.alignComments": true,
+  "evenBetterToml.formatter.alignEntries": true,
+
+  "turboConsoleLog.addSemicolonInTheEnd": true,
+  "turboConsoleLog.includeFilename": true,
+  "turboConsoleLog.includeLineNum": true,
 
   "projectManager.showProjectNameInStatusBar": true,
   "projectManager.openInNewWindowWhenClickingInStatusBar": true,
