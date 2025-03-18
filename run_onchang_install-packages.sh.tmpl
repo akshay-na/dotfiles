@@ -41,6 +41,18 @@ cask {{ . }}
 EOF
 {{- end }}
 
+if ! command -v nvim >/dev/null 2>&1; then
+  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+  sudo rm -rf /opt/nvim
+  sudo tar -C /opt -xzf nvim-linux64.tar.gz
+  rm -rf nvim-linux64.tar.gz
+fi
+
+# Install Starship if not already installed
+if ! command -v starship >/dev/null 2>&1; then
+  curl -sSL https://starship.rs/install.sh | sh || echo_with_color "$RED" "Error installing Starship."
+fi
+
 ############################################
 # Linux
 ############################################
@@ -52,7 +64,7 @@ if [ -f /etc/debian_version ]; then
 
   echo "Updating apt..."
   sudo apt-get update -y
-  sudo apt-get update -y
+  sudo apt-get upgrade -y
 
   {{- range .Debian.apt }}
   echo "Installing apt package: {{ . }}"
@@ -66,6 +78,18 @@ if [ -f /etc/debian_version ]; then
   sudo apt-get install -y {{ . }}
   {{- end }}
   {{- end }}
+
+  if ! command -v nvim >/dev/null 2>&1; then
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+    sudo rm -rf /opt/nvim
+    sudo tar -C /opt -xzf nvim-linux64.tar.gz
+    rm -rf nvim-linux64.tar.gz
+  fi
+
+  # Install Starship if not already installed
+  if ! command -v starship >/dev/null 2>&1; then
+    curl -sSL https://starship.rs/install.sh | sh
+  fi
 
 else
   echo "Unsupported Linux distro for this script."
