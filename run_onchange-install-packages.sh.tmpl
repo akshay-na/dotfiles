@@ -1,0 +1,103 @@
+#!/bin/sh
+# run_once_install_packages.sh.tmpl
+#
+# This script is run once by chezmoi to install all declared packages from .chezmoi.yaml.
+
+set -eu # Exit on error or undefined variable
+
+echo "=== Starting package installation... ==="
+
+{{- if eq .chezmoi.os "darwin" }}
+############################################
+# macOS
+############################################
+if ! command -v brew >/dev/null 2>&1; then
+  echo "Homebrew not found. Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+echo "Updating Homebrew..."
+brew update
+
+# Install brew formulae
+{{- range .MacOS.brew.formulae }}
+echo "Installing brew formula: {{ . }}"
+brew install {{ . }}
+{{- end }}
+
+# Install brew casks
+{{- range .MacOS.brew.casks }}
+echo "Installing brew cask: {{ . }}"
+brew install --cask {{ . }}
+{{- end }}
+
+# Optionally install “optional_packages” casks if toggles or any condition is met
+{{- if .install_optional_packages }}
+echo "Installing optional macOS packages..."
+brew bundle --no-lock --file=/dev/stdin <<EOF
+{{- range .optional_packages.MacOS.brew.casks }}
+cask {{ . }}
+{{- end }}
+EOF
+{{- end }}
+
+############################################
+# Linux
+############################################
+{{ else if eq .chezmoi.os "linux" }}
+
+# Basic distro detection. For a more robust check, parse /etc/os-release.
+if [ -f /etc/debian_version ]; then
+  echo "Detected Debian/Ubuntu..."
+
+  echo "Updating apt..."
+  sudo apt-get update -y
+  sudo apt-get update -y
+
+  {{- range .Debian.apt }}
+  echo "Installing apt package: {{ . }}"
+  sudo apt-get install -y {{ . }}
+  {{- end }}
+
+  # Optionally install “optional_packages” casks if toggles or any condition is met
+  {{- if .install_optional_packages }}
+  echo "Installing optional Debian packages..."
+  {{- range .optional_packages.Debian.apt }}
+  sudo apt-get install -y {{ . }}
+  {{- end }}
+  {{- end }}
+
+else
+  echo "Unsupported Linux distro for this script."
+fi
+
+############################################
+# Windows
+############################################
+{{ else if eq .chezmoi.os "windows" }}
+echo "Detected Windows..."
+
+# You can install winget or use it if it’s already there.
+# This block assumes winget is available. For older Windows setups, use Chocolatey or something else.
+
+{{- range .Windows.winget }}
+echo "Installing Windows package via winget: {{ . }}"
+winget install --id {{ . }} --verbose --accept-package-agreements --accept-source-agreements --include-unknown --disable-interactivity
+{{- end }}
+
+# Optionally install “optional_packages” casks if toggles or any condition is met
+{{- if .install_optional_packages }}
+echo "Installing optional Windows packages..."
+{{- range .optional_packages.Windows.winget }}
+winget install --id {{ . }} --verbose --accept-package-agreements --accept-source-agreements --include-unknown --disable-interactivity
+{{- end }}
+{{- end }}
+
+############################################
+# Other OS
+############################################
+{{ else }}
+echo "Unsupported OS: {{ .chezmoi.os }}"
+{{ end }}
+
+echo "=== Package installation script completed! ==="

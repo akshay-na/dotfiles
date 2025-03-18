@@ -1,0 +1,85 @@
+# ~/.local/share/chezmoi/.chezmoi.yaml
+
+install_optional_packages: false
+
+# Packages for Mac via Homebrew
+MacOS:
+  brew:
+    formulae:
+      - zoxide
+      - zsh-completions
+      - tmux
+      - fzf
+      - ripgrep
+      - eza
+      - wget
+      - make
+      - curl
+      - bat
+      - nvm
+      - pyenv
+      - coreutils
+      - zsh
+    casks:
+      - google-chrome
+      - visual-studio-code
+      - espanso
+      - caffeine
+      - bitwarden
+      - adobe-acrobat-reader
+      - hiddenbar
+      - chatgpt
+      - alfred
+
+Debian:
+  apt:
+    - zoxide
+    - zsh
+    - zsh-common
+    - zsh-doc
+    - zsh-completions
+    - tmux
+    - fzf
+    - ripgrep
+    - wget
+    - make
+    - curl
+    - bat
+    - nvm
+    - pyenv
+    - eza
+    - coreutils
+
+Windows:
+  winget:
+    - Google.Chrome
+    - Git.Git
+    - Microsoft.VisualStudioCode
+    - Alacritty.Alacritty
+    - CoreyButler.NVMforWindows
+    - Microsoft.PowerToys
+    - Espanso.Espanso
+    - ShareX.ShareX
+    - Bitwarden.Bitwarden
+    - Adobe.Acrobat.Reader.64-bit
+    - Chocolatey.ChocolateyGUI
+
+# Optional packages that you might want to install if toggles are true
+# (one approach: store definitions for each platform here).
+optional_packages:
+  MacOS:
+    brew:
+      casks:
+        - postman
+        - docker
+        - mongodb-compass
+
+  Debian:
+    apt:
+      - docker
+
+  Windows:
+    winget:
+      - Docker.DockerDesktop
+      - MongoDB.Compass
+      - Postman.Postman
