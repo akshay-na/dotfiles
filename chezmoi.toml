@@ -1,0 +1,109 @@
+# ~/.config/chezmoi/chezmoi.toml
+# -------------------------------------------------------------------
+# A well-documented, example configuration to keep chezmoi efficient,
+# secure, and easy to maintain.
+
+###############################################################################
+# APPLY SECTION
+###############################################################################
+[apply]
+
+# By default, chezmoi won’t remove files in the destination directory
+# that don’t exist in the source state. Setting "remove = true" ensures
+# that your home directory remains in sync with chezmoi (i.e., it
+# removes files that chezmoi no longer manages).
+remove = true
+
+# Forces overwriting existing files, ignoring safety prompts.
+# Handy if you consistently want chezmoi to keep your system synced.
+# If you prefer safer usage, set force = false.
+force = true
+
+# Always create a backup before overwriting an existing file.
+# Adjust or remove this if you don't want backups.
+# backup = "~/.local/share/chezmoi/backups"
+
+###############################################################################
+# INIT SECTION
+###############################################################################
+[init]
+
+# Automatically apply after init.  This saves time on fresh setups.
+apply = true
+
+###############################################################################
+# GIT SECTION
+###############################################################################
+[git]
+
+# If you prefer to manage everything through chezmoi’s built-in Git commands
+# (e.g., `chezmoi git`), you can specify git behavior here.
+command  = "git"
+autoPull = true
+autoPush = false
+# With autoPull = true, chezmoi will pull from your remote upon certain
+# commands (like `chezmoi update`).
+# Set autoPush = true if you want chezmoi to push changes automatically
+# whenever it detects local commits.
+
+###############################################################################
+# GPG / AGE SECTION (FOR ENCRYPTION)
+###############################################################################
+# By default, chezmoi can encrypt secrets with GPG or Age.
+# You can enable one or both.  If you do, ensure you have either GPG or Age
+# installed and properly configured on your system.
+
+[gpg]
+# If you have GPG keys set up and want to encrypt files with GPG:
+useGpg = true
+# You can also specify a key ID to use if you have multiple keys:
+# recipient = "YOUR_GPG_KEY_ID"
+
+[age]
+# For modern, simpler encryption, you can use Age:
+useAge = false
+# If you enable Age, specify your recipient public key here:
+# recipients = ["age1..."]
+
+###############################################################################
+# TEMPLATE SECTION
+###############################################################################
+[template]
+
+# Chezmoi can interpret various file extensions as templates.
+# If you want to expand the default recognized extensions or adjust them:
+# (Typically .tmpl is enough, but you can define more as needed.)
+extension = "tmpl"
+
+###############################################################################
+# UPDATE SECTION
+###############################################################################
+[update]
+
+# Automatically update chezmoi from your repo if there are upstream changes.
+# This can be helpful if you frequently commit from multiple devices.
+auto = false
+# Set auto = true if you want `chezmoi apply` to also do an update behind the scenes.
+
+###############################################################################
+# OPTIONAL: PASS / LASTPASS / 1PASSWORD / BITWARDEN, etc.
+###############################################################################
+# If you store secrets in a password manager, you can have chezmoi
+# dynamically retrieve them during template rendering. For example:
+
+[bitwarden]
+command     = "bw"
+sessionName = "BW_SESSION"
+
+###############################################################################
+# SOURCE, DEST, & OTHER PATHS
+###############################################################################
+# If you prefer to keep your chezmoi source in a custom path, define it here:
+sourceDir = "~/dotfiles"
+# By default, chezmoi uses ~/.local/share/chezmoi.
+
+# You can also explicitly set where chezmoi applies your files:
+# destDir = "~"
+# (Default is your home directory. Generally no need to change this.)
+
+# End of chezmoi.toml
