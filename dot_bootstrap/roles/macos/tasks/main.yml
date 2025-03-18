@@ -1,17 +1,173 @@
-# roles/macos/tasks/main.yml
-
 - name: macOS tasks
   block:
-    - name: Install packages with Homebrew
-      homebrew:
-        name:
-          - git
-          - ripgrep
-          - zsh
-          - terraform
-          -  # ...
-        state: present
-
+    #########################################################################
+    # INFORMATION / DEBUG
+    #########################################################################
     - name: Debug
       ansible.builtin.debug:
-        msg: "macOS setup completed."
+        msg: "We are on MacOS. Installing common MacOs packages."
+
+    #########################################################################
+    # Homebrew Taps
+    #########################################################################
+    - name: Tap homebrew/cask-fonts
+      homebrew:
+        tap: homebrew/cask-fonts
+        state: present
+
+    #########################################################################
+    # CLI Packages Installation
+    #########################################################################
+    - name: Install CLI packages
+      homebrew:
+        name:
+          - zoxide
+          - zsh-completions
+          - tmux
+          - fzf
+          - ripgrep
+          - eza
+          - wget
+          - make
+          - curl
+          - bat
+          - coreutils
+          - fontconfig
+          - azure-cli
+          - awscli
+          - google-cloud-sdk
+          - kubectl
+          - terraform
+        state: present
+        update_homebrew: yes # Optional, ensures Homebrew is up-to-date
+
+    #########################################################################
+    # Cask Apps Installation (GUI)
+    #########################################################################
+    - name: Install GUI/cask apps
+      homebrew:
+        name:
+          - alacritty
+          - visual-studio-code
+          - google-chrome
+          - espanso
+          - nvm
+          - pyenv
+        state: present
+        cask: yes
+        update_homebrew: no
+
+    #########################################################################
+    # Cask Optional Apps Installation (GUI)
+    #########################################################################
+    - name: Install GUI/cask optional apps
+      when: setup_optional | default(false)
+      homebrew:
+        name:
+          - postman
+          - docker
+          - mongodb-compass
+        state: present
+        cask: yes
+        update_homebrew: no
+
+    #########################################################################
+    # Set Google Chrome as default browser
+    #########################################################################
+    - name: Ensure 'duti' is installed
+      homebrew:
+        name: duti
+        state: present
+
+    - name: Use duti to set Chrome as default browser
+      # There's more than one approach to set default apps on macOS.
+      # 'duti' is one method, but you must pass it a config or commands.
+      # Another tool: 'defaultbrowser' cask might let you do 'defaultbrowser chrome'.
+      # Example duti usage might be:
+      #   duti -s com.google.chrome public.html all
+      #   duti -s com.google.chrome public.xhtml all
+      #   ...
+      # Below is a simplified example command to set HTTP/HTTPS to Chrome:
+      ansible.builtin.shell: |
+        duti -s com.google.Chrome public.html all
+        duti -s com.google.Chrome public.url all
+        duti -s com.google.Chrome public.xhtml all
+        duti -s com.google.Chrome http all
+        duti -s com.google.Chrome https all
+      changed_when: true # We assume this might change something
+
+    #########################################################################
+    # CHECK / INSTALL NEOVIM
+    #########################################################################
+    - name: Check if nvim is installed
+      ansible.builtin.shell: command -v nvim
+      register: nvim_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install Neovim from tarball if missing
+      block:
+        - name: Download Neovim tarball
+          ansible.builtin.get_url:
+            url: "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+            # For macOS, consider using nvim-macos.tar.gz if you prefer:
+            # url: "https://github.com/neovim/neovim/releases/latest/download/nvim-macos.tar.gz"
+            dest: "/tmp/nvim.tar.gz"
+
+        - name: Remove existing /opt/nvim (if any)
+          ansible.builtin.file:
+            path: /opt/nvim
+            state: absent
+
+        - name: Extract Neovim to /opt
+          ansible.builtin.unarchive:
+            src: "/tmp/nvim.tar.gz"
+            dest: /opt
+            remote_src: true
+          register: nvim_extracted
+
+        - name: Remove the tarball
+          ansible.builtin.file:
+            path: "/tmp/nvim.tar.gz"
+            state: absent
+
+        - name: Symlink Neovim to /usr/local/bin
+          ansible.builtin.file:
+            src: "/opt/nvim-linux64/bin/nvim"
+            dest: /usr/local/bin/nvim
+            state: link
+
+      when: nvim_installed.rc != 0
+
+    #########################################################################
+    # CHECK / INSTALL STARSHIP
+    #########################################################################
+    - name: Check if starship is installed
+      ansible.builtin.shell: command -v starship
+      register: starship_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install Starship from official script if missing
+      ansible.builtin.shell: "curl -sSL https://starship.rs/install.sh | sh -s -- --yes"
+      args:
+        executable: /bin/bash
+      when: starship_installed.rc != 0
+
+    #########################################################################
+    # INSTALL FONTS FROM roles/macos/files/fonts/
+    #########################################################################
+    - name: Ensure ~/Library/Fonts directory exists
+      ansible.builtin.file:
+        path: "{{ lookup('env','HOME') }}/Library/Fonts"
+        state: directory
+
+    - name: Copy all fonts to ~/Library/Fonts
+      ansible.builtin.copy:
+        src: "files/fonts/"
+        dest: "{{ lookup('env','HOME') }}/Library/Fonts"
+        owner: "{{ ansible_env.USER }}"
+        group: staff
+        mode: "0644"
+        remote_src: no
+      # This copies every file in the 'fonts/' directory to the user's Fonts folder.
