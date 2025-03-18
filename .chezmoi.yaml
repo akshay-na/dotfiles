@@ -63,6 +63,35 @@ Windows:
     - Chocolatey.ChocolateyGUI
     - Cygwin.Cygwin
 
+vscode:
+  extensions:
+    - forewing.crypto-ticker
+    - formulahendry.auto-close-tag
+    - formulahendry.auto-complete-tag
+    - steoates.autoimport
+    - formulahendry.auto-rename-tag
+    - chouzz.vscode-better-align
+    - alefragnani.bookmarks
+    - wraith13.bracket-lens
+    - stringham.copy-with-imports
+    - mikestead.dotenv
+    - codezombiech.gitignore
+    - wix.vscode-import-cost
+    - sirtori.indenticator
+    - wmaurer.vscode-jumpy
+    - pkief.material-icon-theme
+    - zhuangtongfa.material-theme
+    - christian-kohler.npm-intellisense
+    - ionutvmi.path-autocomplete
+    - johnpapa.vscode-peacock
+    - alefragnani.project-manager
+    - foxundermoon.shell-format
+    - seunghwan.smartsemicolon
+    - gruntfuggly.todo-tree
+    - chakrounanas.turbo-console-log
+    - leojhonsong.coding-assist-extension-pack
+    - franneck94.vscode-coding-tools-extension-pac
+
 # Optional packages that you might want to install if toggles are true
 # (one approach: store definitions for each platform here).
 optional_packages:

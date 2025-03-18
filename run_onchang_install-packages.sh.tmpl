@@ -124,4 +124,17 @@ winget install --id {{ . }} --verbose --accept-package-agreements --accept-sourc
 echo "Unsupported OS: {{ .chezmoi.os }}"
 {{ end }}
 
+if
+  command -v code &
+  >/dev/null
+then
+  echo "Installing VS Code extensions..."
+
+  {{- range .vscode.extensions }}
+  code --install-extension {{ . }}
+  {{- end }}
+
+  echo "VS Code extension installation complete."
+fi
+
 echo "=== Package installation script completed! ==="
