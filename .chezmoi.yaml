@@ -63,6 +63,7 @@ Windows:
     - Bitwarden.Bitwarden
     - Adobe.Acrobat.Reader.64-bit
     - Chocolatey.ChocolateyGUI
+    - Cygwin.Cygwin
 
 # Optional packages that you might want to install if toggles are true
 # (one approach: store definitions for each platform here).
