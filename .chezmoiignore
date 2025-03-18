@@ -1,2 +1,17 @@
 README.md
 LICENSE
+
+# Ignore Windows config except on Windows
+{{ if ne .chezmoi.os "windows" -}}
+AppData/
+{{ end }}
+
+# Ignore macOS config except on macOS
+{{ if ne .chezmoi.os "darwin" -}}
+Library/Application Support/
+{{ end }}
+
+# Ignore Linux config except on Linux
+{{ if ne .chezmoi.os "linux" -}}
+.config/Code/
+{{ end }}
