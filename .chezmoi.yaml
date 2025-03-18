@@ -45,8 +45,6 @@ Debian:
     - make
     - curl
     - bat
-    - nvm
-    - pyenv
     - eza
     - coreutils
 

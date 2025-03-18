@@ -45,6 +45,9 @@ if command -v pyenv >/dev/null; then
   export PATH="$HOME/.pyenv/bin:$PATH"
   eval "$(pyenv init --path >/dev/null 2>&1)" &!
   eval "$(pyenv init -- >/dev/null 2>&1)" &!
+else
+  # Install Pyenv if not available
+  git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
 fi
 
 # Check for and initialize NVM
@@ -52,6 +55,9 @@ if [ -d "$NVM_DIR" ]; then
   # Load NVM and bash completion if available
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+else
+  # Install NVM if not available
+  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
 fi
 
 # Automatically start tmux if not already inside a session
