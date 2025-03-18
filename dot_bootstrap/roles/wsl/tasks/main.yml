@@ -1,0 +1,13 @@
+# roles/wsl/tasks/main.yml
+
+- name: WSL-specific tasks
+  block:
+    - name: Install ripgrep via apt
+      ansible.builtin.apt:
+        name: ripgrep
+        state: present
+        update_cache: yes
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "We are in WSL. Additional Linux tasks performed."

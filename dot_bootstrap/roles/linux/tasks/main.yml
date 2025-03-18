@@ -1,0 +1,34 @@
+# roles/linux/tasks/main.yml
+---
+- name: Linux Setup (Fedora example)
+  block:
+    - name: Install packages
+      ansible.builtin.dnf:
+        name:
+          - git
+          - htop
+          - gcc
+          - helm
+          - ripgrep
+          - eza
+          - zsh
+          - fzf
+          - tmux
+          - make
+          - sqlite
+          - fd-find
+        state: present
+
+    - name: Change login shell to zsh
+      ansible.builtin.user:
+        name: "{{ remote_regular_user }}"
+        shell: /usr/bin/zsh
+
+    - name: Install DNF plugins core
+      ansible.builtin.dnf:
+        name: dnf-plugins-core
+        state: present
+
+    # ...
+    # (Add your Brave, VSCode, Docker, rtx, kubectl, HashiCorp, Pulumi, Flyctl, Flatpak, Fonts tasks here)
+    # ...

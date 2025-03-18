@@ -1,0 +1,17 @@
+# roles/macos/tasks/main.yml
+
+- name: macOS tasks
+  block:
+    - name: Install packages with Homebrew
+      homebrew:
+        name:
+          - git
+          - ripgrep
+          - zsh
+          - terraform
+          -  # ...
+        state: present
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "macOS setup completed."

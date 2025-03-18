@@ -1,0 +1,155 @@
+---
+- name: Windows tasks
+  block:
+    #########################################################################
+    # INFORMATION / DEBUG
+    #########################################################################
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "We are on Windows. (Git Bash or PowerShell). Installing common Windows packages."
+
+    #########################################################################
+    # ALACRITTY
+    #########################################################################
+    - name: Install Alacritty
+      ansible.windows.win_chocolatey:
+        name: alacritty
+        state: present
+
+    #########################################################################
+    # VISUAL STUDIO CODE
+    #########################################################################
+    - name: Install Visual Studio Code
+      ansible.windows.win_chocolatey:
+        name: vscode
+        state: present
+
+    #########################################################################
+    # NVM (FOR WINDOWS)
+    #########################################################################
+    - name: Install NVM (Node Version Manager for Windows)
+      ansible.windows.win_chocolatey:
+        name: nvm.install
+        state: present
+
+    #########################################################################
+    # PYENV (FOR WINDOWS)
+    #########################################################################
+    - name: Install Pyenv (Windows version)
+      ansible.windows.win_chocolatey:
+        name: pyenv-win
+        state: present
+
+    #########################################################################
+    # GOOGLE CHROME
+    #########################################################################
+    - name: Install Google Chrome
+      ansible.windows.win_chocolatey:
+        name: googlechrome
+        state: present
+
+    - name: Set Chrome as default browser
+      # NOTE: This is one possible approach; using win_command with the
+      #   --make-default-browser switch. Alternate approaches may be needed
+      #   for reliability (e.g., custom registry settings, SetUserFTA, etc.).
+      ansible.windows.win_command:
+        command: '"C:\Program Files\Google\Chrome\Application\chrome.exe" --make-default-browser'
+
+    #########################################################################
+    # POWEROYS
+    #########################################################################
+    - name: Install Microsoft PowerToys
+      ansible.windows.win_chocolatey:
+        name: microsoft-powertoys
+        state: present
+
+    #########################################################################
+    # SHAREX
+    #########################################################################
+    - name: Install ShareX
+      ansible.windows.win_chocolatey:
+        name: sharex
+        state: present
+
+    #########################################################################
+    # YUBIKEY MANAGER CLI
+    #########################################################################
+    - name: Install Yubikey Manager CLI
+      ansible.windows.win_chocolatey:
+        name: yubikey-manager
+        state: present
+      # Some references list this as "yubikey-manager",
+      # but double-check that the package ID is correct.
+
+    #########################################################################
+    # ESPANSO
+    #########################################################################
+    - name: Install Espanso
+      ansible.windows.win_chocolatey:
+        name: espanso
+        state: present
+
+    #########################################################################
+    # MONGO COMPASS
+    #########################################################################
+    - name: Install MongoDB Compass
+      when: setup_optional | default(false)
+      ansible.windows.win_chocolatey:
+        name: mongodb-compass
+        state: present
+
+    #########################################################################
+    # DOCKER DESKTOP
+    #########################################################################
+    - name: Install Docker Desktop
+      when: setup_optional | default(false)
+      ansible.windows.win_chocolatey:
+        name: docker-desktop
+        state: present
+
+    #########################################################################
+    # POSTMAN DESKTOP
+    #########################################################################
+    - name: Install Postman
+      when: setup_optional | default(false)
+      ansible.windows.win_chocolatey:
+        name: postman
+        state: present
+
+    #########################################################################
+    # SETUP WSL (ENABLE FEATURES, ETC.)
+    #########################################################################
+    - name: Enable WSL feature
+      when: setup_optional | default(false)
+      ansible.windows.win_command:
+        command: dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+      register: enable_wsl
+
+    - name: Enable Virtual Machine Platform feature (for WSL2)
+      when: setup_optional | default(false)
+      ansible.windows.win_command:
+        command: dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+      register: enable_vmp
+
+    # Optionally handle reboots automatically:
+    # - name: Reboot if needed after enabling WSL
+    #   ansible.windows.win_reboot:
+    #   when:
+    #     - enable_wsl.reboot_required or enable_vmp.reboot_required
+    #   register: post_wsl_reboot
+
+    - name: Set default WSL version to 2
+      when: setup_optional | default(false)
+      ansible.windows.win_command:
+        command: wsl.exe --set-default-version 2
+
+    - name: Install Ubuntu distro for WSL
+      when: setup_optional | default(false)
+      ansible.windows.win_command:
+        command: wsl.exe --install -d Ubuntu
+      register: install_ubuntu
+      changed_when: install_ubuntu.rc == 0
+      # If you want to ensure it doesn't reinstall if Ubuntu is already installed,
+      # you'd add a condition to skip if "wsl.exe -l" includes "Ubuntu".
+
+  # rescue/always sections if desired...
