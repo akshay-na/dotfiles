@@ -15,21 +15,45 @@
 # Purpose: Delete a specified Git branch both locally and remotely.
 # Usage: delete_branch <branch-name>
 # -------------------------------------------------------------------------------
-function delete_branch() {
-  branch=$1
-
-  # Check if the branch exists locally
-  if git show-ref --verify --quiet refs/heads/"$branch"; then
-    echo -e "Deleting '$branch' from local repository..."
-    git branch -d "$branch" # Delete the local branch
+delete_branches() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: delete_branches <branch1> [branch2] ..."
+    return 1
   fi
 
-  # Check if the branch exists on the remote repository
-  if git ls-remote --heads origin "$branch" | grep "$branch" >/dev/null; then
-    echo -e "Deleting '$branch' from remote repository...\n"
-    git push origin --delete "$branch" # Delete the remote branch
-  fi
+  for branch in "$@"; do
+    echo "Processing branch: '$branch'"
+
+    # Check if the branch exists locally
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      echo "  Deleting '$branch' locally..."
+      git branch -d "$branch"
+    else
+      echo "  '$branch' does not exist locally."
+    fi
+
+    # Check if the branch exists on the remote repository
+    if git ls-remote --heads origin "$branch" | grep "$branch" >/dev/null; then
+      echo "  Deleting '$branch' on remote..."
+      git push origin --delete "$branch"
+    else
+      echo "  '$branch' does not exist on remote."
+    fi
+
+    echo
+  done
 }
+
+_delete_branches_completions() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  # Retrieve all local branches.
+  local branches=$(git branch --format='%(refname:short)' 2>/dev/null)
+  # Generate completions from the list of local branches.
+  COMPREPLY=($(compgen -W "${branches}" -- "$cur"))
+}
+
+# Enable tab-completion for the delete_branches command
+complete -F _delete_branches_completions delete_branches
 
 # -------------------------------------------------------------------------------
 # Function: reload
