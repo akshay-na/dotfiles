@@ -213,7 +213,6 @@
   "errorLens.scrollbarHackEnabled": false,
   "errorLens.followCursor": "allLines",
   "errorLens.gutterIconSet": "emoji",
-  "errorLens.exclude": [],
 
   // ───────────────────────────────────────────────────────────────────────
   // GitHub Copilot Privacy & Security
@@ -377,5 +376,42 @@
       "strikethrough": true,
       "bold": false
     }
+  ],
+
+  // Cursor AI Specific Settings
+  "cursor.cpp.disabledLanguages": ["plaintext"],
+  "cursor.composer.shouldChimeAfterChatFinishes": true,
+  "cursor.general.globalCursorIgnoreList": [
+    "**/.env",
+    "**/.env.*",
+    "**/.npmrc",
+    "**/credentials.json",
+    "**/credentials.*.json",
+    "**/secret.json",
+    "**/secrets.json",
+    "**/*.key",
+    "**/*.pem",
+    "**/*.pfx",
+    "**/*.p12",
+    "**/*.crt",
+    "**/*.cer",
+    "**/id_rsa",
+    "**/id_dsa",
+    "**/.ssh/id_*",
+    "**/.gnupg/private*",
+    "**/config/*.local.js",
+    "**/config/*.local.json",
+    "**/vault/**",
+    "**/*.asc",
+    "**/secrets.yaml",
+    "**/secrets.yml",
+    "**/private.key",
+    "**/*.bak",
+    "**/*.tmp",
+    "**/*.swp",
+    ".git/**",
+    ".hg/**",
+    ".vscode/**",
+    ".idea/**"
   ]
 }

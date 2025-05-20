@@ -1,0 +1,7 @@
+# Ignore everything in the .gnupg/ directory:
+.cursor/*
+
+# But explicitly unignore these three files:
+!.cursor/argv.json
+!.cursor/mcp.json
+!.cursor/rules

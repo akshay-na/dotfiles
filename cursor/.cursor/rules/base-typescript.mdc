@@ -1,0 +1,85 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+---
+description: TypeScript coding guidelines / style - check when working on TypeScript files
+globs: *.ts, *.tsx
+alwaysApply: false
+---
+# General
+
+- Each class, function, or module should have a single responsibility. Split up code that does too much. (SRP)
+- Keep functions short and focused. Extract methods if a function grows too large. ([Extract Method](mdc:https:/refactoring.guru/refactoring/extract-method))
+- Parallelize async calls where appropriate via `Promise.all` instead of sequential fetches in a `for` loop.
+- No `any` allowed. If the input type is genuinely unknown, use `unknown` and write appropriate logic to narrow the type.
+- Prefer `??` over `||`
+- No unchecked index access (`array[0]` might be `undefined`). Optional chain or check and throw an error (depending on whether it is acceptable for the result to be undefined or not).
+- Don't make formatting corrections to lines you aren't already modifying. Auto-fixing will handle it.
+- Avoid single-letter variable names. e.g. `event`, not `e`. Exception: in `for` or `while` loops (e.g. `i` is fine).
+- Variable names are all in `camelCase`. No `SCREAMING_SNAKE_CASE`.
+- Use clear, descriptive names for variables, functions, and classes. Avoid abbreviations unless well-known.
+- Check function and type signatures carefully to understand APIs and what fields are available.
+  For external libraries, these should be available in a type declaration file.
+  Don't guess APIs! Check the signatures.
+- Use explicit types and interfaces for function parameters, return values, and object shapes. Avoid implicit `any`.
+- Prefer `interface` for object shapes and `type` for unions/intersections.
+- Remove duplicate code by extracting common logic into reusable functions or classes.
+- Replace magic numbers and strings with named constants.
+- Use guard clauses and meaningful function names to clarify complex conditionals.
+- Split large classes into smaller, focused ones.
+- If a function has many parameters, group them into an object or introduce a parameter object.
+- Write code that explains itself. Use comments only for why something is done, not what is done.
+- Use JSDoc to document public functions, classes, and interfaces.
+
+# Avoid these!
+
+- Don't make changes unrelated to the user's requests. You can suggest further changes at the end of your work.
+- Don't get stuck fixing linting errors - stop and ask for help sooner.
+- Don't attempt to run the app. Let the user handle testing.
+
+# Workspaces
+
+- Check which package manager or workpsace the project is using by looking at lockfile
+- If you want to install a dependency, you need to do it in the relevant workspace. e.g. `hash/apps/hash-frontend`.
+
+## Linked entities
+
+- A 'subgraph' will contain details of entities and entities linked to it.
+
+# File organization
+
+- When exports from a module are only used in one other file, they should be created in a subfolder named after the importing file.
+  e.g.
+
+```md
+- page.tsx
+- page/header.tsx
+- page/header/header-button.tsx
+- page/sidebar.tsx
+```
+
+# Testing
+
+- Every function and module should have corresponding unit tests.
+- Cover edge cases and error conditions in tests.
+
+# Error Handling
+
+- Use exceptions for exceptional cases, not for control flow.
+- Always handle possible errors, especially in async code.
+
+# Dependency Management
+
+- Use dependency injection where possible for easier testing and flexibility.
+- Only use well-maintained, necessary libraries.
+
+# Performance
+
+- Write clear code first, optimize only when necessary.
+- Use profiling tools to find bottlenecks before optimizing.
+
+# Design Patterns
+
+- Apply design patterns (e.g., Singleton, Factory, Strategy) where appropriate to solve recurring problems, but avoid overengineering.
