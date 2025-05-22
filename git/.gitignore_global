@@ -188,6 +188,7 @@ media/
 /vendor/
 .env
 .env.*
+!.env.example
 
 # Rails
 /log/*
