@@ -217,3 +217,5 @@ UserSettings/
 *.meta
 *.prefs
 sysinfo.txt
+
+not a tty

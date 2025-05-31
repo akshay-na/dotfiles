@@ -1,0 +1,12 @@
+legacy_version_file = yes # Support .nvmrc, .python-version, etc.
+always_reshim = no        # Manually run `asdf reshim` for speed
+enable_plugin_short_name_repository = yes
+asdf_data_dir = $HOME/.asdf       # Set plugin + install data directory
+disable_plugin_update_prompt = no # Allow update prompts (set to yes to suppress)
+always_keep_download = yes        # Remove source archives after install
+concurrency = auto                # Use all available CPU cores during builds
+
+# Node.js plugin settings
+ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY = latest_installed # Use latest installed version for partial versions in legacy files
+ASDF_NODEJS_AUTO_ENABLE_COREPACK = true                     # Automatically enable Corepack after installation
+ASDF_NODEJS_VERBOSE_INSTALL = true                          # Enable verbose output during installation

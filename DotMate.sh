@@ -103,7 +103,7 @@ install() {
         brew tap homebrew/cask-fonts
 
         echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
-        brew install zoxide zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig
+        brew install zoxide zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig asdf
 
         echo_with_color "$GREEN" "macOS setup complete!"
 
@@ -113,6 +113,14 @@ install() {
         echo_with_color "$YELLOW" "Updating apt and installing base packages..."
         sudo apt update
         sudo apt install -y curl git zsh fzf tmux zoxide unzip stow make gcc wget ripgrep eza bat coreutils
+
+        # --- asdf  ---
+        echo_with_color "$YELLOW" "Installing asdf..."
+        # Install asdf if not already present
+        if [ ! -d "~/.asdf" ]; then
+            echo_with_color "$YELLOW" "Installing asdf..."
+            git clone https://github.com/asdf-vm/asdf.git ~/.asdf || echo_with_color "$RED" "Error cloning asdf repository."
+        fi
 
         # --- bat (aliased as cat) ---
         echo_with_color "$YELLOW" "Installing bat..."
@@ -128,6 +136,16 @@ install() {
         echo_with_color "$RED" "This script supports macOS (Homebrew) or Debian/Ubuntu (apt). Please install the required things manually"
         exit 1
     fi
+
+    # Configure asdf and add plugins
+    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+    asdf plugin add python https://github.com/danhper/asdf-python.git
+    asdf plugin add java https://github.com/halcyon/asdf-java.git
+    asdf plugin add terraform https://github.com/asdf-community/asdf-hashicorp.git
+    asdf plugin add kubectl https://github.com/asdf-community/asdf-kubectl.git
+    asdf plugin add awscli https://github.com/MetricMike/asdf-awscli.git
+    asdf plugin add gcloud https://github.com/jthegedus/asdf-gcloud.git
+    asdf plugin add azcli https://github.com/mutemutsa/asdf-azcli.git
 
     fc-cache -f -v >/dev/null 2>&1
 

@@ -20,9 +20,8 @@
 # Define Environment Variables
 # ---------------------------------------------------------------
 export DOTFILES_DIR="$HOME/dotfiles"                                 # Root directory for dotfiles
-export PYENV_ROOT="$HOME/.pyenv"                                     # Pyenv root directory
-export NVM_DIR="$HOME/.nvm"                                          # NVM directory
-export PATH="$PATH:$HOME/.pyenv/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
+export ASDF_DATA_DIR="$HOME/.asdf"                                   # asdf directory
+export PATH="$PATH:$HOME/.asdf/bin:$HOME/bin:/opt/nvim-linux64/bin" # Additional paths
 export PATH=$PATH:"~/bin":"~/.local/bin"                             # Add local binaries to PATH
 HISTSIZE=10000                                                       # Shell history size
 
@@ -105,26 +104,6 @@ fcd() {
 # Load custom aliases and functions if available
 [ -f ~/.aliases ] && source ~/.aliases
 [ -f ~/.functions ] && source ~/.functions
-
-# Check for and initialize Pyenv
-if command -v pyenv >/dev/null; then
-  export PATH="$HOME/.pyenv/bin:$PATH"
-  eval "$(pyenv init --path >/dev/null 2>&1)" &!
-  eval "$(pyenv init -- >/dev/null 2>&1)" &!
-else
-  # Install Pyenv if not available
-  git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
-fi
-
-# Check for and initialize NVM
-if [ -d "$NVM_DIR" ]; then
-  # Load NVM and bash completion if available
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-else
-  # Install NVM if not available
-  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
-fi
 
 # Automatically start tmux if not already inside a session
 if command -v tmux >/dev/null 2>&1 && [[ -z "$TMUX" ]]; then
