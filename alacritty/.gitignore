@@ -1,0 +1,3 @@
+.config/*
+!.config/alacritty/alacritty.toml
+!.config/alacritty/themes/alabaster_dark.toml
