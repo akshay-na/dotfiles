@@ -1,10 +1,13 @@
+# Language or Runtimes to be installed
 nodejs    latest
 python    latest
 java      latest
+rust      latest
+
+# Tools to be installed
 terraform latest
 awscli    latest
 gcloud    latest
 kubectl   latest
 helm      latest
-rust      latest
 azure-cli latest
