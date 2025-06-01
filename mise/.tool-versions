@@ -11,3 +11,5 @@ gcloud    latest
 kubectl   latest
 helm      latest
 azure-cli latest
+starship  latest
+neovim    latest
