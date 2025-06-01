@@ -76,18 +76,6 @@ check_dotfiles_update() {
 install() {
     echo_with_color "$GREEN" "Installing tools and setting up environment..."
 
-    if ! command -v nvim >/dev/null 2>&1; then
-        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-        sudo rm -rf /opt/nvim
-        sudo tar -C /opt -xzf nvim-linux64.tar.gz
-        rm -rf nvim-linux64.tar.gz
-    fi
-
-    # Install Starship if not already installed
-    if ! command -v starship >/dev/null 2>&1; then
-        curl -sSL https://starship.rs/install.sh | sh || echo_with_color "$RED" "Error installing Starship."
-    fi
-
     chsh -s "$(which zsh)"
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -103,7 +91,7 @@ install() {
         brew tap homebrew/cask-fonts
 
         echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
-        brew install zoxide zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig mise
+        brew install zoxide stow zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig mise alacritty
 
         echo_with_color "$GREEN" "macOS setup complete!"
 
