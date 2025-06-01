@@ -187,14 +187,14 @@ backup)
     ;;
 update)
     check_dotfiles_update
-    ;;
-install)
-    install
-    backup_dotfiles
     stow_dotfiles
     ;;
+install)
+    backup_dotfiles
+    stow_dotfiles
+    install
+    ;;
 stow)
-    check_dotfiles_update
     shift
     if [ "$#" -gt 0 ]; then
         stow_multiple_dotfiles "$@"
