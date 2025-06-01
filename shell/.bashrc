@@ -38,6 +38,11 @@ if command -v zoxide >/dev/null; then
   eval "$(zoxide init bash)"
 fi
 
+# mise for managing runtimes envs
+if command -v mise >/dev/null; then
+  eval "$(mise activate bash)"
+fi
+
 # Initialize Fzf if available, with custom completion, key-bindings, and history
 if [ -f ~/.fzf.bash ]; then
   # Alternative check if Fzf was manually installed

@@ -114,7 +114,7 @@ setopt check_jobs                    # Warn about running/stopped jobs when exit
 setopt extendedglob                  # Enable Extended Globbing
 
 # Initialize and run compinit quietly in the background
-autoload -Uz compinit bashcompinit
+autoload -Uz compinit
 
 # ------------------------------------------------------------------------------
 # 7. Completion Styling and Options
@@ -149,8 +149,7 @@ zstyle ':vcs_info:git:*:-all-' get-revision true
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
-bashcompinit &!
-compinit -u -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump" &!
+compinit -u -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 
 # ------------------------------------------------------------------------------
 # 8. Tool Initializations (Starship, Zoxide, Fzf, etc.)
@@ -163,6 +162,11 @@ fi
 # Zoxide for quick directory jumping
 if command -v zoxide >/dev/null; then
   eval "$(zoxide init zsh)"
+fi
+
+# mise for managing runtimes envs
+if command -v mise >/dev/null; then
+  eval "$(mise activate zsh)"
 fi
 
 # Fzf initialization (if installed)
