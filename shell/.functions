@@ -53,7 +53,13 @@ _delete_branches_completions() {
 }
 
 # Enable tab-completion for the delete_branches command
-complete -F _delete_branches_completions delete_branches
+if [ -n "$BASH_VERSION" ]; then
+  # Bash completion
+  complete -F _delete_branches_completions delete_branches
+elif [ -n "$ZSH_VERSION" ]; then
+  # Zsh completion
+  compdef _delete_branches_completions delete_branches
+fi
 
 # -------------------------------------------------------------------------------
 # Function: reload
@@ -355,7 +361,13 @@ _install_pnpm_completions() {
 }
 
 # Enable autocomplete for install_pnpm function
-complete -F _install_pnpm_completions install_pnpm
+if [ -n "$BASH_VERSION" ]; then
+  # Bash completion
+  complete -F _install_pnpm_completions install_pnpm
+elif [ -n "$ZSH_VERSION" ]; then
+  # Zsh completion
+  compdef _install_pnpm_completions install_pnpm
+fi
 
 # Load custom local common configurations, if available
 [ -f ~/.functions_local ] && source ~/.functions_local
