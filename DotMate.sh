@@ -91,7 +91,7 @@ install() {
         brew tap homebrew/cask-fonts
 
         echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
-        brew install zoxide stow zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig mise alacritty
+        brew install zoxide stow zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig mise
 
         echo_with_color "$GREEN" "macOS setup complete!"
 

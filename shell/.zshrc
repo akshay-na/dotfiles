@@ -41,34 +41,36 @@ source "${ZINIT_HOME}/zinit.zsh"
 # ------------------------------------------------------------------------------
 # 4. Zinit Plugin Loads
 # ------------------------------------------------------------------------------
-# Load essential plugins
-zinit light-mode for \
-  zsh-users/zsh-syntax-highlighting \
+# Load essential plugins with optimized settings
+zinit wait lucid light-mode for \
+  zdharma-continuum/fast-syntax-highlighting \
   zsh-users/zsh-completions \
   zsh-users/zsh-autosuggestions \
   Aloxaf/fzf-tab \
   MichaelAquilina/zsh-you-should-use \
   zsh-users/zsh-history-substring-search \
   sunlei/zsh-ssh \
-  hlissner/zsh-autopair
+  hlissner/zsh-autopair \
+  lukechilds/zsh-better-npm-completion
 
-# Oh My Zsh plugin snippets via Zinit
-zinit snippet OMZP::git
-zinit snippet OMZP::kubectl
-zinit snippet OMZP::npm
-zinit snippet OMZP::nvm
-zinit snippet OMZP::terraform
-zinit snippet OMZP::vscode
-zinit snippet OMZP::z
-zinit snippet OMZP::sudo
-zinit snippet OMZP::jsontools
-zinit snippet OMZP::archlinux
-zinit snippet OMZP::aws
-zinit snippet OMZP::azure
-zinit snippet OMZP::brew
-zinit snippet OMZP::gcloud
-zinit snippet OMZP::kubectx
-zinit snippet OMZP::command-not-found
+# Load Oh My Zsh plugin snippets with optimized settings
+zinit wait lucid light-mode for \
+  OMZP::git \
+  OMZP::kubectl \
+  OMZP::npm \
+  OMZP::nvm \
+  OMZP::terraform \
+  OMZP::vscode \
+  OMZP::z \
+  OMZP::sudo \
+  OMZP::jsontools \
+  OMZP::archlinux \
+  OMZP::aws \
+  OMZP::azure \
+  OMZP::brew \
+  OMZP::gcloud \
+  OMZP::kubectx \
+  OMZP::command-not-found
 
 # Replay Zinit's plugin history quietly
 zinit cdreplay -q
@@ -94,24 +96,33 @@ HISTFILE=~/.zsh_history              # Where to store history
 SAVEHIST=$HISTSIZE                   # Number of history lines to save
 HISTDUP=erase                        # Erase oldest duplicate when a command is repeated
 
-# History-related setopts
-setopt appendhistory                 # Append commands to $HISTFILE rather than overwrite
-setopt sharehistory                  # Share command history between sessions
-setopt inc_append_history            # Immediately append commands to history file
-setopt hist_ignore_space             # Don't record commands that start with a space
-setopt hist_ignore_all_dups          # Remove older matching commands from history
-setopt hist_save_no_dups             # Never write duplicate entries to $HISTFILE
-setopt hist_ignore_dups              # Don't store command if it matches the previous one
-setopt hist_find_no_dups             # Skip duplicates when searching history
+# History-related options
+setopt appendhistory            # Append commands to $HISTFILE instead of overwriting it
+setopt sharehistory             # Share command history between all sessions
+setopt inc_append_history       # Immediately append each command to the history file
+setopt hist_ignore_space        # Don't record commands that start with a space
+setopt hist_ignore_all_dups     # Remove all older duplicates when a new command is added
+setopt hist_save_no_dups        # Don't write duplicate entries to the history file
+setopt hist_ignore_dups         # Ignore the command if it matches the previous one
+setopt hist_find_no_dups        # Skip duplicate entries when searching through history
+setopt hist_expire_dups_first   # Expire duplicate entries first when trimming history
+setopt hist_verify              # Load history line into the editor before executing
 
-# Other shell options
-setopt auto_cd                       # "cd dir" by just typing "dir"
-setopt auto_pushd                    # Push to directory stack on cd
-setopt extended_glob                 # Enable advanced globbing
-setopt multios                       # Allow multiple redirections (e.g. echo foo >file1 >file2)
-setopt glob_dots                     # Include dotfiles in glob expansion
-setopt check_jobs                    # Warn about running/stopped jobs when exiting
-setopt extendedglob                  # Enable Extended Globbing
+# Directory and navigation options
+setopt auto_cd                  # Allow 'cd dir' by typing just 'dir'
+setopt auto_pushd               # Use pushd when changing directories
+setopt pushd_ignore_dups        # Don't store duplicates in the directory stack
+setopt pushd_silent             # Don't print the directory stack after pushd/popd
+
+# Globbing and redirection options
+setopt extended_glob            # Enable advanced globbing patterns
+setopt null_glob                # Allow unmatched globs to expand to null (empty string)
+setopt multios                  # Allow multiple redirections (e.g., echo foo >f1 >f2)
+setopt glob_dots                # Include dotfiles in glob expansions
+
+# Miscellaneous options
+setopt check_jobs               # Warn about running or stopped jobs when exiting the shell
+setopt numeric_glob_sort        # Sort filenames with numbers in numerical order (e.g., 1 2 10)
 
 # Initialize and run compinit quietly in the background
 mkdir -p ~/.zsh/cache
@@ -136,6 +147,9 @@ zstyle ':completion:*:default' list-grouped true
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*' menu no
+zstyle ':completion:*' use-ip true
+zstyle ':completion:*' use-perl true
+zstyle ':completion:*' rehash true
 
 # Fzf-tab settings
 zstyle ':fzf-tab:*' single true

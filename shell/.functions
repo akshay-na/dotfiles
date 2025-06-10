@@ -104,6 +104,28 @@ extract() {
   fi
 }
 
+# Create and enter directory
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# Kill process by name
+kp() {
+  local pid
+  pid=$(ps aux | grep "$1" | grep -v grep | awk '{print $2}')
+  if [ -n "$pid" ]; then
+    kill -9 "$pid"
+    echo "Killed process $pid"
+  else
+    echo "No process found matching '$1'"
+  fi
+}
+
+# Quick file creation
+touchf() {
+  mkdir -p "$(dirname "$1")" && touch "$1"
+}
+
 # -------------------------------------------------------------------------------
 # Function: archive
 # Purpose: Create an archive from files or directories.
