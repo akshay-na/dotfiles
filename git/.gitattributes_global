@@ -1,0 +1,110 @@
+#########################
+# Text normalization
+#########################
+
+* text=auto
+
+# Force LF endings for all code and config
+*.sh text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.jsx text eol=lf
+*.tsx text eol=lf
+*.rb text eol=lf
+*.php text eol=lf
+*.go text eol=lf
+*.rs text eol=lf
+*.java text eol=lf
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.cs text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.md text eol=lf
+
+#########################
+# Lock files & test artifacts
+#########################
+
+package-lock.json -diff
+yarn.lock -diff
+pnpm-lock.yaml -diff
+*.log -diff
+*.snap -diff
+*.golden -diff
+*.testdata -diff
+
+#########################
+# Binary files
+#########################
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.webp binary
+*.pdf binary
+*.eot binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.mp4 binary
+*.mp3 binary
+*.mov binary
+*.psd binary
+*.bin binary
+
+#########################
+# Ignore diffs for minified & built files
+#########################
+
+*.min.js -diff
+*.min.css -diff
+*.map -diff
+*.bundle.js -diff
+
+#########################
+# Custom diff drivers
+#########################
+
+*.md diff=markdown
+*.json diff=json
+*.yml diff=yaml
+*.yaml diff=yaml
+*.toml diff=toml
+*.ini diff=ini
+
+#########################
+# Git LFS (if used)
+#########################
+
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+
+#########################
+# Tooling-specific (uncomment if needed)
+#########################
+
+# Jupyter notebooks
+*.ipynb merge=jupyternotebook
+
+# Unity YAML merge
+*.meta text merge=unityyamlmerge eol=lf
+*.unity text merge=unityyamlmerge eol=lf
+*.prefab text merge=unityyamlmerge eol=lf
+*.asset text merge=unityyamlmerge eol=lf

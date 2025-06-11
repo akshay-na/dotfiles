@@ -93,13 +93,6 @@ else
   git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
 fi
 
-# Directory Navigation Helper (using Zoxide)
-fcd() {
-  # Quickly navigate to frequently accessed directories using Zoxide
-  local dir
-  dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
-}
-
 # ---------------------------------------------------------------
 # Initializations and Conditions
 # ---------------------------------------------------------------
