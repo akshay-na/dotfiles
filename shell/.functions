@@ -126,6 +126,13 @@ touchf() {
   mkdir -p "$(dirname "$1")" && touch "$1"
 }
 
+# Directory Navigation Helper (using Zoxide)
+fcd() {
+  # Quickly navigate to frequently accessed directories using Zoxide
+  local dir
+  dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
+}
+
 # -------------------------------------------------------------------------------
 # Function: archive
 # Purpose: Create an archive from files or directories.
