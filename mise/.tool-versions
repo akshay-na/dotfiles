@@ -3,12 +3,12 @@ nodejs    latest
 python    3.10.11
 java      latest
 rust      latest
+
 # Tools to be installed
 terraform latest
 awscli    latest
 gcloud    latest
 kubectl   latest
 helm      latest
-azure-cli latest @python=3.10.11
 starship  latest
 neovim    latest
