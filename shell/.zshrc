@@ -14,6 +14,12 @@
 #   - Local overrides: create ~/.aliases_local or ~/.zshrc_local if desired.
 # ------------------------------------------------------------------------------
 
+# Initialize and run compinit quietly in the background
+mkdir -p ~/.zsh/cache
+autoload -Uz compinit bashcompinit
+bashcompinit
+compinit -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
+
 # ------------------------------------------------------------------------------
 # 1. Source Common Configuration
 # ------------------------------------------------------------------------------
@@ -43,12 +49,12 @@ source "${ZINIT_HOME}/zinit.zsh"
 # ------------------------------------------------------------------------------
 # Load essential plugins with optimized settings
 zinit wait lucid light-mode for \
-  zdharma-continuum/fast-syntax-highlighting \
+  zsh-users/zsh-history-substring-search \
   zsh-users/zsh-completions \
   zsh-users/zsh-autosuggestions \
+  zdharma-continuum/fast-syntax-highlighting \
   Aloxaf/fzf-tab \
   MichaelAquilina/zsh-you-should-use \
-  zsh-users/zsh-history-substring-search \
   sunlei/zsh-ssh \
   hlissner/zsh-autopair \
   lukechilds/zsh-better-npm-completion
@@ -92,7 +98,7 @@ bindkey '^[w' kill-region            # Example custom binding
 # ------------------------------------------------------------------------------
 # 6. Zsh Options & History Settings
 # ------------------------------------------------------------------------------
-HISTFILE=~/.zsh_history              # Where to store history
+HISTFILE=$HOME/.zsh_history              # Where to store history
 SAVEHIST=$HISTSIZE                   # Number of history lines to save
 HISTDUP=erase                        # Erase oldest duplicate when a command is repeated
 
@@ -123,12 +129,6 @@ setopt glob_dots                # Include dotfiles in glob expansions
 # Miscellaneous options
 setopt check_jobs               # Warn about running or stopped jobs when exiting the shell
 setopt numeric_glob_sort        # Sort filenames with numbers in numerical order (e.g., 1 2 10)
-
-# Initialize and run compinit quietly in the background
-mkdir -p ~/.zsh/cache
-autoload -Uz compinit bashcompinit
-bashcompinit
-compinit -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 
 # ------------------------------------------------------------------------------
 # 7. Completion Styling and Options
@@ -190,7 +190,6 @@ fi
 # Set WORDCHARS to treat certain punctuation as part of words
 # (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)
 WORDCHARS=".~&!#$%^[](){}<>"
-
 
 # ------------------------------------------------------------------------------
 # 9. Custom Funtions
