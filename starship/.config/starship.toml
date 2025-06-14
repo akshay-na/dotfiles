@@ -94,8 +94,8 @@ staged = "✓${count} "
 stashed = "${count} "
 style = "bright-white"
 format = """\
-[$ahead](bold green)\
-[$behind](bold red)\
+[$ahead_behind](bold green)\
+[$behind_behind](bold red)\
 [$diverged](bold magenta)\
 [$stashed](bold blue)\
 [$conflicted](bold red)\

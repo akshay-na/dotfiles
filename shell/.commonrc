@@ -43,7 +43,7 @@ export LS_COLORS="di=38;5;75:fi=38;5;252:ln=38;5;141:so=38;5;215:pi=38;5;136:bd=
 # Dotfiles Repository Initialization
 # ---------------------------------------------------------------
 if [ -d "$DOTFILES_DIR" ]; then
-  if ! ping -c 1 -W 2 google.com >/dev/null 2>&1; then
+  if ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1; then
     { check_dotfiles_update; } > "$(tty)"
   fi
 else
