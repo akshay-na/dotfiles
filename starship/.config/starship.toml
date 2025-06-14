@@ -25,221 +25,201 @@ $character
 
 # Replace the '❯' symbol in the prompt with '➜'
 [character] # The name of the module we are configuring is 'character'
-format = '$symbol '
+format         = '$symbol '
 success_symbol = '[❯](bold green)'
-error_symbol = '[❯](bold red)'
-disabled = false
+error_symbol   = '[❯](bold red)'
+disabled       = false
 
 [package]
 disabled = true
 
 [cmd_duration]
-min_time = 10_00                     # Show command duration over 10,00 milliseconds (=1 sec)
-format = " took [$duration]($style)"
+min_time = 10_00                       # Show command duration over 10,00 milliseconds (=1 sec)
+format   = " took [$duration]($style)"
 
 [battery]
-full_symbol = "🔋"
-charging_symbol = "🔌"
+full_symbol        = "🔋"
+charging_symbol    = "🔌"
 discharging_symbol = "⚡"
 
 [directory]
-truncation_length = 5
-truncate_to_repo = false
+truncation_length         = 5
+truncate_to_repo          = false
 fish_style_pwd_dir_length = 0
-use_logical_path = false
-format = '[$path]($style) [$read_only]($read_only_style)'
-style = 'fg:85 bold'
-disabled = false
-read_only = ''
-read_only_style = 'red'
-truncation_symbol = '.../'
-home_symbol = '~'
+use_logical_path          = false
+format                    = '[$path]($style) [$read_only]($read_only_style)'
+style                     = 'fg:85 bold'
+disabled                  = false
+read_only                 = ''
+read_only_style           = 'red'
+truncation_symbol         = '.../'
+home_symbol               = '~'
 
 [docker_context]
-symbol = '🐳 '
-style = 'blue bold'
-format = 'via [$symbol$context]($style) '
+symbol          = '🐳 '
+style           = 'blue bold'
+format          = 'via [$symbol$context]($style) '
 only_with_files = true
-disabled = false
-detect_extensions = []
-detect_files = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
-detect_folders = []
+disabled        = false
+detect_files    = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
 
 [[battery.display]]
 threshold = 30
-style = "bold red"
+style     = "bold red"
 
 [git_commit]
 commit_hash_length = 8
-style = "bold white"
+style              = "bold white"
 
 [git_state]
-rebase = 'REBASING'
-merge = 'MERGING'
-revert = 'REVERTING'
-cherry_pick = 'CHERRY-PICKING'
-bisect = 'BISECTING'
-am = 'AM'
+rebase       = 'REBASING'
+merge        = 'MERGING'
+revert       = 'REVERTING'
+cherry_pick  = 'CHERRY-PICKING'
+bisect       = 'BISECTING'
+am           = 'AM'
 am_or_rebase = 'AM/REBASE'
-style = 'bold yellow'
-format = '\([$state( $progress_current/$progress_total)]($style)\)'
-disabled = true
+style        = 'bold yellow'
+format       = '\([$state( $progress_current/$progress_total)]($style)\)'
+disabled     = true
 
 [git_status]
-ahead = "↑${count} "
-behind = "↓${count} "
-diverged = "↕${ahead_count} ${behind_count}"
-untracked = "?${count} "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "↕${ahead_count}/${behind_count}"
+untracked = "${count} "
 modified = "!${count} "
-conflicted = "≠${count} "
+conflicted = "${count} "
 staged = "✓${count} "
-stashed = "*${count} "
+stashed = "${count} "
 style = "bright-white"
 format = """\
-[$ahead_behind](bold green)\
-[$stashed](bold green)\
-[$behind_behind](bold red)\
-[$diverged](bold yellow)\
+[$ahead](bold green)\
+[$behind](bold red)\
+[$diverged](bold magenta)\
+[$stashed](bold blue)\
 [$conflicted](bold red)\
-[$modified](bold blue)\
+[$modified](bold yellow)\
 [$untracked](bold cyan)\
 [$staged](bold green)\
 """
 
 [kubernetes]
-symbol = '☸ '
-format = '[$symbol$context( \($namespace\))]($style) in '
-style = 'cyan bold'
-disabled = true
+symbol       = '☸ '
+format       = '[$symbol$context( \($namespace\))]($style) in '
+style        = 'cyan bold'
+disabled     = true
+detect_files = ["k8s", "kustomization.yaml", "helmfile.yaml", "Chart.yaml"]
 
 [hostname]
-format = '([$ssh_symbol]($style)[$hostname]($style)) in '
-ssh_only = false
+format     = '([$ssh_symbol]($style)[$hostname]($style)) in '
+ssh_only   = false
 ssh_symbol = "🌐 "
-trim_at = ""
-style = "bold yellow"
-disabled = false
+trim_at    = ""
+style      = "bold yellow"
+disabled   = false
 
 [username]
 show_always = true
-style_user = "bold yellow"
-format = "[$user]($style) @"
-
-[julia]
-format = "$symbol$version "
-symbol = "ஃ "
-style = "bold green"
-disabled = false
-detect_files = ["Project.toml"]
+style_user  = "bold yellow"
+format      = "[$user]($style) @"
 
 [shell]
-disabled = false
-bash_indicator = "bash"
+disabled             = false
+bash_indicator       = "bash"
 powershell_indicator = "powershell"
-cmd_indicator = "cmd"
-zsh_indicator = "zsh"
+cmd_indicator        = "cmd"
+zsh_indicator        = "zsh"
+fish_indicator       = "fish"
+unknown_indicator    = "unknown"
 
 [os]
-disabled = false
-format = "$symbol "
-symbols.Ubuntu = ""
-symbols.Windows = ""
-symbols.Macos = ""
-symbols.Debian = " "
-symbols.Unknown = " "
+disabled        = false
+format          = "$symbol "
+symbols.Ubuntu  = ""
+symbols.Windows = ""
+symbols.Macos   = ""
+symbols.Debian  = ""
+symbols.Unknown = ""
 
 [nodejs]
-format = 'running [$symbol($version )]($style)'
-version_format = 'v${raw}'
-symbol = '󰎙 '
-style = 'bold green'
-disabled = false
+format            = 'running [$symbol($version )]($style)'
+version_format    = 'v${raw}'
+symbol            = '󰎙 '
+style             = "bold fg:#539E43"
+disabled          = false
 not_capable_style = 'bold red'
-detect_extensions = ['js', 'mjs', 'cjs', 'ts']
-detect_files = ['package.json', '.node-version', '.nvmrc']
-detect_folders = ['node_modules']
+detect_extensions = ['js', 'mjs', 'cjs', 'ts', 'tsx', 'jsx']
+detect_files      = ['package.json', '.node-version', '.nvmrc']
+detect_folders    = ['node_modules']
 
 [python]
 disabled = false
-detect_files = ["requirements.txt", "Pipfile"]
-detect_extensions = []
+symbol = " "
+format = 'running [$symbol($version )]($style)'
+version_format = "v${raw}"
+style = "bold fg:#3572A5"
+detect_files = [
+  "requirements.txt",
+  "Pipfile",
+  "pyproject.toml",
+  "setup.py",
+  "tox.ini",
+  ".python-version",
+]
+detect_extensions = ["py"]
+detect_folders = [".venv", "venv", "env", ".tox", "__pycache__"]
 
-[ruby]
-disabled = false
-detect_files = ["Gemfile"]
-detect_extensions = []
-
-[rust]
-disabled = false
-detect_files = ["Cargo.toml"]
-detect_extensions = []
+[env_var.VIRTUAL_ENV]
+symbol = "🧪 "
+style  = "bold purple"
+format = '[$symbol$env_value]($style) '
 
 [java]
 disabled = false
-detect_files = ["pom.xml", "build.gradle"]
-detect_extensions = []
+format = 'running [$symbol($version )]($style)'
+version_format = "v${raw}"
+symbol = " "
+style = "bold fg:#5382A1"
+detect_extensions = ["java"]
+detect_files = [
+  "pom.xml",
+  "build.gradle",
+  "build.gradle.kts",
+  "settings.gradle",
+  "settings.gradle.kts",
+]
 
-[php]
-disabled = false
-detect_files = ["composer.json"]
-detect_extensions = []
+[custom.clojure]
+command           = "clojure --version | sed -E 's/Clojure CLI version //;s/\\s.*//'"
+style             = "bold fg:#5881D8"
+format            = 'running [$symbol($output )]($style)'
+symbol            = " "
+detect_extensions = ["clj", "cljs", "cljc"]
 
-[dotnet]
-disabled = false
-detect_files = [".csproj", ".fsproj", ".xproj"]
-detect_extensions = []
+[rust]
+disabled          = false
+style             = "bold fg:#DEA584"
+format            = 'running [$symbol($output )]($style)'
+symbol            = " "
+detect_files      = ["Cargo.toml"]
+detect_extensions = ["rs"]
 
-[elixir]
-disabled = false
-detect_files = ["mix.exs"]
-detect_extensions = []
-
-[haskell]
-disabled = false
-detect_files = ["stack.yaml", "cabal.config", "*.cabal"]
-detect_extensions = []
-
-[scala]
-disabled = false
-detect_files = ["build.sbt"]
-detect_extensions = []
-
-[swift]
-disabled = false
-detect_files = ["Package.swift"]
-detect_extensions = []
+[golang]
+disabled          = false
+symbol            = "󰟓 "
+style             = "bold fg:#00ADD8"
+format            = 'running [$symbol($version )]($style)'
+version_format    = "v${raw}"
+detect_files      = ["go.mod", "go.sum", "main.go"]
+detect_extensions = ["go"]
 
 [terraform]
-disabled = false
-detect_files = ["*.tf"]
-detect_extensions = []
+disabled          = false
+style             = "bold fg:#844FBA"
+format            = 'running [$symbol($output )]($style)'
+symbol            = " "
+detect_extensions = ["tf", "tfvars"]
 
-[kotlin]
-disabled = false
-detect_files = ["*.kt", "*.kts"]
-detect_extensions = []
-
-[elm]
-disabled = false
-detect_files = ["elm.json"]
-detect_extensions = []
-
-[erlang]
-disabled = false
-detect_files = ["rebar.config", "rebar.lock", "erlang.mk"]
-detect_extensions = []
-
-[zig]
-disabled = false
-detect_files = ["zig.mod"]
-detect_extensions = []
-
-[nim]
-disabled = false
-detect_files = ["*.nim", "*.nimble"]
-detect_extensions = []
-
-[vlang]
-disabled = false
-detect_files = ["v.mod"]
-detect_extensions = []
+[gcloud]
+disabled = true
