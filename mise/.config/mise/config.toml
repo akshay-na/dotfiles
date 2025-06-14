@@ -27,3 +27,6 @@ idiomatic_version_file_enable_tools = [  # Explicitly allow idiomatic version fi
   "go",
   "lua"
 ]
+
+[tools]
+clojure = "latest"
