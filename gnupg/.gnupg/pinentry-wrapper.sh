@@ -1,32 +1,44 @@
 #!/usr/bin/env bash
 
 # Cross-platform pinentry wrapper for macOS, Windows (MINGW), and Linux.
-# 1. On macOS, use pinentry-mac (if installed).
-# 2. On Windows/MSYS2 (uname contains "MINGW"), use pinentry.exe (if on PATH).
-# 3. On Linux, prefer pinentry-gtk-2, then fallback to pinentry-curses.
-# 4. If none found, print an error.
+# Falls back to curses mode in headless/SSH.
+# Optional: enable debug output with DEBUG_PINENTRY=1
 
-case "$(uname)" in
+log() { [[ -n "$DEBUG_PINENTRY" ]] && echo "[pinentry-wrapper] $*" >&2; }
+
+platform=$(uname)
+log "Detected platform: $platform"
+
+case "$platform" in
 Darwin)
   if command -v pinentry-mac >/dev/null 2>&1; then
-    exec pinentry-mac "$@"
+    log "Using pinentry-mac"
+    exec -- pinentry-mac "$@"
   fi
   ;;
 MINGW* | MSYS* | CYGWIN*)
-  # This covers Git Bash, MSYS2, Cygwin environments on Windows.
-  # Make sure Gpg4win's bin dir (where pinentry.exe lives) is in your PATH.
   if command -v pinentry.exe >/dev/null 2>&1; then
-    exec pinentry.exe "$@"
+    log "Using pinentry.exe"
+    exec -- pinentry.exe "$@"
   fi
   ;;
 esac
 
-# If not macOS or Windows (or if the above checks failed), assume Linux/Unix:
-if command -v pinentry-gtk-2 >/dev/null 2>&1; then
-  exec pinentry-gtk-2 "$@"
-elif command -v pinentry-curses >/dev/null 2>&1; then
-  exec pinentry-curses "$@"
+# Headless (e.g., SSH) fallback
+if [[ -z "$DISPLAY" ]] && command -v pinentry-curses >/dev/null 2>&1; then
+  log "Headless detected, using pinentry-curses"
+  exec -- pinentry-curses "$@"
 fi
 
-echo "No suitable pinentry found for your system!" >&2
+# Standard Linux/Unix fallback chain
+if command -v pinentry-gtk-2 >/dev/null 2>&1; then
+  log "Using pinentry-gtk-2"
+  exec -- pinentry-gtk-2 "$@"
+elif command -v pinentry-curses >/dev/null 2>&1; then
+  log "Using pinentry-curses"
+  exec -- pinentry-curses "$@"
+fi
+
+log "No suitable pinentry found for your system!"
+echo "ERROR: No suitable pinentry found!" >&2
 exit 1
