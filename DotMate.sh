@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # Directories and timestamped backup
-DOTFILES_DIR=~/dotfiles
-BACKUP_DIR=~/dotfiles_backup/$(date +%Y%m%d_%H%M%S)
+DOTFILES_DIR=$HOME/dotfiles
+BACKUP_DIR=$HOME/dotfiles_backup/$(date +%Y%m%d_%H%M%S)
 
-source ./shell/.functions
+source $DOTFILES_DIR/shell/.functions
 
 # Colors for output
 GREEN="\033[1;32m"

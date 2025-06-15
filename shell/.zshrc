@@ -15,7 +15,7 @@
 # ------------------------------------------------------------------------------
 
 # Initialize and run compinit quietly in the background
-mkdir -p ~/.zsh/cache
+mkdir -p $HOME/.zsh/cache
 autoload -Uz compinit bashcompinit
 bashcompinit
 compinit -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
@@ -23,7 +23,7 @@ compinit -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 # ------------------------------------------------------------------------------
 # 1. Source Common Configuration
 # ------------------------------------------------------------------------------
-[ -f ~/.commonrc ] && source ~/.commonrc
+[ -f $HOME/.commonrc ] && source $HOME/.commonrc
 
 # ------------------------------------------------------------------------------
 # 2. Path / Environment Variables
@@ -185,7 +185,7 @@ if command -v mise >/dev/null; then
 fi
 
 # Fzf initialization (if installed)
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh >/dev/null 2>&1 &!
+[ -f $HOME/.fzf.zsh ] && source $HOME/.fzf.zsh >/dev/null 2>&1 &!
 
 # Set WORDCHARS to treat certain punctuation as part of words
 # (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)
@@ -216,7 +216,7 @@ compdef _vscode_z vz
 # ------------------------------------------------------------------------------
 # 10. Local Overrides
 # ------------------------------------------------------------------------------
-[ -f ~/.zshrc_local ] && source ~/.zshrc_local
+[ -f $HOME/.zshrc_local ] && source $HOME/.zshrc_local
 
 # ------------------------------------------------------------------------------
 # 11. Background Plugin Updates
