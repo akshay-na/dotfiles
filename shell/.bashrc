@@ -16,10 +16,10 @@
 # ---------------------------------------------------------------
 
 # Load common configurations
-source ~/.commonrc
+source $HOME/.commonrc
 
 # Configure bash history settings
-HISTFILE=~/.bash_history                # Path to the history file
+HISTFILE=$HOME/.bash_history            # Path to the history file
 export HISTFILESIZE=$HISTSIZE           # Maximum history file size
 export HISTCONTROL=ignoreboth:erasedups # Ignore duplicate and blank entries
 shopt -s histappend                     # Append to history file, avoid overwriting
@@ -44,13 +44,13 @@ if command -v mise >/dev/null; then
 fi
 
 # Initialize Fzf if available, with custom completion, key-bindings, and history
-if [ -f ~/.fzf.bash ]; then
+if [ -f $HOME/.fzf.bash ]; then
   # Alternative check if Fzf was manually installed
-  source ~/.fzf.bash >/dev/null 2>&1
+  source $HOME/.fzf.bash >/dev/null 2>&1
 fi
 
 # ---------------------------------------------------------------
 # Load Additional Local Configurations
 # ---------------------------------------------------------------
 # Load custom local bash configurations, if available
-[ -f ~/.bashrc_local ] && source ~/.bashrc_local
+[ -f $HOME/.bashrc_local ] && source $HOME/.bashrc_local

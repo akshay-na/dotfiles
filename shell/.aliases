@@ -15,18 +15,18 @@
 # General Aliases
 alias c='clear'
 alias ls='ls --color -alh'
-alias stowall="cd ~/dotfiles && stow *"
+alias stowall="cd$HOME/dotfiles && stow *"
 alias unstow="stow -D"
 alias stowls="stow --no -v"
-alias vsc="code  "                                                                          # Open VSCode in current directory
-alias kill-tmux="rm -rf ~/.local/share/tmux/resurrect ~/.tmux/resurrect; tmux kill-server;" # Kill tmux and remove resurrect files
+alias vsc="code  "                                                                                # Open VSCode in current directory
+alias kill-tmux="rm -rf$HOME/.local/share/tmux/resurrect$HOME/.tmux/resurrect; tmux kill-server;" # Kill tmux and remove resurrect files
 
 # Enhanced directory navigation
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
-alias ~='cd ~'
+alias ~='cd $HOME'
 
 # Process management
 alias psa='ps aux'
@@ -161,4 +161,4 @@ if [[ "$MSYSTEM" == "MINGW64" || "$MSYSTEM" == "MINGW32" || "$(uname -r)" == *"W
 fi
 
 # Load custom local common configurations, if available
-[ -f ~/.aliases_local ] && source ~/.aliases_local
+[ -f $HOME/.aliases_local ] && source $HOME/.aliases_local

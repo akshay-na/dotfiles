@@ -24,8 +24,8 @@ export PATH="$PATH:$HOME/bin:$HOME/.local/bin:/opt/nvim-linux64/bin"  # Addition
 HISTSIZE=10000                                                        # Shell history size
 
 # Load custom aliases and functions if available
-[ -f ~/.aliases ] && source ~/.aliases
-[ -f ~/.functions ] && source ~/.functions
+[ -f $HOME/.aliases ] && source $HOME/.aliases
+[ -f $HOME/.functions ] && source $HOME/.functions
 
 # ---------------------------------------------------------------
 # GPG + Yubikey Setup
@@ -76,4 +76,4 @@ fi
 eval $(ssh-agent) >/dev/null 2>&1 &!
 
 # Load custom local common configurations, if available
-[ -f ~/.commonrc_local ] && source ~/.commonrc_local
+[ -f $HOME/.commonrc_local ] && source $HOME/.commonrc_local
