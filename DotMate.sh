@@ -12,9 +12,6 @@ RED="\033[1;31m"
 YELLOW="\033[1;33m"
 RESET="\033[0m"
 
-# Ask for the administrator password upfront
-sudo -v
-
 # Function to echo with color
 echo_with_color() {
   echo -e "${1}${2}${RESET}"
@@ -36,6 +33,9 @@ backup_dotfiles() {
 
 # Install necessary tools and set up environment
 install() {
+  # Ask for the administrator password upfront
+  sudo -v
+
   echo_with_color "$GREEN" "Installing tools and setting up environment..."
 
   chsh -s "$(which zsh)"

@@ -12,6 +12,8 @@ echo_with_color() {
 
 install_macos() {
   echo_with_color "$YELLOW" "Detected macOS..."
+  echo_with_color "$YELLOW" "Setting Personalized macOS defaults..."
+  source "$DOTFILES_DIR/install/default_mac_settings.sh"
 
   # Ensure Homebrew is installed
   if ! command -v brew >/dev/null 2>&1; then
@@ -48,8 +50,6 @@ install_macos() {
     hiddenbar \
     tinkertool \
     espanso
-
-  source "$DOTFILES_DIR/install/default_mac_settings.sh"
 
   echo_with_color "$GREEN" "macOS setup complete!"
 }
