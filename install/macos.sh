@@ -22,16 +22,28 @@ install_macos() {
     source $HOME/.zshrc
   fi
 
-  echo_with_color "$YELLOW" "Tapping homebrew/cask-fonts..."
-  brew tap homebrew/cask-fonts
-  brew tap homebrew/cask-versions
+  echo_with_color "$YELLOW" "Installing fonts..."
 
-  brew install --cask font-caskaydia-cove-nerd-font
-  brew install --cask font-caskaydia-mono-nerd-font
-  brew install --cask font-caskaydia-mono-nerd-font-mono
+  brew install --cask \
+    font-caskaydia-cove-nerd-font \
+    font-caskaydia-mono-nerd-font \
+    font-caskaydia-mono-nerd-font-mono
 
   echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
-  brew install zoxide stow zsh-completions tmux fzf ripgrep eza wget bat coreutils fontconfig mise
+
+  brew install \
+    zoxide \
+    stow \
+    zsh-completions \
+    tmux \
+    fzf \
+    ripgrep \
+    eza \
+    wget \
+    bat \
+    coreutils \
+    fontconfig \
+    mise
 
   echo_with_color "$YELLOW" "Installing GUI apps via Brew Cask..."
 
@@ -45,10 +57,9 @@ install_macos() {
     grammarly-desktop \
     bitwarden \
     spotify \
-    mongodb-compass \
+    dbgate \
     postman \
     hiddenbar \
-    tinkertool \
     espanso
 
   echo_with_color "$GREEN" "macOS setup complete!"

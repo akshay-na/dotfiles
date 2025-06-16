@@ -1,0 +1,10 @@
+{
+  "app.useNativeMenu": false,
+  "tabGroup.showServerName": true,
+  "other.licenseKey": null,
+  "connection.autoRefresh": true,
+  "currentTheme": "theme-dbgate-plugin-one-dark-theme",
+  "currentEditorFontSize": "14",
+  "editor.fontFamily": "Caskaydia Mono Nerd Font, monospace",
+  "behaviour.jsonPreviewWrap": true
+}
