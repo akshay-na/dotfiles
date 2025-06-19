@@ -115,13 +115,14 @@ backup)
   backup_dotfiles
   ;;
 update)
+  backup_dotfiles
   check_dotfiles_update
   stow_dotfiles
   ;;
 install)
   backup_dotfiles
-  stow_dotfiles
   install
+  stow_dotfiles
   ;;
 stow)
   shift
