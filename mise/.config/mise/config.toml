@@ -1,6 +1,8 @@
 [env]
 MISE_SHORTHAND = true              # Allow shorthand like `node 18` instead of `node@18`
 MISE_CONFIG_DIR = "~/.config/mise" # Override default config directory (optional)
+MISE_NODE_BUILD_FROM_SOURCE = "false"
+MISE_PYTHON_BUILD_FROM_SOURCE = "false"
 
 [settings]
 legacy_version_file = true         # Support idiomatic files like .nvmrc, .python-version
