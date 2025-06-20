@@ -52,6 +52,8 @@ install() {
     exit 1
   fi
 
+  curl https://mise.run | bash
+
   # Configure mise and add plugins
   echo_with_color "$YELLOW" "Installing runtimes using mise..."
   mise install
