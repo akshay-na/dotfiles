@@ -29,3 +29,15 @@ idiomatic_version_file_enable_tools = [  # Explicitly allow idiomatic version fi
   "go",
   "lua"
 ]
+
+[tools]
+awscli     = "latest"
+gcloud     = "latest"
+java       = "latest"
+kubectl    = "latest"
+neovim     = "latest"
+node       = "latest"
+python     = "latest"
+rust       = "latest"
+starship   = "latest"
+terraform  = "latest"
