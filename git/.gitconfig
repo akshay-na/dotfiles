@@ -6,7 +6,8 @@
   save        = "!f() { git stash save \"🚀 WIP $*\"; }; f"  # Stash current changes with a WIP message
   unstage     = reset HEAD --  # Unstage changes without affecting working directory
   sync        = "!f() { git pull origin \"$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')\"; }; f"
-  ignore      = update-index --assume-unchanged  # Ignore thje files from the version on local repo
+  ignore      = update-index --assume-unchanged  # Ignore the files from the version on local repo
+  include     = update-index --no-assume-unchanged # Include the files from the version on local repo
   revert-file = "!f() { git checkout -- \"$1\"; }; f"  # Reset a single file to HEAD (restore last committed version)
   pop         = "!f() { \
       echo 'Available stashes:'; \
