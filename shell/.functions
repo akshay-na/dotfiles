@@ -243,10 +243,11 @@ archive() {
 #          If the branch does not exist remotely, it creates and pushes it.
 # Usage: gitworktree_add <branch-name>
 # -------------------------------------------------------------------------------
-function gitworktree_add() {
+function git_worktree_add() {
   # Assign branch name and define the worktree path relative to the current repository root
   BRANCH_NAME=$1
-  WORKTREE_PATH="../$BRANCH_NAME"
+  SANITIZED_BRANCH_PATH=$(echo "$BRANCH_NAME" | tr '/' '_')
+  WORKTREE_PATH="../$SANITIZED_BRANCH_PATH"
 
   # Get the root directory of the current Git repository
   GIT_ROOT=$(git rev-parse --show-toplevel)
@@ -268,22 +269,23 @@ function gitworktree_add() {
 
   # Check if the branch exists on the remote repository
   REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH_NAME")
+
   if [ -z "$REMOTE_BRANCH" ]; then
     # Branch does not exist remotely; create a new branch and push it to remote
     echo "Branch '$BRANCH_NAME' does not exist remotely. Creating a new branch..."
-    git checkout -b "$BRANCH_NAME"
+    git branch "$BRANCH_NAME"
     git push -u origin "$BRANCH_NAME"
   else
     # Branch exists remotely; fetch and set it up locally
     echo "Branch '$BRANCH_NAME' exists remotely. Setting up locally..."
-    git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
+    git fetch origin "$BRANCH_NAME"
   fi
 
   # Add the new worktree based on the specified branch
-  git worktree add -B "$WORKTREE_PATH" "$BRANCH_NAME"
-  cd "$WORKTREE_PATH"
-
+  git worktree add --guess-remote "$WORKTREE_PATH" "$BRANCH_NAME"
   echo "Worktree added for branch '$BRANCH_NAME'."
+
+  cd "$WORKTREE_PATH"
 }
 
 # -------------------------------------------------------------------------------
