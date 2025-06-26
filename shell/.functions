@@ -274,7 +274,6 @@ function git_worktree_add() {
     # Branch does not exist remotely; create a new branch and push it to remote
     echo "Branch '$BRANCH_NAME' does not exist remotely. Creating a new branch..."
     git branch "$BRANCH_NAME"
-    git push -u origin "$BRANCH_NAME"
   else
     # Branch exists remotely; fetch and set it up locally
     echo "Branch '$BRANCH_NAME' exists remotely. Setting up locally..."

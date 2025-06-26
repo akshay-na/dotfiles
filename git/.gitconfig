@@ -32,6 +32,8 @@
 
 [branch]
   sort = -committerdate        # Sort branches by most recent commit date (descending)
+  autosetupmerge = always      # Automatically set upstream branch when creating a new one
+  autosetuprebase = always     # Always rebase instead of merge when pulling updates
 
 [checkout]
   defaultParallelism = true  # Enable parallelism during checkout for faster operations
@@ -102,6 +104,10 @@
 
 [init]
   defaultBranch = main  # New git repo starts with main branch
+
+[maintenance]
+  auto = true
+  strategy = incremental
 
 [merge]
   conflictstyle = zdiff3   # Use zdiff3 style for clearer conflict markers with ancestor info
