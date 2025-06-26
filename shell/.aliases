@@ -44,7 +44,8 @@ fi
 
 # Check if 'eza' exists before aliasing 'ls'
 if command -v eza &>/dev/null; then
-  alias ls="eza -lhagH --color=auto --group-directories-first --icons --sort=filename"
+  export EZA_CONFIG_DIR="$HOME/.config/eza"
+  alias ls="eza -lhagH --group-directories-first --icons --sort=filename"
 fi
 
 # Check if 'rg' (ripgrep) exists before aliasing 'grep'
