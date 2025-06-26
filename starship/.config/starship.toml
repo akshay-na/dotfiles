@@ -143,7 +143,7 @@ symbols.Debian  = ""
 symbols.Unknown = ""
 
 [nodejs]
-format            = 'running [$symbol($version )]($style)'
+format            = '[$symbol($version )]($style)'
 version_format    = 'v${raw}'
 symbol            = '󰎙 '
 style             = "bold fg:#539E43"
@@ -156,7 +156,7 @@ detect_folders    = ['node_modules']
 [python]
 disabled = false
 symbol = " "
-format = 'running [$symbol($version )]($style)'
+format = '[$symbol($version )]($style)'
 version_format = "v${raw}"
 style = "bold fg:#3572A5"
 detect_files = [
@@ -177,7 +177,7 @@ format = '[$symbol$env_value]($style) '
 
 [java]
 disabled = false
-format = 'running [$symbol($version )]($style)'
+format = '[$symbol($version )]($style)'
 version_format = "v${raw}"
 symbol = " "
 style = "bold fg:#5382A1"
@@ -193,14 +193,14 @@ detect_files = [
 [custom.clojure]
 command           = "clojure --version | sed -E 's/Clojure CLI version //;s/\\s.*//'"
 style             = "bold fg:#5881D8"
-format            = 'running [$symbol($output )]($style)'
+format            = '[$symbol($output )]($style)'
 symbol            = " "
 detect_extensions = ["clj", "cljs", "cljc"]
 
 [rust]
 disabled          = false
 style             = "bold fg:#DEA584"
-format            = 'running [$symbol($output )]($style)'
+format            = '[$symbol($output )]($style)'
 symbol            = " "
 detect_files      = ["Cargo.toml"]
 detect_extensions = ["rs"]
@@ -209,7 +209,7 @@ detect_extensions = ["rs"]
 disabled          = false
 symbol            = "󰟓 "
 style             = "bold fg:#00ADD8"
-format            = 'running [$symbol($version )]($style)'
+format            = '[$symbol($version )]($style)'
 version_format    = "v${raw}"
 detect_files      = ["go.mod", "go.sum", "main.go"]
 detect_extensions = ["go"]
@@ -217,7 +217,7 @@ detect_extensions = ["go"]
 [terraform]
 disabled          = false
 style             = "bold fg:#844FBA"
-format            = 'running [$symbol($output )]($style)'
+format            = '[$symbol($output )]($style)'
 symbol            = " "
 detect_extensions = ["tf", "tfvars"]
 
