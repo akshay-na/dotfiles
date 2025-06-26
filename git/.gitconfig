@@ -32,8 +32,6 @@
 
 [branch]
   sort = -committerdate        # Sort branches by most recent commit date (descending)
-  autosetupmerge = always      # Automatically set upstream branch when creating a new one
-  autosetuprebase = always     # Always rebase instead of merge when pulling updates
 
 [checkout]
   defaultParallelism = true  # Enable parallelism during checkout for faster operations
@@ -43,9 +41,6 @@
 
 [commit]
   gpgsign = true  # Sign commits with GPG by default
-
-[column]
-  ui = auto  # Automatically format Git output into columns where appropriate
 
 [core]
   commitGraph         = true  # Enable commit graph for faster Git operations
