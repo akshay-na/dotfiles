@@ -40,6 +40,9 @@ install() {
 
   chsh -s "$(which zsh)"
 
+  source "$DOTFILES_DIR/install/common.sh"
+  install_common
+
   if [[ "$OSTYPE" == "darwin"* ]]; then
     source "$DOTFILES_DIR/install/macos.sh"
     install_macos
@@ -51,8 +54,6 @@ install() {
     echo_with_color "$RED" "This script supports macOS (Homebrew) or Debian/Ubuntu (apt). Please install the required things manually"
     exit 1
   fi
-
-  curl https://mise.run | bash
 
   # Configure mise and add plugins
   echo_with_color "$YELLOW" "Installing runtimes using mise..."
@@ -125,6 +126,15 @@ install)
   backup_dotfiles
   install
   stow_dotfiles
+  # Set permissions for gnupg and ssh folders
+  if [ -d "$HOME/.gnupg" ]; then
+    chmod 700 "$HOME/.gnupg"
+    chmod 600 "$HOME/.gnupg"/*
+  fi
+  if [ -d "$HOME/.ssh" ]; then
+    chmod 700 "$HOME/.ssh"
+    chmod 600 "$HOME/.ssh"/*
+  fi
   ;;
 stow)
   shift

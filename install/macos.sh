@@ -15,37 +15,13 @@ echo_with_color() {
 install_macos() {
   echo_with_color "$YELLOW" "Detected macOS..."
 
-  # Ensure Homebrew is installed
-  if ! command -v brew >/dev/null 2>&1; then
-    echo_with_color "$YELLOW" "Homebrew not found. Installing..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
+  echo_with_color "$YELLOW" "Installing GUI apps via Homebrew Cask..."
 
-  echo_with_color "$YELLOW" "Installing fonts..."
+  brew install pinentry-mac
 
   brew install --cask \
     font-caskaydia-cove-nerd-font \
-    font-caskaydia-mono-nerd-font
-
-  echo_with_color "$YELLOW" "Installing CLI & Utilities via Brew..."
-
-  brew install \
-    zoxide \
-    stow \
-    zsh-completions \
-    tmux \
-    fzf \
-    ripgrep \
-    eza \
-    wget \
-    bat \
-    coreutils \
-    fontconfig \
-    mise
-
-  echo_with_color "$YELLOW" "Installing GUI apps via Brew Cask..."
-
-  brew install --cask \
+    font-caskaydia-mono-nerd-font \
     alfred \
     alacritty \
     cursor \
@@ -59,7 +35,8 @@ install_macos() {
     espanso
 
   echo_with_color "$YELLOW" "Setting Personalized macOS defaults..."
-  source "$DOTFILES_DIR/install/default_mac_settings.sh"
+
+  nohup bash "$DOTFILES_DIR/install/default_mac_settings.sh" >"$HOME/.macos_defaults.log" 2>&1 &
 
   echo_with_color "$GREEN" "macOS setup complete!"
 }

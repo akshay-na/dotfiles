@@ -15,7 +15,6 @@ not_found_auto_install = true      # Install tools when a matching command is mi
 always_keep_download = false       # Delete install files after use to save space
 trusted_config_paths = ["~"]       # Only trust user-level config files (safer for shared codebases)
 plugin_autoupdate_last_check_duration = "1d"  # Check for plugin updates every 1 day
-default_tool_versions_filename = ".tool-versions"
 
 idiomatic_version_file_enable_tools = [  # Explicitly allow idiomatic version files per tool
   "node",    # Supports `.nvmrc`
