@@ -39,7 +39,8 @@ alias pscpu='ps aux | sort -nr -k 3 | head -10'
 # ------------------------------------------------------------------------------
 # If you want to replace or augment existing commands with the new tools:
 if command -v bat &>/dev/null; then
-  alias cat="bat --paging=never --style=plain --theme=OneHalfDark --color=always"
+  export BAT_CONFIG_PATH="$HOME/.config/bat/config"
+  alias cat="bat"
 fi
 
 # Check if 'eza' exists before aliasing 'ls'
@@ -50,12 +51,13 @@ fi
 
 # Check if 'rg' (ripgrep) exists before aliasing 'grep'
 if command -v rg &>/dev/null; then
-  alias grep="rg --color=auto --hidden --smart-case --follow --no-heading --line-number"
+  alias grep="rg"
 fi
 
 # Check if 'fd' exists before aliasing 'find'
 if command -v fd &>/dev/null; then
-  alias find="fd --hidden --follow --exclude .git --exclude node_modules --exclude .pnpm-store --exclude .yarn --exclude yarn-cache --exclude .yarnrc --exclude .pnp.cjs --exclude .pnp.js --exclude .pnp.loader.mjs --exclude .next --exclude out --exclude dist --exclude build"
+  export FD_IGNORE_FILE="$HOME/.config/fd/ignore"
+  alias find="fd --hidden --follow"
 fi
 
 # ---------------------------------------------------------------

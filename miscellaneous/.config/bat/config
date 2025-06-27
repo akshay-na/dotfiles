@@ -1,0 +1,10 @@
+# Use this theme
+--theme="OneHalfDark"
+
+# Always show syntax highlighting, even for stdin
+--style=plain,
+
+# Don't paginate by default (you can override with `--paging=auto`)
+--paging=never
+
+--color=always
