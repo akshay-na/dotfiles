@@ -185,15 +185,17 @@ if command -v mise >/dev/null; then
 fi
 
 # Fzf initialization (if installed)
-if command -v fzf >/dev/null; then
-  [ -f $HOME/.fzf.zsh ] && source $HOME/.fzf.zsh >/dev/null 2>&1
+{
+  if [ -f $HOME/.fzf.zsh ]; then
+    source $HOME/.fzf.zsh >/dev/null 2>&1
 
-  alias fzf="fzf --preview 'bat --color=always {}'"
+    alias fzf="fzf --preview 'bat --color=always {}'"
 
-  if command -v bat >/dev/null; then
-    export FZF_DEFAULT_OPTS="--preview 'bat --color=always {}'"
+    if command -v bat >/dev/null; then
+      export FZF_DEFAULT_OPTS="--preview 'bat --color=always {}'"
+    fi
   fi
-fi
+} &!
 
 # Set WORDCHARS to treat certain punctuation as part of words
 # (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)

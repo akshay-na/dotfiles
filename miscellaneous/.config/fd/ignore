@@ -1,0 +1,13 @@
+.git
+node_modules
+.pnpm-store
+.yarn
+yarn-cache
+.yarnrc
+.pnp.cjs
+.pnp.js
+.pnp.loader.mjs
+.next
+out
+dist
+build
