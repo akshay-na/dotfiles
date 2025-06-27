@@ -43,6 +43,7 @@
 
 [commit]
   gpgsign = true  # Sign commits with GPG by default
+	template = ~/.gitmessage # Use a custom commit message template for structured commits
 
 [core]
   commitGraph         = true  # Enable commit graph for faster Git operations
@@ -57,6 +58,7 @@
   packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing
   preloadindex        = true  # Preload index to reduce I/O operations
   untrackedCache      = true  # Enable caching of untracked files for faster status checks
+	editor              = code --wait # Use Visual Studio Code as the default Git editor, wait until it's closed
 
 [credential]
   helper = cache --timeout = 3600  # Cache credentials for 1 hour
@@ -106,8 +108,8 @@
   defaultBranch = main  # New git repo starts with main branch
 
 [maintenance]
-  auto = true
-  strategy = incremental
+  auto = true                       # Enable automatic background Git maintenance
+  strategy = incremental            # Use incremental maintenance (lightweight, non-blocking tasks)
 
 [merge]
   conflictstyle = zdiff3   # Use zdiff3 style for clearer conflict markers with ancestor info
