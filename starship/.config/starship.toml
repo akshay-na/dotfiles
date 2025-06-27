@@ -11,6 +11,7 @@ $git_branch\
 $git_status\
 $git_state\
 $git_metrics\
+$aws \
 $all
 $os\
 $shell\
@@ -22,12 +23,30 @@ $character
 # $nodejs
 # """
 
+[aws]
+disabled      = false                                       # Keep the module active
+format        = '[$symbol ($profile)(\[$region\])]($style)'
+force_display = false                                       # Only show when AWS vars or config are present
+symbol        = '󰸏'
 
-# Replace the '❯' symbol in the prompt with '➜'
+[gcloud]
+disabled        = false
+format          = '[$symbol ($account)(\[$region\]) ]($style)'
+symbol          = '󱇶'                                                     # Material Design GCP icon (use any you prefer)
+style           = 'bold fg:33'                                            # Google Blue
+detect_env_vars = ['GOOGLE_CLOUD_PROJECT', 'CLOUDSDK_ACTIVE_CONFIG_NAME']
+
+[azure]
+disabled = false
+format   = '[$symbol ($subscription)]($style)'
+symbol   = ''
+style    = 'blue bold'
+
+# Replace the '' symbol in the prompt with '➜'
 [character] # The name of the module we are configuring is 'character'
 format         = '$symbol '
-success_symbol = '[❯](bold green)'
-error_symbol   = '[❯](bold red)'
+success_symbol = '[](bold green)'
+error_symbol   = '[](bold red)'
 disabled       = false
 
 [package]
@@ -50,7 +69,7 @@ use_logical_path          = false
 format                    = '[$path]($style) [$read_only]($read_only_style)'
 style                     = 'fg:85 bold'
 disabled                  = false
-read_only                 = ''
+read_only                 = ' '
 read_only_style           = 'red'
 truncation_symbol         = '.../'
 home_symbol               = '~'
@@ -220,6 +239,3 @@ style             = "bold fg:#844FBA"
 format            = '[$symbol($output )]($style)'
 symbol            = " "
 detect_extensions = ["tf", "tfvars"]
-
-[gcloud]
-disabled = true

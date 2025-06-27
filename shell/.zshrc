@@ -71,10 +71,7 @@ zinit wait lucid light-mode for \
   OMZP::sudo \
   OMZP::jsontools \
   OMZP::archlinux \
-  OMZP::aws \
-  OMZP::azure \
   OMZP::brew \
-  OMZP::gcloud \
   OMZP::kubectx \
   OMZP::command-not-found
 

@@ -413,5 +413,8 @@
     ".hg/**",
     ".vscode/**",
     ".idea/**"
-  ]
+  ],
+  "[hosts]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  }
 }
