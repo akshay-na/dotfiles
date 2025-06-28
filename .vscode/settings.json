@@ -172,6 +172,9 @@
   "[plaintext]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[hosts]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
 
   // ───────────────────────────────────────────────────────────────────────
   // Language-Specific Configurations
@@ -413,8 +416,5 @@
     ".hg/**",
     ".vscode/**",
     ".idea/**"
-  ],
-  "[hosts]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
-  }
+  ]
 }
