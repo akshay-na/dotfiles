@@ -2,37 +2,25 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {
+        "CONTEXT7_TIMEOUT": "60000"
+      }
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "SEQUENTIAL_THINKING_LOG_LEVEL": "info"
+      }
     },
     "puppeteer": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
-    },
-    "figma": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "figma-developer-mcp",
-        "--figma-api-key=YOUR-KEY",
-        "--stdio"
-      ]
-    },
-    "perplexity": {
-      "command": "uvx",
-      "args": ["mcp-server-perplexity"],
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
       "env": {
-        "PERPLEXITY_API_KEY": "your-perplexity-api-key"
-      }
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
+        "PUPPETEER_HEADLESS": "false",
+        "PUPPETEER_SLOWMO": "250",
+        "PUPPETEER_TIMEOUT": "60000"
       }
     }
   }
