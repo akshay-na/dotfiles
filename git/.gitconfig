@@ -82,9 +82,6 @@
   required = true  # Ensure LFS is used
   smudge   = git-lfs smudge -- %f  # Smudge files for Git LFS
 
-[format]
-  pretty = format:%C(auto)%h%d %s %C(black)%C(bold)%cr %C(bold blue)<%an>%Creset  # Custom log format for Git output
-
 [gc]
   auto                    = 256  # Set threshold for auto garbage collection
   pruneExpire             = now  # Prune unreachable objects immediately
