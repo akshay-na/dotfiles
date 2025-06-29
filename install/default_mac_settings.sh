@@ -140,7 +140,7 @@ defaults write NSGlobalDomain AppleMetricUnits -bool true
 sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
 
 # Set the timezone; see `sudo systemsetup -listtimezones` for other values
-sudo systemsetup -settimezone "Asia/Kolkata" >/dev/null
+sudo systemsetup -settimezone "Asia/Kolkata" >/dev/null 2>&1 || true
 
 ###############################################################################
 # Energy saving                                                               #
@@ -214,6 +214,21 @@ defaults write NSGlobalDomain AppleFontSmoothing -int 1
 
 # Enable HiDPI display modes (requires restart)
 sudo defaults write /Library/Preferences/com.apple.windowserver DisplayResolutionEnabled -bool true
+
+# Show battery percentage in menu bar
+defaults write com.apple.menuextra.battery ShowPercent -string "YES"
+
+# Add Bluetooth to Control Center
+defaults write com.apple.controlcenter "NSStatusItem Visible Bluetooth" -bool true
+
+# Add Keyboard Brightness to Control Center
+defaults write com.apple.controlcenter "NSStatusItem Visible KeyboardBrightness" -bool true
+
+# Enable Music Recognition in Control Center
+defaults write com.apple.controlcenter "NSStatusItem Visible MusicRecognition" -bool true
+
+# Hide Spotlight icon from menu bar
+defaults write com.apple.Spotlight MenuItemHidden -bool true
 
 ###############################################################################
 # Finder                                                                      #
@@ -312,7 +327,7 @@ defaults write com.apple.finder WarnOnEmptyTrash -bool false
 defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
 
 # Show the ~/Library folder
-chflags nohidden ~/Library && xattr -d com.apple.FinderInfo ~/Library
+chflags nohidden ~/Library && xattr -d com.apple.FinderInfo ~/Library 2>/dev/null || true
 
 # Show the /Volumes folder
 sudo chflags nohidden /Volumes
@@ -338,8 +353,8 @@ defaults write com.apple.WindowManager GloballyEnabled -bool true
 # Enable highlight hover effect for the grid view of a stack (Dock)
 defaults write com.apple.dock mouse-over-hilite-stack -bool true
 
-# Set the icon size of Dock items to 36 pixels
-defaults write com.apple.dock tilesize -int 60
+# Set the icon size of Dock items to 76 pixels
+defaults write com.apple.dock tilesize -int 70
 
 # Change minimize/maximize window effect
 defaults write com.apple.dock mineffect -string "genie"
@@ -388,11 +403,15 @@ defaults write com.apple.dock showhidden -bool true
 defaults write com.apple.dock show-recents -bool false
 
 # Reset Launchpad, but keep the desktop wallpaper intact
-find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -delete
+if [ -d "${HOME}/Library/Application Support/Dock" ]; then
+  find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -delete
+fi
 
 # Add iOS & Watch Simulator to Launchpad
-sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" "/Applications/Simulator.app"
-sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (Watch).app" "/Applications/Simulator (Watch).app"
+if [ -d "/Applications/Xcode.app" ]; then
+  sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" "/Applications/Simulator.app" 2>/dev/null || true
+  sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (Watch).app" "/Applications/Simulator (Watch).app" 2>/dev/null || true
+fi
 
 # Add a spacer to the left side of the Dock (where the applications are)
 #defaults write com.apple.dock persistent-apps -array-add '{tile-data={}; tile-type="spacer-tile";}'
@@ -640,20 +659,38 @@ defaults write com.apple.dock workspaces-auto-swoosh -bool true
 
 for app in "Activity Monitor" \
   "Address Book" \
+  "App Store" \
+  "Bluetooth Audio Agent" \
   "Calendar" \
   "cfprefsd" \
   "Contacts" \
+  "Control Center" \
+  "Dashboard" \
+  "Disk Utility" \
   "Dock" \
   "Finder" \
   "Google Chrome Canary" \
   "Google Chrome" \
+  "Help Viewer" \
+  "Image Capture" \
+  "Launchpad" \
   "Mail" \
   "Messages" \
+  "Notification Center" \
   "Photos" \
+  "QuickTime Player" \
   "Safari" \
+  "Safari Technology Preview" \
+  "Screen Saver" \
+  "Software Update" \
   "Spectacle" \
+  "Spotlight" \
+  "System Preferences" \
   "SystemUIServer" \
   "Terminal" \
+  "TextEdit" \
+  "Universal Access" \
+  "Window Manager" \
   "iCal"; do
   killall "${app}" &>/dev/null
 done
