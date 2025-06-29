@@ -421,6 +421,9 @@ defaults write com.apple.dock wvous-tl-modifier -int 0
 defaults write com.apple.dock wvous-tr-corner -int 12
 defaults write com.apple.dock wvous-tr-modifier -int 0
 
+# Clear all notifications by default when hitting the clear button
+defaults write com.apple.notificationcenterui clearAllNotifications -bool true
+
 # Bottom left screen corner → Mission Control
 defaults write com.apple.dock wvous-bl-corner -int 2
 defaults write com.apple.dock wvous-bl-modifier -int 0
