@@ -1,0 +1,199 @@
+---
+description:
+globs: **/*.clj,"**/*.clj"s
+alwaysApply: false
+---
+---
+description: Enforces our Clojure coding conventions for naming, threading, collection ops, let usage, tests, and more.
+globs:
+  - "**/*.clj"
+  - "**/*.cljs"
+alwaysApply: true
+---
+
+# Clojure Coding Conventions
+
+## 1. Naming
+
+- Use **kebab-case** for vars, functions, keywords, and namespaces.
+  ```clojure
+  (def user-name "Alice")     ; good
+  (def api-response {:code 200}) ; good
+  (def user_name "Alice")      ; bad
+  (def apiResponse {:code 200}) ; bad
+  ```
+- End predicate functions with `?`.
+  ```clojure
+  (valid? data) ; good
+  (blocked? user) ; good
+  (is-valid-user user) ; bad
+  (is-blocked-user user) ; bad
+  (is-archived-report report)	; bad
+  ```
+- End side-effecting functions with `!`.
+  ```clojure
+  (save! record)
+  (delete! id)
+  ```
+- Avoid prefixing function names with get, is, has etc
+  ```clojure
+  (defn user-name []...) ; good
+  (defn permitted? [] ...) ; good
+  (defn legacy? []...) ; good
+  (defn get-user-name []...) ; bad
+  (defn has-permission []...) ; bad
+  (defn is-legacy [] ...) ; bad
+  ```
+- Use `->` in names to signal a transformation.
+  ```clojure
+  (src-file->module-file path)
+  ```
+
+## 2. Threading macros (`->`, `->>`, `some->`)
+
+- Use a threading macro when a pipeline has **two or more** transformations without complex branching.
+  ```clojure
+  (-> user
+      (assoc :active true)
+      (update :score inc))
+  ```
+- Skip threading when:
+  - Branching with `if`, `cond`, or exceptions.
+  - Navigating deep nested structures—prefer `get-in`.
+  - The pipeline is a single call.
+  ```clojure
+  ;; avoid
+  (-> data
+      (process)
+      (if (valid? %) (handle %) (error %)))
+  ;; clearer
+  (let [result (process data)]
+    (if (valid? result)
+      (handle result)
+      (error result)))
+  ```
+
+## 3. `map`, `filter`, `reduce`
+
+- **`map`** for element-wise transformations.
+  ```clojure
+  (map :id users)
+  ```
+- **`filter`** to keep items matching a predicate.
+  ```clojure
+  (filter even? [1 2 3 4]) ; => (2 4)
+  ```
+- **`reduce`** to fold a collection into one value.
+  ```clojure
+  (reduce + [1 2 3 4]) ; => 10
+  ```
+- Do **not** re-implement loops with `loop/recur` when these functions work.
+
+## 4. `let` bindingsm
+
+- Bind with `let` when a value is reused, expensive, or clarifies meaning.
+- Skip `let` for single-use intermediates; thread instead.
+  ```clojure
+  ;; redundant
+  (let [x (inc n)]
+    (println x))
+
+  ;; better
+  (println (inc n))
+  ```
+- In tests, bind setup data only if reused across assertions.
+
+## 5. Testing (`clojure.test`)
+
+- Wrap each logical unit in a **`deftest`**.
+- Use **`testing`** blocks to label scenarios.
+- Keep assertions focused; one **`is`** per expectation.
+  ```clojure
+  (deftest user-active?-test
+    (testing "active user"
+      (is (active? {:status :active})))
+    (testing "inactive user"
+      (is (not (active? {:status :inactive})))) )
+  ```
+- Mock pure functions with `with-redefs` or `(constantly ...)`, not global state.
+- Prefer data-oriented fixtures over functions with side effects.
+
+## 6. Namespace organization
+
+- Place the `ns` form at the top of the file with no code before it.
+- Group `:require` and `:import` separately.
+- Sort each group alphabetically by namespace.
+- Use short, clear aliases.
+- Keep one library per line.
+  ```clojure
+  (ns app.core
+    (:require [clj-http.client  :as http]
+              [clojure.string   :as str]
+              [app.db           :as db]))
+  ```
+
+## 7. Docstrings and metadata
+
+- Give every public var a docstring that explains return value and key arguments.
+- Use sentence-case, end with a period.
+- Add `^:private` metadata for helpers not meant for public use.
+
+## 8. Indentation and whitespace
+
+- Two spaces per indent level, no tabs.
+- Align map keys and binding pairs in columns.
+  ```clojure
+  {:id   1
+   :name "Bob"}
+  ```
+- One blank line between top-level forms.
+
+## 9. Immutability and side effects
+
+- Write pure, referentially transparent functions.
+- Confine side effects to the outermost layer—handlers, tasks, or entry points.
+- Pass data in, return data out.
+
+## 10. Error handling
+
+- Throw data-carrying exceptions with `(ex-info ...)`.
+- Catch close to the boundary where the error can be handled.
+- Re-throw with extra context rather than swallowing.
+
+## 11. Collections vs records
+
+- Use plain maps for flexible, ad-hoc data.
+- Introduce `defrecord` only when the shape is fixed and performance matters.
+- Add protocol implementations to keep behavior with data.
+
+## 12. Spec and validation
+
+- Define specs for all public functions and key data structures with `clojure.spec.alpha`.
+- Validate inputs at the boundary.
+- Generate test data with `gen/sample` for property testing.
+
+## 13. REPL etiquette
+
+- Use `(comment ...)` blocks for scratch code instead of leaving debug prints.
+- Prefer `tap>` or `spy` libraries for inspecting data.
+- Remove temporary vars before committing.
+
+## 14. Performance considerations
+
+- Use transducers for large pipelines to avoid intermediate collections.
+- Profile with `clj-async-profiler` or `criterium` before optimizing.
+
+## 15. Comment style
+
+- Write full-sentence comments that explain *why*, not *what*.
+- Prefix TODO items with `;; TODO:` and include an owner name or ticket.
+
+## 16. Dependency management
+
+- Pin versions with a `:mvn/version` string in `deps.edn`.
+- Group project libs, test libs, and dev tools in separate aliases.
+
+## 17. Formatting tools
+
+- Run `cljfmt fix` or `zprint` on save to keep code consistent.
+
