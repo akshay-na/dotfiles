@@ -20,7 +20,7 @@
   // ───────────────────────────────────────────────────────────────────────
   // Editor Configuration
   // ───────────────────────────────────────────────────────────────────────
-  "editor.fontFamily": "CaskaydiaMono Nerd Font Mono",
+  "editor.fontFamily": "CaskaydiaMono Nerd Font",
   "editor.fontSize": 15,
   "editor.fontLigatures": true,
   "editor.cursorBlinking": "expand",
@@ -43,7 +43,9 @@
   // ───────────────────────────────────────────────────────────────────────
   // Terminal Configuration
   // ───────────────────────────────────────────────────────────────────────
-  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font Mono",
+  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.fontLigatures": true,
   "terminal.integrated.fontWeight": "normal",
   "terminal.integrated.fontWeightBold": "normal",
   "terminal.integrated.enableMultiLinePasteWarning": "never",
@@ -412,9 +414,47 @@
     "**/*.bak",
     "**/*.tmp",
     "**/*.swp",
+    "**/*.swo",
+    "**/*.log",
     ".git/**",
     ".hg/**",
     ".vscode/**",
-    ".idea/**"
+    ".idea/**",
+
+    // Node.js
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/.nuxt/**",
+    "**/package-lock.json",
+    "**/yarn.lock",
+    "**/pnpm-lock.yaml",
+
+    // Java
+    "**/*.class",
+    "**/*.jar",
+    "**/*.war",
+    "**/*.ear",
+    "**/*.jks",
+    "**/target/**",
+    "**/build/**",
+
+    // Clojure
+    "**/.cpcache/**",
+    "**/.clj-kondo/**",
+    "**/.shadow-cljs/**",
+    "**/out/**",
+
+    // System sensitive files
+    "**/Thumbs.db",
+    "**/desktop.ini",
+    "**/.DS_Store",
+    "**/lost+found/**",
+    "**/System Volume Information/**",
+    "/etc/passwd",
+    "/etc/shadow",
+    "/etc/hosts",
+    "/etc/group",
+    "/etc/gshadow",
+    "/var/log/**"
   ]
 }
