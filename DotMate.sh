@@ -55,9 +55,30 @@ install() {
     exit 1
   fi
 
+  stow_dotfiles
+
   # Configure mise and add plugins
   echo_with_color "$YELLOW" "Installing runtimes using mise..."
   mise install
+
+  # Set permissions for gnupg and ssh folders
+  if [ -d "$HOME/.gnupg" ]; then
+    chmod 700 "$HOME/.gnupg"
+    find "$HOME/.gnupg" -type f -exec chmod 600 {} \;
+    find "$HOME/.gnupg" -type d -exec chmod 700 {} \;
+    if [ -f "$HOME/.gnupg/pinentry-wrapper.sh" ]; then
+      chmod +x "$HOME/.gnupg/pinentry-wrapper.sh"
+    fi
+  fi
+  if [ -d "$HOME/.ssh" ]; then
+    chmod 700 "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh/sockets"
+    find "$HOME/.ssh" -type f -exec chmod 600 {} \;
+    find "$HOME/.ssh" -type d -exec chmod 700 {} \;
+    if [ -f "$HOME/.ssh/identity-agent.sh" ]; then
+      chmod +x "$HOME/.ssh/identity-agent.sh"
+    fi
+  fi
 
   fc-cache -f -v >/dev/null 2>&1
 
@@ -70,18 +91,6 @@ stow_dotfiles() {
   for dir in "$DOTFILES_DIR"/*/; do
     stow --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
-
-  # Set permissions for gnupg and ssh folders
-  if [ -d "$HOME/.gnupg" ]; then
-    chmod 700 "$HOME/.gnupg"
-    chmod 600 "$HOME/.gnupg"/*
-    chmod +x "$HOME/.gnupg/pinentry-wrapper.sh"
-  fi
-  if [ -d "$HOME/.ssh" ]; then
-    chmod 700 "$HOME/.ssh"
-    chmod 600 "$HOME/.ssh"/*
-    chmod +x "$HOME/.ssh/identity-agent.sh"
-  fi
 }
 
 # Remove symlinks created by stow
@@ -137,7 +146,6 @@ update)
 install)
   backup_dotfiles
   install
-  stow_dotfiles
   ;;
 stow)
   shift

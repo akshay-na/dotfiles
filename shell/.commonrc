@@ -21,7 +21,9 @@
 # ---------------------------------------------------------------
 export DOTFILES_DIR="$HOME/dotfiles"                                  # Root directory for dotfiles
 export PATH="$PATH:$HOME/bin:$HOME/.local/bin:/opt/nvim-linux64/bin:$HOME/.local/share/mise/shims"  # Additional paths
-HISTSIZE=10000                                                        # Shell history size
+export HISTSIZE=10000                                                        # Shell history size
+export PODMAN_SYSTEMD_UNIT="enabled" # Enable systemd unit for podman
+export PODMAN_USERNS=keep-id # Keep user namespaces for podman
 
 # Load custom aliases and functions if available
 [ -f $HOME/.aliases ] && source $HOME/.aliases

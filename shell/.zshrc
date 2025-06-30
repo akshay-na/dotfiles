@@ -63,6 +63,9 @@ zinit wait lucid light-mode for \
 zinit wait lucid light-mode for \
   OMZP::git \
   OMZP::kubectl \
+  OMZP::docker \
+  OMZP::docker-compose \
+  OMZP::podman \
   OMZP::npm \
   OMZP::nvm \
   OMZP::terraform \
