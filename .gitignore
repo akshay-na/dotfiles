@@ -45,6 +45,13 @@ ssh/*
 !ssh/.ssh/config
 !ssh/.ssh/identity-agent.sh
 
+# Podman - Ignore everything except config
+podman/.config/containers/*
+!podman/.config/containers/storage.conf
+!podman/.config/containers/registries.conf
+!podman/.config/containers/policy.json
+!podman/.config/containers/containers.conf
+
 # Install scripts - Ignore specific scripts
 install/default_mac_settings.sh
 install/linux.sh
