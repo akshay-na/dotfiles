@@ -1,1 +1,56 @@
-**/*/.DS_Store
+# -----------------------
+# Project-Specific Patterns
+# -----------------------
+
+# GnuPG - Ignore everything except specific config files
+gnupg/.gnupg/*
+!gnupg/.gnupg/gpg-agent.conf
+!gnupg/.gnupg/gpg.conf
+!gnupg/.gnupg/pinentry-wrapper.sh
+
+# Cursor - Ignore everything except specific config files
+cursor/.cursor/*
+!cursor/.cursor/argv.json
+!cursor/.cursor/mcp.json
+!cursor/.cursor/rules
+
+# DBGate - Ignore everything except specific files
+dbgate/*
+!dbgate/.dbgate/settings.json
+
+# Starship - Ignore everything except config
+starship/.config/*
+!starship/.config/starship.toml
+
+# Alacritty - Ignore everything except config and themes
+alacritty/.config/*
+!alacritty/.config/alacritty/alacritty.toml
+!alacritty/.config/alacritty/themes/alabaster_dark.toml
+
+# Fontconfig - Ignore everything except config and fonts
+fontconfig/*
+!fontconfig/.config/fontconfig/fonts.conf
+!fontconfig/.local/share/fonts/CaskaydiaCoveNerdFontMono-Bold.ttf
+!fontconfig/.local/share/fonts/CaskaydiaCoveNerdFontMono-Italic.ttf
+!fontconfig/.local/share/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf
+!fontconfig/.local/share/fonts/CaskaydiaMonoNerdFont-Bold.ttf
+!fontconfig/.local/share/fonts/CaskaydiaMonoNerdFont-Italic.ttf
+!fontconfig/.local/share/fonts/CaskaydiaMonoNerdFont-Regular.ttf
+!fontconfig/.local/share/fonts/CaskaydiaMonoNerdFontMono-Bold.ttf
+!fontconfig/.local/share/fonts/CaskaydiaMonoNerdFontMono-Italic.ttf
+!fontconfig/.local/share/fonts/CaskaydiaMonoNerdFontMono-Regular.ttf
+
+# SSH - Ignore everything except config and identity-agent.sh
+ssh/*
+!ssh/.ssh/config
+!ssh/.ssh/identity-agent.sh
+
+# Install scripts - Ignore specific scripts
+install/default_mac_settings.sh
+install/linux.sh
+install/macos.sh
+
+# -----------------------
+# Miscellaneous
+# -----------------------
+not a tty

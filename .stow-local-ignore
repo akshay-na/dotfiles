@@ -1,3 +1,19 @@
+# ========================================
+# DOTFILES PROJECT - CONSOLIDATED STOW-LOCAL-IGNORE
+# ========================================
+
+# -----------------------
+# Common Patterns
+# -----------------------
+# System files
 ^\.DS_Store$
 ^\.gitkeep$
 ^\.gitignore$
+
+# -----------------------
+# Install Scripts
+# -----------------------
+# Ignore specific install scripts
+install/default_mac_settings.sh
+install/linux.sh
+install/macos.sh

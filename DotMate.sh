@@ -70,6 +70,18 @@ stow_dotfiles() {
   for dir in "$DOTFILES_DIR"/*/; do
     stow --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
+
+  # Set permissions for gnupg and ssh folders
+  if [ -d "$HOME/.gnupg" ]; then
+    chmod 700 "$HOME/.gnupg"
+    chmod 600 "$HOME/.gnupg"/*
+    chmod +x "$HOME/.gnupg/pinentry-wrapper.sh"
+  fi
+  if [ -d "$HOME/.ssh" ]; then
+    chmod 700 "$HOME/.ssh"
+    chmod 600 "$HOME/.ssh"/*
+    chmod +x "$HOME/.ssh/identity-agent.sh"
+  fi
 }
 
 # Remove symlinks created by stow
@@ -126,15 +138,6 @@ install)
   backup_dotfiles
   install
   stow_dotfiles
-  # Set permissions for gnupg and ssh folders
-  if [ -d "$HOME/.gnupg" ]; then
-    chmod 700 "$HOME/.gnupg"
-    chmod 600 "$HOME/.gnupg"/*
-  fi
-  if [ -d "$HOME/.ssh" ]; then
-    chmod 700 "$HOME/.ssh"
-    chmod 600 "$HOME/.ssh"/*
-  fi
   ;;
 stow)
   shift
