@@ -32,7 +32,6 @@
 
 [branch]
   sort = -committerdate        # Sort branches by most recent commit date (descending)
-  autosetupmerge = always      # Automatically set upstream branch when creating a new one
   autosetuprebase = always     # Always rebase instead of merge when pulling updates
 
 [checkout]
