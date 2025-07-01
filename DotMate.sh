@@ -40,6 +40,8 @@ install() {
 
   chsh -s "$(which zsh)"
 
+  chmod +x $DOTFILES_DIR/install/*
+
   source "$DOTFILES_DIR/install/common.sh"
   install_common
 
@@ -57,6 +59,8 @@ install() {
 
   stow_dotfiles
 
+  git ignore mise/.config/mise/config.toml
+
   # Configure mise and add plugins
   echo_with_color "$YELLOW" "Installing runtimes using mise..."
   mise install
@@ -72,12 +76,8 @@ install() {
   fi
   if [ -d "$HOME/.ssh" ]; then
     chmod 700 "$HOME/.ssh"
-    chmod 700 "$HOME/.ssh/sockets"
     find "$HOME/.ssh" -type f -exec chmod 600 {} \;
     find "$HOME/.ssh" -type d -exec chmod 700 {} \;
-    if [ -f "$HOME/.ssh/identity-agent.sh" ]; then
-      chmod +x "$HOME/.ssh/identity-agent.sh"
-    fi
   fi
 
   fc-cache -f -v >/dev/null 2>&1
