@@ -91,7 +91,7 @@ fi
 # Load Local Configurations
 # ---------------------------------------------------------------
 
-eval $(ssh-agent) >/dev/null 2>&1 &
+eval $(ssh-agent) >/dev/null 2>&1 &!
 
 # Load custom local common configurations, if available
 [ -f "$HOME/.commonrc_local" ] && source "$HOME/.commonrc_local"

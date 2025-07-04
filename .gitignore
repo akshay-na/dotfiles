@@ -6,7 +6,6 @@
 gnupg/.gnupg/*
 !gnupg/.gnupg/gpg-agent.conf
 !gnupg/.gnupg/gpg.conf
-!gnupg/.gnupg/pinentry-wrapper.sh
 
 # Cursor - Ignore everything except specific config files
 cursor/.cursor/*
@@ -43,7 +42,6 @@ fontconfig/*
 # SSH - Ignore everything except config and identity-agent.sh
 ssh/*
 !ssh/.ssh/config
-!ssh/.ssh/identity-agent.conf
 
 # Podman - Ignore everything except config
 podman/.config/containers/*
@@ -51,6 +49,10 @@ podman/.config/containers/*
 !podman/.config/containers/registries.conf
 !podman/.config/containers/policy.json
 !podman/.config/containers/containers.conf
+
+# Scripts - Ignore everything except specific scripts
+scripts/.local/bin/*
+!scripts/.local/bin/pinentry-wrapper.sh
 
 # Install scripts - Ignore specific scripts
 install/default_mac_settings.sh
