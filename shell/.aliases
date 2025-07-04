@@ -49,15 +49,9 @@ if command -v eza &>/dev/null; then
   alias ls="eza -lhagH --group-directories-first --icons --sort=filename"
 fi
 
-# Check if 'rg' (ripgrep) exists before aliasing 'grep'
-if command -v rg &>/dev/null; then
-  alias grep="rg"
-fi
-
 # Check if 'fd' exists before aliasing 'find'
 if command -v fd &>/dev/null; then
   export FD_IGNORE_FILE="$HOME/.config/fd/ignore"
-  alias find="fd --hidden --follow"
 fi
 
 # ---------------------------------------------------------------
