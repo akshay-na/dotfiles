@@ -16,13 +16,18 @@
 # ---------------------------------------------------------------
 
 # Load common configurations
-source $HOME/.commonrc
+[ -f $HOME/.commonrc ] && source $HOME/.commonrc
 
 # Configure bash history settings
-HISTFILE=$HOME/.bash_history            # Path to the history file
+HISTFILE="$HOME/.bash_history"          # Path to the history file
 export HISTFILESIZE=$HISTSIZE           # Maximum history file size
 export HISTCONTROL=ignoreboth:erasedups # Ignore duplicate and blank entries
 shopt -s histappend                     # Append to history file, avoid overwriting
+
+# Performance optimizations
+shopt -s checkwinsize # Check window size after each command
+shopt -s globstar     # Enable ** globbing
+shopt -s extglob      # Enable extended globbing
 
 # ---------------------------------------------------------------
 # Tool Initializations (Starship, Zoxide, Fzf)
@@ -34,23 +39,23 @@ if command -v starship >/dev/null; then
 fi
 
 # Initialize Zoxide for quick directory navigation if available
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init bash)"
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init bash)" 2>/dev/null || true
 fi
 
-# mise for managing runtimes envs
-if command -v mise >/dev/null; then
-  eval "$(mise activate bash)"
+# Initialize mise for managing runtimes envs
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate bash)" 2>/dev/null || true
 fi
 
 # Initialize Fzf if available, with custom completion, key-bindings, and history
 if [ -f $HOME/.fzf.bash ]; then
   # Alternative check if Fzf was manually installed
-  source $HOME/.fzf.bash >/dev/null 2>&1
+  source $HOME/.fzf.bash >/dev/null 2>&1 || true
 fi
 
 # ---------------------------------------------------------------
 # Load Additional Local Configurations
 # ---------------------------------------------------------------
 # Load custom local bash configurations, if available
-[ -f $HOME/.bashrc_local ] && source $HOME/.bashrc_local
+[ -f "$HOME/.bashrc_local" ] && source "$HOME/.bashrc_local"
