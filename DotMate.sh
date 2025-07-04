@@ -70,15 +70,14 @@ install() {
     chmod 700 "$HOME/.gnupg"
     find "$HOME/.gnupg" -type f -exec chmod 600 {} \;
     find "$HOME/.gnupg" -type d -exec chmod 700 {} \;
-    if [ -f "$HOME/.gnupg/pinentry-wrapper.sh" ]; then
-      chmod +x "$HOME/.gnupg/pinentry-wrapper.sh"
-    fi
   fi
   if [ -d "$HOME/.ssh" ]; then
     chmod 700 "$HOME/.ssh"
     find "$HOME/.ssh" -type f -exec chmod 600 {} \;
     find "$HOME/.ssh" -type d -exec chmod 700 {} \;
   fi
+
+  chmod +x ~/.local/bin/*
 
   fc-cache -f -v >/dev/null 2>&1
 
