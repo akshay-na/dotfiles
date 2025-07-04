@@ -47,6 +47,7 @@ install_common() {
     gnupg \
     neofetch \
     thefuck \
+    asciinema \
     fontconfig
 
   echo_with_color "$GREEN" "Common Homebrew package installation complete!"
