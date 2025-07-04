@@ -57,7 +57,11 @@
   packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing
   preloadindex        = true  # Preload index to reduce I/O operations
   untrackedCache      = true  # Enable caching of untracked files for faster status checks
-	editor              = code --wait # Use Visual Studio Code as the default Git editor, wait until it's closed
+  editor              = code --wait # Use Visual Studio Code as the default Git editor, wait until it's closed
+  sparseCheckout      = true  # Enable sparse checkout for large repositories (checkout only specific paths)
+  sparseCheckoutCone  = true  # Use cone mode for better sparse checkout performance (faster than non-cone mode)
+  splitIndex          = true  # Enable split index for faster operations (separates index from shared index)
+  threadSafeIndex     = true  # Enable thread-safe index operations (better performance on multi-core systems)
 
 [credential]
   helper = cache --timeout = 3600  # Cache credentials for 1 hour
@@ -68,6 +72,11 @@
   compactionHeuristic = true  # Enable heuristic for better diff compaction
   mnemonicPrefix      = true  # Use mnemonic prefixes for easier readability
   renames             = true  # Detect file renames during diffs
+
+[extensions]
+  worktreeconfig = true  # Enable worktree configuration
+  objectFormat = sha256 # Use SHA-256 for object hashes (future-proofing, required for some Git hosting)
+  maintenance = true # Enable automatic repository maintenance for better performance
 
 [fetch]
   all       = true  # Fetch all remotes by default
