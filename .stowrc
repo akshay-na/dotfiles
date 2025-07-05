@@ -1,0 +1,6 @@
+--ignore='default_mac_settings.sh'
+--ignore='debian.sh'
+--ignore='macos.sh'
+--ignore='common.sh'
+--ignore='.DS_Store'
+--ignore='.gitignore'
