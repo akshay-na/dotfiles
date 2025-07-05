@@ -98,7 +98,7 @@ stow_dotfiles() {
 unstow_dotfiles() {
   echo_with_color "$RED" "Unstowing dotfiles..."
   for dir in "$DOTFILES_DIR"/*/; do
-    stow --no-folding -D -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+    stow -D -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
 }
 
@@ -117,7 +117,7 @@ stow_multiple_dotfiles() {
 
   for tool in "$@"; do
     echo_with_color "$GREEN" "Stowing $tool..."
-    stow --override=$tool -d "$DOTFILES_DIR" -t "$HOME" "$tool"
+    stow --no-folding --override=$tool -d "$DOTFILES_DIR" -t "$HOME" "$tool"
   done
 }
 
