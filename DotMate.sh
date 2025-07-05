@@ -38,32 +38,32 @@ install() {
 
   echo_with_color "$GREEN" "Installing tools and setting up environment..."
 
-  chsh -s "$(which zsh)"
-
   chmod +x $DOTFILES_DIR/install/*
-
-  source "$DOTFILES_DIR/install/common.sh"
-  install_common
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
     source "$DOTFILES_DIR/install/macos.sh"
     install_macos
   elif command -v apt >/dev/null 2>&1; then
-    source "$DOTFILES_DIR/install/linux.sh"
-    install_linux
+    source "$DOTFILES_DIR/install/debian.sh"
+    install_debian
   else
     echo_with_color "$RED" "Unsupported OS or package manager."
     echo_with_color "$RED" "This script supports macOS (Homebrew) or Debian/Ubuntu (apt). Please install the required things manually"
     exit 1
   fi
 
+  source "$DOTFILES_DIR/install/common.sh"
+  install_common
+
   stow_dotfiles
 
-  git ignore mise/.config/mise/config.toml
+  git ignore $DOTFILES_DIR/mise/.config/mise/config.d/tools.toml
 
   # Configure mise and add plugins
   echo_with_color "$YELLOW" "Installing runtimes using mise..."
-  mise install
+  if command -v mise >/dev/null 2>&1; then
+    mise install
+  fi
 
   # Set permissions for gnupg and ssh folders
   if [ -d "$HOME/.gnupg" ]; then
@@ -80,6 +80,8 @@ install() {
   chmod +x ~/.local/bin/*
 
   fc-cache -f -v >/dev/null 2>&1
+
+  chsh -s "$(which zsh)"
 
   echo_with_color "$GREEN" "Setup complete! Restart your terminal to apply changes."
 }

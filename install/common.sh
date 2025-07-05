@@ -43,33 +43,46 @@ install_common() {
 
   echo_with_color "$YELLOW" "Installing CLI & Utilities via Homebrew..."
 
-  curl https://mise.run | bash
+  if ! command -v mise >/dev/null 2>&1; then
+    echo_with_color "$YELLOW" "Mise not found. Installing..."
+    curl https://mise.run | bash
+  fi
 
   # CLI and utilities (common to both macOS and Linux)
-  brew install \
-    gpg \
-    curl \
-    git \
-    zsh \
-    unzip \
-    stow \
-    make \
-    gcc \
-    wget \
-    ripgrep \
-    eza \
-    bat \
-    tmux \
-    zoxide \
-    fzf \
-    coreutils \
-    tldr \
-    btop \
-    gnupg \
-    neofetch \
-    thefuck \
-    asciinema \
+  # List of packages to install
+  BREW_PACKAGES=(
+    gpg
+    curl
+    git
+    zsh
+    unzip
+    stow
+    make
+    gcc
+    wget
+    ripgrep
+    eza
+    bat
+    tmux
+    zoxide
+    fzf
+    coreutils
+    tldr
+    btop
+    gnupg
+    neofetch
+    thefuck
+    asciinema
     fontconfig
+  )
+
+  for pkg in "${BREW_PACKAGES[@]}"; do
+    if brew list --formula | grep -q "^${pkg}\$"; then
+      echo "Already installed: $pkg"
+    else
+      brew install "$pkg" || echo "Failed to install: $pkg (continuing...)"
+    fi
+  done
 
   echo_with_color "$GREEN" "Common Homebrew package installation complete!"
 }
