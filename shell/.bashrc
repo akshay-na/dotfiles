@@ -59,3 +59,10 @@ fi
 # ---------------------------------------------------------------
 # Load custom local bash configurations, if available
 [ -f "$HOME/.bashrc_local" ] && source "$HOME/.bashrc_local"
+
+# ---------------------------------------------------------------
+# If zsh is installed and we are not already in zsh, start zsh as a login shell
+# ---------------------------------------------------------------
+if command -v zsh >/dev/null 2>&1 && [ -z "$ZSH_VERSION" ]; then
+  exec zsh -l
+fi
