@@ -20,6 +20,27 @@ install_common() {
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
 
+  # ---------------------------------------------------------------
+  # Homebrew Initialization (macOS and Linux)
+  # ---------------------------------------------------------------
+  # Homebrew Initialization (macOS and Linux)
+  if [ -x "/opt/homebrew/bin/brew" ]; then
+    # macOS (Apple Silicon)
+    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "/usr/local/bin/brew" ]; then
+    # macOS (Intel) or Linux (rare)
+    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "$HOME/homebrew/bin/brew" ]; then
+    # Linux (user install)
+    eval "$($HOME/homebrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    # Linux (system-wide)
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+    # Linux (alternative user install)
+    eval "$($HOME/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+  fi
+
   echo_with_color "$YELLOW" "Installing CLI & Utilities via Homebrew..."
 
   curl https://mise.run | bash
