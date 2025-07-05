@@ -90,7 +90,7 @@ install() {
 stow_dotfiles() {
   echo_with_color "$GREEN" "Stowing dotfiles..."
   for dir in "$DOTFILES_DIR"/*/; do
-    stow --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+    stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
 }
 
@@ -98,7 +98,7 @@ stow_dotfiles() {
 unstow_dotfiles() {
   echo_with_color "$RED" "Unstowing dotfiles..."
   for dir in "$DOTFILES_DIR"/*/; do
-    stow -D -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+    stow --no-folding -D -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
 }
 
