@@ -2,5 +2,4 @@ yarn
 pnpm
 npm-check
 prettier
-ts-node
 zx

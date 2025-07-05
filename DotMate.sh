@@ -57,7 +57,7 @@ install() {
 
   stow_dotfiles
 
-  git ignore $DOTFILES_DIR/mise/.config/mise/config.d/tools.toml
+  git ignore $DOTFILES_DIR/mise/.config/mise/conf.d/global_tools.toml
 
   # Configure mise and add plugins
   echo_with_color "$YELLOW" "Installing runtimes using mise..."
