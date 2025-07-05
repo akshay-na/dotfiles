@@ -31,14 +31,9 @@ idiomatic_version_file_enable_tools = [  # Explicitly allow idiomatic version fi
 
 [tools]
 awscli     = "latest"
-clojure = "latest"
 gcloud     = "latest"
-java       = "latest"
 kubectl    = "latest"
-leiningen = "latest"
 neovim     = "latest"
-node       = "latest"
 python     = "latest"
-rust       = "latest"
 starship   = "latest"
 terraform  = "latest"
