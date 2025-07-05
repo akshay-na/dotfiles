@@ -65,25 +65,21 @@ fi
 # ---------------------------------------------------------------
 # Homebrew Initialization (macOS and Linux)
 # ---------------------------------------------------------------
-# Check for Homebrew on macOS (Apple Silicon)
-if [ -d "/opt/homebrew/bin" ]; then
-  export PATH="/opt/homebrew/bin:$PATH"
+# Homebrew Initialization (macOS and Linux)
+if [ -x "/opt/homebrew/bin/brew" ]; then
+  # macOS (Apple Silicon)
   eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
-# Check for Homebrew on macOS (Intel)
-elif [ -d "/usr/local/bin" ] && command -v brew >/dev/null 2>&1; then
-  export PATH="/usr/local/bin:$PATH"
+elif [ -x "/usr/local/bin/brew" ]; then
+  # macOS (Intel) or Linux (rare)
   eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
-# Check for Homebrew on Linux (user installation)
-elif [ -d "$HOME/homebrew/bin" ]; then
-  export PATH="$HOME/homebrew/bin:$PATH"
+elif [ -x "$HOME/homebrew/bin/brew" ]; then
+  # Linux (user install)
   eval "$($HOME/homebrew/bin/brew shellenv)" 2>/dev/null || true
-# Check for Homebrew on Linux (system-wide installation)
-elif [ -d "/home/linuxbrew/.linuxbrew/bin" ]; then
-  export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+  # Linux (system-wide)
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
-# Check for Homebrew on Linux (alternative user installation)
-elif [ -d "$HOME/.linuxbrew/bin" ]; then
-  export PATH="$HOME/.linuxbrew/bin:$PATH"
+elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+  # Linux (alternative user install)
   eval "$($HOME/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
 fi
 
