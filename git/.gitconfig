@@ -62,6 +62,7 @@
   sparseCheckoutCone  = true  # Use cone mode for better sparse checkout performance (faster than non-cone mode)
   splitIndex          = true  # Enable split index for faster operations (separates index from shared index)
   threadSafeIndex     = true  # Enable thread-safe index operations (better performance on multi-core systems)
+  autocrlf            = input # Don't convert line endings when checking out files
 
 [credential]
   helper = cache --timeout = 3600  # Cache credentials for 1 hour

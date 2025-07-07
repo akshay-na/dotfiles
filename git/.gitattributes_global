@@ -4,32 +4,6 @@
 
 * text=auto
 
-# Force LF endings for all code and config
-*.sh text eol=lf
-*.py text eol=lf
-*.js text eol=lf
-*.ts text eol=lf
-*.jsx text eol=lf
-*.tsx text eol=lf
-*.rb text eol=lf
-*.php text eol=lf
-*.go text eol=lf
-*.rs text eol=lf
-*.java text eol=lf
-*.c text eol=lf
-*.cpp text eol=lf
-*.h text eol=lf
-*.cs text eol=lf
-*.html text eol=lf
-*.css text eol=lf
-*.scss text eol=lf
-*.json text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.toml text eol=lf
-*.ini text eol=lf
-*.md text eol=lf
-
 #########################
 # Lock files & test artifacts
 #########################
