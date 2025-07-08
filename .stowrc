@@ -4,3 +4,8 @@
 --ignore='common.sh'
 --ignore='.DS_Store'
 --ignore='.gitignore'
+--ignore='README.md'
+--ignore='Makefile'
+--ignore='LICENSE'
+--ignore='DotMate.sh'
+--ignore='.stowrc'
