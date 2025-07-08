@@ -131,7 +131,7 @@ disabled     = true
 detect_files = ["k8s", "kustomization.yaml", "helmfile.yaml", "Chart.yaml"]
 
 [hostname]
-format     = '([$ssh_symbol]($style)[$hostname]($style)) in '
+format     = '([$ssh_symbol](#90c0d4)[$hostname]($style)) in '
 ssh_only   = false
 ssh_symbol = "🌐 "
 trim_at    = ""
