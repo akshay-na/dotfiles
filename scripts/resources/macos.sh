@@ -36,7 +36,7 @@ install_macos() {
 
   echo_with_color "$YELLOW" "Setting Personalized macOS defaults..."
 
-  nohup bash "$DOTFILES_DIR/install/default_mac_settings.sh" >"$HOME/.macos_defaults.log" 2>&1 &
+  nohup bash "$DOTFILES_DIR/scripts/resources/default_mac_settings.sh" >"$HOME/.macos_defaults.log" 2>&1 &
 
   echo_with_color "$GREEN" "macOS setup complete!"
 }

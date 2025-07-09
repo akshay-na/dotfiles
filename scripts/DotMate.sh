@@ -38,13 +38,13 @@ install() {
 
   echo_with_color "$GREEN" "Installing tools and setting up environment..."
 
-  chmod +x $DOTFILES_DIR/install/*
+  chmod +x $DOTFILES_DIR/scripts/resources/*
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    source "$DOTFILES_DIR/install/macos.sh"
+    source "$DOTFILES_DIR/scripts/resources/macos.sh"
     install_macos
   elif command -v apt >/dev/null 2>&1; then
-    source "$DOTFILES_DIR/install/debian.sh"
+    source "$DOTFILES_DIR/scripts/resources/debian.sh"
     install_debian
   else
     echo_with_color "$RED" "Unsupported OS or package manager."
@@ -52,7 +52,7 @@ install() {
     exit 1
   fi
 
-  source "$DOTFILES_DIR/install/common.sh"
+  source "$DOTFILES_DIR/scripts/resources/common.sh"
   install_common
 
   stow_dotfiles

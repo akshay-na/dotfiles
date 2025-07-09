@@ -2,7 +2,7 @@
 # This Makefile provides an easy interface for managing dotfiles using the `DotMate.sh` script.
 
 # Variables
-SCRIPT := ./DotMate.sh
+SCRIPT := ./scripts/DotMate.sh
 
 # Colors for output
 GREEN := \033[1;32m
