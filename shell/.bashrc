@@ -15,9 +15,6 @@
 # in `.bashrc_local` or `.aliases_local`.
 # ---------------------------------------------------------------
 
-# Load common configurations
-[ -f $HOME/.commonrc ] && source $HOME/.commonrc
-
 # Configure bash history settings
 HISTFILE="$HOME/.bash_history"          # Path to the history file
 export HISTFILESIZE=$HISTSIZE           # Maximum history file size
@@ -58,6 +55,7 @@ fi
 # Load Additional Local Configurations
 # ---------------------------------------------------------------
 # Load custom local bash configurations, if available
+[ -f $HOME/.commonrc ] && source $HOME/.commonrc
 [ -f "$HOME/.bashrc_local" ] && source "$HOME/.bashrc_local"
 
 # ---------------------------------------------------------------
