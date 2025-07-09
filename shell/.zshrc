@@ -14,6 +14,12 @@
 #   - Local overrides: create ~/.aliases_local or ~/.zshrc_local if desired.
 # ------------------------------------------------------------------------------
 
+# Profiling Zsh
+alias profile-zsh="time ZSH_DEBUGRC=1 zsh -i -c exit"
+if [[ -n "$ZSH_DEBUGRC" ]]; then
+  zmodload zsh/zprof
+fi
+
 # Initialize and run compinit quietly in the background
 mkdir -p $HOME/.zsh/cache
 autoload -Uz compinit bashcompinit
@@ -228,12 +234,10 @@ compdef _vscode_z vz
 # ------------------------------------------------------------------------------
 [ -f $HOME/.zshrc_local ] && source $HOME/.zshrc_local
 
-# ------------------------------------------------------------------------------
-# 11. Background Plugin Updates
-# ------------------------------------------------------------------------------
-# Update Zinit itself silently
-zinit self-update &> /dev/null &!
-zinit update --parallel 30 &> /dev/null &!
+# Profiling Zsh
+if [[ -n "$ZSH_DEBUGRC" ]]; then
+  zmodload zsh/zprof
+fi
 
 # End of ~/.zshrc
 # ------------------------------------------------------------------------------
