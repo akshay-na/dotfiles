@@ -35,21 +35,24 @@ if command -v starship >/dev/null; then
   eval "$(starship init bash)"
 fi
 
-# Initialize Zoxide for quick directory navigation if available
-if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init bash)" 2>/dev/null || true
-fi
+# Initialize Zoxide, mise, and Fzf in background
+{
+  # Initialize Zoxide for quick directory navigation if available
+  if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init bash)" 2>/dev/null || true
+  fi
 
-# Initialize mise for managing runtimes envs
-if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate bash)" 2>/dev/null || true
-fi
+  # Initialize mise for managing runtimes envs
+  if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate bash)" 2>/dev/null || true
+  fi
 
-# Initialize Fzf if available, with custom completion, key-bindings, and history
-if [ -f $HOME/.fzf.bash ]; then
-  # Alternative check if Fzf was manually installed
-  source $HOME/.fzf.bash >/dev/null 2>&1 || true
-fi
+  # Initialize Fzf if available, with custom completion, key-bindings, and history
+  if [ -f $HOME/.fzf.bash ]; then
+    # Alternative check if Fzf was manually installed
+    source $HOME/.fzf.bash >/dev/null 2>&1 || true
+  fi
+} &!
 
 # ---------------------------------------------------------------
 # Load Additional Local Configurations
