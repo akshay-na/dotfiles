@@ -27,11 +27,6 @@ bashcompinit
 compinit -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 
 # ------------------------------------------------------------------------------
-# 1. Source Common Configuration
-# ------------------------------------------------------------------------------
-[ -f $HOME/.commonrc ] && source $HOME/.commonrc
-
-# ------------------------------------------------------------------------------
 # 2. Path / Environment Variables
 # ------------------------------------------------------------------------------
 export YSU_MESSAGE_POSITION="after"  # Example custom env var
@@ -230,8 +225,9 @@ alias vz='_vscode_z'
 compdef _vscode_z vz
 
 # ------------------------------------------------------------------------------
-# 10. Local Overrides
+# 10. Source Configs
 # ------------------------------------------------------------------------------
+[ -f $HOME/.commonrc ] && source $HOME/.commonrc
 [ -f $HOME/.zshrc_local ] && source $HOME/.zshrc_local
 
 # Profiling Zsh
