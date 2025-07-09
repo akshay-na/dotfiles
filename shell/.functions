@@ -139,10 +139,11 @@ check_dotfiles_update() {
   (
     # Checks if the dotfiles repository is up-to-date and prompts for update if not
     cd "$DOTFILES_DIR" || return
-    git fetch origin
+
+    UPSTREAM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
     # Check if the local branch is behind the remote branch
-    BEHIND_COUNT=$(git rev-list --count HEAD..origin/$(git rev-parse --abbrev-ref HEAD))
+    BEHIND_COUNT=$(git rev-list --count HEAD..origin/$UPSTREAM_BRANCH)
 
     # If there are commits in the remote that aren't in the local branch, prompt the user
     if [ "$BEHIND_COUNT" -gt 0 ]; then

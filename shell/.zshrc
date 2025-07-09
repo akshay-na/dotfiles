@@ -24,7 +24,7 @@ fi
 mkdir -p $HOME/.zsh/cache
 autoload -Uz compinit bashcompinit
 bashcompinit
-compinit -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
+compinit -C -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 
 # ------------------------------------------------------------------------------
 # 2. Path / Environment Variables
@@ -175,18 +175,20 @@ if command -v starship >/dev/null; then
   eval "$(starship init zsh)"
 fi
 
-# Zoxide for quick directory jumping
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)"
-fi
+{
+  # Zoxide for quick directory jumping
+  if command -v zoxide >/dev/null; then
+    eval "$(zoxide init zsh)"
+  fi
 
-# mise for managing runtimes envs
-if command -v mise >/dev/null; then
+
+  # mise for managing runtimes envs
+  if command -v mise >/dev/null; then
   eval "$(mise activate zsh)"
-fi
+  fi
+
 
 # Fzf initialization (if installed)
-{
   if [ -f $HOME/.fzf.zsh ]; then
     source $HOME/.fzf.zsh >/dev/null 2>&1
 
@@ -232,7 +234,7 @@ compdef _vscode_z vz
 
 # Profiling Zsh
 if [[ -n "$ZSH_DEBUGRC" ]]; then
-  zmodload zsh/zprof
+  zprof
 fi
 
 # End of ~/.zshrc
