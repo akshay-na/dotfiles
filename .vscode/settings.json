@@ -177,6 +177,9 @@
   "[hosts]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"
   },
+  "[clojure]": {
+    "editor.defaultFormatter": "betterthantomorrow.calva"
+  },
 
   // ───────────────────────────────────────────────────────────────────────
   // Language-Specific Configurations
