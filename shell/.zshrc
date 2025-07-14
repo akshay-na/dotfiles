@@ -175,19 +175,17 @@ if command -v starship >/dev/null; then
   eval "$(starship init zsh)"
 fi
 
+# Zoxide for quick directory jumping
+if command -v zoxide >/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# mise for managing runtimes envs
+if command -v mise >/dev/null; then
+eval "$(mise activate zsh)"
+fi
+
 {
-  # Zoxide for quick directory jumping
-  if command -v zoxide >/dev/null; then
-    eval "$(zoxide init zsh)"
-  fi
-
-
-  # mise for managing runtimes envs
-  if command -v mise >/dev/null; then
-  eval "$(mise activate zsh)"
-  fi
-
-
 # Fzf initialization (if installed)
   if [ -f $HOME/.fzf.zsh ]; then
     source $HOME/.fzf.zsh >/dev/null 2>&1
