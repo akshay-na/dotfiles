@@ -368,9 +368,6 @@ defaults write com.apple.dock enable-spring-load-actions-on-all-items -bool true
 # Show indicator lights for open applications in the Dock
 defaults write com.apple.dock show-process-indicators -bool true
 
-# Show only open applications in the Dock
-defaults write com.apple.dock static-only -bool true
-
 # Don't animate opening applications from the Dock
 defaults write com.apple.dock launchanim -bool false
 
@@ -401,11 +398,6 @@ defaults write com.apple.dock showhidden -bool true
 
 # Don't show recent applications in Dock
 defaults write com.apple.dock show-recents -bool false
-
-# Reset Launchpad, but keep the desktop wallpaper intact
-if [ -d "${HOME}/Library/Application Support/Dock" ]; then
-  find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -delete
-fi
 
 # Add iOS & Watch Simulator to Launchpad
 if [ -d "/Applications/Xcode.app" ]; then
