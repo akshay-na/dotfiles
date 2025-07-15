@@ -1,7 +1,7 @@
 {:max-blank-lines 1,
  :rules
  {:blank-lines {:padding-lines 2,
-                :between-blocks {defn 2, def 2, defonce 2}},
+                :between-blocks {defn 2, def 2, defonce 1}},
   :functions {:enabled? false},
   :types {:enabled? false},
   :namespaces {:break-libs? false,
