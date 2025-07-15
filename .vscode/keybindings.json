@@ -1,0 +1,8 @@
+[
+  {
+    "key": "cmd+s",
+    "command": "workbench.action.tasks.runTask",
+    "args": "cljstyle: format file",
+    "when": "editorLangId == clojure"
+  }
+]

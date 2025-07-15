@@ -2,39 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Merge settings.json with User Settings",
+      "label": "cljstyle: format file",
       "type": "shell",
-      "command": "echo",
-      "args": ["Running merge-settings script..."],
-      "windows": {
-        "command": "powershell",
-        "args": [
-          "-NoProfile",
-          "-ExecutionPolicy",
-          "Bypass",
-          "-Command",
-          "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; ${workspaceFolder}\\.vscode\\merge-settings.ps1"
-        ]
+      "command": "cljstyle fix \"${file}\"",
+      "presentation": {
+        "echo": true,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared"
       },
-      "linux": {
-        "command": "/bin/bash",
-        "args": [
-          "-c",
-          "chmod +x ${workspaceFolder}/.vscode/merge-settings.sh && ${workspaceFolder}/.vscode/merge-settings.sh"
-        ]
-      },
-      "mac": {
-        "command": "/bin/bash",
-        "args": [
-          "-c",
-          "chmod +x ${workspaceFolder}/.vscode/merge-settings.sh && ${workspaceFolder}/.vscode/merge-settings.sh"
-        ]
-      },
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
+      "problemMatcher": []
     }
   ]
 }
