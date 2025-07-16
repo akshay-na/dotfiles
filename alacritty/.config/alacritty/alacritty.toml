@@ -19,9 +19,11 @@ family = "CaskaydiaMono Nerd Font"
 style  = "Italic"
 
 [window]
-padding = { x = 10, y = 10 }
-opacity = 0.85               # Semi-transparent background
-blur    = true               # Enable blur effect if your compositor supports it
+padding         = { x = 10, y = 10 }
+opacity         = 0.85               # Semi-transparent background
+blur            = true               # Enable blur effect if your compositor supports it
+dynamic_padding = true               # Adjust padding based on font size
+startup_mode    = "Fullscreen"       # Start in windowed mode
 
 [cursor]
 thickness        = 0.15 # Slightly thinner cursor for better visibility
@@ -42,13 +44,37 @@ save_to_clipboard = true
 [mouse]
 hide_when_typing = true
 
+# Enhanced keyboard bindings
+[keyboard]
+bindings = [
+  # Copy/Paste
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+
+  # Font size adjustments
+  { key = "Equals", mods = "Control", action = "IncreaseFontSize" },
+  { key = "Minus", mods = "Control", action = "DecreaseFontSize" },
+  { key = "Key0", mods = "Control", action = "ResetFontSize" },
+
+  # Window management
+  { key = "F11", action = "ToggleFullscreen" },
+  { key = "F12", action = "SpawnNewInstance" },
+
+  # Tab navigation (if using tmux or similar)
+  { key = "Tab", mods = "Control", chars = "\\x1b[27;5;9~" },
+  { key = "Tab", mods = "Control|Shift", chars = "\\x1b[27;6;9~" },
+
+  # Search functionality
+  { key = "F", mods = "Control", action = "SearchForward" },
+  { key = "F", mods = "Control|Shift", action = "SearchBackward" },
+  { key = "G", mods = "Control", action = "SearchNext" },
+  { key = "G", mods = "Control|Shift", action = "SearchPrevious" },
+
+  # Clear screen
+  { key = "L", mods = "Control", action = "ClearLogNotice" },
+]
+
 [debug]
 persistent_logging = false
 log_level          = "Warn"
 print_events       = false
-
-[keyboard]
-bindings = [
-  { key = "V", mods = "Control|Shift", action = "Paste" },
-  { key = "C", mods = "Control|Shift", action = "Copy" },
-]
