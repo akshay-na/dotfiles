@@ -14,10 +14,10 @@
 #   - Local overrides: create ~/.aliases_local or ~/.zshrc_local if desired.
 # ------------------------------------------------------------------------------
 
+set +m
+
 # Configure prompt behavior for clean output
 export PROMPT_EOL_MARK=""
-
-set +m
 
 # Profiling Zsh
 alias profile-zsh="time ZSH_DEBUGRC=1 zsh -i -c exit"
@@ -175,6 +175,7 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # ------------------------------------------------------------------------------
 # 8. Tool Initializations (Starship, Zoxide, Fzf, etc.)
 # ------------------------------------------------------------------------------
+
 # Starship prompt
 if command -v starship >/dev/null; then
   eval "$(starship init zsh)"
