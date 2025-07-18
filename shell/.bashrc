@@ -23,7 +23,6 @@ shopt -s histappend                     # Append to history file, avoid overwrit
 
 # Performance optimizations
 shopt -s checkwinsize # Check window size after each command
-shopt -s globstar     # Enable ** globbing
 shopt -s extglob      # Enable extended globbing
 
 # ---------------------------------------------------------------
@@ -42,7 +41,7 @@ fi
 
 # mise for managing runtimes envs
 if command -v mise >/dev/null; then
-eval "$(mise activate bash)"
+  eval "$(mise activate bash)"
 fi
 
 # InitializeFzf in background
@@ -52,7 +51,8 @@ fi
     # Alternative check if Fzf was manually installed
     source $HOME/.fzf.bash >/dev/null 2>&1 || true
   fi
-} &!
+} &
+disown
 
 # ---------------------------------------------------------------
 # Load Additional Local Configurations

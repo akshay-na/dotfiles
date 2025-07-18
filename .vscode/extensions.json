@@ -24,7 +24,8 @@
     "gruntfuggly.todo-tree",
     "chakrounanas.turbo-console-log",
     "leojhonsong.coding-assist-extension-pack",
-    "franneck94.vscode-coding-tools-extension-pack"
+    "franneck94.vscode-coding-tools-extension-pack",
+    "mkhl.shfmt"
   ],
   "unwantedRecommendations": ["visualstudioexptteam.vscodeintellicode"]
 }

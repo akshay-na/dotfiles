@@ -27,11 +27,12 @@ export PODMAN_USERNS=keep-id                                                    
 PING_RESULT=false
 
 if ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1; then
-    PING_RESULT=true
-    {
-      cd $DOTFILES_DIR || return
-      git fetch origin $(git symbolic-ref --short HEAD) -q
-    } &!
+  PING_RESULT=true
+  {
+    cd $DOTFILES_DIR || return
+    git fetch origin $(git symbolic-ref --short HEAD) -q
+  } &
+  disown
 fi
 
 # Load custom aliases and functions if available (with error handling)
@@ -75,7 +76,7 @@ fi
 # Load Local Configurations
 # ---------------------------------------------------------------
 
-eval $(ssh-agent) >/dev/null 2>&1 &!
+eval $(ssh-agent) >/dev/null 2>&1 &
 
 # Automatically start tmux if not already inside a session
 if command -v tmux >/dev/null 2>&1 && [[ -z "$TMUX" ]]; then

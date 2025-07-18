@@ -14,6 +14,11 @@
 #   - Local overrides: create ~/.aliases_local or ~/.zshrc_local if desired.
 # ------------------------------------------------------------------------------
 
+# Configure prompt behavior for clean output
+export PROMPT_EOL_MARK=""
+
+set +m
+
 # Profiling Zsh
 alias profile-zsh="time ZSH_DEBUGRC=1 zsh -i -c exit"
 if [[ -n "$ZSH_DEBUGRC" ]]; then
@@ -29,7 +34,7 @@ compinit -C -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 # ------------------------------------------------------------------------------
 # 2. Path / Environment Variables
 # ------------------------------------------------------------------------------
-export YSU_MESSAGE_POSITION="after"  # Example custom env var
+export YSU_MESSAGE_POSITION="after" # Example custom env var
 
 # ------------------------------------------------------------------------------
 # 3. Zinit Plugin Manager Setup
@@ -85,7 +90,7 @@ zinit cdreplay -q
 # ------------------------------------------------------------------------------
 # 5. Keybindings
 # ------------------------------------------------------------------------------
-bindkey -e                           # Use Emacs-style keybindings
+bindkey -e # Use Emacs-style keybindings
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 bindkey "\e[A" history-substring-search-up
@@ -94,42 +99,42 @@ bindkey "^[OA" history-substring-search-up
 bindkey "^[OB" history-substring-search-down
 bindkey "\eOA" history-substring-search-up
 bindkey "\eOB" history-substring-search-down
-bindkey '^[w' kill-region            # Example custom binding
+bindkey '^[w' kill-region # Example custom binding
 
 # ------------------------------------------------------------------------------
 # 6. Zsh Options & History Settings
 # ------------------------------------------------------------------------------
-HISTFILE=$HOME/.zsh_history              # Where to store history
-SAVEHIST=$HISTSIZE                   # Number of history lines to save
-HISTDUP=erase                        # Erase oldest duplicate when a command is repeated
+HISTFILE=$HOME/.zsh_history # Where to store history
+SAVEHIST=$HISTSIZE          # Number of history lines to save
+HISTDUP=erase               # Erase oldest duplicate when a command is repeated
 
 # History-related options
-setopt appendhistory            # Append commands to $HISTFILE instead of overwriting it
-setopt sharehistory             # Share command history between all sessions
-setopt inc_append_history       # Immediately append each command to the history file
-setopt hist_ignore_space        # Don't record commands that start with a space
-setopt hist_ignore_all_dups     # Remove all older duplicates when a new command is added
-setopt hist_save_no_dups        # Don't write duplicate entries to the history file
-setopt hist_ignore_dups         # Ignore the command if it matches the previous one
-setopt hist_find_no_dups        # Skip duplicate entries when searching through history
-setopt hist_expire_dups_first   # Expire duplicate entries first when trimming history
-setopt hist_verify              # Load history line into the editor before executing
+setopt appendhistory          # Append commands to $HISTFILE instead of overwriting it
+setopt sharehistory           # Share command history between all sessions
+setopt inc_append_history     # Immediately append each command to the history file
+setopt hist_ignore_space      # Don't record commands that start with a space
+setopt hist_ignore_all_dups   # Remove all older duplicates when a new command is added
+setopt hist_save_no_dups      # Don't write duplicate entries to the history file
+setopt hist_ignore_dups       # Ignore the command if it matches the previous one
+setopt hist_find_no_dups      # Skip duplicate entries when searching through history
+setopt hist_expire_dups_first # Expire duplicate entries first when trimming history
+setopt hist_verify            # Load history line into the editor before executing
 
 # Directory and navigation options
-setopt auto_cd                  # Allow 'cd dir' by typing just 'dir'
-setopt auto_pushd               # Use pushd when changing directories
-setopt pushd_ignore_dups        # Don't store duplicates in the directory stack
-setopt pushd_silent             # Don't print the directory stack after pushd/popd
+setopt auto_cd           # Allow 'cd dir' by typing just 'dir'
+setopt auto_pushd        # Use pushd when changing directories
+setopt pushd_ignore_dups # Don't store duplicates in the directory stack
+setopt pushd_silent      # Don't print the directory stack after pushd/popd
 
 # Globbing and redirection options
-setopt extended_glob            # Enable advanced globbing patterns
-setopt null_glob                # Allow unmatched globs to expand to null (empty string)
-setopt multios                  # Allow multiple redirections (e.g., echo foo >f1 >f2)
-setopt glob_dots                # Include dotfiles in glob expansions
+setopt extended_glob # Enable advanced globbing patterns
+setopt null_glob     # Allow unmatched globs to expand to null (empty string)
+setopt multios       # Allow multiple redirections (e.g., echo foo >f1 >f2)
+setopt glob_dots     # Include dotfiles in glob expansions
 
 # Miscellaneous options
-setopt check_jobs               # Warn about running or stopped jobs when exiting the shell
-setopt numeric_glob_sort        # Sort filenames with numbers in numerical order (e.g., 1 2 10)
+setopt check_jobs        # Warn about running or stopped jobs when exiting the shell
+setopt numeric_glob_sort # Sort filenames with numbers in numerical order (e.g., 1 2 10)
 
 # ------------------------------------------------------------------------------
 # 7. Completion Styling and Options
@@ -140,7 +145,7 @@ zstyle ':completion:*' matcher-list \
   'm:{a-zA-Z}={A-Za-z}' \
   'r:|.=* r:|=*' \
   'm:{[:digit:]}={[:digit:]}'
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' list-colors "${LS_COLORS//:/ }"
 zstyle ':compinstall:*' skip 'yes'
 zstyle ':autocomplete:*' async true
 zstyle ':completion:*:functions' ignored-patterns '_*'
@@ -182,11 +187,11 @@ fi
 
 # mise for managing runtimes envs
 if command -v mise >/dev/null; then
-eval "$(mise activate zsh)"
+  eval "$(mise activate zsh)"
 fi
 
 {
-# Fzf initialization (if installed)
+  # Fzf initialization (if installed)
   if [ -f $HOME/.fzf.zsh ]; then
     source $HOME/.fzf.zsh >/dev/null 2>&1
 
@@ -196,7 +201,7 @@ fi
       export FZF_DEFAULT_OPTS="--preview 'bat --color=always {}'"
     fi
   fi
-} &!
+} &
 
 # Set WORDCHARS to treat certain punctuation as part of words
 # (i.e., do NOT treat '/' as part of a word, so you can easily jump across path segments)
@@ -208,9 +213,9 @@ WORDCHARS=".~&!#$%^[](){}<>"
 _vscode_z() {
   local dir
   if [[ -n "$1" ]]; then
-    dir=$(zoxide query "$1")  # Jump directly if an argument is provided
+    dir=$(zoxide query "$1") # Jump directly if an argument is provided
   else
-    dir=$(zoxide query -l | fzf)  # Otherwise, show fzf selection
+    dir=$(zoxide query -l | fzf) # Otherwise, show fzf selection
   fi
 
   if [[ -n "$dir" ]]; then
@@ -234,6 +239,8 @@ compdef _vscode_z vz
 if [[ -n "$ZSH_DEBUGRC" ]]; then
   zprof
 fi
+
+set -m
 
 # End of ~/.zshrc
 # ------------------------------------------------------------------------------
