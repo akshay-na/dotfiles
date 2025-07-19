@@ -17,83 +17,120 @@
 # ---------------------------------------------------------------
 
 # ---------------------------------------------------------------
-# Define Environment Variables
+# Define Environment Variables (Always Loaded)
 # ---------------------------------------------------------------
 export DOTFILES_DIR="$HOME/dotfiles"                                                               # Root directory for dotfiles
 export PATH="$PATH:$HOME/bin:$HOME/.local/bin:/opt/nvim-linux64/bin:$HOME/.local/share/mise/shims" # Additional paths
 export HISTSIZE=10000                                                                              # Shell history size
 export PODMAN_SYSTEMD_UNIT="enabled"                                                               # Enable systemd unit for podman
 export PODMAN_USERNS=keep-id                                                                       # Keep user namespaces for podman
-PING_RESULT=false
 
-if ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1; then
-  PING_RESULT=true
-  {
-    cd $DOTFILES_DIR || return
-    git fetch origin $(git symbolic-ref --short HEAD) -q
-  } &
-  disown
+# Set dir colour to constant across the system
+export LS_COLORS="di=38;5;75:fi=38;5;252:ln=38;5;141:so=38;5;215:pi=38;5;136:bd=38;5;136:cd=38;5;136:su=38;5;208:sg=38;5;208:tw=38;5;168:ow=38;5;168:st=38;5;168:ex=38;5;114"
+
+# ---------------------------------------------------------------
+# Homebrew Initialization (Always Loaded)
+# ---------------------------------------------------------------
+# Use case statement for faster Homebrew detection
+case "$(uname -s)" in
+Darwin)
+  # macOS - check Apple Silicon first, then Intel
+  if [ -x "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+  fi
+  ;;
+Linux)
+  # Linux - check multiple possible locations
+  if [ -x "$HOME/homebrew/bin/brew" ]; then
+    eval "$($HOME/homebrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+    eval "$($HOME/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+  elif [ -x "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+  fi
+  ;;
+esac
+
+# ---------------------------------------------------------------
+# GPG + Yubikey Setup (Always Loaded - After Homebrew)
+# ---------------------------------------------------------------
+export GPG_TTY=$(tty)
+
+# Only setup GPG if gpgconf is available (after Homebrew PATH setup)
+if command -v gpgconf >/dev/null 2>&1; then
+  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+  gpgconf --launch gpg-agent
+  gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
+else
+  echo "Warning: gpgconf not found. GPG/YubiKey setup skipped."
+  # Set a fallback SSH_AUTH_SOCK if GPG is not available
+  export SSH_AUTH_SOCK=""
 fi
 
-# Load custom aliases and functions if available (with error handling)
+# ---------------------------------------------------------------
+# SSH Agent Setup (Always Loaded - Needed for Git operations)
+# ---------------------------------------------------------------
+# Use GPG agent for SSH if available, otherwise fall back to ssh-agent
+# This ensures YubiKey authentication works properly
+if command -v gpgconf >/dev/null 2>&1 && [ -n "$SSH_AUTH_SOCK" ]; then
+  # GPG agent is already set up and SSH_AUTH_SOCK is configured
+  # No need to start a separate ssh-agent
+  :
+elif command -v ssh-agent >/dev/null 2>&1; then
+  # Fallback to ssh-agent if GPG is not available
+  eval $(ssh-agent) >/dev/null 2>&1
+else
+  echo "Warning: Neither gpgconf nor ssh-agent found. SSH authentication may not work."
+fi
+
+# ---------------------------------------------------------------
+# Load Aliases and Functions (Always Loaded - Needed for Git/YubiKey operations)
+# ---------------------------------------------------------------
+# Load custom aliases and functions if available (needed for Git operations and YubiKey)
 [ -f "$HOME/.aliases" ] && source "$HOME/.aliases"
 [ -f "$HOME/.functions" ] && source "$HOME/.functions"
 
 # ---------------------------------------------------------------
-# GPG + Yubikey Setup
+# Interactive-Only Configurations
 # ---------------------------------------------------------------
-export GPG_TTY=$(tty)
-export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-
-gpgconf --launch gpg-agent
-gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
-
-# Set dir colour to constent across the syste
-export LS_COLORS="di=38;5;75:fi=38;5;252:ln=38;5;141:so=38;5;215:pi=38;5;136:bd=38;5;136:cd=38;5;136:su=38;5;208:sg=38;5;208:tw=38;5;168:ow=38;5;168:st=38;5;168:ex=38;5;114"
-
-# ---------------------------------------------------------------
-# Homebrew Initialization (macOS and Linux)
-# ---------------------------------------------------------------
-# Homebrew Initialization (macOS and Linux)
-if [ -x "/opt/homebrew/bin/brew" ]; then
-  # macOS (Apple Silicon)
-  eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
-elif [ -x "/usr/local/bin/brew" ]; then
-  # macOS (Intel) or Linux (rare)
-  eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
-elif [ -x "$HOME/homebrew/bin/brew" ]; then
-  # Linux (user install)
-  eval "$($HOME/homebrew/bin/brew shellenv)" 2>/dev/null || true
-elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-  # Linux (system-wide)
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
-elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
-  # Linux (alternative user install)
-  eval "$($HOME/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
-fi
-
-# ---------------------------------------------------------------
-# Load Local Configurations
-# ---------------------------------------------------------------
-
-eval $(ssh-agent) >/dev/null 2>&1 &
-
-# Automatically start tmux if not already inside a session
-if command -v tmux >/dev/null 2>&1 && [[ -z "$TMUX" ]]; then
-  tmux attach-session -t default 2>/dev/null || tmux new-session -s default
-fi
-
-# ---------------------------------------------------------------
-# Dotfiles Repository Initialization
-# ---------------------------------------------------------------
-if [ -d "$DOTFILES_DIR" ]; then
-  if [ "$PING_RESULT" = true ]; then
-    check_dotfiles_update
+# Check if we have a terminal and the shell is interactive
+if [[ -t 0 ]] && {
+  [[ -n "$ZSH_VERSION" ]] && [[ -o interactive ]] ||
+    [[ -n "$BASH_VERSION" ]] && [[ $- == *i* ]] ||
+    [[ -n "$PS1" ]]
+}; then
+  # Network connectivity check for background operations
+  PING_RESULT=false
+  if ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1; then
+    PING_RESULT=true
+    {
+      cd $DOTFILES_DIR || return
+      git fetch origin $(git symbolic-ref --short HEAD) -q
+    } &
+    disown
   fi
-else
-  # Clone dotfiles repository if not available
-  git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
+
+  # Automatically start tmux if not already inside a session (interactive only)
+  if [[ -z "$TMUX" ]] && command -v tmux >/dev/null; then
+    tmux attach-session -t default 2>/dev/null || tmux new-session -s default
+  fi
+
+  # Dotfiles Repository Update Check (interactive only)
+  if [ -d "$DOTFILES_DIR" ]; then
+    if [ "$PING_RESULT" = true ]; then
+      check_dotfiles_update
+    fi
+  else
+    # Clone dotfiles repository if not available
+    git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
+  fi
 fi
 
-# Load custom local common configurations, if available
+# ---------------------------------------------------------------
+# Load Local Configurations (Always Loaded)
+# ---------------------------------------------------------------
 [ -f "$HOME/.commonrc_local" ] && source "$HOME/.commonrc_local"

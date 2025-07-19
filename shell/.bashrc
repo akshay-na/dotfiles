@@ -15,55 +15,60 @@
 # in `.bashrc_local` or `.aliases_local`.
 # ---------------------------------------------------------------
 
-# Configure bash history settings
-HISTFILE="$HOME/.bash_history"          # Path to the history file
-export HISTFILESIZE=$HISTSIZE           # Maximum history file size
-export HISTCONTROL=ignoreboth:erasedups # Ignore duplicate and blank entries
-shopt -s histappend                     # Append to history file, avoid overwriting
-
-# Performance optimizations
-shopt -s checkwinsize # Check window size after each command
-shopt -s extglob      # Enable extended globbing
+# ---------------------------------------------------------------
+# Source Common Configurations (Always Loaded)
+# ---------------------------------------------------------------
+[ -f $HOME/.commonrc ] && source $HOME/.commonrc
 
 # ---------------------------------------------------------------
-# Tool Initializations (Starship, Zoxide, Fzf)
+# Interactive-Only Bash Configurations
 # ---------------------------------------------------------------
+if [[ $- == *i* ]]; then
+  # ---------------------------------------------------------------
+  # Bash History Settings (Interactive Only)
+  # ---------------------------------------------------------------
+  HISTFILE="$HOME/.bash_history"          # Path to the history file
+  export HISTFILESIZE=$HISTSIZE           # Maximum history file size
+  export HISTCONTROL=ignoreboth:erasedups # Ignore duplicate and blank entries
+  shopt -s histappend                     # Append to history file, avoid overwriting
 
-# Initialize Starship prompt if available
-if command -v starship >/dev/null; then
-  eval "$(starship init bash)"
-fi
+  # Performance optimizations (interactive only)
+  shopt -s checkwinsize # Check window size after each command
+  shopt -s extglob      # Enable extended globbing
 
-# Zoxide for quick directory jumping
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init bash)"
-fi
+  # ---------------------------------------------------------------
+  # Interactive Tool Initializations
+  # ---------------------------------------------------------------
 
-# mise for managing runtimes envs
-if command -v mise >/dev/null; then
-  eval "$(mise activate bash)"
-fi
-
-# InitializeFzf in background
-{
-  # Initialize Fzf if available, with custom completion, key-bindings, and history
-  if [ -f $HOME/.fzf.bash ]; then
-    # Alternative check if Fzf was manually installed
-    source $HOME/.fzf.bash >/dev/null 2>&1 || true
+  # Initialize Starship prompt if available (interactive only)
+  if command -v starship >/dev/null; then
+    eval "$(starship init bash)"
   fi
-} &
-disown
+
+  # Zoxide for quick directory jumping (interactive only)
+  if command -v zoxide >/dev/null; then
+    eval "$(zoxide init bash)"
+  fi
+
+  # Initialize Fzf in background (interactive only)
+  {
+    # Initialize Fzf if available, with custom completion, key-bindings, and history
+    if [ -f $HOME/.fzf.bash ]; then
+      # Alternative check if Fzf was manually installed
+      source $HOME/.fzf.bash >/dev/null 2>&1 || true
+    fi
+  } &
+
+  # ---------------------------------------------------------------
+  # Interactive Shell Switching
+  # ---------------------------------------------------------------
+  # If zsh is installed and we are not already in zsh, start zsh as a login shell
+  if command -v zsh >/dev/null 2>&1 && [ -z "$ZSH_VERSION" ]; then
+    exec zsh -l
+  fi
+fi
 
 # ---------------------------------------------------------------
 # Load Additional Local Configurations
 # ---------------------------------------------------------------
-# Load custom local bash configurations, if available
-[ -f $HOME/.commonrc ] && source $HOME/.commonrc
 [ -f "$HOME/.bashrc_local" ] && source "$HOME/.bashrc_local"
-
-# ---------------------------------------------------------------
-# If zsh is installed and we are not already in zsh, start zsh as a login shell
-# ---------------------------------------------------------------
-if command -v zsh >/dev/null 2>&1 && [ -z "$ZSH_VERSION" ]; then
-  exec zsh -l
-fi
