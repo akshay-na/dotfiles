@@ -142,10 +142,8 @@ check_dotfiles_update() {
     # Checks if the dotfiles repository is up-to-date and prompts for update if not
     cd "$DOTFILES_DIR" || return
 
-    UPSTREAM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
     # Check if the local branch is behind the remote branch
-    BEHIND_COUNT=$(git rev-list --count HEAD..origin/$UPSTREAM_BRANCH)
+    BEHIND_COUNT=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0)
 
     # If there are commits in the remote that aren't in the local branch, prompt the user
     if [ "$BEHIND_COUNT" -gt 0 ]; then
@@ -445,6 +443,22 @@ elif [ -n "$ZSH_VERSION" ]; then
   # Zsh completion
   compdef _install_pnpm_completions install_pnpm
 fi
+
+# VSCode directory jumping using Zoxide and Fzf
+_vscode_z() {
+  local dir
+  if [[ -n "$1" ]]; then
+    dir=$(zoxide query "$1") # Jump directly if an argument is provided
+  else
+    dir=$(zoxide query -l | fzf) # Otherwise, show fzf selection
+  fi
+
+  if [[ -n "$dir" ]]; then
+    code "$dir"
+  else
+    echo "No directory selected."
+  fi
+}
 
 # Load custom local common configurations, if available
 [ -f $HOME/.functions_local ] && source $HOME/.functions_local

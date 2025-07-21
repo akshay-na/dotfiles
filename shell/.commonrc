@@ -19,11 +19,12 @@
 # ---------------------------------------------------------------
 # Define Environment Variables (Always Loaded)
 # ---------------------------------------------------------------
-export DOTFILES_DIR="$HOME/dotfiles"                                                               # Root directory for dotfiles
-export PATH="$PATH:$HOME/bin:$HOME/.local/bin:/opt/nvim-linux64/bin:$HOME/.local/share/mise/shims" # Additional paths
-export HISTSIZE=10000                                                                              # Shell history size
-export PODMAN_SYSTEMD_UNIT="enabled"                                                               # Enable systemd unit for podman
-export PODMAN_USERNS=keep-id                                                                       # Keep user namespaces for podman
+export DOTFILES_DIR="$HOME/dotfiles"                                 # Root directory for dotfiles
+export PATH="$PATH:$HOME/bin:$HOME/.local/bin:/opt/nvim-linux64/bin" # Additional paths
+export HISTSIZE=10000                                                # Shell history size
+export PODMAN_SYSTEMD_UNIT="enabled"                                 # Enable systemd unit for podman
+export PODMAN_USERNS=keep-id                                         # Keep user namespaces for podman
+export GPG_TTY=$(tty)                                                # Set GPG TTY for GPG agent
 
 # Set dir colour to constant across the system
 export LS_COLORS="di=38;5;75:fi=38;5;252:ln=38;5;141:so=38;5;215:pi=38;5;136:bd=38;5;136:cd=38;5;136:su=38;5;208:sg=38;5;208:tw=38;5;168:ow=38;5;168:st=38;5;168:ex=38;5;114"
@@ -56,35 +57,17 @@ Linux)
 esac
 
 # ---------------------------------------------------------------
-# GPG + Yubikey Setup (Always Loaded - After Homebrew)
+# SSH Authentication Agent Setup (GPG/YubiKey or ssh-agent)
 # ---------------------------------------------------------------
-export GPG_TTY=$(tty)
-
-# Only setup GPG if gpgconf is available (after Homebrew PATH setup)
+# Use GPG agent if available, otherwise fall back to ssh-agent
 if command -v gpgconf >/dev/null 2>&1; then
   export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
   gpgconf --launch gpg-agent
   gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
-else
-  echo "Warning: gpgconf not found. GPG/YubiKey setup skipped."
-  # Set a fallback SSH_AUTH_SOCK if GPG is not available
-  export SSH_AUTH_SOCK=""
-fi
-
-# ---------------------------------------------------------------
-# SSH Agent Setup (Always Loaded - Needed for Git operations)
-# ---------------------------------------------------------------
-# Use GPG agent for SSH if available, otherwise fall back to ssh-agent
-# This ensures YubiKey authentication works properly
-if command -v gpgconf >/dev/null 2>&1 && [ -n "$SSH_AUTH_SOCK" ]; then
-  # GPG agent is already set up and SSH_AUTH_SOCK is configured
-  # No need to start a separate ssh-agent
-  :
 elif command -v ssh-agent >/dev/null 2>&1; then
-  # Fallback to ssh-agent if GPG is not available
-  eval $(ssh-agent) >/dev/null 2>&1
-else
-  echo "Warning: Neither gpgconf nor ssh-agent found. SSH authentication may not work."
+  if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l >/dev/null 2>&1; then
+    eval $(ssh-agent) >/dev/null 2>&1
+  fi
 fi
 
 # ---------------------------------------------------------------
@@ -128,6 +111,8 @@ if [[ -t 0 ]] && {
     # Clone dotfiles repository if not available
     git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
   fi
+else
+  PATH="$PATH:$HOME/.local/share/mise/shims" # Load mise shims
 fi
 
 # ---------------------------------------------------------------

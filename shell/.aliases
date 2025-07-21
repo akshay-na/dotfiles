@@ -140,23 +140,24 @@ alias npmP='npm publish'
 # Windows Terminal Aliases (for Windows)
 # ---------------------------------------------------------------
 # Check if running in Git Bash or WSL
-if [[ "$MSYSTEM" == "MINGW64" || "$MSYSTEM" == "MINGW32" || "$(uname -r)" == *"WSL"* ]]; then
-  # If running in WSL, convert paths to Windows format
-  if grep -qi "WSL" /proc/version; then
+case "$(uname -s)" in
+MINGW* | CYGWIN* | MSYS*)
+  alias new='wt.exe -w 0 -d "$(pwd)"'
+  alias V='wt.exe sp -d "$(pwd)" -V'
+  alias H='wt.exe sp -d "$(pwd)" -H'
+  alias cmd='start "" "C:\\Windows\\system32\\cmd.exe"'
+  alias bash='start "" "C:\\Program Files\\Git\\git-bash.exe"'
+  alias open='explorer .'
+  ;;
+Linux)
+  if grep -qi "WSL" /proc/version 2>/dev/null; then
     alias new='wt.exe -w 0 -d "$(wslpath -w "$(pwd)")"'
     alias V='wt.exe sp -d "$(wslpath -w "$(pwd)")" -V'
     alias H='wt.exe sp -d "$(wslpath -w "$(pwd)")" -H'
-  else
-    alias new='wt.exe -w 0 -d "$(pwd)"'
-    alias V='wt.exe sp -d "$(pwd)" -V'
-    alias H='wt.exe sp -d "$(pwd)" -H'
-    alias cmd='start "" "C:\Windows\system32\cmd.exe"'
-    alias bash='start "" "C:\Program Files\Git\git-bash.exe"'
+    alias open='explorer .'
   fi
-
-  # Common aliases for both Git Bash and WSL
-  alias open='explorer .'
-fi
+  ;;
+esac
 
 # Load custom local common configurations, if available
 [ -f $HOME/.aliases_local ] && source $HOME/.aliases_local
