@@ -45,7 +45,6 @@ export YSU_MESSAGE_POSITION="after" # Example custom env var
 # ---------------------------------------------------------------
 # Interactive-Only Zsh Configurations
 # ---------------------------------------------------------------
-export YSU_MESSAGE_POSITION="after" # Example custom env var
 
 if [[ -o interactive ]]; then
   export ZINIT_HOME="${XDG_DATA_HOME:-$HOME}/.zinit"
@@ -91,7 +90,6 @@ if [[ -o interactive ]]; then
     OMZP::nvm \
     OMZP::terraform \
     OMZP::vscode \
-    OMZP::z \
     OMZP::sudo \
     OMZP::jsontools \
     OMZP::archlinux \
@@ -191,6 +189,11 @@ if [[ -o interactive ]]; then
   # Interactive Tool Initializations
   # ---------------------------------------------------------------
 
+  # mise for managing multiple runtime versions
+  if command -v mise >/dev/null; then
+    eval "$(mise activate zsh)"
+  fi
+
   # Starship prompt (interactive only)
   if command -v starship >/dev/null; then
     eval "$(starship init zsh)"
@@ -220,23 +223,11 @@ if [[ -o interactive ]]; then
   # ---------------------------------------------------------------
   # Custom Functions (Interactive Only)
   # ---------------------------------------------------------------
-  _vscode_z() {
-    local dir
-    if [[ -n "$1" ]]; then
-      dir=$(zoxide query "$1") # Jump directly if an argument is provided
-    else
-      dir=$(zoxide query -l | fzf) # Otherwise, show fzf selection
-    fi
-
-    if [[ -n "$dir" ]]; then
-      code "$dir"
-    else
-      echo "No directory selected."
-    fi
-  }
-
-  alias vz='_vscode_z'
-  compdef _vscode_z vz
+  # VSCode directory jumping alias (function defined in .functions)
+  if typeset -f _vscode_z >/dev/null; then
+    alias vz='_vscode_z'
+    compdef _vscode_z vz
+  fi
 fi
 
 # ---------------------------------------------------------------

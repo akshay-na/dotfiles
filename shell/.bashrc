@@ -40,6 +40,11 @@ if [[ $- == *i* ]]; then
   # Interactive Tool Initializations
   # ---------------------------------------------------------------
 
+  # mise for managing multiple runtime versions
+  if command -v mise >/dev/null; then
+    eval "$(mise activate bash)"
+  fi
+
   # Initialize Starship prompt if available (interactive only)
   if command -v starship >/dev/null; then
     eval "$(starship init bash)"

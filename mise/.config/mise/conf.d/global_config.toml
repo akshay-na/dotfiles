@@ -30,12 +30,5 @@ idiomatic_version_file_enable_tools = [  # Explicitly allow idiomatic version fi
 ]
 
 [tools]
-awscli     = "latest"
-gcloud     = "latest"
-kubectl    = "latest"
 neovim     = "latest"
-python     = "latest"
 starship   = "latest"
-terraform  = "latest"
-shfmt      = "latest"
-cljstyle   = "latest"
