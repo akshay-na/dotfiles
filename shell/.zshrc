@@ -38,6 +38,16 @@ compinit -C -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 export YSU_MESSAGE_POSITION="after" # Example custom env var
 
 # ---------------------------------------------------------------
+# Non-Interactive and Interactive Zsh Options (Always Loaded)
+# ---------------------------------------------------------------
+# Globbing and redirection options (apply to all shells)
+setopt extended_glob     # Enable advanced globbing patterns
+setopt null_glob         # Allow unmatched globs to expand to null (empty string)
+setopt multios           # Allow multiple redirections (e.g., echo foo >f1 >f2)
+setopt glob_dots         # Include dotfiles in glob expansions
+setopt numeric_glob_sort # Sort filenames with numbers in numerical order (e.g., 1 2 10)
+
+# ---------------------------------------------------------------
 # Source Common Configurations (Always Loaded)
 # ---------------------------------------------------------------
 [ -f $HOME/.commonrc ] && source $HOME/.commonrc
@@ -115,7 +125,7 @@ if [[ -o interactive ]]; then
   bindkey '^[w' kill-region # Example custom binding
 
   # ---------------------------------------------------------------
-  # Zsh Options & History Settings
+  # Zsh Options & History Settings (Interactive Only)
   # ---------------------------------------------------------------
   HISTFILE=$HOME/.zsh_history # Where to store history
   SAVEHIST=$HISTSIZE          # Number of history lines to save
@@ -139,15 +149,10 @@ if [[ -o interactive ]]; then
   setopt pushd_ignore_dups # Don't store duplicates in the directory stack
   setopt pushd_silent      # Don't print the directory stack after pushd/popd
 
-  # Globbing and redirection options
-  setopt extended_glob # Enable advanced globbing patterns
-  setopt null_glob     # Allow unmatched globs to expand to null (empty string)
-  setopt multios       # Allow multiple redirections (e.g., echo foo >f1 >f2)
-  setopt glob_dots     # Include dotfiles in glob expansions
-
-  # Miscellaneous options
-  setopt check_jobs        # Warn about running or stopped jobs when exiting the shell
-  setopt numeric_glob_sort # Sort filenames with numbers in numerical order (e.g., 1 2 10)
+  # Miscellaneous options (interactive only)
+  setopt check_jobs  # Warn about running or stopped jobs when exiting the shell
+  setopt correct     # Correct commands as they are typed
+  setopt correct_all # Correct all arguments
 
   # ---------------------------------------------------------------
   # Completion Styling and Options
