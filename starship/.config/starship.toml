@@ -11,7 +11,6 @@ $git_branch\
 $git_status\
 $git_state\
 $git_metrics\
-$aws \
 $all
 $os\
 $shell\
@@ -24,22 +23,22 @@ $character
 # """
 
 [aws]
-disabled      = false                                        # Keep the module active
-format        = '[$symbol ($profile)(\[$region\])]($style) '
-force_display = false                                        # Only show when AWS vars or config are present
-symbol        = '󰸏'
+disabled      = false                                       # Keep the module active
+format        = '[$symbol($profile)(\[$region\])]($style) '
+force_display = false                                       # Only show when AWS vars or config are present
+symbol        = '󰸏 '
 
 [gcloud]
 disabled        = false
-format          = '[$symbol ($account)(\[$region\])]($style) '
-symbol          = '󱇶'                                                     # Material Design GCP icon (use any you prefer)
+format          = '[$symbol($account)(\[$region\])]($style) '
+symbol          = ' '                                                    # Material Design GCP icon (use any you prefer)
 style           = 'bold fg:33'                                            # Google Blue
 detect_env_vars = ['GOOGLE_CLOUD_PROJECT', 'CLOUDSDK_ACTIVE_CONFIG_NAME']
 
 [azure]
 disabled = false
-format   = '[$symbol ($subscription)]($style) '
-symbol   = ''
+format   = '[$symbol($subscription)]($style) '
+symbol   = ' '
 style    = 'blue bold'
 
 # Replace the '' symbol in the prompt with '➜'
@@ -53,13 +52,23 @@ disabled       = false
 disabled = true
 
 [cmd_duration]
-min_time = 10_00                      # Show command duration over 10,00 milliseconds (=1 sec)
+min_time = 20_00                      # Show command duration over 10,00 milliseconds (=1 sec)
 format   = "took [$duration]($style)"
 
 [battery]
-full_symbol        = "🔋"
-charging_symbol    = "🔌"
-discharging_symbol = "⚡"
+full_symbol = "󱊣 "
+
+[[battery.display]]
+threshold          = 30
+style              = "red"
+charging_symbol    = "󱊤 "
+discharging_symbol = "󱊡 "
+
+[[battery.display]]
+threshold          = 50
+style              = "#d9f57f"
+charging_symbol    = "󰢝 "
+discharging_symbol = "󰁾 "
 
 [directory]
 truncation_length         = 5
@@ -69,22 +78,18 @@ use_logical_path          = false
 format                    = '[$path]($style) [$read_only]($read_only_style)'
 style                     = 'fg:85 bold'
 disabled                  = false
-read_only                 = ' '
+read_only                 = '󰍁 '
 read_only_style           = 'red'
 truncation_symbol         = '.../'
 home_symbol               = '~'
 
 [docker_context]
-symbol          = '🐳 '
+symbol          = ' '
 style           = 'blue bold'
 format          = 'via [$symbol$context]($style)'
 only_with_files = true
 disabled        = false
 detect_files    = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
-
-[[battery.display]]
-threshold = 30
-style     = "bold red"
 
 [git_commit]
 commit_hash_length = 8
@@ -105,7 +110,7 @@ disabled     = true
 [git_status]
 ahead = "⇡${count} "
 behind = "⇣${count} "
-diverged = "↕${ahead_count}/${behind_count}"
+diverged = "↕${ahead_count}/${behind_count} "
 untracked = "?${count} "
 modified = "!${count} "
 conflicted = " ${count} "
@@ -154,12 +159,12 @@ unknown_indicator    = "unknown"
 
 [os]
 disabled        = false
-format          = "$symbol "
-symbols.Ubuntu  = ""
-symbols.Windows = ""
-symbols.Macos   = ""
-symbols.Debian  = ""
-symbols.Unknown = ""
+format          = "$symbol"
+symbols.Ubuntu  = " "
+symbols.Windows = " "
+symbols.Macos   = " "
+symbols.Debian  = " "
+symbols.Unknown = " "
 
 [nodejs]
 format            = '[$symbol($version)]($style) '
@@ -190,7 +195,7 @@ detect_extensions = ["py"]
 detect_folders = [".venv", "venv", "env", ".tox", "__pycache__"]
 
 [env_var.VIRTUAL_ENV]
-symbol = "🧪 "
+symbol = " "
 style  = "bold purple"
 format = '[$symbol$env_value]($style)  '
 
