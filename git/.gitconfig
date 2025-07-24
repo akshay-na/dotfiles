@@ -85,12 +85,6 @@
   prune     = true  # Remove stale branches from remote during fetch
   pruneTags = true  # Remove obsolete remote tags when fetching
 
-[filter "lfs"]
-  clean    = git-lfs clean -- %f  # Clean files for Git LFS
-  process  = git-lfs filter-process  # Use Git LFS for filtering large files
-  required = true  # Ensure LFS is used
-  smudge   = git-lfs smudge -- %f  # Smudge files for Git LFS
-
 [gc]
   auto                    = 256  # Set threshold for auto garbage collection
   pruneExpire             = now  # Prune unreachable objects immediately
