@@ -1,0 +1,259 @@
+# ---------------------------------------------------------------
+# Zsh Style Configurations
+# ---------------------------------------------------------------
+# Purpose:
+#   - Centralizes all zstyle configurations for better organization
+#   - Separates styling concerns from core shell functionality
+#   - Makes it easier to maintain and modify completion styles
+#
+# Usage:
+#   - This file is sourced by ~/.zshrc
+#   - All zstyle configurations are grouped by functionality
+#   - Add new styles here to keep .zshrc clean
+# ------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------
+# Completion System Styling
+# ---------------------------------------------------------------
+# Cache and performance settings
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${ZDOTDIR:-$HOME}/.zsh/cache/"
+
+# Matching and filtering
+zstyle ':completion:*' matcher-list \
+  'm:{a-zA-Z}={A-Za-z}' \
+  'r:|.=* r:|=*' \
+  'm:{[:digit:]}={[:digit:]}'
+
+# Colors and display
+zstyle ':completion:*' list-colors "${LS_COLORS}"
+zstyle ':completion:*:default' list-grouped true
+zstyle ':completion:*:descriptions' format '[%d]'
+
+# Function and pattern handling
+zstyle ':completion:*:functions' ignored-patterns '_*'
+zstyle ':completion:*' rehash true
+
+# Enhanced completion behaviors
+zstyle ':completion:*' accept-exact '*(N)'
+zstyle ':completion:*' accept-exact-dirs '*(N)'
+zstyle ':completion:*' case-insensitive 'yes'
+zstyle ':completion:*' fuzzy 'yes'
+zstyle ':completion:*' expand 'yes'
+
+# Menu and interaction settings
+zstyle ':completion:*' menu 'no'
+zstyle ':completion:*' select-prompt '%SScrolling active: current selection at %p%s'
+zstyle ':completion:*' list-prompt '%SAt %p: Hit TAB for more, or the character to insert%s'
+zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' select-scroll 'yes'
+zstyle ':compinstall:*' skip 'yes'
+zstyle ':autocomplete:*' async true
+
+# Language and tool support
+zstyle ':completion:*' use-ip true
+zstyle ':completion:*' use-perl true
+
+# Git-specific completion
+zstyle ':completion:*:git-checkout:*' sort false
+
+# ---------------------------------------------------------------
+# Fzf-tab Integration Styling
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:*' single true
+zstyle ':fzf-tab:*' switch-group '<' '>'
+zstyle ':fzf-tab:*' fzf-minimum-chars 2
+
+# ---------------------------------------------------------------
+# File and Directory Operations (High Value)
+# ---------------------------------------------------------------
+# Directory navigation and file operations
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'zoxide query --list'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:rm:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:cp:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:mv:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:ln:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:mkdir:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+
+# File viewing and editing with smart content preview
+zstyle ':fzf-tab:complete:cat:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:less:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:more:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:head:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:tail:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:nvim:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:vim:*' fzf-preview 'if [[ -d $realpath ]]; then eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath; else bat --style=numbers --color=always --line-range=:100 $realpath 2>/dev/null || head -n 50 $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:code:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+
+# Archive operations
+zstyle ':fzf-tab:complete:tar:*' fzf-preview 'if [[ -f $realpath ]]; then tar -tf $realpath 2>/dev/null | head -n 20; else eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null; fi'
+zstyle ':fzf-tab:complete:unzip:*' fzf-preview 'if [[ -f $realpath ]]; then unzip -l $realpath 2>/dev/null | head -n 20; else eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null; fi'
+
+# ---------------------------------------------------------------
+# Git Operations (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview 'git log --oneline --graph --date=short --pretty=format:"%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --date=format:"%Y-%m-%d" $realpath 2>/dev/null | head -n 20'
+zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git log --oneline --graph --date=short --pretty=format:"%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --date=format:"%Y-%m-%d" $realpath 2>/dev/null | head -n 20'
+zstyle ':fzf-tab:complete:git-reset:*' fzf-preview 'git log --oneline --graph --date=short --pretty=format:"%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --date=format:"%Y-%m-%d" $realpath 2>/dev/null | head -n 20'
+zstyle ':fzf-tab:complete:git-rebase:*' fzf-preview 'git log --oneline --graph --date=short --pretty=format:"%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --date=format:"%Y-%m-%d" $realpath 2>/dev/null | head -n 20'
+zstyle ':fzf-tab:complete:git-merge:*' fzf-preview 'git log --oneline --graph --date=short --pretty=format:"%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --date=format:"%Y-%m-%d" $realpath 2>/dev/null | head -n 20'
+
+# ---------------------------------------------------------------
+# SSH Operations (High Value - Fixed)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:ssh:*' fzf-preview 'awk "/^Host $realpath$/,/^Host / {if (\$1==\"HostName\") host=\$2; if (\$1==\"User\") user=\$2; if (\$1==\"Port\") port=\$2; if (\$1==\"IdentityFile\") key=\$2} END {print \"Host: \" host \" | User: \" user \" | Port: \" port \" | Key: \" key}" ~/.ssh/config 2>/dev/null || echo "No SSH config found"'
+zstyle ':fzf-tab:complete:scp:*' fzf-preview 'awk "/^Host $realpath$/,/^Host / {if (\$1==\"HostName\") host=\$2; if (\$1==\"User\") user=\$2; if (\$1==\"Port\") port=\$2; if (\$1==\"IdentityFile\") key=\$2} END {print \"Host: \" host \" | User: \" user \" | Port: \" port \" | Key: \" key}" ~/.ssh/config 2>/dev/null || echo "No SSH config found"'
+zstyle ':fzf-tab:complete:rsync:*' fzf-preview 'awk "/^Host $realpath$/,/^Host / {if (\$1==\"HostName\") host=\$2; if (\$1==\"User\") user=\$2; if (\$1==\"Port\") port=\$2; if (\$1==\"IdentityFile\") key=\$2} END {print \"Host: \" host \" | User: \" user \" | Port: \" port \" | Key: \" key}" ~/.ssh/config 2>/dev/null || echo "No SSH config found"'
+
+# ---------------------------------------------------------------
+# Process Management (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:kill:*' fzf-preview 'ps -p $realpath -o pid,ppid,cmd,etime,pcpu,pmem --no-headers 2>/dev/null || echo "Process not found"'
+zstyle ':fzf-tab:complete:killall:*' fzf-preview 'ps aux | grep -i $realpath | head -n 10 2>/dev/null || echo "No matching processes"'
+
+# ---------------------------------------------------------------
+# Package Management (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:brew:*' fzf-preview 'brew info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:apt:*' fzf-preview 'apt show $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:apt-get:*' fzf-preview 'apt show $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:yum:*' fzf-preview 'yum info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:dnf:*' fzf-preview 'dnf info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:pacman:*' fzf-preview 'pacman -Si $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+
+# Development package managers
+zstyle ':fzf-tab:complete:npm:*' fzf-preview 'npm info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:yarn:*' fzf-preview 'yarn info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:composer:*' fzf-preview 'composer show $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:cargo:*' fzf-preview 'cargo search $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:go:*' fzf-preview 'go list -m -versions $realpath 2>/dev/null | head -n 20 || echo "Module not found"'
+zstyle ':fzf-tab:complete:pip:*' fzf-preview 'pip show $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+zstyle ':fzf-tab:complete:conda:*' fzf-preview 'conda info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+
+# ---------------------------------------------------------------
+# Cloud Platforms (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:aws:*' fzf-preview 'aws help $realpath 2>/dev/null | head -n 20 || echo "AWS command not found"'
+zstyle ':fzf-tab:complete:gcloud:*' fzf-preview 'gcloud help $realpath 2>/dev/null | head -n 20 || echo "GCloud command not found"'
+zstyle ':fzf-tab:complete:az:*' fzf-preview 'az $realpath --help 2>/dev/null | head -n 20 || echo "Azure command not found"'
+zstyle ':fzf-tab:complete:terraform:*' fzf-preview 'terraform $realpath --help 2>/dev/null | head -n 20 || echo "Terraform command not found"'
+
+# ---------------------------------------------------------------
+# Build Tools (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:mvn:*' fzf-preview 'mvn help:describe -Dcmd=$realpath 2>/dev/null | head -n 20 || echo "Maven goal not found"'
+zstyle ':fzf-tab:complete:gradle:*' fzf-preview 'gradle help --task $realpath 2>/dev/null | head -n 20 || echo "Gradle task not found"'
+zstyle ':fzf-tab:complete:sbt:*' fzf-preview 'sbt "help $realpath" 2>/dev/null | head -n 20 || echo "SBT command not found"'
+zstyle ':fzf-tab:complete:make:*' fzf-preview 'make -n $realpath 2>/dev/null | head -n 10 || echo "Make target not found"'
+
+# ---------------------------------------------------------------
+# Databases (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:mongosh:*' fzf-preview 'echo "MongoDB shell operation: $realpath"'
+zstyle ':fzf-tab:complete:redis-cli:*' fzf-preview 'echo "Redis CLI operation: $realpath"'
+zstyle ':fzf-tab:complete:sqlite3:*' fzf-preview 'if [[ -f $realpath ]]; then sqlite3 $realpath ".schema" 2>/dev/null | head -n 20; else echo "SQLite database: $realpath"; fi'
+
+# ---------------------------------------------------------------
+# Monitoring and Observability (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:prometheus:*' fzf-preview 'echo "Prometheus operation: $realpath"'
+zstyle ':fzf-tab:complete:grafana:*' fzf-preview 'echo "Grafana operation: $realpath"'
+zstyle ':fzf-tab:complete:jaeger:*' fzf-preview 'echo "Jaeger operation: $realpath"'
+zstyle ':fzf-tab:complete:zipkin:*' fzf-preview 'echo "Zipkin operation: $realpath"'
+
+# ---------------------------------------------------------------
+# Container and Orchestration (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:docker:*' fzf-preview 'docker inspect $realpath 2>/dev/null | head -n 20 || echo "No container/image found"'
+zstyle ':fzf-tab:complete:docker-*:*' fzf-preview 'docker inspect $realpath 2>/dev/null | head -n 20 || echo "No container/image found"'
+
+zstyle ':fzf-tab:complete:kubectl:*' fzf-preview 'kubectl describe $realpath 2>/dev/null | head -n 20 || echo "No resource found"'
+zstyle ':fzf-tab:complete:kubectl-get:*' fzf-preview 'kubectl describe $realpath 2>/dev/null | head -n 20 || echo "No resource found"'
+zstyle ':fzf-tab:complete:kubectl-describe:*' fzf-preview 'kubectl describe $realpath 2>/dev/null | head -n 20 || echo "No resource found"'
+zstyle ':fzf-tab:complete:kubectl-delete:*' fzf-preview 'kubectl describe $realpath 2>/dev/null | head -n 20 || echo "No resource found"'
+zstyle ':fzf-tab:complete:kubectl-edit:*' fzf-preview 'kubectl describe $realpath 2>/dev/null | head -n 20 || echo "No resource found"'
+zstyle ':fzf-tab:complete:kubectl-logs:*' fzf-preview 'kubectl describe $realpath 2>/dev/null | head -n 20 || echo "No resource found"'
+
+# ---------------------------------------------------------------
+# System Administration (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:systemctl:*' fzf-preview 'systemctl status $realpath 2>/dev/null | head -n 20 || echo "Service not found"'
+zstyle ':fzf-tab:complete:journalctl:*' fzf-preview 'journalctl -u $realpath --no-pager -n 20 2>/dev/null || echo "Service not found"'
+zstyle ':fzf-tab:complete:useradd:*' fzf-preview 'id $realpath 2>/dev/null | head -n 10 || echo "User not found"'
+zstyle ':fzf-tab:complete:usermod:*' fzf-preview 'id $realpath 2>/dev/null | head -n 10 || echo "User not found"'
+zstyle ':fzf-tab:complete:groupadd:*' fzf-preview 'getent group $realpath 2>/dev/null | head -n 5 || echo "Group not found"'
+zstyle ':fzf-tab:complete:groupmod:*' fzf-preview 'getent group $realpath 2>/dev/null | head -n 5 || echo "Group not found"'
+
+# ---------------------------------------------------------------
+# Security and Network Tools (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:nmap:*' fzf-preview 'echo "Network scan operation: $realpath"'
+zstyle ':fzf-tab:complete:wireshark:*' fzf-preview 'if [[ -f $realpath ]]; then file $realpath; else echo "Wireshark operation: $realpath"; fi'
+zstyle ':fzf-tab:complete:openvpn:*' fzf-preview 'if [[ -f $realpath ]]; then echo "OpenVPN config: $realpath"; else echo "OpenVPN operation: $realpath"; fi'
+zstyle ':fzf-tab:complete:wireguard:*' fzf-preview 'if [[ -f $realpath ]]; then echo "WireGuard config: $realpath"; else echo "WireGuard operation: $realpath"; fi'
+zstyle ':fzf-tab:complete:iperf:*' fzf-preview 'echo "Network performance test: $realpath"'
+zstyle ':fzf-tab:complete:netstat:*' fzf-preview 'echo "Network statistics: $realpath"'
+zstyle ':fzf-tab:complete:ss:*' fzf-preview 'echo "Socket statistics: $realpath"'
+
+# ---------------------------------------------------------------
+# Development and IDE Tools (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:idea:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:webstorm:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:pycharm:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:goland:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:clion:*' fzf-preview 'eza -lhagH --color=always --group-directories-first --icons --sort=filename $realpath 2>/dev/null || ls -alh $realpath 2>/dev/null'
+
+# ---------------------------------------------------------------
+# Environment and Commands (High Value)
+# ---------------------------------------------------------------
+zstyle ':fzf-tab:complete:export:*' fzf-preview 'echo "Current value: ${(P)realpath}"'
+zstyle ':fzf-tab:complete:unset:*' fzf-preview 'echo "Current value: ${(P)realpath}"'
+zstyle ':fzf-tab:complete:printenv:*' fzf-preview 'echo "Current value: ${(P)realpath}"'
+
+zstyle ':fzf-tab:complete:man:*' fzf-preview 'man $realpath 2>/dev/null | head -n 20 || echo "Manual not found"'
+zstyle ':fzf-tab:complete:which:*' fzf-preview 'which $realpath 2>/dev/null || echo "Command not found"'
+zstyle ':fzf-tab:complete:whereis:*' fzf-preview 'whereis $realpath 2>/dev/null || echo "Command not found"'
+zstyle ':fzf-tab:complete:type:*' fzf-preview 'type $realpath 2>/dev/null || echo "Command not found"'
+
+# ---------------------------------------------------------------
+# Performance Optimizations
+# ---------------------------------------------------------------
+# Optimize path completion for better performance
+zstyle ':completion:*' path-completion 'yes'
+zstyle ':completion:*' accept-exact-paths 'yes'
+zstyle ':completion:*' file-patterns '%p(D-/):directories:%F{blue}%p(D^/):all-files:%F{default}'
+
+# ---------------------------------------------------------------
+# Platform-Specific Completions
+# ---------------------------------------------------------------
+# macOS specific
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  zstyle ':fzf-tab:complete:brew:*' fzf-preview 'brew info $realpath 2>/dev/null | head -n 20 || echo "Package not found"'
+  zstyle ':fzf-tab:complete:mas:*' fzf-preview 'mas info $realpath 2>/dev/null | head -n 20 || echo "App not found"'
+  zstyle ':fzf-tab:complete:defaults:*' fzf-preview 'defaults read $realpath 2>/dev/null | head -n 20 || echo "Domain not found"'
+fi
+
+# Linux specific
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  zstyle ':fzf-tab:complete:systemctl:*' fzf-preview 'systemctl status $realpath 2>/dev/null | head -n 20 || echo "Service not found"'
+  zstyle ':fzf-tab:complete:journalctl:*' fzf-preview 'journalctl -u $realpath --no-pager -n 20 2>/dev/null || echo "Service not found"'
+  zstyle ':fzf-tab:complete:snap:*' fzf-preview 'snap info $realpath 2>/dev/null | head -n 20 || echo "Snap not found"'
+  zstyle ':fzf-tab:complete:flatpak:*' fzf-preview 'flatpak info $realpath 2>/dev/null | head -n 20 || echo "Flatpak not found"'
+fi
+
+# ---------------------------------------------------------------
+# Version Control System Styling
+# ---------------------------------------------------------------
+zstyle ':vcs_info:git:*:-all-' get-revision true
+
+# ---------------------------------------------------------------
+# Docker-specific Completion Styling
+# ---------------------------------------------------------------
+zstyle ':completion:*:*:docker:*' option-stacking yes
+zstyle ':completion:*:*:docker-*:*' option-stacking yes
+
+# End of ~/.zstyles
+# ---------------------------------------------------------------
