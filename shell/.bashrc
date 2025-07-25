@@ -55,15 +55,6 @@ if [[ $- == *i* ]]; then
     eval "$(zoxide init bash)"
   fi
 
-  # Initialize Fzf in background (interactive only)
-  {
-    # Initialize Fzf if available, with custom completion, key-bindings, and history
-    if [ -f $HOME/.fzf.bash ]; then
-      # Alternative check if Fzf was manually installed
-      source $HOME/.fzf.bash >/dev/null 2>&1 || true
-    fi
-  } &
-
   # ---------------------------------------------------------------
   # Interactive Shell Switching
   # ---------------------------------------------------------------
