@@ -16,8 +16,16 @@
 
 set +m
 
-# Configure prompt behavior for clean output
-export PROMPT_EOL_MARK=""
+# ---------------------------------------------------------------
+# Environment Variables
+# ---------------------------------------------------------------
+export PROMPT_EOL_MARK=""                          # Configure prompt behavior for clean output
+export YSU_MESSAGE_POSITION="after"                # Example custom env var
+export ZINIT_HOME="${XDG_DATA_HOME:-$HOME}/.zinit" # Zinit home directory
+export SSH_CONFIG_FILE="${HOME}/.ssh/config_local" # SSH config file
+if [[ ! -f "$SSH_CONFIG_FILE" ]]; then
+  export SSH_CONFIG_FILE="${HOME}/.ssh/config"
+fi
 
 # Profiling Zsh
 alias profile-zsh="time ZSH_DEBUGRC=1 zsh -i -c exit"
@@ -31,11 +39,6 @@ mkdir -p $HOME/.zsh/cache
 autoload -Uz compinit bashcompinit
 bashcompinit
 compinit -C -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
-
-# ---------------------------------------------------------------
-# Environment Variables
-# ---------------------------------------------------------------
-export YSU_MESSAGE_POSITION="after" # Example custom env var
 
 # ---------------------------------------------------------------
 # Non-Interactive and Interactive Zsh Options (Always Loaded)
@@ -57,7 +60,6 @@ setopt numeric_glob_sort # Sort filenames with numbers in numerical order (e.g.,
 # ---------------------------------------------------------------
 
 if [[ -o interactive ]]; then
-  export ZINIT_HOME="${XDG_DATA_HOME:-$HOME}/.zinit"
 
   # Install Zinit if not already installed
   if [ ! -d "$ZINIT_HOME" ]; then
@@ -157,38 +159,8 @@ if [[ -o interactive ]]; then
   # ---------------------------------------------------------------
   # Completion Styling and Options
   # ---------------------------------------------------------------
-  zstyle ':completion:*' use-cache on
-  zstyle ':completion:*' cache-path "${ZDOTDIR:-$HOME}/.zsh/cache/"
-  zstyle ':completion:*' matcher-list \
-    'm:{a-zA-Z}={A-Za-z}' \
-    'r:|.=* r:|=*' \
-    'm:{[:digit:]}={[:digit:]}'
-  zstyle ':completion:*' list-colors "${LS_COLORS//:/ }"
-  zstyle ':compinstall:*' skip 'yes'
-  zstyle ':autocomplete:*' async true
-  zstyle ':completion:*:functions' ignored-patterns '_*'
-  zstyle ':completion:*:default' list-grouped true
-  zstyle ':completion:*:descriptions' format '[%d]'
-  zstyle ':completion:*:git-checkout:*' sort false
-  zstyle ':completion:*' menu no
-  zstyle ':completion:*' use-ip true
-  zstyle ':completion:*' use-perl true
-  zstyle ':completion:*' rehash true
-
-  # Fzf-tab settings
-  zstyle ':fzf-tab:*' single true
-  zstyle ':fzf-tab:*' switch-group '<' '>'
-  zstyle ':fzf-tab:*' fzf-minimum-chars 2
-  zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'zoxide query --list'
-  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
-  zstyle ':fzf-tab:complete:rm:*' fzf-preview 'eza -lhagH --color=auto --group-directories-first --icons --sort=filename $realpath'
-
-  # Git VCS info styling
-  zstyle ':vcs_info:git:*:-all-' get-revision true
-
-  # Docker-specific completion
-  zstyle ':completion:*:*:docker:*' option-stacking yes
-  zstyle ':completion:*:*:docker-*:*' option-stacking yes
+  # Source zstyle configurations from separate file
+  [ -f $HOME/.zstyles ] && source $HOME/.zstyles
 
   # ---------------------------------------------------------------
   # Interactive Tool Initializations
@@ -208,19 +180,6 @@ if [[ -o interactive ]]; then
   if command -v zoxide >/dev/null; then
     eval "$(zoxide init zsh)"
   fi
-
-  # Fzf initialization (interactive only)
-  {
-    if [ -f $HOME/.fzf.zsh ]; then
-      source $HOME/.fzf.zsh >/dev/null 2>&1
-
-      alias fzf="fzf --preview 'bat --color=always {}'"
-
-      if command -v bat >/dev/null; then
-        export FZF_DEFAULT_OPTS="--preview 'bat --color=always {}'"
-      fi
-    fi
-  } &
 
   # Set WORDCHARS to treat certain punctuation as part of words
   WORDCHARS=".~&!#$%^[](){}<>"
