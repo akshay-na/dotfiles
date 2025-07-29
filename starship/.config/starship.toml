@@ -11,6 +11,7 @@ $git_branch\
 $git_status\
 $git_state\
 $git_metrics\
+$custom\
 $all
 $os\
 $shell\
@@ -214,13 +215,6 @@ detect_files = [
   "settings.gradle.kts",
 ]
 
-[custom.clojure]
-command           = "clojure --version | sed -E 's/Clojure CLI version //;s/\\s.*//'"
-style             = "bold fg:#5881D8"
-format            = '[$symbol($output)]($style) '
-symbol            = " "
-detect_extensions = ["clj", "cljs", "cljc"]
-
 [rust]
 disabled          = false
 style             = "bold fg:#DEA584"
@@ -244,3 +238,10 @@ style             = "bold fg:#844FBA"
 format            = '[$symbol($output)]($style) '
 symbol            = " "
 detect_extensions = ["tf", "tfvars"]
+
+[custom.clojure]
+command           = "clojure --version | sed -E 's/Clojure CLI version //;s/\\s.*//'"
+style             = "bold fg:#5881D8"
+format            = '[$symbol($output)]($style) '
+symbol            = " "
+detect_extensions = ["clj", "cljs", "cljc"]
