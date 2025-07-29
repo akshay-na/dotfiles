@@ -17,7 +17,7 @@ install_macos() {
 
   echo_with_color "$YELLOW" "Installing GUI apps via Homebrew Cask..."
 
-  brew install pinentry-mac
+  brew install pinentry-mac pam-reattach
 
   brew install --cask \
     font-caskaydia-cove-nerd-font \
