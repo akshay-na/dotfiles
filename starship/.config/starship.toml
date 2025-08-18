@@ -161,11 +161,11 @@ unknown_indicator    = "unknown"
 [os]
 disabled        = false
 format          = "$symbol"
-symbols.Ubuntu  = " "
-symbols.Windows = " "
+symbols.Ubuntu  = "  "
+symbols.Windows = "  "
 symbols.Macos   = " "
 symbols.Debian  = " "
-symbols.Unknown = " "
+symbols.Unknown = "  "
 
 [nodejs]
 format            = '[$symbol($version)]($style) '
@@ -240,7 +240,7 @@ symbol            = " "
 detect_extensions = ["tf", "tfvars"]
 
 [custom.clojure]
-command           = "clojure --version | sed -E 's/Clojure CLI version //;s/\\s.*//'"
+command           = "(command -v clojure >/dev/null 2>&1 && clojure --version || clj --version) | sed -E 's/Clojure CLI version //;s/\\s.*//'"
 style             = "bold fg:#5881D8"
 format            = '[$symbol($output)]($style) '
 symbol            = " "
