@@ -161,11 +161,11 @@ unknown_indicator    = "unknown"
 [os]
 disabled        = false
 format          = "$symbol"
-symbols.Ubuntu  = "  "
-symbols.Windows = "  "
+symbols.Ubuntu  = " "
+symbols.Windows = " "
 symbols.Macos   = " "
 symbols.Debian  = " "
-symbols.Unknown = "  "
+symbols.Unknown = " "
 
 [nodejs]
 format            = '[$symbol($version)]($style) '
