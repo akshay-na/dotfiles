@@ -41,7 +41,7 @@ bashcompinit
 compinit -C -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
 
 # ---------------------------------------------------------------
-# Non-Interactive and Interactive Zsh Options (Always Loaded)
+# Non-Interactive Zsh Options (Always Loaded)
 # ---------------------------------------------------------------
 # Globbing and redirection options (apply to all shells)
 setopt extended_glob     # Enable advanced globbing patterns
@@ -49,6 +49,27 @@ setopt null_glob         # Allow unmatched globs to expand to null (empty string
 setopt multios           # Allow multiple redirections (e.g., echo foo >f1 >f2)
 setopt glob_dots         # Include dotfiles in glob expansions
 setopt numeric_glob_sort # Sort filenames with numbers in numerical order (e.g., 1 2 10)
+
+# Advanced globbing (non-interactive)
+setopt ksh_glob               # Ksh-style extended globbing
+setopt glob_star_short        # **/ is equivalent to **/*/
+setopt brace_ccl              # Enable brace character class lists
+setopt magic_equal_subst      # Enable = expansion for filenames
+
+# Smart path expansion (non-interactive)
+setopt auto_param_slash       # Add trailing slash to directories
+setopt auto_param_keys        # Remove trailing space after completion
+setopt mark_dirs              # Mark directories with trailing slash
+setopt path_dirs              # Perform path search even on command names
+
+# Smart quoting & expansion (non-interactive)
+setopt rc_quotes             # Allow '...' quotes in parameter expansion
+setopt prompt_subst          # Enable parameter expansion in prompts
+setopt prompt_percent        # Enable % expansion in prompts
+
+# Enhanced directory navigation (non-interactive)
+setopt cdable_vars             # Allow cd to variables like cd $HOME
+setopt auto_name_dirs          # Auto-create named directories
 
 # ---------------------------------------------------------------
 # Source Common Configurations (Always Loaded)
@@ -143,8 +164,6 @@ if [[ -o interactive ]]; then
   bindkey '^[m' copy-prev-word                            # Alt+M/Cmd+M: copy previous word
   bindkey '^[[Z' reverse-menu-complete                    # Shift+Tab: reverse menu completion
   bindkey '^[^I' expand-or-complete                       # Alt+Tab/Cmd+Tab: expand or complete
-  bindkey '^Z' fg                                         # Ctrl+Z/Cmd+Z: bring job to foreground
-  bindkey '^[z' fg                                        # Alt+Z/Cmd+Z: alternative fg binding
 
   # ---------------------------------------------------------------
   # Zsh Options & History Settings (Interactive Only)
@@ -164,6 +183,11 @@ if [[ -o interactive ]]; then
   setopt hist_find_no_dups      # Skip duplicate entries when searching through history
   setopt hist_expire_dups_first # Expire duplicate entries first when trimming history
   setopt hist_verify            # Load history line into the editor before executing
+  setopt hist_reduce_blanks      # Remove superfluous blanks from history
+  setopt hist_expand             # Expand history references when typing
+  setopt hist_allow_clobber      # Allow history expansion with > redirection
+  setopt hist_no_store           # Don't store history commands in history
+  setopt hist_no_functions       # Don't store function definitions in history
 
   # Directory and navigation options
   setopt auto_cd           # Allow 'cd dir' by typing just 'dir'
@@ -175,6 +199,20 @@ if [[ -o interactive ]]; then
   setopt check_jobs  # Warn about running or stopped jobs when exiting the shell
   setopt correct     # Correct commands as they are typed
   setopt correct_all # Correct all arguments
+
+  # Smart completion
+  setopt menu_complete           # Show completion menu on first tab
+  setopt list_packed             # Compact completion lists
+  setopt list_types              # Show file types in completion
+  setopt auto_remove_slash       # Remove trailing slash when completing
+  setopt complete_in_word        # Complete from middle of word
+  setopt always_to_end           # Move cursor to end when completing
+
+  # Job control
+  setopt auto_resume            # Resume suspended jobs when typing their name
+  setopt long_list_jobs         # List jobs in long format
+  setopt notify                 # Report status of background jobs immediately
+  setopt bg_nice                # Run background jobs at lower priority
 
   # ---------------------------------------------------------------
   # Completion Styling and Options
