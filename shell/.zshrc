@@ -116,15 +116,35 @@ if [[ -o interactive ]]; then
   # Keybindings
   # ---------------------------------------------------------------
   bindkey -e # Use Emacs-style keybindings
-  bindkey '^p' history-search-backward
-  bindkey '^n' history-search-forward
-  bindkey "\e[A" history-substring-search-up
-  bindkey "\e[B" history-substring-search-down
-  bindkey "^[OA" history-substring-search-up
-  bindkey "^[OB" history-substring-search-down
-  bindkey "\eOA" history-substring-search-up
-  bindkey "\eOB" history-substring-search-down
-  bindkey '^[w' kill-region # Example custom binding
+
+  # ---------------------------------------------------------------
+  # Command Line Editing
+  # ---------------------------------------------------------------
+  # Edit command line in external editor
+  autoload -Uz edit-command-line
+  zle -N edit-command-line
+
+  bindkey '^Xe' edit-command-line                         # Ctrl+X/Cmd+X, e: edit command line in external editor
+  bindkey '^p' history-search-backward                    # Ctrl+P/Cmd+P: search history backward
+  bindkey '^n' history-search-forward                     # Ctrl+N/Cmd+N: search history forward
+  bindkey "\e[A" history-substring-search-up              # Up Arrow: search history up
+  bindkey "\e[B" history-substring-search-down            # Down Arrow: search history down
+  bindkey '^[b' backward-word                             # Alt+B/Cmd+B: move word backward
+  bindkey '^[f' forward-word                              # Alt+F/Cmd+F: move word forward
+  bindkey '^[^[[D' backward-word                          # Alt+Left/Cmd+Left: move word backward
+  bindkey '^[^[[C' forward-word                           # Alt+Right/Cmd+Right: move word forward
+  bindkey '^[^?' backward-kill-word                       # Alt+Backspace/Cmd+Backspace: delete word backward
+  bindkey '^[d' kill-word                                 # Alt+D/Cmd+D: delete word forward
+  bindkey '^[w' kill-region                               # Alt+W/Cmd+W: kill region
+  bindkey '^[l' down-case-word                            # Alt+L/Cmd+L: lowercase word
+  bindkey '^[u' up-case-word                              # Alt+U/Cmd+U: uppercase word
+  bindkey '^[c' capitalize-word                           # Alt+C/Cmd+C: capitalize word
+  bindkey '^[t' transpose-words                           # Alt+T/Cmd+T: transpose words
+  bindkey '^[m' copy-prev-word                            # Alt+M/Cmd+M: copy previous word
+  bindkey '^[[Z' reverse-menu-complete                    # Shift+Tab: reverse menu completion
+  bindkey '^[^I' expand-or-complete                       # Alt+Tab/Cmd+Tab: expand or complete
+  bindkey '^Z' fg                                         # Ctrl+Z/Cmd+Z: bring job to foreground
+  bindkey '^[z' fg                                        # Alt+Z/Cmd+Z: alternative fg binding
 
   # ---------------------------------------------------------------
   # Zsh Options & History Settings (Interactive Only)
