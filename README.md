@@ -1,26 +1,54 @@
 # DotMate 🛠️ — Your Companion for Effortless Dotfile Management
 
-Welcome to **DotMate**, the streamlined solution for managing and syncing dotfiles across multiple systems. Whether you're setting up a new machine, organizing configurations, or maintaining consistency across environments, DotMate simplifies the entire process, saving you time, hassle, and manual work.
+Welcome to **DotMate**, a comprehensive dotfiles management system that provides a streamlined solution for managing and syncing configurations across multiple systems. Whether you're setting up a new machine, organizing configurations, or maintaining consistency across environments, DotMate simplifies the entire process with automated tool installation, intelligent backups, and seamless configuration management.
 
 ---
 
-## 🌟 Why DotMate?
+## 🌟 What's Included
 
-DotMate goes beyond basic dotfile management. Here’s what makes it stand out:
+DotMate comes with a curated collection of configurations for popular development tools and utilities:
 
-- **Automatic Backups**: DotMate backs up your current configurations automatically, so you’ll never lose a setup.
-- **Seamless Syncing**: Keep your dotfiles synchronized across devices with a single update command.
-- **Fast Environment Setup**: Install essential tools automatically, making new machine setups faster than ever.
-- **Clean Symlink Management with Stow**: Use `stow` to create organized symlinks for all configurations, ensuring a tidy setup.
-- **Simple Clean-Up Tools**: Quickly detect and remove broken symlinks, keeping your environment neat.
+### 🖥️ **Terminal & Shell**
+- **Shell Configurations**: Zsh, Bash with optimized settings, aliases, and functions
+- **Terminal Emulators**: Alacritty, WezTerm with custom themes and configurations
+- **Shell Tools**: Starship prompt, Zinit plugin manager, Zoxide for smart directory jumping
+- **Terminal Multiplexer**: Tmux with optimized configuration
+
+### 🎨 **Development Environment**
+- **Editor**: Neovim with Lazy.nvim plugin manager and custom configurations
+- **IDE**: Cursor editor with custom rules and MCP configuration
+- **Fonts**: Caskaydia Cove and Mono Nerd Fonts for optimal terminal experience
+
+### 🛠️ **Development Tools**
+- **Version Control**: Git with global configurations, attributes, and commit templates
+- **Package Managers**:
+  - Mise for runtime management (Node.js, Python, Go, etc.)
+  - NPM with custom configurations
+  - Yarn with optimized settings
+- **Container Tools**: Podman with optimized container configurations
+- **Database**: DBGate with custom settings
+
+### 🔐 **Security & Authentication**
+- **SSH**: Optimized SSH client configuration with socket management
+- **GPG**: GPG agent configuration for secure key management
+- **Font Configuration**: System-wide font management
+
+### 🚀 **System Utilities**
+- **The Fuck**: Command correction utility
+- **Font Management**: Fontconfig with custom font installations
+- **Cross-platform Support**: macOS and Linux (Debian/Ubuntu) automation
 
 ---
 
 ## 🚀 Getting Started
 
-### Step 1: Clone the DotMate Repository
+### Prerequisites
 
-Start by cloning the DotMate repository to your home directory (or a preferred location):
+- **Linux**: Debian/Ubuntu-based systems with `apt` package manager
+- **macOS**: macOS 10.15+ with Homebrew support
+- **Windows**: WSL2 with Ubuntu (recommended)
+
+### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/akshay-na/DotMate.git ~/dotfiles
@@ -29,98 +57,228 @@ cd ~/dotfiles
 
 ### Step 2: Install DotMate
 
-Run the setup with:
+Run the complete setup with:
 
 ```bash
-sudo apt install make
+sudo apt install make  # On Linux
 make install
 ```
 
 This command:
+- **Detects your operating system** and installs appropriate tools
+- **Installs essential development tools** via Homebrew (macOS) or apt (Linux)
+- **Backs up existing configurations** to prevent data loss
+- **Creates symlinks** for all configurations using GNU Stow
+- **Sets up development runtimes** via Mise
+- **Configures fonts** and system preferences
 
-- **Installs essential tools** for your environment.
-- **Backs up any existing configurations** to prevent accidental overwrites.
-- **Creates symlinks** for dotfiles in the repository for easy configuration management.
-
-**Need only the symlinks?** Use:
+**Need only the configurations?** Use:
 
 ```bash
 make stow
 ```
 
-This command skips tool installation and only creates symlinks for your dotfiles.
+This skips tool installation and only creates symlinks for your dotfiles.
 
 ---
 
-## 📋 Using DotMate
+## 📋 Available Commands
 
-### Update Your Dotfiles
+### Core Operations
 
-Keeping your dotfiles up-to-date is as simple as running:
+| Command | Description |
+|---------|-------------|
+| `make install` | Complete setup: install tools + create symlinks |
+| `make stow` | Create symlinks for all configurations |
+| `make stow CONFIGS="git nvim shell"` | Create symlinks for specific tools only |
+| `make unstow` | Remove all symlinks |
+| `make unstow CONFIGS="git nvim"` | Remove symlinks for specific tools |
+| `make backup` | Backup existing configurations |
+| `make update` | Check for updates and reapply configurations |
+| `make clean` | Clean up broken symlinks |
+| `make help` | Show all available commands |
+
+### Selective Configuration
+
+Apply only the configurations you need:
+
+```bash
+# Set up just Git and Neovim
+make stow CONFIGS="git nvim"
+
+# Set up shell and terminal configurations
+make stow CONFIGS="shell alacritty wezterm"
+
+# Set up development tools
+make stow CONFIGS="mise node python"
+```
+
+---
+
+## 🧩 Configuration Details
+
+### Shell Environment (`.shell/`)
+- **Zsh**: Optimized with Zinit plugin manager, syntax highlighting, autosuggestions
+- **Bash**: Compatible configuration with common aliases and functions
+- **Common**: Shared environment variables, paths, and tool initializations
+- **Aliases**: Comprehensive collection of useful command shortcuts
+- **Functions**: Custom shell functions for development workflows
+
+### Neovim (`.nvim/`)
+- **Plugin Manager**: Lazy.nvim for fast plugin loading
+- **Configuration**: Lua-based configuration with modular structure
+- **Code Formatting**: Stylua integration for consistent code style
+
+### Terminal Configurations
+- **Alacritty**: Fast GPU-accelerated terminal with custom themes
+- **WezTerm**: Feature-rich terminal with custom keybindings and appearance
+
+### Development Tools
+- **Mise**: Runtime version management for multiple languages
+- **Git**: Global configuration with useful aliases and templates
+- **Node.js**: NPM and Yarn configurations for package management
+- **Python**: Pip configuration and virtual environment setup
+
+### System Integration
+- **Fonts**: Nerd Fonts for terminal and development tools
+- **SSH**: Optimized client configuration with socket management
+- **GPG**: Secure key management and agent configuration
+- **Podman**: Container runtime with optimized settings
+
+---
+
+## 🔧 Customization
+
+### Local Overrides
+
+Create local configuration files to override defaults without affecting the repository:
+
+| Configuration | Local Override File |
+|---------------|---------------------|
+| `.gitconfig` | `~/.gitconfig_local` |
+| `starship.toml` | `~/.config/starship_local.toml` |
+| `.zshrc` | `~/.zshrc_local` |
+| `.bashrc` | `~/.bashrc_local` |
+| `.commonrc` | `~/.commonrc_local` |
+| `.aliases` | `~/.aliases_local` |
+| `.functions` | `~/.functions_local` |
+
+**Example**: Add custom Starship prompt configuration:
+```bash
+# Create local override
+cp ~/.config/starship/starship.toml ~/.config/starship_local.toml
+
+# Edit local file with your customizations
+nano ~/.config/starship_local.toml
+```
+
+### Adding New Configurations
+
+1. Create a new directory in the repository root
+2. Add your configuration files
+3. Update `.stowrc` if needed to exclude certain files
+4. Use `make stow CONFIGS="your_config"` to apply
+
+---
+
+## 🛡️ Security Features
+
+- **Automatic Permissions**: Sets correct permissions for SSH and GPG directories
+- **Secure Backups**: Timestamped backups prevent accidental data loss
+- **Isolated Configurations**: Each tool's configuration is isolated and manageable
+- **Permission Management**: Strict file permissions for sensitive configurations
+
+---
+
+## 🔄 Update Management
+
+### Automatic Updates
+
+DotMate includes an auto-update feature that notifies you of available updates:
 
 ```bash
 make update
 ```
 
-If you’re using `.bashrc` or `.zshrc` from this repository, DotMate has an **auto-update feature** that notifies you of available updates, so you always stay current.
+This command:
+- Backs up current configurations
+- Checks for repository updates
+- Reapplies all configurations
+- Maintains your local customizations
 
-### Avoid Accidental Overwrites
-
-DotMate automatically backs up any existing configurations in `~/dotfiles_backup/<timestamp>`. So if you run `make install` or `make stow` by mistake, your previous settings are saved, making it easy to revert if needed.
-
-### Selective Configuration with Stow
-
-Apply only the configurations you need with Stow. For example, to set up just the `shell` and `nvim` configurations:
+### Manual Updates
 
 ```bash
-make stow CONFIGS="shell nvim"
+# Pull latest changes
+git pull origin main
+
+# Reapply configurations
+make stow
 ```
 
-This flexibility lets you sync only the configurations you want, giving you control over what gets applied to each machine.
+---
+
+## 💡 Tips & Best Practices
+
+### Performance Optimization
+- **Lazy Loading**: Shell plugins load asynchronously for faster startup
+- **Conditional Loading**: Tools only initialize when available
+- **Background Updates**: Non-blocking update checks
+
+### Troubleshooting
+- **Broken Symlinks**: Use `make clean` to remove broken symlinks
+- **Permission Issues**: Run `make install` to reset permissions
+- **Backup Recovery**: Check `~/dotfiles_backup/<timestamp>/` for previous configurations
+
+### Cross-Platform Usage
+- **macOS**: Full Homebrew integration with GUI app installation
+- **Linux**: Optimized for Debian/Ubuntu with apt package management
+- **WSL**: Full Linux compatibility with Windows integration
 
 ---
 
-## 🧩 Customizing Your Dotfiles
+## 🤝 Contributing
 
-DotMate comes with a set of essential configurations, but customization is easy! For personal tweaks without overwriting shared configurations, create a `.<config_name>_local` file. This way, you can keep global settings while adding machine-specific customizations.
+DotMate is open-source and welcomes contributions!
 
-### Supported Customizations:
+### How to Contribute
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-| Configuration File | Local Customization File |
-| --- | --- |
-| `.gitconfig` | `~/.gitconfig_local` |
-| `starship.toml` | `~/.config/starship_local.toml` |
-| `.taskrc` | `~/.taskrc_local` |
-| `.npmrc` | `~/.npmrc_local` |
-| `.bashrc` | `~/.bashrc_local` |
-| `.commonrc` | `~/.commonrc_local` |
-| `.tmux.conf` | `~/.tmux_local.conf` |
-| `.zshrc` | `~/.zshrc_local` |
+### Development Setup
+```bash
+# Clone your fork
+git clone https://github.com/your-username/DotMate.git
+cd DotMate
 
-For example, to add your own Starship prompt configuration, create a `~/.config/starship_local.toml` file and add your customizations there. DotMate will load these local files if they exist, giving you full control.
+# Set up upstream
+git remote add upstream https://github.com/akshay-na/DotMate.git
 
-**Note**: Local files override initial configurations, so double-check before saving to ensure it’s set up the way you want.
-
----
-
-## 💡 Tips & Troubleshooting
-
-- **Permissions**: DotMate applies strict permissions on sensitive files, like `.gnupg` and `.ssh/config`, to protect your data. Ensure you have permission to edit these files if needed.
-- **Restoring Backups**: Backups are saved in `~/dotfiles_backup/<timestamp>`. To restore a previous configuration, simply copy files from this directory back to your home folder.
-- **Need Help?** Run `make help` to view available DotMate commands and their descriptions.
-
----
-
-## 🤝 Contributing to DotMate
-
-DotMate is open-source and always welcomes contributions! If you find issues, have feature requests, or want to contribute, please submit an issue or a pull request. Your feedback and contributions help improve DotMate for the community.
+# Create feature branch
+git checkout -b feature/your-feature
+```
 
 ---
 
 ## 📜 License
 
-DotMate is licensed under the MIT License. See the `LICENSE` file for more details.
+DotMate is licensed under the **GNU General Public License v3.0** (GPL-3.0). See the [LICENSE](LICENSE) file for full details.
 
 ---
 
-Take the hassle out of dotfile management and setup with DotMate. 🎉 Get organized, stay consistent, and make dotfiling a breeze!
+## 🙏 Acknowledgments
+
+- **GNU Stow**: For elegant symlink management
+- **Homebrew**: For cross-platform package management
+- **Mise**: For runtime version management
+- **Nerd Fonts**: For beautiful terminal typography
+- **Zinit**: For fast Zsh plugin management
+
+---
+
+Take the hassle out of dotfile management and development environment setup with DotMate! 🎉
+
+**Get organized, stay consistent, and make development a breeze across all your machines.**
