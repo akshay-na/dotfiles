@@ -460,5 +460,36 @@ _vscode_z() {
   fi
 }
 
+kill_port() {
+  local port="$1"
+
+  # Check if port is provided
+  if [ -z "$port" ]; then
+    echo "Usage: kill_port <port-number>"
+    return 1
+  fi
+
+  # Get process info before killing
+  local process_info=$(lsof -i :"$port" 2>/dev/null | awk 'NR>1 {print $1, $2, $9}')
+
+  if [ -z "$process_info" ]; then
+    echo "Port $port is not in use."
+    return 0
+  fi
+
+  echo "Port $port is in use by:"
+  echo "$process_info" | while read -r command pid address; do
+    echo "  $command (PID: $pid) on $address"
+  done
+
+  # Kill the processes
+  local pids=$(lsof -ti:"$port" 2>/dev/null)
+  if [ -n "$pids" ]; then
+    echo "Killing process(es) with PID(s): $pids"
+    echo "$pids" | xargs kill -9
+    echo "Process(es) killed successfully."
+  fi
+}
+
 # Load custom local common configurations, if available
 [ -f $HOME/.functions_local ] && source $HOME/.functions_local

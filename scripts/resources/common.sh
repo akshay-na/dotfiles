@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Colors for output
 GREEN="\033[1;32m"
@@ -60,18 +60,17 @@ install_common() {
     make
     gcc
     wget
-    ripgrep
     eza
     bat
     tmux
     zoxide
     fzf
     coreutils
-    tldr
     btop
     gnupg
+    lsof
+    tree
     neofetch
-    thefuck
     asciinema
     fontconfig
   )
