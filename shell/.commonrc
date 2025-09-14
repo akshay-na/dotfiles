@@ -26,6 +26,15 @@ export PODMAN_SYSTEMD_UNIT="enabled"                                 # Enable sy
 export PODMAN_USERNS=keep-id                                         # Keep user namespaces for podman
 export GPG_TTY=$(tty)                                                # Set GPG TTY for GPG agent
 
+# ---------------------------------------------------------------
+# Autossh configuration
+# ---------------------------------------------------------------
+export AUTOSSH_PORT=0                    # Disable legacy monitoring ports; rely on SSH's ServerAlive
+export AUTOSSH_POLL=60                   # Poll interval in seconds for checking the tunnel health
+export AUTOSSH_GATETIME=30               # Grace period (seconds) before autossh decides a connection is stuck in a restart loop
+export AUTOSSH_LOGLEVEL=0                # Don't flood logs; log only important restarts
+export AUTOSSH_LOGFILE=$HOME/autossh.log # Send all logging to syslog instead of stderr (nicer for systemd/launchd)
+
 editors=(cursor code nano nvim vim vi)
 for editor in "${editors[@]}"; do
   if command -v "$editor" >/dev/null 2>&1; then
