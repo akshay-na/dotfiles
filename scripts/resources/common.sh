@@ -51,34 +51,36 @@ install_common() {
   # CLI and utilities (common to both macOS and Linux)
   # List of packages to install
   BREW_PACKAGES=(
-    gpg
-    curl
-    git
-    zsh
-    unzip
-    stow
-    make
-    gcc
-    wget
-    eza
-    bat
-    tmux
-    zoxide
-    fzf
-    coreutils
-    btop
-    gnupg
-    lsof
-    tree
-    neofetch
     asciinema
+    autossh
+    bat
+    btop
+    coreutils
+    curl
+    eza
     fontconfig
+    fzf
+    gcc
+    git
+    gnupg
+    gpg
+    lsof
+    make
+    neofetch
+    stow
+    tmux
+    tree
+    unzip
+    wget
+    zoxide
+    zsh
   )
 
   for pkg in "${BREW_PACKAGES[@]}"; do
-    if brew list --formula | grep -q "^${pkg}\$"; then
-      echo "Already installed: $pkg"
+    if command -v "$pkg" >/dev/null 2>&1; then
+      echo "Already available: $pkg"
     else
+      echo "Installing with brew: $pkg"
       brew install "$pkg" || echo "Failed to install: $pkg (continuing...)"
     fi
   done
