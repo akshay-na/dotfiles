@@ -24,10 +24,11 @@ $character
 # """
 
 [aws]
-disabled      = false                                       # Keep the module active
-format        = '[$symbol($profile)(\[$region\])]($style) '
-force_display = false                                       # Only show when AWS vars or config are present
+disabled      = false                                        # Keep the module active
+force_display = false                                        # Only show when AWS vars or config are present
 symbol        = '󰸏 '
+format        = '[$symbol($profile) (\[$region\])]($style) '
+style         = "#ffff80"
 
 [gcloud]
 disabled        = false
