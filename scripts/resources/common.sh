@@ -69,6 +69,7 @@ install_common() {
     lsof
     make
     neofetch
+    rsync
     stow
     tmux
     tree
