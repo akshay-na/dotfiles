@@ -64,6 +64,8 @@ install_common() {
     git
     gnupg
     gpg
+    jq
+    kha7iq/tap/pingme
     lsof
     make
     neofetch
@@ -72,6 +74,9 @@ install_common() {
     tree
     unzip
     wget
+    xq
+    xxh
+    yq
     zoxide
     zsh
   )
