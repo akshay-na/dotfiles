@@ -1,0 +1,9 @@
+hosts:
+  ".*":                       # for all hosts
+    +s: zsh                   # use Zsh shell
+    +hhh: '~'                 # set /home/user as home directory
+    +I:                       # install xxh packages (if not installed)
+      - xxh-shell-zsh         # install portable Zsh
+      - xxh-plugin-prerun-zoxide # install portable zoxide
+      - xxh-plugin-prerun-core
+      - xxh-plugin-prerun-starship+git+https://github.com/izissise/xxh-plugin-prerun-starship.git # install portable starship
