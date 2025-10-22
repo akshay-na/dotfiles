@@ -1,0 +1,351 @@
+#!/bin/bash
+
+# PingMe CLI Wrapper Script
+# Supports Slack, Discord, and easily expandable to other platforms
+# Usage: ./pingme.sh <platform> <title-type> <message>
+# Example: ./pingme.sh slack ALERT "Database connection failed"
+# Example: ./pingme.sh discord SUCCESS "Deployment completed successfully"
+
+set -euo pipefail
+
+# Script configuration
+SCRIPT_NAME="$(basename "$0")"
+DEFAULT_PLATFORM="slack"
+DEFAULT_MESSAGE="This is a test message"
+DEFAULT_CHANNEL="alerts"
+
+# Predefined title types with emojis and timestamps
+declare -A TITLE_TYPES=(
+  ["ALERT"]="🚨 ALERT - $(date)"
+  ["NOTIFICATION"]="📢 NOTIFICATION - $(date)"
+  ["STATUS_UPDATE"]="📊 STATUS UPDATE - $(date)"
+  ["WARNING"]="⚠️ WARNING - $(date)"
+  ["ERROR"]="❌ ERROR - $(date)"
+  ["SUCCESS"]="✅ SUCCESS - $(date)"
+  ["INFO"]="ℹ️ INFO - $(date)"
+  ["MAINTENANCE"]="🔧 MAINTENANCE - $(date)"
+  ["BACKUP"]="💾 BACKUP - $(date)"
+  ["DEPLOYMENT"]="🚀 DEPLOYMENT - $(date)"
+)
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging function
+log() {
+  echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+}
+
+error() {
+  echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+success() {
+  echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+warning() {
+  echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+# Help function
+show_help() {
+  cat <<EOF
+${SCRIPT_NAME} - PingMe CLI Wrapper Script
+
+USAGE:
+    ${SCRIPT_NAME} <platform> <title-type> <message>
+
+ARGUMENTS:
+    platform     Target platform (slack, discord)
+    title-type   Predefined title type (see list below)
+    message      Message content
+
+EXAMPLES:
+    ${SCRIPT_NAME} slack ALERT "Database connection failed"
+    ${SCRIPT_NAME} discord SUCCESS "Deployment completed successfully"
+    ${SCRIPT_NAME} slack BACKUP "Daily backup finished"
+    ${SCRIPT_NAME} discord MAINTENANCE "Scheduled maintenance starting in 5 minutes"
+
+AVAILABLE TITLE TYPES:
+$(printf "    %-15s %s\n" "ALERT" "🚨 ALERT")
+$(printf "    %-15s %s\n" "NOTIFICATION" "📢 NOTIFICATION")
+$(printf "    %-15s %s\n" "STATUS_UPDATE" "📊 STATUS UPDATE")
+$(printf "    %-15s %s\n" "WARNING" "⚠️ WARNING")
+$(printf "    %-15s %s\n" "ERROR" "❌ ERROR")
+$(printf "    %-15s %s\n" "SUCCESS" "✅ SUCCESS")
+$(printf "    %-15s %s\n" "INFO" "ℹ️ INFO")
+$(printf "    %-15s %s\n" "MAINTENANCE" "🔧 MAINTENANCE")
+$(printf "    %-15s %s\n" "BACKUP" "💾 BACKUP")
+$(printf "    %-15s %s\n" "DEPLOYMENT" "🚀 DEPLOYMENT")
+
+ENVIRONMENT VARIABLES:
+    SLACK_TOKEN     Slack bot token (required for Slack)
+    DISCORD_TOKEN   Discord webhook URL (required for Discord)
+
+SUPPORTED PLATFORMS:
+    slack          Send message to Slack
+    discord        Send message to Discord
+
+NOTES:
+    - All three arguments are required
+    - Title types are case-sensitive and must match exactly
+    - Each title includes an emoji and timestamp automatically
+EOF
+}
+
+# Check dependencies
+check_dependencies() {
+  local missing_deps=()
+
+  # Check if pingme is installed
+  if ! command -v pingme &>/dev/null; then
+    missing_deps+=("pingme")
+  fi
+
+  # Check if curl is available (needed for installation)
+  if ! command -v curl &>/dev/null; then
+    missing_deps+=("curl")
+  fi
+
+  # Report missing dependencies
+  if [[ ${#missing_deps[@]} -gt 0 ]]; then
+    error "Missing required dependencies: ${missing_deps[*]}"
+    error ""
+
+    for dep in "${missing_deps[@]}"; do
+      case "$dep" in
+      pingme)
+        error "PingMe CLI is not installed or not in PATH"
+        error "Installation options:"
+        error "  1. Homebrew: brew install kha7iq/tap/pingme"
+        error "  2. Shell script: curl -sL https://bit.ly/installpm | sudo sh"
+        error "  3. Manual: https://github.com/kha7iq/pingme/releases"
+        ;;
+      curl)
+        error "curl is required for installation but not found"
+        error "Please install curl using your system package manager"
+        ;;
+      esac
+    done
+
+    error ""
+    error "After installing dependencies, run this script again."
+    exit 1
+  fi
+
+  # Verify pingme version if available
+  if command -v pingme &>/dev/null; then
+    local pingme_version
+    pingme_version=$(pingme --version 2>/dev/null || echo "unknown")
+    log "PingMe version: $pingme_version"
+  fi
+}
+
+# Validate platform
+validate_platform() {
+  local platform="$1"
+  case "$platform" in
+  slack | discord)
+    return 0
+    ;;
+  *)
+    error "Unsupported platform: $platform"
+    error "Supported platforms: slack, discord"
+    return 1
+    ;;
+  esac
+}
+
+# Validate title type
+validate_title_type() {
+  local title_type="$1"
+  if [[ -n "${TITLE_TYPES[$title_type]:-}" ]]; then
+    return 0
+  else
+    error "Invalid title type: $title_type"
+    error "Available title types:"
+    for type in "${!TITLE_TYPES[@]}"; do
+      error "  - $type"
+    done
+    return 1
+  fi
+}
+
+# Get title from type
+get_title() {
+  local title_type="$1"
+  echo "${TITLE_TYPES[$title_type]}"
+}
+
+# Check required environment variables
+check_env_vars() {
+  local platform="$1"
+
+  case "$platform" in
+  slack)
+    if [[ -z "${SLACK_TOKEN:-}" ]]; then
+      error "SLACK_TOKEN environment variable is not set"
+      error "Please set your Slack bot token: export SLACK_TOKEN='your-token'"
+      return 1
+    fi
+    ;;
+  discord)
+    if [[ -z "${DISCORD_TOKEN:-}" ]]; then
+      error "DISCORD_TOKEN environment variable is not set"
+      error "Please set your Discord webhook URL: export DISCORD_TOKEN='your-webhook-url'"
+      return 1
+    fi
+    ;;
+  esac
+}
+
+# Send message to Slack
+send_slack() {
+  local title="$1"
+  local message="$2"
+
+  log "Sending message to Slack..."
+  log "Title: $title"
+  log "Message: $message"
+
+  if pingme slack \
+    --token "$SLACK_TOKEN" \
+    --channel "$DEFAULT_CHANNEL" \
+    --title "$title" \
+    --msg "$message"; then
+    success "Message sent to Slack successfully"
+  else
+    error "Failed to send message to Slack"
+    return 1
+  fi
+}
+
+# Send message to Discord
+send_discord() {
+  local title="$1"
+  local message="$2"
+
+  log "Sending message to Discord..."
+  log "Title: $title"
+  log "Message: $message"
+
+  if pingme discord \
+    --token "$DISCORD_TOKEN" \
+    --title "$title" \
+    --msg "$message"; then
+    success "Message sent to Discord successfully"
+  else
+    error "Failed to send message to Discord"
+    return 1
+  fi
+}
+
+# Main send function
+send_message() {
+  local platform="$1"
+  local title="$2"
+  local message="$3"
+
+  case "$platform" in
+  slack)
+    send_slack "$title" "$message"
+    ;;
+  discord)
+    send_discord "$title" "$message"
+    ;;
+  *)
+    error "Unsupported platform: $platform"
+    return 1
+    ;;
+  esac
+}
+
+# Parse command line arguments
+parse_arguments() {
+  local platform
+  local title_type
+  local message
+
+  case $# in
+  3)
+    # Three arguments - platform, title-type, message
+    platform="$1"
+    title_type="$2"
+    message="$3"
+    ;;
+  *)
+    error "Exactly 3 arguments are required: <platform> <title-type> <message>"
+    error ""
+    error "Usage: ${SCRIPT_NAME} <platform> <title-type> <message>"
+    error ""
+    error "Example: ${SCRIPT_NAME} slack ALERT \"Database connection failed\""
+    error "Example: ${SCRIPT_NAME} discord SUCCESS \"Deployment completed\""
+    error ""
+    error "Run '${SCRIPT_NAME} --help' for more information."
+    exit 1
+    ;;
+  esac
+
+  # Validate platform
+  if ! validate_platform "$platform"; then
+    exit 1
+  fi
+
+  # Validate title type
+  if ! validate_title_type "$title_type"; then
+    exit 1
+  fi
+
+  # Check environment variables
+  if ! check_env_vars "$platform"; then
+    exit 1
+  fi
+
+  # Return parsed values
+  echo "$platform|$title_type|$message"
+}
+
+# Main function
+main() {
+  # Handle help flag
+  if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
+    show_help
+    exit 0
+  fi
+
+  # Check dependencies
+  check_dependencies
+
+  # Parse arguments
+  local parsed_args
+  parsed_args=$(parse_arguments "$@")
+
+  # Extract parsed values
+  IFS='|' read -r platform title_type message <<<"$parsed_args"
+
+  # Get the actual title from the title type
+  local title
+  title=$(get_title "$title_type")
+
+  # Log configuration
+  log "Configuration:"
+  log "  Platform: $platform"
+  log "  Title Type: $title_type"
+  log "  Title: $title"
+  log "  Message: $message"
+
+  # Send message
+  if send_message "$platform" "$title" "$message"; then
+    exit 0
+  else
+    exit 1
+  fi
+}
+
+# Run main function with all arguments
+main "$@"
