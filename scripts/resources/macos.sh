@@ -20,19 +20,25 @@ install_macos() {
   brew install pinentry-mac pam-reattach
 
   brew install --cask \
-    font-caskaydia-cove-nerd-font \
-    font-caskaydia-mono-nerd-font \
     alfred \
     alacritty \
+    bitwarden \
     cursor \
-    chatgpt \
+    chatgpt-atlas \
     caffeine \
-    grammarly-desktop \
-    spotify \
     dbgate \
-    postman \
+    discord \
+    drawio \
+    espanso \
+    font-caskaydia-cove-nerd-font \
+    font-caskaydia-mono-nerd-font \
+    grammarly-desktop \
+    google-chrome \
     hiddenbar \
-    espanso
+    logitech-g-hub \
+    obsidian \
+    postman \
+    spotify
 
   echo_with_color "$YELLOW" "Setting Personalized macOS defaults..."
 
