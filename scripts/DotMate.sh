@@ -92,6 +92,7 @@ stow_dotfiles() {
   for dir in "$DOTFILES_DIR"/*/; do
     stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
+  chmod +x ~/.local/bin/*
 }
 
 # Remove symlinks created by stow

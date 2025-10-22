@@ -29,6 +29,10 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias ~='cd $HOME'
 
+#Vault Aliases
+alias load_secrets="eval $(vault load)"
+alias evict_secrets="eval $(vault unset)"
+
 # Process management
 alias psa='ps aux'
 alias psg='ps aux | grep'

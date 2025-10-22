@@ -135,6 +135,14 @@ fcd() {
   dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
 }
 
+# Execute a command with secrets and evict them
+exec_with_secrets() {
+  local cmd_str="${@}"
+  load_secrets
+  $cmd_str
+  evict_secrets
+}
+
 # Check for updates in the dotfiles repository
 check_dotfiles_update() {
   # Run in a subshell to avoid changing the current directory in the parent shell
@@ -170,6 +178,7 @@ check_dotfiles_update() {
       echo # Move to a new line
       if [[ $REPLY =~ ^[Yy]$ ]]; then
         git pull
+        make stow
         echo "✅ Dotfiles repository updated successfully!"
       else
         echo "🚫 Update skipped. Remember to update later to stay in sync!"

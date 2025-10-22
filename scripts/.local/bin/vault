@@ -1,0 +1,372 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_NAME="$(basename "$0")"
+VAULT_NAMESPACE="vault"
+FILE_VAULT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/vault"
+FILE_VAULT_STORE="$FILE_VAULT_DIR/secure.store"
+LIST_FILE="$FILE_VAULT_DIR/${USER:-user}_vault_keys.list"
+
+mkdir -p "$FILE_VAULT_DIR"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+log() { echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $*"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $*" >&2; }
+err() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+ok() { echo -e "${GREEN}[OK]${NC} $*"; }
+
+show_help() {
+  \cat <<EOF
+${SCRIPT_NAME} - Unified secrets helper over system vaults with secure fallback
+
+USAGE:
+  ${SCRIPT_NAME} <command> [args]
+
+COMMANDS:
+  set <KEY> [VALUE]          Set secret and add to load list; prompts if VALUE omitted
+  get <KEY>                  Get secret value to stdout
+  del <KEY>                  Delete secret and remove from load list
+
+  list-show                  Show keys in load list
+  list-clear                 Clear load list
+
+  load [--one-by-one]        Print exports for keys in list (to eval)
+  unset                      Print unsets for keys in list (to eval)
+
+NOTES:
+  - On macOS uses Keychain (security). On Linux uses libsecret (secret-tool).
+  - If no system vault is available, prompts to use password-encrypted file vault.
+  - To load into current shell, use: eval "\$(${SCRIPT_NAME} load)"
+  - For unsetting: eval "\$(${SCRIPT_NAME} unset)""
+EOF
+}
+
+detect_os() {
+  case "${OSTYPE:-}" in
+  darwin*) echo macos ;;
+  linux*) echo linux ;;
+  *) echo unknown ;;
+  esac
+}
+
+has_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+# Backend selection
+choose_backend() {
+  local os
+  os=$(detect_os)
+  if [[ "$os" == "macos" ]] && has_cmd security; then
+    echo keychain
+    return 0
+  fi
+  if [[ "$os" == "linux" ]] && has_cmd secret-tool; then
+    echo libsecret
+    return 0
+  fi
+  echo file
+}
+
+# Confirmation popup/tty
+confirm_file_vault() {
+  # TTY fallback
+  read -r -p "No system keyring found. Use file-based encrypted vault? [y/N] " ans
+  [[ "$ans" =~ ^[Yy]$ ]]
+}
+
+prompt_secret() {
+  local prompt=${1:-"Enter secret"}
+  local value
+  read -r -s -p "$prompt: " value
+  printf '%s' "$value"
+}
+
+prompt_password() {
+  local pw1 pw2
+  while true; do
+    read -r -s -p "File vault password: " pw1
+    read -r -s -p "Confirm password: " pw2
+    if [[ "$pw1" == "$pw2" && -n "$pw1" ]]; then
+      printf '%s' "$pw1"
+      return 0
+    fi
+    warn "Passwords do not match or empty. Try again."
+  done
+}
+
+read_password_once() {
+  # For reading existing password once (no confirm)
+  local pw
+  read -r -s -p "File vault password: " pw
+  printf '%s' "$pw"
+}
+
+# File-vault helpers (openssl AES-256-CBC)
+file_vault_init() {
+  mkdir -p "$FILE_VAULT_DIR"
+  if [[ ! -f "$FILE_VAULT_STORE" ]]; then
+    ok "Initializing encrypted file vault at $FILE_VAULT_STORE"
+    local pw
+    pw=$(prompt_password)
+    # Start with empty content
+    printf '' | openssl enc -aes-256-cbc -salt -pbkdf2 -pass pass:"$pw" -out "$FILE_VAULT_STORE" >/dev/null 2>&1
+    unset pw
+  fi
+}
+
+file_vault_decrypt_to() {
+  local dest="$1" pw
+  pw=$(read_password_once)
+  if ! openssl enc -d -aes-256-cbc -pbkdf2 -in "$FILE_VAULT_STORE" -pass pass:"$pw" -out "$dest" 2>/dev/null; then
+    err "Failed to decrypt store (wrong password?)"
+    exit 1
+  fi
+  unset pw
+}
+
+file_vault_encrypt_from() {
+  local src="$1" pw
+  pw=$(read_password_once)
+  if ! openssl enc -aes-256-cbc -salt -pbkdf2 -in "$src" -pass pass:"$pw" -out "$FILE_VAULT_STORE" 2>/dev/null; then
+    err "Failed to encrypt store"
+    exit 1
+  fi
+  unset pw
+}
+
+safe_tmp() {
+  mktemp "/tmp/vault.XXXXXX"
+}
+
+cleanup_file() {
+  local f="$1"
+  if [[ -f "$f" ]]; then
+    command -v shred >/dev/null 2>&1 && shred -u -z "$f" || rm -f "$f"
+  fi
+}
+
+# Backends: set/get/del
+backend_set() {
+  local key="$1" value="$2" backend
+  backend=$(choose_backend)
+  case "$backend" in
+  keychain)
+    security add-generic-password -a "${USER}" -s "${VAULT_NAMESPACE}:$key" -w "$value" -U >/dev/null
+    ;;
+  libsecret)
+    printf '%s' "$value" | secret-tool store --label="$VAULT_NAMESPACE" service "$VAULT_NAMESPACE" account "$key" >/dev/null
+    ;;
+  file)
+    if [[ ! -f "$FILE_VAULT_STORE" ]]; then
+      confirm_file_vault || {
+        err "Aborted."
+        exit 1
+      }
+      file_vault_init
+    fi
+    local tmp
+    tmp=$(safe_tmp)
+    trap 'cleanup_file "$tmp"' EXIT
+    file_vault_decrypt_to "$tmp"
+    # update key in tmp (KEY=VALUE lines)
+    if grep -q "^${key}=" "$tmp" 2>/dev/null; then
+      sed -i.bak "s|^${key}=.*$|${key}=$(printf '%s' "$value" | sed -e 's/[&/]/\\&/g')|" "$tmp" && rm -f "$tmp.bak"
+    else
+      printf '%s=%s\n' "$key" "$value" >>"$tmp"
+    fi
+    file_vault_encrypt_from "$tmp"
+    cleanup_file "$tmp"
+    trap - EXIT
+    ;;
+  *)
+    err "Unsupported backend"
+    exit 1
+    ;;
+  esac
+}
+
+backend_get() {
+  local key="$1" backend
+  backend=$(choose_backend)
+  case "$backend" in
+  keychain)
+    security find-generic-password -a "${USER}" -s "${VAULT_NAMESPACE}:$key" -w 2>/dev/null || true
+    ;;
+  libsecret)
+    secret-tool lookup service "$VAULT_NAMESPACE" account "$key" 2>/dev/null || true
+    ;;
+  file)
+    [[ -f "$FILE_VAULT_STORE" ]] || {
+      err "File vault not initialized"
+      exit 1
+    }
+    local tmp
+    tmp=$(safe_tmp)
+    trap 'cleanup_file "$tmp"' EXIT
+    file_vault_decrypt_to "$tmp"
+    awk -F'=' -v k="$key" '$1==k{ print substr($0, index($0,$2)) }' "$tmp" | head -n1 || true
+    cleanup_file "$tmp"
+    trap - EXIT
+    ;;
+  *)
+    err "Unsupported backend"
+    exit 1
+    ;;
+  esac
+}
+
+backend_del() {
+  local key="$1" backend
+  backend=$(choose_backend)
+  case "$backend" in
+  keychain)
+    security delete-generic-password -a "${USER}" -s "${VAULT_NAMESPACE}:$key" >/dev/null 2>&1 || true
+    ;;
+  libsecret)
+    if has_cmd secret-tool; then
+      secret-tool clear service "$VAULT_NAMESPACE" account "$key" >/dev/null 2>&1 || true
+    fi
+    ;;
+  file)
+    [[ -f "$FILE_VAULT_STORE" ]] || return 0
+    local tmp
+    tmp=$(safe_tmp)
+    trap 'cleanup_file "$tmp"' EXIT
+    file_vault_decrypt_to "$tmp"
+    if grep -q "^${key}=" "$tmp" 2>/dev/null; then
+      sed -i.bak "/^${key}=/d" "$tmp" && rm -f "$tmp.bak"
+      file_vault_encrypt_from "$tmp"
+    fi
+    cleanup_file "$tmp"
+    trap - EXIT
+    ;;
+  *)
+    err "Unsupported backend"
+    exit 1
+    ;;
+  esac
+}
+
+# Temp list management
+list_add() {
+  mkdir -p "$FILE_VAULT_DIR"
+  touch "$LIST_FILE"
+  grep -qxF "$1" "$LIST_FILE" || echo "$1" >>"$LIST_FILE"
+}
+list_remove() { [[ -f "$LIST_FILE" ]] && sed -i.bak "/^$1$/d" "$LIST_FILE" && rm -f "$LIST_FILE.bak" || true; }
+list_show() { [[ -f "$LIST_FILE" ]] && cat "$LIST_FILE" || true; }
+
+ensure_list_exists() { [[ -f "$LIST_FILE" ]] || {
+  err "No keys in list. Use 'set <KEY>' to add secrets first."
+  exit 1
+}; }
+
+cmd_set() {
+  local key="$1" value="${2:-}"
+  if [[ -z "$value" ]]; then
+    value=$(prompt_secret "Enter value for $key")
+  fi
+  if [[ -z "$value" ]]; then
+    err "No value provided for $key"
+    exit 1
+  fi
+  backend_set "$key" "$value"
+  list_add "$key"
+  echo
+  ok "Set secret for $key and added to load list"
+}
+
+cmd_get() {
+  local key="$1"
+  local value
+  value=$(backend_get "$key")
+  if [[ -z "${value:-}" ]]; then
+    err "No value found for $key"
+    exit 1
+  fi
+  printf '%s\n' "$value"
+}
+
+cmd_del() {
+  local key="$1"
+  backend_del "$key"
+  list_remove "$key"
+  ok "Deleted secret for $key and removed from load list"
+}
+
+cmd_load() {
+  local mode_one_by_one=false
+  if [[ "${1:-}" == "--one-by-one" ]]; then mode_one_by_one=true; fi
+  ensure_list_exists
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    if $mode_one_by_one; then
+      read -r -p "Load $key? [Y/n] " ans
+      [[ -z "$ans" || "$ans" =~ ^[Yy]$ ]] || continue
+    fi
+    local val
+    val=$(backend_get "$key" || true)
+    if [[ -n "$val" ]]; then
+      # Output export statement for eval
+      printf "export %s='%s'\n" "$key" "$val"
+    fi
+  done <"$LIST_FILE"
+}
+
+cmd_unset_list() {
+  ensure_list_exists
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    printf "unset %s\n" "$key"
+  done <"$LIST_FILE"
+}
+
+parse() {
+  local cmd="${1:-}"
+  shift || true
+  case "$cmd" in
+  -h | --help | help) show_help ;;
+  set)
+    [[ $# -ge 1 ]] || {
+      err "Usage: ${SCRIPT_NAME} set <KEY> [VALUE]"
+      exit 1
+    }
+    cmd_set "$1" "${2:-}"
+    ;;
+  get)
+    [[ $# -eq 1 ]] || {
+      err "Usage: ${SCRIPT_NAME} get <KEY>"
+      exit 1
+    }
+    cmd_get "$1"
+    ;;
+  del | delete | rm)
+    [[ $# -eq 1 ]] || {
+      err "Usage: ${SCRIPT_NAME} del <KEY>"
+      exit 1
+    }
+    cmd_del "$1"
+    ;;
+  list-show)
+    list_show
+    ;;
+  load)
+    cmd_load "${1:-}"
+    ;;
+  unset)
+    cmd_unset_list
+    ;;
+  *)
+    show_help
+    exit 1
+    ;;
+  esac
+}
+
+parse "$@"
