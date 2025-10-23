@@ -18,9 +18,7 @@ alias ls='ls --color -alh'
 alias stowall="cd$HOME/dotfiles && stow *"
 alias unstow="stow -D"
 alias stowls="stow --no -v"
-alias vsc="code ."                                                                                                    # Open VSCode in current directory
-alias kill-tmux="rm -rf $HOME/.local/share/tmux/resurrect $HOME/.tmux/resurrect; tmux kill-server;"                   # Kill tmux and remove resurrect files
-alias restart-gpg="gpgconf --kill gpg-agent && gpgconf --launch gpg-agent && gpg-connect-agent updatestartuptty /bye" # Restart GPG agent and update startup TTY
+alias vsc="$EDITOR ." # Open current dir in $EDITOR
 
 # Enhanced directory navigation
 alias ..='cd ..'
@@ -28,10 +26,6 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias ~='cd $HOME'
-
-#Vault Aliases
-alias load_secrets="eval $(vault load)"
-alias evict_secrets="eval $(vault unset)"
 
 # Process management
 alias psa='ps aux'

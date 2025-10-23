@@ -44,6 +44,11 @@ delete_branches() {
   done
 }
 
+# -------------------------------------------------------------------------------
+# Function: _delete_branches_completions
+# Purpose: Provide tab completion for the delete_branches function.
+# Usage: Internal function - automatically used by shell completion
+# -------------------------------------------------------------------------------
 _delete_branches_completions() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   # Retrieve all local branches.
@@ -106,12 +111,20 @@ extract() {
   fi
 }
 
-# Create and enter directory
+# -------------------------------------------------------------------------------
+# Function: mkcd
+# Purpose: Create a directory and immediately navigate into it.
+# Usage: mkcd <directory-name>
+# -------------------------------------------------------------------------------
 mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
-# Kill process by name
+# -------------------------------------------------------------------------------
+# Function: kp
+# Purpose: Kill a process by its name using grep and awk.
+# Usage: kp <process-name>
+# -------------------------------------------------------------------------------
 kp() {
   local pid
   pid=$(ps aux | grep "$1" | grep -v grep | awk '{print $2}')
@@ -123,27 +136,103 @@ kp() {
   fi
 }
 
-# Quick file creation
+# -------------------------------------------------------------------------------
+# Function: touchf
+# Purpose: Create a file and its parent directories if they don't exist.
+# Usage: touchf <file-path>
+# -------------------------------------------------------------------------------
 touchf() {
   mkdir -p "$(dirname "$1")" && touch "$1"
 }
 
-# Directory Navigation Helper (using Zoxide)
+# -------------------------------------------------------------------------------
+# Function: fcd
+# Purpose: Navigate to frequently accessed directories using Zoxide with interactive selection.
+# Usage: fcd
+# -------------------------------------------------------------------------------
 fcd() {
   # Quickly navigate to frequently accessed directories using Zoxide
   local dir
   dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
 }
 
-# Execute a command with secrets and evict them
-exec_with_secrets() {
-  local cmd_str="${@}"
-  load_secrets
-  $cmd_str
-  evict_secrets
+# -------------------------------------------------------------------------------
+# Function: _get_bws_token
+# Purpose: Helper function to retrieve BWS_ACCESS_TOKEN from macOS Keychain or secret-tool.
+# Usage: Internal function - not meant to be called directly
+# -------------------------------------------------------------------------------
+_get_bws_token() {
+  local user="${uname:-$USER}"
+
+  # Try macOS Keychain first
+  if command -v security >/dev/null 2>&1; then
+    security find-generic-password -w -s 'BWS_ACCESS_TOKEN' -a "$user" 2>/dev/null || true
+  # If not found, try Unix (secret-tool)
+  elif command -v secret-tool >/dev/null 2>&1; then
+    secret-tool lookup service BWS_ACCESS_TOKEN user "$user" 2>/dev/null || true
+  fi
 }
 
-# Check for updates in the dotfiles repository
+# -------------------------------------------------------------------------------
+# Function: load_secrets
+# Purpose: Load sensitive environment variables from Bitwarden Secret Manager.
+# Usage: load_secrets
+# -------------------------------------------------------------------------------
+load_secrets() {
+  BWS_ACCESS_TOKEN="$(_get_bws_token)"
+
+  if [ -n "$BWS_ACCESS_TOKEN" ]; then
+    set -o allexport
+    eval "$(bws secret list --access-token $BWS_ACCESS_TOKEN --output env)"
+    set +o allexport
+    echo "✅ Secrets loaded and exported to current shell."
+  else
+    echo "❌ Could not find BWS_ACCESS_TOKEN in Keychain or secret-tool."
+    return 1
+  fi
+}
+
+# -------------------------------------------------------------------------------
+# Function: evict_secrets
+# Purpose: Remove all sensitive environment variables from the current shell.
+# Usage: evict_secrets
+# -------------------------------------------------------------------------------
+evict_secrets() {
+  BWS_ACCESS_TOKEN="$(_get_bws_token)"
+
+  if [ -n "$BWS_ACCESS_TOKEN" ]; then
+    bws secret list --access-token $BWS_ACCESS_TOKEN --output env | cut -d= -f1 | while read -r var; do
+      unset "$var"
+    done
+    echo "✅ Secrets evicted from the current shell."
+  else
+    echo "❌ Could not find BWS_ACCESS_TOKEN in Keychain or secret-tool."
+    return 1
+  fi
+}
+
+# -------------------------------------------------------------------------------
+# Function: exec_with_secrets
+# Purpose: Execute a command with secrets loaded, then automatically evict them.
+# Usage: exec_with_secrets <command>
+# -------------------------------------------------------------------------------
+exec_with_secrets() {
+  local cmd_str="${@}"
+  BWS_ACCESS_TOKEN="$(_get_bws_token)"
+
+  if [ -n "$BWS_ACCESS_TOKEN" ]; then
+    bws run --access-token $BWS_ACCESS_TOKEN -- $cmd_str
+  else
+    echo "❌ Could not find BWS_ACCESS_TOKEN in Keychain or secret-tool."
+    return 1
+  fi
+}
+
+# -------------------------------------------------------------------------------
+# Function: check_dotfiles_update
+# Purpose: Check for updates in the dotfiles repository and prompt for update if available.
+# Usage: check_dotfiles_update
+# -------------------------------------------------------------------------------
 check_dotfiles_update() {
   # Run in a subshell to avoid changing the current directory in the parent shell
   (
@@ -372,7 +461,11 @@ function gac() {
   return 0
 }
 
-# Function to install dependencies using pnpm with optional flags
+# -------------------------------------------------------------------------------
+# Function: install_pnpm
+# Purpose: Install dependencies using pnpm with optional flags for different configurations.
+# Usage: install_pnpm [--shamefully-hoist] [--remove-lock] [--help]
+# -------------------------------------------------------------------------------
 install_pnpm() {
   local use_shamefully_hoist=false
   local remove_lock=false
@@ -431,7 +524,11 @@ install_pnpm() {
   fi
 }
 
-# Autocomplete function
+# -------------------------------------------------------------------------------
+# Function: _install_pnpm_completions
+# Purpose: Provide tab completion for the install_pnpm function.
+# Usage: Internal function - automatically used by shell completion
+# -------------------------------------------------------------------------------
 _install_pnpm_completions() {
   local cur prev opts
   COMPREPLY=()
@@ -453,7 +550,11 @@ elif [ -n "$ZSH_VERSION" ]; then
   compdef _install_pnpm_completions install_pnpm
 fi
 
-# VSCode directory jumping using Zoxide and Fzf
+# -------------------------------------------------------------------------------
+# Function: _vscode_z
+# Purpose: Open VSCode in a directory selected using Zoxide and Fzf.
+# Usage: _vscode_z [directory-pattern]
+# -------------------------------------------------------------------------------
 _vscode_z() {
   local dir
   if [[ -n "$1" ]]; then
@@ -469,6 +570,11 @@ _vscode_z() {
   fi
 }
 
+# -------------------------------------------------------------------------------
+# Function: kill_port
+# Purpose: Kill processes running on specified port(s) with detailed information.
+# Usage: kill_port <port-number> [port-number ...]
+# -------------------------------------------------------------------------------
 kill_port() {
   if [ $# -eq 0 ]; then
     echo "Usage: kill_port <port-number> [port-number ...]"
@@ -476,32 +582,54 @@ kill_port() {
   fi
 
   for port in "$@"; do
-    echo "---- Checking port $port ----"
+    echo "🔍 Checking port $port..."
 
     # Get process info before killing
     local process_info
     process_info=$(lsof -i :"$port" 2>/dev/null | awk 'NR>1 {print $1, $2, $9}')
 
     if [ -z "$process_info" ]; then
-      echo "Port $port is not in use."
+      echo "✅ Port $port is not in use."
       continue
     fi
 
-    echo "Port $port is in use by:"
+    echo "⚠️  Port $port is in use by:"
     echo "$process_info" | while read -r command pid address; do
-      echo "  $command (PID: $pid) on $address"
+      echo "   • $command (PID: $pid) on $address"
     done
 
     # Kill the processes
     local pids
     pids=$(lsof -ti:"$port" 2>/dev/null)
     if [ -n "$pids" ]; then
-      echo "Killing process(es) with PID(s): $pids"
+      echo "💀 Killing process(es) with PID(s): $pids"
       echo "$pids" | xargs kill -9
-      echo "Process(es) on port $port killed successfully."
+      echo "✅ Process(es) on port $port killed successfully."
     fi
-    echo "-----------------------------"
+    echo
   done
+}
+
+# -------------------------------------------------------------------------------
+# Function: kill_tmux
+# Purpose: Kill tmux server and remove all resurrect files to start fresh.
+# Usage: kill_tmux
+# -------------------------------------------------------------------------------
+kill_tmux() {
+  rm -rf "$HOME/.local/share/tmux/resurrect" "$HOME/.tmux/resurrect"
+  tmux kill-server
+}
+
+# -------------------------------------------------------------------------------
+# Function: restart_gpg
+# Purpose: Restart GPG agent and update startup TTY for proper operation.
+# Usage: restart_gpg
+# -------------------------------------------------------------------------------
+restart_gpg() {
+  gpgconf --kill gpg-agent
+  gpgconf --launch gpg-agent
+  gpg-connect-agent updatestartuptty /bye
+  echo "✅ GPG agent restarted and startup TTY updated."
 }
 
 # Load custom local common configurations, if available
