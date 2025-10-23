@@ -10,9 +10,8 @@ set -euo pipefail
 
 # Script configuration
 SCRIPT_NAME="$(basename "$0")"
-DEFAULT_PLATFORM="slack"
+DEFAULT_PLATFORM="discord"
 DEFAULT_MESSAGE="This is a test message"
-DEFAULT_CHANNEL="alerts"
 
 # Predefined title types with emojis and timestamps
 declare -A TITLE_TYPES=(
@@ -215,7 +214,7 @@ send_slack() {
 
   if pingme slack \
     --token "$SLACK_TOKEN" \
-    --channel "$DEFAULT_CHANNEL" \
+    --channel "$SLACK_CHANNEL_NAME" \
     --title "$title" \
     --msg "$message"; then
     success "Message sent to Slack successfully"
@@ -236,6 +235,7 @@ send_discord() {
 
   if pingme discord \
     --token "$DISCORD_TOKEN" \
+    --channel "$DISCORD_CHANNEL_ID" \
     --title "$title" \
     --msg "$message"; then
     success "Message sent to Discord successfully"
