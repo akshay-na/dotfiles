@@ -17,18 +17,19 @@ DEFAULT_MESSAGE="This is a test message"
 get_title() {
   title_type=$1
   timestamp=$(date)
+  hostname=$(hostname)
 
   case "$title_type" in
-  ALERT) echo "🚨 ALERT - $timestamp" ;;
-  NOTIFICATION) echo "📢 NOTIFICATION - $timestamp" ;;
-  STATUS_UPDATE) echo "📊 STATUS UPDATE - $timestamp" ;;
-  WARNING) echo "⚠️ WARNING - $timestamp" ;;
-  ERROR) echo "❌ ERROR - $timestamp" ;;
-  SUCCESS) echo "✅ SUCCESS - $timestamp" ;;
-  INFO) echo "ℹ️ INFO - $timestamp" ;;
-  MAINTENANCE) echo "🔧 MAINTENANCE - $timestamp" ;;
-  BACKUP) echo "💾 BACKUP - $timestamp" ;;
-  DEPLOYMENT) echo "🚀 DEPLOYMENT - $timestamp" ;;
+  ALERT) echo "🚨  ALERT - $hostname - $timestamp" ;;
+  NOTIFICATION) echo "📢   NOTIFICATION - $hostname - $timestamp" ;;
+  STATUS_UPDATE) echo "📊  STATUS UPDATE - $hostname - $timestamp" ;;
+  WARNING) echo "⚠️  WARNING - $hostname - $timestamp" ;;
+  ERROR) echo "❌  ERROR - $hostname - $timestamp" ;;
+  SUCCESS) echo "✅  SUCCESS - $hostname - $timestamp" ;;
+  INFO) echo "ℹ️  INFO - $hostname - $timestamp" ;;
+  MAINTENANCE) echo "🔧  MAINTENANCE - $hostname - $timestamp" ;;
+  BACKUP) echo "💾   BACKUP - $hostname - $timestamp" ;;
+  DEPLOYMENT) echo "🚀   DEPLOYMENT - $hostname - $timestamp" ;;
   *)
     echo "UNKNOWN - $timestamp"
     ;;
@@ -91,8 +92,10 @@ $(printf "    %-15s %s\n" "BACKUP" "💾 BACKUP")
 $(printf "    %-15s %s\n" "DEPLOYMENT" "🚀 DEPLOYMENT")
 
 ENVIRONMENT VARIABLES:
-    SLACK_TOKEN     Slack bot token (required for Slack)
-    DISCORD_TOKEN   Discord webhook URL (required for Discord)
+    SLACK_TOKEN           Slack bot token (required for Slack)
+    DISCORD_TOKEN         Discord bot Token (required for Discord)
+    SLACK_CHANNEL_NAME    Channel name for sending the alert to
+    DISCORD_CHANNEL_ID    Channel ID for sending the alert to
 
 SUPPORTED PLATFORMS:
     slack          Send message to Slack
