@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Cross-platform pinentry wrapper for macOS, Windows (MINGW), and Linux.
 # Falls back to curses mode in headless/SSH.
