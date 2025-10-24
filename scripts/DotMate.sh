@@ -40,6 +40,9 @@ install() {
 
   chmod +x $DOTFILES_DIR/scripts/resources/*
 
+  source "$DOTFILES_DIR/scripts/resources/common.sh"
+  install_common
+
   if [[ "$OSTYPE" == "darwin"* ]]; then
     source "$DOTFILES_DIR/scripts/resources/macos.sh"
     install_macos
@@ -51,9 +54,6 @@ install() {
     echo_with_color "$RED" "This script supports macOS (Homebrew) or Debian/Ubuntu (apt). Please install the required things manually"
     exit 1
   fi
-
-  source "$DOTFILES_DIR/scripts/resources/common.sh"
-  install_common
 
   stow_dotfiles
 
