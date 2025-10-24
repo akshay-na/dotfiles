@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-set -e
+set -euo pipefail
 
 # Colors for better readability
 RED='\033[0;31m'
@@ -17,8 +17,8 @@ print_table() {
 }
 
 header() {
-  echo -e "CHANGE\tPROJECT\tOWNER\tREVIEWERS\tSTATUS\tSUBJECT\tURL"
-  echo -e "------\t--------\t-------------------\t---------------------\t--------\t----------------------------------------\t---------------------------------------------"
+  echo "CHANGE\tPROJECT\tOWNER\tREVIEWERS\tSTATUS\tSUBJECT\tURL"
+  echo "------\t--------\t-------------------\t---------------------\t--------\t----------------------------------------\t---------------------------------------------"
 }
 
 query_gerrit() {
@@ -36,85 +36,189 @@ query_gerrit() {
   ] | @tsv'
 }
 
-case "$1" in
---mine)
-  echo -e "${BLUE}[ Your Open Changes ]${NC}\n"
+check_git_dir() {
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "${RED}[ERROR]${NC} Not inside a Git repository."
+    exit 1
+  fi
+}
+
+# Ensure jq and ssh are present
+if ! command -v jq >/dev/null 2>&1 || ! command -v ssh >/dev/null 2>&1; then
+  echo "${RED}[ERROR]${NC} This script requires both jq and ssh."
+  echo "Please install them using your package manager."
+  exit 1
+fi
+
+# Check if Gerrit host exists in SSH config
+check_gerrit_ssh() {
+  gerrit_host="gerrit"
+  found=0
+
+  # Check the main SSH config
+  if [ -f "$HOME/.ssh/config" ]; then
+    if grep -q "^[[:space:]]*Host[[:space:]]\+$gerrit_host\(\s\|$\)" "$HOME/.ssh/config"*; then
+      found=1
+    fi
+  fi
+
+  # Check all files under ~/.ssh/config.d/
+  if [ $found -eq 0 ] && [ -d "$HOME/.ssh/config.d" ]; then
+    for file in "$HOME/.ssh/config.d/"*; do
+      [ -f "$file" ] || continue
+      if grep -q "^[[:space:]]*Host[[:space:]]\+$gerrit_host\(\s\|$\)" "$file"; then
+        found=1
+        break
+      fi
+    done
+  fi
+
+  if [ $found -eq 0 ]; then
+    echo "${RED}[ERROR]${NC} Gerrit host '$gerrit_host' not found in your SSH config."
+    echo "Please add an entry like:"
+    echo "  Host gerrit"
+    echo "    HostName gerrit.example.com"
+    echo "    User <your-username>"
+    echo "    IdentityFile ~/.ssh/id_rsa"
+    exit 1
+  fi
+}
+
+# Main command dispatcher
+case "${1:-}" in
+-m | --my-changes)
+  check_gerrit_ssh
+  echo "${BLUE}[ Your Open Changes ]${NC}\n"
   {
     header
     query_gerrit "owner:self status:open"
   } | print_table
   ;;
 
---reviews)
-  echo -e "${BLUE}[ Changes Assigned to You for Review ]${NC}\n"
+-r | --assigned)
+  check_gerrit_ssh
+  echo "${BLUE}[ Changes Assigned to You for Review ]${NC}\n"
   {
     header
     query_gerrit "reviewer:self status:open"
   } | print_table
   ;;
 
---debt)
-  echo -e "${BLUE}[ Review Debt by Developer ]${NC}\n"
+-d | --review-debt)
+  check_gerrit_ssh
+  echo "${BLUE}[ Review Debt by Developer ]${NC}\n"
   {
     header
     query_gerrit "status:open AND (reviewer:self OR owner:self)"
   } | print_table
   ;;
 
---stale)
+-s | --stale-reviews)
+  check_gerrit_ssh
   AGE="${2:-7d}"
-  echo -e "${BLUE}[ Stale Reviews Older than $AGE ]${NC}\n"
+  echo "${BLUE}[ Stale Reviews Older than $AGE ]${NC}\n"
   {
     header
     query_gerrit "status:open age:>$AGE"
   } | print_table
   ;;
 
---topic)
-  if [ -z "$2" ]; then
-    echo -e "${RED}Usage: $0 --topic <topic>${NC}"
+-t | --topic)
+  check_gerrit_ssh
+  if [ -z "${2:-}" ]; then
+    echo "${RED}Usage: $0 --topic <topic>${NC}"
     exit 1
   fi
-  echo -e "${BLUE}[ Changes in Topic: $2 ]${NC}\n"
+  echo "${BLUE}[ Changes in Topic: $2 ]${NC}\n"
   {
     header
     query_gerrit "topic:$2"
   } | print_table
   ;;
 
---bug)
-  if [ -z "$2" ]; then
-    echo -e "${RED}Usage: $0 --bug <BUG-ID>${NC}"
+-b | --bug)
+  check_gerrit_ssh
+  if [ -z "${2:-}" ]; then
+    echo "${RED}Usage: $0 --bug <BUG-ID>${NC}"
     exit 1
   fi
-  echo -e "${BLUE}[ Changes Mentioning Bug: $2 ]${NC}\n"
+  echo "${BLUE}[ Changes Mentioning Bug: $2 ]${NC}\n"
   {
     header
     query_gerrit "message:$2"
   } | print_table
   ;;
 
---project)
-  if [ -z "$2" ]; then
-    echo -e "${RED}Usage: $0 --project <PROJECT-NAME>${NC}"
+-p | --project)
+  check_gerrit_ssh
+  if [ -z "${2:-}" ]; then
+    echo "${RED}Usage: $0 --project <PROJECT-NAME>${NC}"
     exit 1
   fi
-  echo -e "${BLUE}[ Open Changes by Project ]${NC}\n"
+  echo "${BLUE}[ Open Changes by Project: $2 ]${NC}\n"
   ssh gerrit gerrit query "status:open project:$2" --format=JSON |
     jq -r 'select(.type != "stats") | .project' | sort | uniq -c | sort -nr
   ;;
 
---help | -h | *)
-  echo -e "${CYAN}Gerrit CLI Power Tool${NC}"
+-a | --amend)
+  check_git_dir
+  echo "${CYAN}Amending current commit...${NC}"
+  git add .
+  git commit --amend --no-edit
+  ;;
+
+-M | --merge)
+  check_git_dir
+  if [ -z "${2:-}" ]; then
+    echo "${RED}Usage: $0 --merge <BRANCH-NAME>${NC}"
+    exit 1
+  fi
+  git fetch origin
+  echo "${CYAN}Merging origin/$2 into current branch (no commit)...${NC}"
+  git merge --no-ff --no-commit "origin/$2"
+  ;;
+
+-S | --submit-merge)
+  check_git_dir
+  if [ -z "${2:-}" ]; then
+    echo "${RED}Usage: $0 --submit-merge <BRANCH-NAME>${NC}"
+    exit 1
+  fi
+  current_branch=$(git symbolic-ref --short HEAD)
+  echo "${CYAN}Submitting merge commit from $2 for review...${NC}"
+  git push "$2" "HEAD:refs/for/$current_branch"
+  ;;
+
+-u | --submit)
+  check_git_dir
+  if ! command -v rfc >/dev/null 2>&1; then
+    echo "${RED}[ERROR]${NC} The 'rfc' command is not installed or not in PATH."
+    exit 1
+  fi
+  echo "${CYAN}Submitting current changes for review using rfc...${NC}"
+  current_branch=$(git symbolic-ref --short HEAD)
+  if [ -z "${2:-}" ]; then
+    echo "${YELLOW}No branch is specified, using current branch: ${PURPLE}$current_branch${NC}"
+  fi
+  rfc "${2:-$current_branch}"
+  ;;
+
+-h | --help | *)
+  echo "${CYAN}Gerrit CLI Power Tool${NC}"
   echo "Usage: $0 [option]"
+  echo ""
   echo "Options:"
-  echo -e "  ${GREEN}--mine${NC}                    Show your open changes"
-  echo -e "  ${GREEN}--reviews${NC}                 Changes assigned to you for review"
-  echo -e "  ${GREEN}--stale [days]${NC}            Show reviews older than N days (default 7d)"
-  echo -e "  ${GREEN}--debt${NC}                    Review debt (who's waiting on you)"
-  echo -e "  ${GREEN}--topic <name>${NC}            All changes under a topic"
-  echo -e "  ${GREEN}--bug <BUG-ID>${NC}            Changes mentioning a bug ID"
-  echo -e "  ${GREEN}--project <PROJECT-NAME>${NC}  Open changes for a project"
-  echo -e "  ${GREEN}--help${NC}                    Show this help"
+  echo "  -a, --amend${NC}                   Stage all the modifications and amend the current commit"
+  echo "  -M, --merge <BRANCH>${NC}          Fetch and merge latest updates from target branch into your current one (no commit)"
+  echo "  -S, --submit-merge <BRANCH>${NC}   Push a pure merge commit for review"
+  echo "  -u, --submit [BRANCH]${NC}         Push current changes for review using 'rfc'". Use current branch if no branch is specified
+  echo "  -m, --my-changes${NC}              Show your open changes"
+  echo "  -r, --assigned${NC}                Show changes assigned to you for review"
+  echo "  -d, --review-debt${NC}             Review debt (open reviews involving you)"
+  echo "  -s, --stale-reviews [DAYS]${NC}    Show stale reviews older than N days (default: 7d)"
+  echo "  -t, --topic <NAME>${NC}            Show all changes under a topic"
+  echo "  -b, --bug <BUG-ID>${NC}            Show changes mentioning a bug ID"
+  echo "  -p, --project <PROJECT>${NC}       Show open changes in a project"
+  echo "  -h, --help${NC}                    Show this help message"
   ;;
 esac
