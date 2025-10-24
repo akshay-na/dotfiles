@@ -157,19 +157,37 @@ fcd() {
 }
 
 # -------------------------------------------------------------------------------
-# Function: _get_bws_token
-# Purpose: Helper function to retrieve BWS_ACCESS_TOKEN from macOS Keychain or secret-tool.
-# Usage: Internal function - not meant to be called directly
+# Function: store_bws_token
+# Purpose: Helper function to encrypt and store BWS_ACCESS_TOKEN .
+# Usage: store_bws_token
 # -------------------------------------------------------------------------------
-_get_bws_token() {
-  local user="${uname:-$USER}"
+store_bws_token() {
+  local token_file="$HOME/.local/share/bws/.bws_access_token.gpg"
 
-  # Try macOS Keychain first
-  if command -v security >/dev/null 2>&1; then
-    security find-generic-password -w -s 'BWS_ACCESS_TOKEN' -a "$user" 2>/dev/null || true
-  # If not found, try Unix (secret-tool)
-  elif command -v secret-tool >/dev/null 2>&1; then
-    secret-tool lookup service BWS_ACCESS_TOKEN user "$user" 2>/dev/null || true
+  mkdir -p "$(dirname $token_file)"
+
+  # Prompt user for token, hide input
+  echo -n "Enter your BWS_ACCESS_TOKEN: "
+  read -s BWS_ACCESS_TOKEN
+  echo
+
+  # Check input
+  if [ -z "$BWS_ACCESS_TOKEN" ]; then
+    echo "No token entered. Aborting."
+    return 1
+  fi
+
+  # Remove existing token
+  rm -rf $token_file
+
+  # Encrypt and store token
+  echo -n "$BWS_ACCESS_TOKEN" | gpg --symmetric --cipher-algo AES256 --s2k-digest SHA512 --s2k-mode 3 --s2k-count 650000 -o "$token_file"
+
+  if [ $? -eq 0 ]; then
+    echo "Token stored securely"
+  else
+    echo "Failed to store token."
+    return 1
   fi
 }
 
@@ -179,7 +197,7 @@ _get_bws_token() {
 # Usage: load_secrets
 # -------------------------------------------------------------------------------
 load_secrets() {
-  BWS_ACCESS_TOKEN="$(_get_bws_token)"
+  BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt $HOME/.local/share/bws/.bws_access_token.gpg)"
 
   if [ -n "$BWS_ACCESS_TOKEN" ]; then
     set -o allexport
@@ -198,7 +216,7 @@ load_secrets() {
 # Usage: evict_secrets
 # -------------------------------------------------------------------------------
 evict_secrets() {
-  BWS_ACCESS_TOKEN="$(_get_bws_token)"
+  BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt $HOME/.local/share/bws/.bws_access_token.gpg)"
 
   if [ -n "$BWS_ACCESS_TOKEN" ]; then
     bws secret list --access-token $BWS_ACCESS_TOKEN --output env | cut -d= -f1 | while read -r var; do
@@ -218,7 +236,7 @@ evict_secrets() {
 # -------------------------------------------------------------------------------
 exec_with_secrets() {
   local cmd_str="${@}"
-  BWS_ACCESS_TOKEN="$(_get_bws_token)"
+  BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt $HOME/.local/share/bws/.bws_access_token.gpg)"
 
   if [ -n "$BWS_ACCESS_TOKEN" ]; then
     bws run --access-token $BWS_ACCESS_TOKEN -- $cmd_str
