@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # PingMe CLI Wrapper Script
 # Supports Slack, Discord, and easily expandable to other platforms
@@ -13,19 +13,27 @@ SCRIPT_NAME="$(basename "$0")"
 DEFAULT_PLATFORM="discord"
 DEFAULT_MESSAGE="This is a test message"
 
-# Predefined title types with emojis and timestamps
-declare -A TITLE_TYPES=(
-  ["ALERT"]="🚨 ALERT - $(date)"
-  ["NOTIFICATION"]="📢 NOTIFICATION - $(date)"
-  ["STATUS_UPDATE"]="📊 STATUS UPDATE - $(date)"
-  ["WARNING"]="⚠️ WARNING - $(date)"
-  ["ERROR"]="❌ ERROR - $(date)"
-  ["SUCCESS"]="✅ SUCCESS - $(date)"
-  ["INFO"]="ℹ️ INFO - $(date)"
-  ["MAINTENANCE"]="🔧 MAINTENANCE - $(date)"
-  ["BACKUP"]="💾 BACKUP - $(date)"
-  ["DEPLOYMENT"]="🚀 DEPLOYMENT - $(date)"
-)
+# POSIX-compatible function to get title by type
+get_title() {
+  title_type=$1
+  timestamp=$(date)
+
+  case "$title_type" in
+  ALERT) echo "🚨 ALERT - $timestamp" ;;
+  NOTIFICATION) echo "📢 NOTIFICATION - $timestamp" ;;
+  STATUS_UPDATE) echo "📊 STATUS UPDATE - $timestamp" ;;
+  WARNING) echo "⚠️ WARNING - $timestamp" ;;
+  ERROR) echo "❌ ERROR - $timestamp" ;;
+  SUCCESS) echo "✅ SUCCESS - $timestamp" ;;
+  INFO) echo "ℹ️ INFO - $timestamp" ;;
+  MAINTENANCE) echo "🔧 MAINTENANCE - $timestamp" ;;
+  BACKUP) echo "💾 BACKUP - $timestamp" ;;
+  DEPLOYMENT) echo "🚀 DEPLOYMENT - $timestamp" ;;
+  *)
+    echo "UNKNOWN - $timestamp"
+    ;;
+  esac
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -36,19 +44,19 @@ NC='\033[0m' # No Color
 
 # Logging function
 log() {
-  echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+  echo "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
 }
 
 error() {
-  echo -e "${RED}[ERROR]${NC} $1" >&2
+  echo "${RED}[ERROR]${NC} $1" >&2
 }
 
 success() {
-  echo -e "${GREEN}[SUCCESS]${NC} $1"
+  echo "${GREEN}[SUCCESS]${NC} $1"
 }
 
 warning() {
-  echo -e "${YELLOW}[WARNING]${NC} $1"
+  echo "${YELLOW}[WARNING]${NC} $1"
 }
 
 # Help function
@@ -99,24 +107,24 @@ EOF
 
 # Check dependencies
 check_dependencies() {
-  local missing_deps=()
+  missing_deps=""
 
   # Check if pingme is installed
-  if ! command -v pingme &>/dev/null; then
-    missing_deps+=("pingme")
+  if ! command -v pingme >/dev/null 2>&1; then
+    missing_deps="$missing_deps pingme"
   fi
 
   # Check if curl is available (needed for installation)
-  if ! command -v curl &>/dev/null; then
-    missing_deps+=("curl")
+  if ! command -v curl >/dev/null 2>&1; then
+    missing_deps="$missing_deps curl"
   fi
 
   # Report missing dependencies
-  if [[ ${#missing_deps[@]} -gt 0 ]]; then
-    error "Missing required dependencies: ${missing_deps[*]}"
+  if [ -n "$missing_deps" ]; then
+    error "Missing required dependencies:$missing_deps"
     error ""
 
-    for dep in "${missing_deps[@]}"; do
+    for dep in $missing_deps; do
       case "$dep" in
       pingme)
         error "PingMe CLI is not installed or not in PATH"
@@ -138,8 +146,7 @@ check_dependencies() {
   fi
 
   # Verify pingme version if available
-  if command -v pingme &>/dev/null; then
-    local pingme_version
+  if command -v pingme >/dev/null 2>&1; then
     pingme_version=$(pingme --version 2>/dev/null || echo "unknown")
     log "PingMe version: $pingme_version"
   fi
@@ -163,22 +170,12 @@ validate_platform() {
 # Validate title type
 validate_title_type() {
   local title_type="$1"
-  if [[ -n "${TITLE_TYPES[$title_type]:-}" ]]; then
+  if [[ -n "$(get_title $title_type)" ]]; then
     return 0
   else
     error "Invalid title type: $title_type"
-    error "Available title types:"
-    for type in "${!TITLE_TYPES[@]}"; do
-      error "  - $type"
-    done
     return 1
   fi
-}
-
-# Get title from type
-get_title() {
-  local title_type="$1"
-  echo "${TITLE_TYPES[$title_type]}"
 }
 
 # Check required environment variables
@@ -325,8 +322,13 @@ main() {
   local parsed_args
   parsed_args=$(parse_arguments "$@")
 
-  # Extract parsed values
-  IFS='|' read -r platform title_type message <<<"$parsed_args"
+  # Extract parsed values (POSIX-safe)
+  IFS='|'
+  set -- $parsed_args
+  platform=$1
+  title_type=$2
+  message=$3
+  IFS=' '
 
   # Get the actual title from the title type
   local title
