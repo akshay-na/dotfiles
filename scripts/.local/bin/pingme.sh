@@ -6,7 +6,7 @@
 # Example: ./pingme.sh slack ALERT "Database connection failed"
 # Example: ./pingme.sh discord SUCCESS "Deployment completed successfully"
 
-set -euo pipefail
+set -eu
 
 # Script configuration
 SCRIPT_NAME="$(basename "$0")"

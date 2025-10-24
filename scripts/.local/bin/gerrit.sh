@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -euo pipefail
+set -eu
 
 # Colors for better readability
 RED='\033[0;31m'

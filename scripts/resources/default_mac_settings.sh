@@ -18,6 +18,9 @@ done 2>/dev/null &
 # General UI/UX                                                               #
 ###############################################################################
 
+# Remove quarantine flag from Alecritty
+xattr -d com.apple.quarantine /Applications/Alacritty.app
+
 # Disable the sound effects on boot
 sudo nvram SystemAudioVolume=" "
 
