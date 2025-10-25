@@ -69,7 +69,9 @@ install_common() {
     lsof
     make
     neofetch
+    neovim
     rsync
+    starship
     stow
     tmux
     tree
@@ -79,7 +81,6 @@ install_common() {
     xxh
     yq
     zoxide
-    zsh
   )
 
   for pkg in "${BREW_PACKAGES[@]}"; do

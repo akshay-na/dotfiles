@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Colors for output
 GREEN="\033[1;32m"
@@ -17,28 +17,38 @@ install_macos() {
 
   echo_with_color "$YELLOW" "Installing GUI apps via Homebrew Cask..."
 
-  brew install pinentry-mac pam-reattach
+  brew install pinentry-mac pam-reattach zsh
 
-  brew install --cask \
-    alfred \
-    alacritty \
-    bitwarden \
-    cursor \
-    chatgpt-atlas \
-    caffeine \
-    dbgate \
-    discord \
-    drawio \
-    espanso \
-    font-caskaydia-cove-nerd-font \
-    font-caskaydia-mono-nerd-font \
-    grammarly-desktop \
-    google-chrome \
-    hiddenbar \
-    logitech-g-hub \
-    obsidian \
-    postman \
+  BREW_CASK_PACKAGES=(
+    alfred
+    alacritty
+    bitwarden
+    cursor
+    chatgpt-atlas
+    caffeine
+    dbgate
+    discord
+    drawio
+    espanso
+    font-caskaydia-cove-nerd-font
+    font-caskaydia-mono-nerd-font
+    grammarly-desktop
+    google-chrome
+    hiddenbar
+    logitech-g-hub
+    obsidian
+    postman
     spotify
+  )
+
+  for pkg in "${BREW_PACKAGES[@]}"; do
+    if command -v "$pkg" >/dev/null 2>&1; then
+      echo "Already available: $pkg"
+    else
+      echo "Installing with brew: $pkg"
+      brew install --cask "$pkg" || echo "Failed to install: $pkg (continuing...)"
+    fi
+  done
 
   echo_with_color "$YELLOW" "Setting Personalized macOS defaults..."
 
