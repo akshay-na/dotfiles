@@ -59,12 +59,6 @@ install() {
 
   git ignore $DOTFILES_DIR/mise/.config/mise/conf.d/global_tools.toml
 
-  # Configure mise and add plugins
-  echo_with_color "$YELLOW" "Installing runtimes using mise..."
-  if command -v mise >/dev/null 2>&1; then
-    mise install
-  fi
-
   # Set permissions for gnupg and ssh folders
   if [ -d "$HOME/.gnupg" ]; then
     chmod 700 "$HOME/.gnupg"
@@ -76,8 +70,6 @@ install() {
     find "$HOME/.ssh" -type f -exec chmod 600 {} \;
     find "$HOME/.ssh" -type d -exec chmod 700 {} \;
   fi
-
-  chmod +x ~/.local/bin/*
 
   fc-cache -f -v >/dev/null 2>&1
 

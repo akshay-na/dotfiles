@@ -15,7 +15,7 @@ install_debian() {
   echo_with_color "$YELLOW" "Installing dependencies..."
 
   sudo apt-get update
-  sudo apt-get install -y build-essential procps curl file git
+  sudo apt-get install -y build-essential procps curl file git zsh
 
   echo_with_color "$GREEN" "Linux setup complete!"
 }
