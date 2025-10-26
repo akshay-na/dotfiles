@@ -91,7 +91,7 @@ if [[ -o interactive ]]; then
   zinit wait lucid light-mode for \
     zdharma-continuum/fast-syntax-highlighting
 
-  # Load Oh My Zsh plugin snippets with optimized settings
+  # Load Oh My Zsh plugin snippets with optimized settingsu
   zinit wait lucid light-mode for \
     OMZP::git \
     OMZP::kubectl \
@@ -105,8 +105,12 @@ if [[ -o interactive ]]; then
     OMZP::archlinux \
     OMZP::brew \
     OMZP::kubectx \
-    OMZP::tmux \
     OMZP::command-not-found
+
+  # Automatically start tmux if not already inside a session (interactive only)
+  if command -v tmux >/dev/null; then
+    zinit wait lucid light-mode for OMZP::tmux
+  fi
 
   # Replay Zinit's plugin history quietly
   zinit cdreplay -q
