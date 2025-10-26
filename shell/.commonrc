@@ -77,13 +77,17 @@ esac
 # SSH Authentication Agent Setup (GPG/YubiKey or ssh-agent)
 # ---------------------------------------------------------------
 # Use GPG agent if available, otherwise fall back to ssh-agent
-if command -v gpgconf >/dev/null 2>&1; then
-  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-  gpgconf --launch gpg-agent
-  gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
-elif command -v ssh-agent >/dev/null 2>&1; then
-  if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l >/dev/null 2>&1; then
-    eval $(ssh-agent) >/dev/null 2>&1
+# Only run setup if we're NOT inside an SSH session
+# This is to preserve the SSH Agent forwarding.
+if [[ -z "$SSH_CONNECTION" || -z "$SSH_TTY" ]]; then
+  if command -v gpgconf >/dev/null 2>&1; then
+    export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+    gpgconf --launch gpg-agent
+    gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
+  elif command -v ssh-agent >/dev/null 2>&1; then
+    if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l >/dev/null 2>&1; then
+      eval $(ssh-agent) >/dev/null 2>&1
+    fi
   fi
 fi
 
