@@ -84,6 +84,41 @@ check_gerrit_ssh() {
   fi
 }
 
+pull_submission_to_local() {
+  local CHANGE_ID="$1"
+  local PATCHSET_ID="${2:-}"
+  local LAST_TWO=$(echo "$CHANGE_ID" | awk '{print substr($0, length($0)-1, 2)}')
+
+  echo "${YELLOW}It's safer to switch to change ID's target branch before applying this change.${NC}"
+  read -r -p "Continue anyway? [y/N]: " confirm
+  [[ ! "$confirm" =~ ^[Yy]$ ]] && echo "${CYAN}Aborting.${NC}" && return 1
+
+  # Gerrit ref path: refs/changes/<last two digits>/<submission id>/<patchset id>
+  if [ -z "$PATCHSET_ID" ]; then
+    # Get latest patchset dynamically
+    echo "${YELLOW}Finding the latest patchset for change ID ${CHANGE_ID}...${NC}"
+    REF_LINK=$(git ls-remote origin "refs/changes/${LAST_TWO}/${CHANGE_ID}/*" | sort -t/ -k5 -n | tail -n1 | awk '{print $2}')
+  else
+    REF_LINK="refs/changes/${LAST_TWO}/${CHANGE_ID}/${PATCHSET_ID}"
+  fi
+
+  if [ -z "$REF_LINK" ]; then
+    echo "${RED}Could not find change ID $CHANGE_ID${NC}"
+    exit 1
+  fi
+
+  # Save current work safely
+  if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo "${CYAN}Stashing local modifications before pulling change ID ${CHANGE_ID}...${NC}"
+    git stash push -u -m "Auto-stash before pulling change ID ${CHANGE_ID}"
+  fi
+
+  echo "${YELLOW}Fetching ${REF_LINK}...${NC}"
+  git fetch origin "$REF_LINK" && git reset --hard FETCH_HEAD
+
+  echo "${GREEN}✅ Change ID ${CHANGE_ID} pulled successfully.${NC}"
+}
+
 # Main command dispatcher
 case "${1:-}" in
 -m | --my-changes)
@@ -167,6 +202,17 @@ case "${1:-}" in
   git commit --amend --no-edit
   ;;
 
+-P | --pull-change)
+  check_git_dir
+  if [ -z "${2:-}" ]; then
+    echo "${RED}Usage: $0 --pull-change <CHANGE-ID> [PS]${NC}"
+    exit 1
+  fi
+  CHANGE_ID="${2:-}"
+  PATCHSET_ID="${3:-}"
+  pull_submission_to_local $CHANGE_ID $PATCHSET_ID
+  ;;
+
 -M | --merge)
   check_git_dir
   if [ -z "${2:-}" ]; then
@@ -189,6 +235,21 @@ case "${1:-}" in
   git push "$2" "HEAD:refs/for/$current_branch"
   ;;
 
+-T | --target-branch)
+  check_git_dir
+  check_gerrit_ssh
+
+  target_branch="${2:-$(git rev-parse --abbrev-ref HEAD)}"
+  project_name=$(basename -s .git "$(git remote get-url origin)")
+
+  echo "${BLUE}[ Changes Targeting Current Branch: ${PURPLE}$target_branch${BLUE} ]${NC}\n"
+
+  {
+    header
+    query_gerrit "status:open project:$project_name branch:$target_branch"
+  } | print_table
+  ;;
+
 -u | --submit)
   check_git_dir
   if ! command -v rfc >/dev/null 2>&1; then
@@ -205,20 +266,25 @@ case "${1:-}" in
 
 -h | --help | *)
   echo "${CYAN}Gerrit CLI Power Tool${NC}"
+  echo ""
   echo "Usage: $0 [option]"
   echo ""
   echo "Options:"
-  echo "  -a, --amend${NC}                   Stage all the modifications and amend the current commit"
-  echo "  -M, --merge <BRANCH>${NC}          Fetch and merge latest updates from target branch into your current one (no commit)"
-  echo "  -S, --submit-merge <BRANCH>${NC}   Push a pure merge commit for review"
-  echo "  -u, --submit [BRANCH]${NC}         Push current changes for review using 'rfc'". Use current branch if no branch is specified
-  echo "  -m, --my-changes${NC}              Show your open changes"
-  echo "  -r, --assigned${NC}                Show changes assigned to you for review"
-  echo "  -d, --review-debt${NC}             Review debt (open reviews involving you)"
-  echo "  -s, --stale-reviews [DAYS]${NC}    Show stale reviews older than N days (default: 7d)"
-  echo "  -t, --topic <NAME>${NC}            Show all changes under a topic"
-  echo "  -b, --bug <BUG-ID>${NC}            Show changes mentioning a bug ID"
-  echo "  -p, --project <PROJECT>${NC}       Show open changes in a project"
-  echo "  -h, --help${NC}                    Show this help message"
+  echo "  -a, --amend                              Stage all modifications and amend the current commit"
+  echo "  -M, --merge <BRANCH>                     Fetch and merge latest updates from the target branch into your current one (no commit)"
+  echo "  -S, --submit-merge <BRANCH>              Push a pure merge commit for review"
+  echo "  -u, --submit [BRANCH]                    Push current changes for review using 'rfc'. Uses current branch if none is specified"
+  echo "  -P, --pull-submission <CHANGE-ID> [PS]   Pull a Gerrit submission by change ID and optional patchset ID"
+  echo "                                           If patchset ID is omitted, pulls the latest patchset automatically"
+  echo "  -T, --target-branch [BRANCH]             List all the Change ID targeting specified branch (default: current branch()"
+  echo "  -m, --my-changes                         Show open changes owned by you"
+  echo "  -r, --assigned                           Show changes assigned to you for review"
+  echo "  -d, --review-debt                        Show open reviews involving you (review debt)"
+  echo "  -s, --stale-reviews [DAYS]               Show reviews older than N days (default: 7)"
+  echo "  -t, --topic <NAME>                       Show all changes under a topic"
+  echo "  -b, --bug <BUG-ID>                       Show changes mentioning a specific bug ID"
+  echo "  -p, --project <PROJECT>                  Show open changes in a project"
+  echo "  -h, --help                               Show this help message"
+  echo ""
   ;;
 esac
