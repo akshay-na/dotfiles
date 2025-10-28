@@ -582,7 +582,7 @@ _vscode_z() {
   fi
 
   if [[ -n "$dir" ]]; then
-    code "$dir"
+    $EDITOR "$dir"
   else
     echo "No directory selected."
   fi
