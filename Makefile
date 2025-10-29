@@ -59,15 +59,15 @@ help:
 
 .PHONY: backup
 backup: prep ## Backup existing dotfiles
-	$(SCRIPT) backup
+	@$(SCRIPT) backup
 
 .PHONY: update
 update: prep ## Check for updates in the dotfiles repository
-	$(SCRIPT) update
+	@$(SCRIPT) update
 
 .PHONY: install
 install: prep ## Install tools and set up environment
-	$(SCRIPT) install
+	@$(SCRIPT) install
 
 .PHONY: stow prep
 stow: prep ## Create symlinks for specified dotfiles
@@ -79,4 +79,4 @@ unstow: prep ## Remove symlinks for specified dotfiles
 
 .PHONY: clean
 clean: prep ## Clean up broken symlinks
-	$(SCRIPT) clean
+	@$(SCRIPT) clean

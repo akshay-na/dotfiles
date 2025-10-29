@@ -285,6 +285,7 @@ check_dotfiles_update() {
       echo # Move to a new line
       if [[ $REPLY =~ ^[Yy]$ ]]; then
         git pull
+        make clean
         make stow
         echo "✅ Dotfiles repository updated successfully!"
       else

@@ -97,8 +97,11 @@ unstow_dotfiles() {
 
 # Clean up broken symlinks in the home directory
 clean_symlinks() {
-  echo_with_color "$YELLOW" "Cleaning up broken symlinks in $HOME"
-  find ~ -xtype l -delete
+  echo_with_color "$YELLOW" "Cleaning up broken symlinks"
+  {
+    find "$HOME" -maxdepth 1 -type l ! -exec test -e {} \; -delete -print
+    find "$HOME/.config" "$HOME/.local/bin" -type l ! -exec test -e {} \; -delete -print
+  }
 }
 
 # Create symlinks for specific dotfiles (support multiple arguments)

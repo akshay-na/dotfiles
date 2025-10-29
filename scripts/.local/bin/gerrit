@@ -274,7 +274,7 @@ case "${1:-}" in
   echo "  -M, --merge <BRANCH>                     Fetch and merge latest updates from the target branch into your current one (no commit)"
   echo "  -S, --submit-merge <BRANCH>              Push a pure merge commit for review"
   echo "  -u, --submit [BRANCH]                    Push current changes for review using 'rfc'. Uses current branch if none is specified"
-  echo "  -P, --pull-submission <CHANGE-ID> [PS]   Pull a Gerrit submission by change ID and optional patchset ID"
+  echo "  -P, --pull-change <CHANGE-ID> [PS]       Pull a Gerrit change by change ID and optional patchset ID"
   echo "                                           If patchset ID is omitted, pulls the latest patchset automatically"
   echo "  -T, --target-branch [BRANCH]             List all the Change ID targeting specified branch (default: current branch()"
   echo "  -m, --my-changes                         Show open changes owned by you"
