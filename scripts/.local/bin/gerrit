@@ -232,7 +232,7 @@ case "${1:-}" in
   fi
   current_branch=$(git symbolic-ref --short HEAD)
   echo "${CYAN}Submitting merge commit from $2 for review...${NC}"
-  git push "$2" "HEAD:refs/for/$current_branch"
+  git push origin "HEAD:refs/for/$2"
   ;;
 
 -T | --target-branch)

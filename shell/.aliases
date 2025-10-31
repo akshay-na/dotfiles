@@ -53,6 +53,11 @@ if command -v fd &>/dev/null; then
   export FD_IGNORE_FILE="$HOME/.config/fd/ignore"
 fi
 
+# Check if 'logdy' exists before aliasing
+if command -v logdy &>/dev/null; then
+  alias logdy="logdy --no-updates --no-analytics"
+fi
+
 # ---------------------------------------------------------------
 # Kubectl Aliases
 # ---------------------------------------------------------------
