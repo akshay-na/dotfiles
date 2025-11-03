@@ -1,12 +1,70 @@
 {:max-blank-lines 1,
  :rules
- {:blank-lines {:padding-lines 2,
-                :max-consecutive 2,
+ {:blank-lines {:padding-lines 1,
+                :max-consecutive 1,
                 :insert-padding? true},
-  :functions {:enabled? false},
-  :types {:enabled? false},
-  :namespaces {:break-libs? false,
+  :functions {:enabled? true},
+  :types {:enabled? true},
+  :namespaces {:break-libs? true,
                :import-break-width 3},
   :indentation
-  {:indents
-   {reduce [[:inner 0]]}}}}
+  {:enabled? true
+   :indents
+   {;; general
+    reduce [[:inner 0]]
+
+    ;; defs and fn-like forms
+    defn [[:block 1]]
+    defmacro [[:block 1]]
+    defmethod [[:block 1]]
+    defmulti [[:block 1]]
+    defprotocol [[:block 1]]
+    extend-type [[:block 1]]
+    extend-protocol [[:block 1]]
+    reify [[:block 1]]
+    deftype [[:block 1]]
+    defrecord [[:block 1]]
+    fn [[:block 1]]
+
+    ;; namespace
+    ns [[:block 1]]
+
+    ;; binding/with- forms
+    let [[:block 1]]
+    letfn [[:block 1]]
+    binding [[:block 1]]
+    with-open [[:block 1]]
+    with-redefs [[:block 1]]
+    with-local-vars [[:block 1]]
+
+    ;; sequence comprehensions
+    for [[:block 1]]
+    doseq [[:block 1]]
+    dotimes [[:block 1]]
+
+    ;; conditionals
+    when [[:block 1]]
+    when-not [[:block 1]]
+    if [[:block 1]]
+    if-not [[:block 1]]
+    when-let [[:block 1]]
+    if-let [[:block 1]]
+    when-some [[:block 1]]
+    if-some [[:block 1]]
+    cond [[:block 0]]
+    condp [[:block 2]]
+    case [[:block 1]]
+
+    ;; exceptions
+    try [[:block 0]]
+    catch [[:block 0]]
+    finally [[:block 0]]
+
+    ;; threading
+    -> [[:list 0]]
+    ->> [[:list 0]]
+    some-> [[:list 0]]
+    some->> [[:list 0]]
+    cond-> [[:list 1]]
+    cond->> [[:list 1]]}}}
+}
