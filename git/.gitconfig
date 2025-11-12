@@ -51,7 +51,7 @@
   attributesfile      = ~/.gitattributes_global  # Add a global gitattributes file
   fileMode            = false  # Ignore file permission changes
   fscache             = true  # Enable file system cache to improve performance
-  fsmonitor           = true  # Enable filesystem monitoring for improved performance
+  fsmonitor           = true  # Disable filesystem monitoring for improved performance
   gitproxy            = auto  # Automatically select the appropriate proxy
   packedGitLimit      = 256m  # Increase the packed Git limit for handling larger packfiles
   packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing

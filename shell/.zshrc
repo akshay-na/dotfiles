@@ -107,11 +107,6 @@ if [[ -o interactive ]]; then
     OMZP::kubectx \
     OMZP::command-not-found
 
-  # Automatically start tmux if not already inside a session (interactive only)
-  if command -v tmux >/dev/null; then
-    zinit wait lucid light-mode for OMZP::tmux
-  fi
-
   # Replay Zinit's plugin history quietly
   zinit cdreplay -q
 
@@ -212,6 +207,10 @@ if [[ -o interactive ]]; then
   if typeset -f _vscode_z >/dev/null; then
     alias vz='_vscode_z'
     compdef _vscode_z vz
+  fi
+
+  if [ -z "$TMUX" ] && command -v tmux >/dev/null; then
+    tmux attach 2>/dev/null || tmux new -s default
   fi
 fi
 
