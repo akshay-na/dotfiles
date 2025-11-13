@@ -36,9 +36,37 @@ fi
 
 # Initialize and run compinit quietly in the background
 mkdir -p $HOME/.zsh/cache
-autoload -Uz compinit bashcompinit
+autoload -Uz compinit bashcompinit add-zsh-hook
 bashcompinit
-compinit -C -d "${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
+
+_zn_compdump="${ZDOTDIR:-$HOME}/.zsh/cache/zcompdump"
+_zn_compdump_stamp="${_zn_compdump}.timestamp"
+_zn_compdump_max_age=$((60 * 60 * 24))
+
+_zn_now=$(date +%s 2>/dev/null)
+[[ -n $_zn_now ]] || _zn_now=${EPOCHSECONDS:-0}
+
+if [[ ! -s $_zn_compdump || ! -f $_zn_compdump_stamp ]]; then
+  compinit -u -d "$_zn_compdump"
+  printf '%s\n' "$_zn_now" >|"$_zn_compdump_stamp"
+  zcompile "$_zn_compdump" 2>/dev/null
+else
+  _zn_last_run=$(<"$_zn_compdump_stamp")
+  [[ -n $_zn_last_run ]] || _zn_last_run=0
+  compinit -u -C -d "$_zn_compdump"
+  if ((_zn_now - _zn_last_run > _zn_compdump_max_age)); then
+    (
+      _zn_new_dump="${_zn_compdump}.new"
+      compinit -u -d "$_zn_new_dump"
+      mv "$_zn_new_dump" "$_zn_compdump"
+      zcompile "$_zn_compdump" 2>/dev/null
+      printf '%s\n' "$_zn_now" >|"$_zn_compdump_stamp"
+    ) &
+    command -v disown >/dev/null && disown
+  elif [[ ! -s "${_zn_compdump}.zwc" || $_zn_compdump -nt "${_zn_compdump}.zwc" ]]; then
+    zcompile "$_zn_compdump" 2>/dev/null
+  fi
+fi
 
 # ---------------------------------------------------------------
 # Non-Interactive and Interactive Zsh Options (Always Loaded)
@@ -68,6 +96,10 @@ if [[ -o interactive ]]; then
   fi
 
   # Source Zinit
+  typeset -gA ZINIT
+  ZINIT[COMPINIT_OPTS]='-u -C'
+  typeset -g skip_global_compinit=1
+
   source "${ZINIT_HOME}/zinit.zsh"
 
   # ---------------------------------------------------------------
@@ -107,8 +139,15 @@ if [[ -o interactive ]]; then
     OMZP::kubectx \
     OMZP::command-not-found
 
-  # Replay Zinit's plugin history quietly
-  zinit cdreplay -q
+  # Replay Zinit's plugin history after the first prompt
+  _zn_zinit_replay_once() {
+    add-zsh-hook -d precmd _zn_zinit_replay_once
+    (
+      zinit cdreplay -q &
+      disown
+    )
+  }
+  add-zsh-hook -Uz precmd _zn_zinit_replay_once
 
   # ---------------------------------------------------------------
   # Keybindings
@@ -209,14 +248,11 @@ if [[ -o interactive ]]; then
     compdef _vscode_z vz
   fi
 
-  if command -v tmux >/dev/null; then
-    autoload -Uz add-zsh-hook
+  if [ -z "$TMUX" ] && [ -z "$TMUX_AUTOSTART" ] && command -v tmux >/dev/null; then
     _zn_auto_tmux_attach() {
-      if [ -z "$TMUX" ] && [ -z "$TMUX_AUTOSTART" ]; then
-        export TMUX_AUTOSTART=true
-        tmux attach 2>/dev/null || tmux new -s default
-        unset TMUX_AUTOSTART
-      fi
+      export TMUX_AUTOSTART=true
+      tmux attach 2>/dev/null || tmux new -s default
+      unset TMUX_AUTOSTART
       add-zsh-hook -d precmd _zn_auto_tmux_attach
     }
     add-zsh-hook -Uz precmd _zn_auto_tmux_attach
