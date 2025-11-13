@@ -5,7 +5,7 @@
 add_newline = true
 
 format = """\
-$username $hostname\
+$username${custom.hostname_ssh}${custom.hostname_local}\
 $directory\
 $git_branch\
 $git_status\
@@ -143,12 +143,22 @@ ssh_only   = false
 ssh_symbol = "🌐 "
 trim_at    = ""
 style      = "bold yellow"
-disabled   = false
+disabled   = true
 
 [username]
 show_always = true
 style_user  = "bold yellow"
-format      = "[$user]($style) @"
+format      = "[$user]($style) @ "
+
+[custom.hostname_ssh]
+command = "hostname"
+when    = 'test -n "$SSH_CONNECTION"'
+format  = '([🌐 ](#90c0d4)[$output](bold red)) in '
+
+[custom.hostname_local]
+command = "hostname"
+when    = 'test -z "$SSH_CONNECTION"'
+format  = '([$output](bold yellow)) in '
 
 [shell]
 disabled             = false
