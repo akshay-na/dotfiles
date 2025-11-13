@@ -209,8 +209,17 @@ if [[ -o interactive ]]; then
     compdef _vscode_z vz
   fi
 
-  if [ -z "$TMUX" ] && command -v tmux >/dev/null; then
-    tmux attach 2>/dev/null || tmux new -s default
+  if command -v tmux >/dev/null; then
+    autoload -Uz add-zsh-hook
+    _zn_auto_tmux_attach() {
+      if [ -z "$TMUX" ] && [ -z "$TMUX_AUTOSTART" ]; then
+        export TMUX_AUTOSTART=true
+        tmux attach 2>/dev/null || tmux new -s default
+        unset TMUX_AUTOSTART
+      fi
+      add-zsh-hook -d precmd _zn_auto_tmux_attach
+    }
+    add-zsh-hook -Uz precmd _zn_auto_tmux_attach
   fi
 fi
 
