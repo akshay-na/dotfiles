@@ -25,7 +25,7 @@ backup_dotfiles() {
     dest="$HOME/${file#$DOTFILES_DIR/*/}"
     if [ -e "$dest" ]; then
       mkdir -p "$BACKUP_DIR/$(dirname "$dest")"
-      cp "$dest" "$BACKUP_DIR/$dest"
+      mv "$dest" "$BACKUP_DIR/$dest"
       echo_with_color "$YELLOW" "Backed up $dest"
     fi
   done
@@ -40,9 +40,7 @@ install() {
 
   chmod +x $DOTFILES_DIR/scripts/resources/*
 
-  source "$DOTFILES_DIR/scripts/resources/common.sh"
-  install_common
-
+  # Install tools and set up environment based on OS
   if [[ "$OSTYPE" == "darwin"* ]]; then
     source "$DOTFILES_DIR/scripts/resources/macos.sh"
     install_macos
@@ -54,6 +52,10 @@ install() {
     echo_with_color "$RED" "This script supports macOS (Homebrew) or Debian/Ubuntu (apt). Please install the required things manually"
     exit 1
   fi
+
+  # Install common tools
+  source "$DOTFILES_DIR/scripts/resources/common.sh"
+  install_common
 
   stow_dotfiles
 
@@ -73,7 +75,7 @@ install() {
 
   fc-cache -f -v >/dev/null 2>&1
 
-  chsh -s "$(which zsh)"
+  sudo chsh -s "$(which zsh)" "$(whoami)"
 
   echo_with_color "$GREEN" "Setup complete! Restart your terminal to apply changes."
 }
@@ -97,7 +99,7 @@ unstow_dotfiles() {
 
 # Clean up broken symlinks in the home directory
 clean_symlinks() {
-  echo_with_color "$YELLOW" "Cleaning up broken symlinks"
+  echo_with_color "$YELLOW" "Cleaning up broken dotfile symlinks"
   {
     find "$HOME" -maxdepth 1 -type l ! -exec test -e {} \; -delete -print
     find "$HOME/.config" "$HOME/.local/bin" -type l ! -exec test -e {} \; -delete -print
