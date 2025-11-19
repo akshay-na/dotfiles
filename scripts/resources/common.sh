@@ -45,7 +45,7 @@ install_common() {
 
   if ! command -v mise >/dev/null 2>&1; then
     echo_with_color "$YELLOW" "Mise not found. Installing..."
-    curl https://mise.run | bash
+    curl https://mise.run | sh
   fi
 
   # CLI and utilities (common to both macOS and Linux)
@@ -57,6 +57,7 @@ install_common() {
     btop
     coreutils
     curl
+    duf
     eza
     fontconfig
     fzf
@@ -64,6 +65,7 @@ install_common() {
     git
     gnupg
     gpg
+    jesseduffield/lazydocker/lazydocker
     jq
     kha7iq/tap/pingme
     lsof
@@ -91,6 +93,58 @@ install_common() {
       brew install "$pkg" || echo "Failed to install: $pkg (continuing...)"
     fi
   done
+
+  if ! command -v bws >/dev/null 2>&1; then
+    echo_with_color "$YELLOW" "Installing Bitwarden Secrets Manager CLI (bws)..."
+
+    OS_NAME="$(uname -s)"
+    ARCH_NAME="$(uname -m)"
+    BWS_URL=""
+
+    case "$OS_NAME" in
+    Darwin)
+      if [ "$ARCH_NAME" = "arm64" ]; then
+        BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-aarch64-apple-darwin-1.0.0.zip"
+      else
+        BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-macos-universal-1.0.0.zip"
+      fi
+      ;;
+    Linux)
+      BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip"
+      ;;
+    esac
+
+    if [ -z "$BWS_URL" ]; then
+      echo_with_color "$YELLOW" "Skipping bws install: unsupported platform ($OS_NAME/$ARCH_NAME)."
+    else
+      TMP_DIR="$(mktemp -d)"
+      BWS_ZIP="$TMP_DIR/bws.zip"
+
+      if curl -fsSL "$BWS_URL" -o "$BWS_ZIP"; then
+        if unzip -o "$BWS_ZIP" -d "$TMP_DIR" >/dev/null; then
+          INSTALL_DIR="$HOME/.local/bin"
+          mkdir -p "$INSTALL_DIR"
+
+          BWS_BINARY="$(find "$TMP_DIR" -type f -name bws | head -n1)"
+          if [ -n "$BWS_BINARY" ]; then
+            chmod +x "$BWS_BINARY"
+            mv "$BWS_BINARY" "$INSTALL_DIR/bws"
+            echo_with_color "$GREEN" "bws installed to $INSTALL_DIR/bws"
+          else
+            echo_with_color "$YELLOW" "bws binary not found after extraction."
+          fi
+        else
+          echo_with_color "$YELLOW" "Failed to unzip bws archive."
+        fi
+      else
+        echo_with_color "$YELLOW" "Failed to download bws from $BWS_URL."
+      fi
+
+      rm -rf "$TMP_DIR"
+    fi
+  else
+    echo "Already available: bws"
+  fi
 
   echo_with_color "$GREEN" "Common Homebrew package installation complete!"
 }

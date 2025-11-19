@@ -19,6 +19,7 @@ alias stowall="cd$HOME/dotfiles && stow *"
 alias unstow="stow -D"
 alias stowls="stow --no -v"
 alias vsc="$EDITOR ." # Open current dir in $EDITOR
+alias reset-ssh-agent="rm -rf ~/.ssh/known_hosts ~/.gnupg/sshcontrol && find ~/.ssh/sockets/ -mindepth 1 ! -name '.gitkeep' -delete"
 
 # Enhanced directory navigation
 alias ..='cd ..'
