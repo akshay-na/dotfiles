@@ -107,7 +107,7 @@ if [[ -o interactive ]]; then
   # ---------------------------------------------------------------
   # Load autosuggestions immediately for instant availability
   zinit light-mode for \
-    zsh-users/zsh-autosuggestions
+    zsh-users/zsh-autosuggestions OMZP::starship
 
   # Load other essential plugins asynchronously for performance
   zinit wait lucid light-mode for \
@@ -117,34 +117,50 @@ if [[ -o interactive ]]; then
     MichaelAquilina/zsh-you-should-use \
     sunlei/zsh-ssh \
     hlissner/zsh-autopair \
+    ianthehenry/zsh-autoquoter \
     lukechilds/zsh-better-npm-completion
 
   # Load syntax highlighting last to avoid conflicts
   zinit wait lucid light-mode for \
-    zdharma-continuum/fast-syntax-highlighting
-
-  # Load Oh My Zsh plugin snippets with optimized settingsu
-  zinit wait lucid light-mode for \
-    OMZP::git \
-    OMZP::kubectl \
-    OMZP::podman \
-    OMZP::npm \
-    OMZP::nvm \
-    OMZP::terraform \
-    OMZP::vscode \
-    OMZP::sudo \
-    OMZP::jsontools \
-    OMZP::archlinux \
-    OMZP::brew \
-    OMZP::kubectx \
+    zdharma-continuum/fast-syntax-highlighting \
     OMZP::command-not-found
+
+  # Load Oh My Zsh plugin snippets only when their corresponding commands exist
+  typeset -a _zn_omzp_plugins=(
+    "apt GeoLMg/apt-zsh-plugin"
+    "brew OMZP::brew"
+    "code OMZP::vscode"
+    "git OMZP::git"
+    "jq OMZP::jsontools"
+    "kubectl OMZP::kubectl"
+    "kubectx OMZP::kubectx"
+    "mise OMZP::mise"
+    "npm OMZP::npm"
+    "nvm OMZP::nvm"
+    "pacman OMZP::archlinux"
+    "podman OMZP::podman"
+    "sudo OMZP::sudo"
+    "terraform OMZP::terraform"
+    "tmux OMZP::tmux"
+    "yarn OMZP::yarn"
+    "zoxide OMZP::zoxide"
+  )
+
+  for _zn_entry in "${_zn_omzp_plugins[@]}"; do
+    plugin_cmd="${_zn_entry%% *}"
+    plugin_snippet="${_zn_entry#* }"
+    if command -v "$plugin_cmd" >/dev/null 2>&1; then
+      zinit wait lucid light-mode for "$plugin_snippet"
+    fi
+  done
+
+  unset _zn_entry _zn_omzp_plugins plugin_cmd plugin_snippet
 
   # Replay Zinit's plugin history after the first prompt
   _zn_zinit_replay_once() {
     add-zsh-hook -d precmd _zn_zinit_replay_once
     (
       zinit cdreplay -q &
-      disown
     )
   }
   add-zsh-hook -Uz precmd _zn_zinit_replay_once
@@ -216,25 +232,6 @@ if [[ -o interactive ]]; then
   # ---------------------------------------------------------------
   # Source zstyle configurations from separate file
   [ -f $HOME/.zstyles ] && source $HOME/.zstyles
-
-  # ---------------------------------------------------------------
-  # Interactive Tool Initializations
-  # ---------------------------------------------------------------
-
-  # mise for managing multiple runtime versions
-  if command -v mise >/dev/null; then
-    eval "$(mise activate zsh)"
-  fi
-
-  # Starship prompt (interactive only)
-  if command -v starship >/dev/null; then
-    eval "$(starship init zsh)"
-  fi
-
-  # Zoxide for quick directory jumping (interactive only)
-  if command -v zoxide >/dev/null; then
-    eval "$(zoxide init zsh)"
-  fi
 
   # Set WORDCHARS to treat certain punctuation as part of words
   WORDCHARS=".~&!#$%^[](){}<>"
