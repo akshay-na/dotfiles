@@ -33,6 +33,7 @@ alias psa='ps aux'
 alias psg='ps aux | grep'
 alias psmem='ps aux | sort -nr -k 4 | head -10'
 alias pscpu='ps aux | sort -nr -k 3 | head -10'
+alias lzd="lazydocker"
 
 # ------------------------------------------------------------------------------
 # Aliases for Convenient Usage (Optional)

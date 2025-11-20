@@ -1,0 +1,136 @@
+# ============================================================================
+# GENERAL SETTINGS
+# ============================================================================
+updateInterval: 2 # auto-refresh container list every 2 seconds
+determinePull: "prompt" # prompt before pulling images
+autoRefresh: true # automatically refresh views
+
+# ============================================================================
+# GUI CONFIGURATION
+# ============================================================================
+gui:
+  # Scrolling & Navigation
+  scrollHeight: 4
+  scrollPastBottom: true
+  sidePanelWidth: 0.20 # wider for better readability of container/image names
+  wrapMainPanel: true
+
+  # Display Options
+  showTopLabels: true
+  showBottomLine: true
+  returnImmediately: true
+  commandLogSize: 200 # increased for better debugging context
+  language: "en" # UI language
+
+  # Text Formatting & Truncation
+  truncateContainerNames: true # show full container names for better readability
+  truncateImageNames: true # show full image names for better readability
+
+  # Theme Colors (with formatting)
+  theme:
+    activeBorderColor:
+      - green
+      - bold
+    inactiveBorderColor:
+      - red
+      - blue
+    optionsTextColor:
+      - magenta
+    selectedLineBgColor:
+      - black
+      - white
+    selectedRangeBgColor:
+      - blue
+
+# ============================================================================
+# LOGS CONFIGURATION
+# ============================================================================
+logs:
+  timestamps: false # enable for better debugging and log correlation
+  tail: 1000 # increased for more context
+  since: "60m"
+  showAllLogs: false
+  wrap: true # enable wrapping for better readability of long lines
+  follow: true # auto-follow logs for real-time monitoring
+
+# ============================================================================
+# CUSTOM COMMANDS
+# ============================================================================
+customCommands:
+  # Container Commands
+  containers:
+    - name: Prune dangling images
+      command: "docker image prune -f"
+      confirm: true
+
+    - name: Restart with fresh logs
+      command: "docker restart {{ .Container.ID }} && docker logs -f {{ .Container.ID }}"
+      closeAfterRunning: false
+
+    - name: View full logs
+      command: "docker logs --tail=5000 {{ .Container.ID }}"
+      closeAfterRunning: false
+
+  # Service Commands (Docker Compose)
+  services:
+    - name: Rebuild & Restart
+      command: "docker compose build {{ .Service.Name }} && docker compose up -d {{ .Service.Name }}"
+      confirm: true
+      closeAfterRunning: true
+
+    - name: Up all (force recreate)
+      command: "docker compose up -d --force-recreate"
+      confirm: true
+
+    - name: Down all services
+      command: "docker compose down"
+      confirm: true
+
+    - name: Restart service
+      command: "docker compose restart {{ .Service.Name }}"
+      closeAfterRunning: true
+
+    - name: View service logs
+      command: "docker compose logs -f {{ .Service.Name }}"
+      closeAfterRunning: false
+
+  # Volume Commands
+  volumes:
+    - name: Clean unused volumes
+      command: "docker volume prune -f"
+      confirm: true
+
+    - name: Inspect volume
+      command: "docker volume inspect {{ .Volume.Name }} | less"
+      closeAfterRunning: false
+
+  # Image Commands
+  images:
+    - name: Clean all unused images
+      command: "docker system prune -af --volumes"
+      confirm: true
+
+    - name: Inspect image
+      command: "docker image inspect {{ .Image.ID }} | less"
+      closeAfterRunning: false
+
+    - name: Remove image
+      command: "docker rmi {{ .Image.ID }}"
+      confirm: true
+
+  # Network Commands
+  networks:
+    - name: Prune unused networks
+      command: "docker network prune -f"
+      confirm: true
+
+    - name: Inspect network
+      command: "docker network inspect {{ .Network.Name }} | less"
+      closeAfterRunning: false
+
+# ============================================================================
+# STATS CONFIGURATION
+# ============================================================================
+stats:
+  showAll: false
+  maxInterval: 3 # faster refresh for more responsive stats (3s)
