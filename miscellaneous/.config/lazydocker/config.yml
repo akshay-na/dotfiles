@@ -71,6 +71,21 @@ customCommands:
       command: "docker logs --tail=5000 {{ .Container.ID }}"
       closeAfterRunning: false
 
+    - name: View logs with lnav
+      command: "docker logs --timestamps --tail=10000 {{ .Container.ID }} | lnav"
+      closeAfterRunning: false
+      description: "View container logs in lnav for advanced analysis"
+
+    - name: View logs with lnav (all)
+      command: "docker logs --timestamps {{ .Container.ID }} | lnav"
+      closeAfterRunning: false
+      description: "View all container logs in lnav (no tail limit)"
+
+    - name: Export logs to lnav
+      command: "docker logs --timestamps --since 24h {{ .Container.ID }} > /tmp/{{ .Container.Name }}.log && lnav /tmp/{{ .Container.Name }}.log"
+      closeAfterRunning: false
+      description: "Export last 24h logs to file and open in lnav"
+
   # Service Commands (Docker Compose)
   services:
     - name: Rebuild & Restart
@@ -93,6 +108,16 @@ customCommands:
     - name: View service logs
       command: "docker compose logs -f {{ .Service.Name }}"
       closeAfterRunning: false
+
+    - name: View service logs with lnav
+      command: "docker compose logs --timestamps --tail=10000 {{ .Service.Name }} | lnav"
+      closeAfterRunning: false
+      description: "View service logs in lnav for advanced analysis"
+
+    - name: View all services logs with lnav
+      command: "docker compose logs --timestamps --tail=10000 | lnav"
+      closeAfterRunning: false
+      description: "View all services logs combined in lnav"
 
   # Volume Commands
   volumes:
