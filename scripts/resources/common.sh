@@ -68,6 +68,8 @@ install_common() {
     jesseduffield/lazydocker/lazydocker
     jq
     kha7iq/tap/pingme
+    lazydocker
+    lazygit
     lsof
     make
     neofetch
