@@ -70,6 +70,8 @@ install_common() {
     kha7iq/tap/pingme
     lazydocker
     lazygit
+    logrotate
+    lnav
     lsof
     make
     neofetch
@@ -96,6 +98,9 @@ install_common() {
       brew install "$pkg" || echo "Failed to install: $pkg (continuing...)"
     fi
   done
+
+  # Configure logrotate
+  mkdir -p $HOME/logs
 
   if ! command -v bws >/dev/null 2>&1; then
     echo_with_color "$YELLOW" "Installing Bitwarden Secrets Manager CLI (bws)..."

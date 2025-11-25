@@ -1,0 +1,321 @@
+{
+  "$schema": "https://lnav.org/schemas/config-v1.schema.json",
+
+  "ui": {
+    "theme": "solarized-dark",
+    "clock-format": "%H:%M:%S",
+    "dim-text": false,
+    "hide-breadcrumbs": false,
+    "hide-expr": false,
+    "hide-fields": false,
+    "hide-file-size": false,
+    "hide-histogram": false,
+    "hide-lines-covered": false,
+    "hide-location": false,
+    "hide-logs": false,
+    "hide-mark": false,
+    "hide-menu-status": false,
+    "hide-rewrite": false,
+    "hide-search": false,
+    "hide-spectro": false,
+    "hide-status": false,
+    "hide-tabs": false,
+    "hide-time": false,
+    "hide-top-status": false,
+    "hide-user-messages": false,
+    "hide-wrap-indicator": false,
+    "text-wrap": true,
+    "ui-clock": true,
+    "ui-dim-text": false,
+    "ui-default-colors": false,
+    "movement": {
+      "mode": "cursor"
+    }
+  },
+
+  "logfile": {
+    "default-time-format": "%Y-%m-%d %H:%M:%S",
+    "default-date-format": "%Y-%m-%d",
+    "timestamp-divisor": 1,
+    "timestamp-format": [
+      "%Y-%m-%d %H:%M:%S",
+      "%Y-%m-%dT%H:%M:%S",
+      "%Y-%m-%dT%H:%M:%S.%f",
+      "%Y-%m-%dT%H:%M:%S%z",
+      "%Y-%m-%dT%H:%M:%S.%f%z",
+      "%d/%b/%Y:%H:%M:%S %z",
+      "%b %d %H:%M:%S",
+      "%Y-%m-%d %H:%M:%S.%f"
+    ]
+  },
+
+  "session": {
+    "enabled": true,
+    "session-file": "~/.lnav/session.json"
+  },
+
+  "global": {
+    "default-command": "log",
+    "default-view": "pretty",
+    "enable-search": true,
+    "enable-word-wrap": true,
+    "hide-extra": false,
+    "hide-user-messages": false,
+    "load-formats": true,
+    "load-sql": true,
+    "min-log-level": "trace",
+    "preview-lines": 3,
+    "read-only": false,
+    "scroll-offset": 5,
+    "text-wrap": true,
+    "ui-clock": true,
+    "ui-dim-text": false
+  },
+
+  "views": {
+    "log": {
+      "enabled": true,
+      "filtering": true,
+      "histogram": true,
+      "spectro": false,
+      "text": true
+    },
+    "text": {
+      "enabled": true,
+      "filtering": true,
+      "histogram": false,
+      "spectro": false,
+      "text": true
+    },
+    "hist": {
+      "enabled": true,
+      "filtering": true,
+      "histogram": true,
+      "spectro": false,
+      "text": false
+    },
+    "db": {
+      "enabled": true,
+      "filtering": false,
+      "histogram": false,
+      "spectro": false,
+      "text": false
+    },
+    "spectro": {
+      "enabled": true,
+      "filtering": true,
+      "histogram": false,
+      "spectro": true,
+      "text": false
+    },
+    "timeline": {
+      "enabled": true,
+      "filtering": true,
+      "histogram": false,
+      "spectro": false,
+      "text": false
+    },
+    "pretty": {
+      "enabled": true,
+      "filtering": true,
+      "histogram": false,
+      "spectro": false,
+      "text": true
+    }
+  },
+
+  "formats": {
+    "generic_log": {
+      "title": "Generic Log Format",
+      "description": "A generic log format for unstructured logs",
+      "url": "https://docs.lnav.org/en/v0.12.4/formats.html#generic-log",
+      "regex": {
+        "std": {
+          "pattern": "^(?<timestamp>\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:[+-]\\d{2}:\\d{2}|Z)?)\\s+(?<level>\\w+)\\s+(?<body>.*)$",
+          "timestamp-field": "timestamp",
+          "timestamp-format": [
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S.%f",
+            "%Y-%m-%dT%H:%M:%S%z",
+            "%Y-%m-%dT%H:%M:%S.%f%z"
+          ],
+          "level-field": "level",
+          "body-field": "body"
+        }
+      },
+      "level": {
+        "error": "\\berror\\b|\\bfatal\\b|\\bpanic\\b|\\bexception\\b",
+        "warning": "\\bwarn\\b|\\bwarning\\b|\\bwarned\\b",
+        "info": "\\binfo\\b|\\binformation\\b",
+        "debug": "\\bdebug\\b|\\bdebugging\\b",
+        "trace": "\\btrace\\b|\\btracing\\b"
+      },
+      "value": {
+        "kind": "string",
+        "identifier": true
+      }
+    }
+  },
+
+  "highlights": [
+    {
+      "pattern": "\\b(?:error|fatal|panic|exception|critical)\\b",
+      "color": "red",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:warn|warning|warned)\\b",
+      "color": "yellow",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:info|information)\\b",
+      "color": "green",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:debug|debugging)\\b",
+      "color": "cyan",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:trace|tracing)\\b",
+      "color": "blue",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\\s+[^\\s]+",
+      "color": "magenta",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b",
+      "color": "bright_blue",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\\b",
+      "color": "bright_blue",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\\b",
+      "color": "bright_magenta",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:2\\d{2}|3\\d{2}|4\\d{2}|5\\d{2})\\b",
+      "color": "bright_green",
+      "background": "transparent"
+    },
+    {
+      "pattern": "\\b(?:4\\d{2}|5\\d{2})\\b",
+      "color": "bright_red",
+      "background": "transparent"
+    }
+  ],
+
+  "filters": {
+    "errors": {
+      "enabled": false,
+      "pattern": "\\b(?:error|fatal|panic|exception|critical)\\b",
+      "description": "Show only error-level messages"
+    },
+    "warnings": {
+      "enabled": false,
+      "pattern": "\\b(?:warn|warning|warned)\\b",
+      "description": "Show only warning-level messages"
+    },
+    "http-errors": {
+      "enabled": false,
+      "pattern": "\\b(?:4\\d{2}|5\\d{2})\\b",
+      "description": "Show only HTTP error status codes"
+    }
+  },
+
+  "commands": {
+    "goto-next-error": {
+      "command": "/error",
+      "description": "Jump to next error in logs"
+    },
+    "goto-prev-error": {
+      "command": "?error",
+      "description": "Jump to previous error in logs"
+    },
+    "goto-next-warning": {
+      "command": "/warn",
+      "description": "Jump to next warning in logs"
+    },
+    "goto-prev-warning": {
+      "command": "?warn",
+      "description": "Jump to previous warning in logs"
+    },
+    "nodejs-level-summary": {
+      "command": ":sql SELECT coalesce(NULLIF(log_path,''), log_format) AS source, lower(log_level) AS level, COUNT(*) AS entries, MAX(log_time) AS last_seen FROM logline WHERE log_format LIKE '%bunyan%' OR (log_path != '' AND lower(log_path) LIKE '%.js%') OR instr(lower(log_text), 'node') > 0 GROUP BY source, level ORDER BY entries DESC LIMIT 25;",
+      "description": "Node.js (bunyan/winston) log volume by level and source"
+    },
+    "python-traceback-summary": {
+      "command": ":sql SELECT coalesce(NULLIF(log_path,''), 'python') AS module, SUM(CASE WHEN instr(lower(log_text), 'traceback') > 0 THEN 1 ELSE 0 END) AS traceback_lines, SUM(CASE WHEN lower(log_level) IN ('error','critical','fatal') THEN 1 ELSE 0 END) AS errors, MAX(log_time) AS last_error FROM logline WHERE log_format LIKE '%python%' OR (log_path != '' AND lower(log_path) LIKE '%.py%') GROUP BY module HAVING traceback_lines > 0 OR errors > 0 ORDER BY last_error DESC LIMIT 25;",
+      "description": "Python modules with recent tracebacks or high error volume"
+    },
+    "java-exception-heatmap": {
+      "command": ":sql SELECT CASE WHEN instr(log_text, 'Exception') > 0 THEN substr(log_text, instr(log_text, 'Exception')) ELSE log_text END AS exception_line, COUNT(*) AS hits, MAX(log_time) AS last_seen FROM logline WHERE log_format LIKE '%log4%' OR log_format LIKE '%java%' OR instr(log_text, 'Exception') > 0 GROUP BY exception_line ORDER BY hits DESC LIMIT 25;",
+      "description": "Top recurring Java exceptions with frequency and last seen time"
+    },
+    "clojure-namespace-levels": {
+      "command": ":sql SELECT coalesce(NULLIF(log_path,''), 'clojure') AS namespace, lower(log_level) AS level, COUNT(*) AS entries, MAX(log_time) AS last_seen FROM logline WHERE log_format LIKE '%timbre%' OR (log_path != '' AND lower(log_path) LIKE '%.clj%') OR instr(lower(log_text), 'clojure') > 0 GROUP BY namespace, level ORDER BY entries DESC LIMIT 25;",
+      "description": "Clojure/Timbre namespaces sorted by log level volume"
+    }
+  },
+
+  "aliases": {
+    "e": "error",
+    "w": "warn",
+    "i": "info",
+    "d": "debug",
+    "t": "trace",
+    "err": "error",
+    "wrn": "warn",
+    "inf": "info",
+    "dbg": "debug",
+    "trc": "trace"
+  },
+
+  "tuning": {
+    "ui": {
+      "clock-format": "%H:%M:%S",
+      "dim-text": false,
+      "hide-breadcrumbs": false,
+      "hide-expr": false,
+      "hide-fields": false,
+      "hide-file-size": false,
+      "hide-histogram": false,
+      "hide-lines-covered": false,
+      "hide-location": false,
+      "hide-logs": false,
+      "hide-mark": false,
+      "hide-menu-status": false,
+      "hide-rewrite": false,
+      "hide-search": false,
+      "hide-spectro": false,
+      "hide-status": false,
+      "hide-tabs": false,
+      "hide-time": false,
+      "hide-top-status": false,
+      "hide-user-messages": false,
+      "hide-wrap-indicator": false,
+      "text-wrap": true,
+      "ui-clock": true,
+      "ui-dim-text": false,
+      "ui-default-colors": false
+    },
+    "log": {
+      "min-log-level": "trace",
+      "preview-lines": 3,
+      "read-only": false,
+      "scroll-offset": 5,
+      "text-wrap": true
+    }
+  }
+}
