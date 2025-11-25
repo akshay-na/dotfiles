@@ -78,6 +78,7 @@ install_common() {
     starship
     stow
     tmux
+    topgrade
     tree
     unzip
     wget
