@@ -59,6 +59,7 @@ install_common() {
     curl
     duf
     eza
+    figlet
     fontconfig
     fzf
     gcc
@@ -71,6 +72,7 @@ install_common() {
     lazydocker
     lazygit
     logrotate
+    lolcat
     lnav
     lsof
     make
