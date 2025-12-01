@@ -1,6 +1,0 @@
-hosts:
-  ".*":                       # for all hosts
-    +s: zsh                   # use Zsh shell
-    +I:                       # install xxh packages (if not installed)
-      - xxh-shell-zsh         # install portable Zsh
-      - xxh-plugin-prerun-core
