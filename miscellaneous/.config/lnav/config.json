@@ -28,6 +28,7 @@
     "ui-clock": true,
     "ui-dim-text": false,
     "ui-default-colors": false,
+    "mouse": "true",
     "movement": {
       "mode": "cursor"
     }
