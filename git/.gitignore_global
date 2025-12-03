@@ -82,6 +82,12 @@ xcuserdata/
 # Programming Languages
 # -----------------------
 
+# Clojure
+.cpcache/
+.clj-kondo/
+.shadow-cljs/
+.lsp/
+
 # Python
 __pycache__/
 *.py[cod]
