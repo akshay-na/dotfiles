@@ -2,98 +2,41 @@
 # GENERAL SETTINGS
 # ============================================================================
 [misc]
-skip_notify               = false
-display_stats             = true
-show_performance_warnings = true
-cleanup                   = true
+skip_notify     = true
+cleanup         = true
+assume_yes      = true
+no_retry        = true
+disable         = ["flatpak", "snap", "containers", "yarn", "pnpm", "pipx"]
+ignore_failures = []
+
 
 # ============================================================================
 # GIT CONFIGURATION
 # ============================================================================
 [git]
-repos  = ["~/projects", "~/dotfiles", "~/workspace"]
-pull   = true
-fetch  = true
-rebase = true                                         # Set to true if you prefer rebase over merge
+repos           = ["~/projects/**/*", "~/dotfiles", "~/workspace/**/*"]
+max_concurrency = 5
+fetch_only      = false
 
 # ============================================================================
-# PACKAGE MANAGERS - macOS
+# BREW CONFIGURATION
 # ============================================================================
 [brew]
-upgrade = true
-cleanup = true
-prune   = true # Remove old versions
-
-# ============================================================================
-# PACKAGE MANAGERS - Linux
-# ============================================================================
-[linux]
-auto_restart = false # Don't restart services automatically
-dist_upgrade = true
-
-[apt]
-upgrade      = true
-dist_upgrade = true
-autoremove   = true
-autoclean    = true
+autoremove = true
 
 # ============================================================================
 # DEVELOPMENT TOOLS & RUNTIMES
 # ============================================================================
 # Mise (runtime version manager)
 [mise]
-upgrade = true
-
-# ============================================================================
-# CONTAINER TOOLS
-# ============================================================================
-[podman]
-upgrade = true
-prune   = true # Clean up unused containers/images
-
-[docker]
-upgrade = true
-prune   = true
+interactive = false
 
 # ============================================================================
 # CUSTOM COMMANDS FOR PRODUCTIVITY
 # ============================================================================
 # Pre-update: Clean caches and temporary files
-[[commands]]
-name    = "Clean caches"
-command = "rm -rf ~/.cache/*/cache/* 2>/dev/null || true"
-stage   = "pre"
-
-# Post-update: Update development tool databases
-[[commands]]
-name         = "Update mise plugins"
-command      = "mise plugins update"
-stage        = "post"
-ignore_error = true
-
-# Post-update: Rebuild font cache
-[[commands]]
-name         = "Rebuild font cache"
-command      = "fc-cache -f -v"
-stage        = "post"
-ignore_error = true
-
-# Post-update: Update shell completions
-[[commands]]
-name         = "Update shell completions"
-command      = "zinit self-update 2>/dev/null || true"
-stage        = "post"
-ignore_error = true
-
-# ============================================================================
-# PERFORMANCE OPTIMIZATIONS
-# ============================================================================
-# Skip steps you don't use to speed up updates
-# Uncomment and add tools you don't use:
-# disable = ["flatpak", "snap", "docker"]
-
-# Set timeouts for long-running commands (in seconds)
-# timeout = 300
+[commands]
+"Clean caches" = "rm -rf ~/.cache/*/cache/* 2>/dev/null || true"
 
 # ============================================================================
 # NOTIFICATIONS & DISPLAY
