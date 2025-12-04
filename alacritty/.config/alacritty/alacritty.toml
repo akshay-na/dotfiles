@@ -47,10 +47,6 @@ hide_when_typing = true
 # Enhanced keyboard bindings
 [keyboard]
 bindings = [
-  # Copy/Paste
-  { key = "V", mods = "Control|Shift", action = "Paste" },
-  { key = "C", mods = "Control|Shift", action = "Copy" },
-
   # Font size adjustments
   { key = "Equals", mods = "Control", action = "IncreaseFontSize" },
   { key = "Minus", mods = "Control", action = "DecreaseFontSize" },
@@ -59,16 +55,6 @@ bindings = [
   # Window management
   { key = "F11", action = "ToggleFullscreen" },
   { key = "F12", action = "SpawnNewInstance" },
-
-  # Tab navigation (if using tmux or similar)
-  { key = "Tab", mods = "Control", chars = "\\x1b[27;5;9~" },
-  { key = "Tab", mods = "Control|Shift", chars = "\\x1b[27;6;9~" },
-
-  # Search functionality
-  { key = "F", mods = "Control", action = "SearchForward" },
-  { key = "F", mods = "Control|Shift", action = "SearchBackward" },
-  { key = "G", mods = "Control", action = "SearchNext" },
-  { key = "G", mods = "Control|Shift", action = "SearchPrevious" },
 
   # Clear screen
   { key = "L", mods = "Control", action = "ClearLogNotice" },

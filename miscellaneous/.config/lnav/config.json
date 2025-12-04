@@ -69,6 +69,7 @@
     "scroll-offset": 5,
     "text-wrap": true,
     "ui-clock": true,
+    "mouse": true,
     "ui-dim-text": false
   },
 
@@ -308,7 +309,8 @@
       "text-wrap": true,
       "ui-clock": true,
       "ui-dim-text": false,
-      "ui-default-colors": false
+      "ui-default-colors": false,
+      "mouse": true
     },
     "log": {
       "min-log-level": "trace",
