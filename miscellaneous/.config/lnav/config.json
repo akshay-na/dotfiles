@@ -2,7 +2,7 @@
   "$schema": "https://lnav.org/schemas/config-v1.schema.json",
 
   "ui": {
-    "theme": "solarized-dark",
+    "theme": "dracula",
     "clock-format": "%H:%M:%S",
     "dim-text": false,
     "hide-breadcrumbs": false,
@@ -27,8 +27,7 @@
     "text-wrap": true,
     "ui-clock": true,
     "ui-dim-text": false,
-    "ui-default-colors": false,
-    "mouse": "true",
+    "mouse": true,
     "movement": {
       "mode": "cursor"
     }
