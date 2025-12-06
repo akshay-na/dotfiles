@@ -43,6 +43,10 @@ zstyle ':completion:*:descriptions' format '[%d]'
 # ---------------------------------------------------------------
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
+# Handle missing completion functions gracefully
+zstyle ':completion:*' use-compctl false
+zstyle ':completion:*' completer _complete _match _approximate _ignored _files
+
 # ---------------------------------------------------------------
 # Enhanced Completion Behaviors
 # ---------------------------------------------------------------
