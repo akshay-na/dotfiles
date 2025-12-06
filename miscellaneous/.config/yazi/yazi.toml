@@ -1,0 +1,82 @@
+# Yazi Configuration - Your Terminal Home
+# A comprehensive configuration for a powerful terminal file manager experience
+
+[mgr]
+ratio = [1, 4, 3]                    # Left sidebar, main view, preview pane ratios
+sort_by = "alphabetical"             # Default sorting: alphabetical, modified, created, extension, size, natural
+sort_sensitive = false                # Case-insensitive sorting
+sort_reverse = false                  # Normal order (ascending)
+sort_dir_first = true                 # Directories first
+sort_translit = false                 # Don't transliterate for sorting
+linemode = "none"                     # Line mode: none, size, mtime, none
+show_hidden = true                   # Don't show hidden files by default
+show_symlink = false                   # Show symlink targets
+scrolloff = 5                         # Lines to keep visible above/below cursor
+mouse_enabled = true                  # Enable mouse support
+title_format = "[{directory}]"        # Window title format
+notify_max = 5                        # Maximum number of notifications
+
+[preview]
+tab_size = 2                          # Tab width for preview
+max_width = 600                       # Maximum preview width
+max_height = 900                      # Maximum preview height
+ueberzug_scale = 1                    # Image scaling factor
+sixel_fraction = 30                   # Sixel image size fraction
+image_filter = "triangle"             # Image scaling filter: nearest, triangle, catmull-rom, lanczos3
+image_quality = 75                    # JPEG quality (1-100)
+image_alloc = 268435456           # 256MB
+mime_alloc  = 67108864            # 64MB
+
+[opener]
+edit = [
+	{ run = '${EDITOR:-nano} "$@"', desc = "Edit with $EDITOR", block = true, orphan = false },
+]
+reveal = [
+	{ run = 'open "$@"', desc = "Reveal in Finder", for = "macos" },
+]
+play = [
+	{ run = 'mpv "$@"', desc = "Play with mpv", for = "unix", block = true },
+	{ run = 'open "$@"', desc = "Play with default", for = "macos" },
+]
+open = [
+	{ run = 'xdg-open "$@"', desc = "Open", for = "unix" },
+	{ run = 'open "$@"', desc = "Open", for = "macos" },
+]
+trash = [
+	{ run = 'trash-put "$@"', desc = "Move to trash", for = "unix" },
+]
+
+[tasks]
+micro_workers = 50                    # Number of micro task workers
+macro_workers = 10                    # Number of macro task workers
+bizarre_retry = 5                     # Retry count for bizarre operations
+image_alloc = 536870912               # Image allocation size (512MB)
+mime_alloc = 134217728                # MIME allocation size (128MB)
+
+[plugin]
+prepend_previewers = [
+	{ name = "*.pdf", run = "pdftoppm -jpeg -singlefile \"$1\" \"$cache\"" },
+	{ name = "*.epub", run = "epub-thumbnailer \"$1\" \"$cache\"" },
+	{ name = "*.7z", run = "7zz l \"$1\" 2>/dev/null" },
+	{ name = "*.zip", run = "unzip -l \"$1\" 2>/dev/null" },
+	{ name = "*.tar", run = "tar -tf \"$1\" 2>/dev/null" },
+	{ name = "*.tar.gz", run = "tar -tzf \"$1\" 2>/dev/null" },
+	{ name = "*.tar.bz2", run = "tar -tjf \"$1\" 2>/dev/null" },
+	{ name = "*.tar.xz", run = "tar -tJf \"$1\" 2>/dev/null" },
+	{ name = "*.rar", run = "unrar l \"$1\" 2>/dev/null" },
+	{ name = "*.json", run = "jq -C . \"$1\"" },
+	{ name = "*.yml",  run = "yq -C . \"$1\"" },
+	{ name = "*.yaml", run = "yq -C . \"$1\"" },
+	{ name = "*.md", run = "glow -s dark \"$1\"" },
+	{ name = "*.db", run = "sqlite3 \"$1\" '.tables'" },
+	{ name = "*.diff",  run = "delta \"$1\"" },
+	{ name = "*.patch", run = "delta \"$1\"" },
+]
+
+[theme]
+blink_underline = true                # Blink underline for cursor
+block_cursor = false                  # Use block cursor instead of underline
+
+[log]
+level = "warn"                        # Log level: trace, debug, info, warn, error
+target = "~/.local/share/yazi/yazi.log"  # Log file location
