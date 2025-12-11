@@ -29,6 +29,7 @@ install_macos() {
     dbgate
     discord
     drawio
+    elasticvue
     espanso
     font-caskaydia-cove-nerd-font
     font-caskaydia-mono-nerd-font
@@ -39,6 +40,7 @@ install_macos() {
     obsidian
     postman
     spotify
+    switchhosts
   )
 
   for pkg in "${BREW_PACKAGES[@]}"; do
