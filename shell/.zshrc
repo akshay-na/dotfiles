@@ -248,7 +248,7 @@ if [[ -o interactive ]]; then
   if [ -z "$TMUX" ] && [ -z "$TMUX_AUTOSTART" ] && command -v tmux >/dev/null; then
     _zn_auto_tmux_attach() {
       export TMUX_AUTOSTART=true
-      tmux attach 2>/dev/null || tmux new -s default
+      tmux attach -t default 2>/dev/null || tmux new -s default
       unset TMUX_AUTOSTART
       add-zsh-hook -d precmd _zn_auto_tmux_attach
     }
