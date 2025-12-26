@@ -35,7 +35,7 @@ if [[ -n "$ZSH_DEBUGRC" ]]; then
 fi
 
 # Initialize and run compinit quietly in the background
-mkdir -p $HOME/.zsh/cache
+mkdir -p $HOME/.zsh/cache $HOME/logs
 autoload -Uz compinit bashcompinit add-zsh-hook
 bashcompinit
 
@@ -53,7 +53,7 @@ if [[ ! -s $_zn_compdump || ! -f $_zn_compdump_stamp ]]; then
 else
   _zn_last_run=$(<"$_zn_compdump_stamp")
   [[ -n $_zn_last_run ]] || _zn_last_run=0
-  compinit -u -C -d "$_zn_compdump"
+  compinit -u -d "$_zn_compdump"
   if ((_zn_now - _zn_last_run > _zn_compdump_max_age)); then
     (
       _zn_new_dump="${_zn_compdump}.new"
@@ -163,6 +163,7 @@ if [[ -o interactive ]]; then
       zinit cdreplay -q &
     )
   }
+
   add-zsh-hook -Uz precmd _zn_zinit_replay_once
 
   # ---------------------------------------------------------------
