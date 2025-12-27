@@ -63,6 +63,7 @@ install_common() {
     fontconfig
     fzf
     gcc
+    git-delta
     git
     gnupg
     gpg
