@@ -64,9 +64,28 @@
   autocrlf            = input # Don't convert line endings when checking out files
   eol                 = lf    # Normalize line endings to LF (Unix style)
   whitespace          = trailing-space,space-before-tab # Ignore whitespace changes
+  pager               = delta # Use delta as the default pager
 
 [credential]
   helper = cache --timeout = 3600  # Cache credentials for 1 hour
+
+[delta]
+  navigate = true                    # Use 'n' and 'N' to move between diff sections
+  dark = true                       # Enable dark mode (or light = true, or omit for auto-detection)
+  line-numbers = true                # Show line numbers in diffs
+  side-by-side = true              # Set to true for side-by-side view (can be toggled with --side-by-side flag)
+  max-line-distance = 0.6           # Threshold for detecting moved lines (0.0-1.0)
+  whitespace-error-style = 22 reverse # Highlight whitespace errors
+  file-decoration-style = yellow # Style for file path headers
+  file-style = yellow ul        # Style for file path text
+  hunk-header-style = syntax    # Style for hunk headers (@@ ... @@)
+  hunk-header-decoration-style = "blue box" # Decoration for hunk headers
+  zero-style = syntax               # Style for unchanged lines
+  keep-plus-minus-markers = false    # Remove +/- markers (delta adds its own)
+  hyperlinks = true                  # Make file paths clickable (if terminal supports it)
+  hyperlinks-file-link-format = "{path}:{line}" # Format for file hyperlinks
+  paging = always                    # Always use pager (auto, always, or never)
+  diff-so-fancy = false              # Use diff-so-fancy style (legacy compatibility)
 
 [diff]
   algorithm           = histogram  # Use the histogram algorithm for more accurate diffs
@@ -112,12 +131,16 @@
 [init]
   defaultBranch = main  # New git repo starts with main branch
 
+[interactive]
+  diffFilter = delta --color-only
+
 [maintenance]
   auto = true                       # Enable automatic background Git maintenance
   strategy = incremental            # Use incremental maintenance (lightweight, non-blocking tasks)
 
 [merge]
   summary = true           # Include a summary of merged commits in the merge commit message
+  conflictStyle = zdiff3  # Use zdiff3 for conflict resolution
 
 [pager]
   diff = true  # Use pager for diff output
