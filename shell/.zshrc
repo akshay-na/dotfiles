@@ -23,6 +23,7 @@ export PROMPT_EOL_MARK=""                          # Configure prompt behavior f
 export YSU_MESSAGE_POSITION="after"                # Example custom env var
 export ZINIT_HOME="${XDG_DATA_HOME:-$HOME}/.zinit" # Zinit home directory
 export SSH_CONFIG_FILE="${HOME}/.ssh/config_local" # SSH config file
+export FUNCNEST=200                                # Increase function nesting limit to prevent recursion errors
 if [[ ! -f "$SSH_CONFIG_FILE" ]]; then
   export SSH_CONFIG_FILE="${HOME}/.ssh/config"
 fi
@@ -112,7 +113,6 @@ if [[ -o interactive ]]; then
   # Load other essential plugins asynchronously for performance
   zinit wait lucid light-mode for \
     zsh-users/zsh-completions \
-    zsh-users/zsh-history-substring-search \
     Aloxaf/fzf-tab \
     MichaelAquilina/zsh-you-should-use \
     sunlei/zsh-ssh \
@@ -120,7 +120,13 @@ if [[ -o interactive ]]; then
     ianthehenry/zsh-autoquoter \
     lukechilds/zsh-better-npm-completion
 
+  # Load history-substring-search before syntax highlighting to avoid conflicts
+  # Set up keybindings after plugin loads to prevent recursion issues
+  zinit wait lucid light-mode atload"bindkey '\e[A' history-substring-search-up; bindkey '\e[B' history-substring-search-down" for \
+    zsh-users/zsh-history-substring-search
+
   # Load syntax highlighting last to avoid conflicts
+  # Must be loaded after history-substring-search is fully initialized
   zinit wait lucid light-mode for \
     zdharma-continuum/fast-syntax-highlighting \
     OMZP::command-not-found
@@ -178,25 +184,23 @@ if [[ -o interactive ]]; then
   autoload -Uz edit-command-line
   zle -N edit-command-line
 
-  bindkey '^Xe' edit-command-line              # Ctrl+X/Cmd+X, e: edit command line in external editor
-  bindkey '^p' history-search-backward         # Ctrl+P/Cmd+P: search history backward
-  bindkey '^n' history-search-forward          # Ctrl+N/Cmd+N: search history forward
-  bindkey "\e[A" history-substring-search-up   # Up Arrow: search history up
-  bindkey "\e[B" history-substring-search-down # Down Arrow: search history down
-  bindkey '^[b' backward-word                  # Alt+B/Cmd+B: move word backward
-  bindkey '^[f' forward-word                   # Alt+F/Cmd+F: move word forward
-  bindkey '^[^[[D' backward-word               # Alt+Left/Cmd+Left: move word backward
-  bindkey '^[^[[C' forward-word                # Alt+Right/Cmd+Right: move word forward
-  bindkey '^[^?' backward-kill-word            # Alt+Backspace/Cmd+Backspace: delete word backward
-  bindkey '^[d' kill-word                      # Alt+D/Cmd+D: delete word forward
-  bindkey '^[w' kill-region                    # Alt+W/Cmd+W: kill region
-  bindkey '^[l' down-case-word                 # Alt+L/Cmd+L: lowercase word
-  bindkey '^[u' up-case-word                   # Alt+U/Cmd+U: uppercase word
-  bindkey '^[c' capitalize-word                # Alt+C/Cmd+C: capitalize word
-  bindkey '^[t' transpose-words                # Alt+T/Cmd+T: transpose words
-  bindkey '^[m' copy-prev-word                 # Alt+M/Cmd+M: copy previous word
-  bindkey '^[[Z' reverse-menu-complete         # Shift+Tab: reverse menu completion
-  bindkey '^[^I' expand-or-complete            # Alt+Tab/Cmd+Tab: expand or complete
+  bindkey '^Xe' edit-command-line      # Ctrl+X/Cmd+X, e: edit command line in external editor
+  bindkey '^p' history-search-backward # Ctrl+P/Cmd+P: search history backward
+  bindkey '^n' history-search-forward  # Ctrl+N/Cmd+N: search history forward
+  bindkey '^[b' backward-word          # Alt+B/Cmd+B: move word backward
+  bindkey '^[f' forward-word           # Alt+F/Cmd+F: move word forward
+  bindkey '^[^[[D' backward-word       # Alt+Left/Cmd+Left: move word backward
+  bindkey '^[^[[C' forward-word        # Alt+Right/Cmd+Right: move word forward
+  bindkey '^[^?' backward-kill-word    # Alt+Backspace/Cmd+Backspace: delete word backward
+  bindkey '^[d' kill-word              # Alt+D/Cmd+D: delete word forward
+  bindkey '^[w' kill-region            # Alt+W/Cmd+W: kill region
+  bindkey '^[l' down-case-word         # Alt+L/Cmd+L: lowercase word
+  bindkey '^[u' up-case-word           # Alt+U/Cmd+U: uppercase word
+  bindkey '^[c' capitalize-word        # Alt+C/Cmd+C: capitalize word
+  bindkey '^[t' transpose-words        # Alt+T/Cmd+T: transpose words
+  bindkey '^[m' copy-prev-word         # Alt+M/Cmd+M: copy previous word
+  bindkey '^[[Z' reverse-menu-complete # Shift+Tab: reverse menu completion
+  bindkey '^[^I' expand-or-complete    # Alt+Tab/Cmd+Tab: expand or complete
 
   # ---------------------------------------------------------------
   # Zsh Options & History Settings (Interactive Only)

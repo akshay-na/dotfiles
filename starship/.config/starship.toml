@@ -4,6 +4,9 @@
 # Inserts a blank line between shell prompts
 add_newline = true
 
+# Command timeout in milliseconds (default: 1000ms)
+command_timeout = 2000
+
 format = """\
 $username${custom.hostname_ssh}${custom.hostname_local}\
 $directory\
