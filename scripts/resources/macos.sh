@@ -35,6 +35,7 @@ install_macos() {
     font-caskaydia-mono-nerd-font
     grammarly-desktop
     google-chrome
+    hammerspoon
     hiddenbar
     logitech-g-hub
     obsidian
