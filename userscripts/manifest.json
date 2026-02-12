@@ -1,0 +1,12 @@
+{
+  "scripts": [
+    {
+      "name": "Tomorrowland Queue Watcher",
+      "url": "https://raw.githubusercontent.com/akshay-na/dotfiles/main/userscripts/scripts/tomorrowland-queue-watcher.user.js"
+    },
+    {
+      "name": "Tomorrowland Auto Enter Shop",
+      "url": "https://raw.githubusercontent.com/akshay-na/dotfiles/main/userscripts/scripts/tomorrowland-autoenter-shop.user.js"
+    }
+  ]
+}
