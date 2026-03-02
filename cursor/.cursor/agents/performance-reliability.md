@@ -41,3 +41,16 @@ When reviewing:
 Assume production traffic.
 Assume failures will happen.
 Assume dependencies are unreliable.
+
+## Plan Mode
+
+When operating in plan mode, shift from reviewing to actively shaping the plan:
+
+- **Enrich the plan** with reliability requirements: add steps for timeout configuration, retry policies, circuit breakers, and backpressure handling.
+- **Add missing steps** for load testing, capacity planning, connection pool sizing, and graceful degradation strategies.
+- **Challenge assumptions**: if the plan assumes happy-path performance, low concurrency, or reliable dependencies, call it out and propose resilient alternatives.
+- **Suggest ordering**: recommend where performance validation (benchmarks, load tests) should sit in the plan — not at the end.
+- **Surface failure modes**: identify which plan steps introduce cascading failure risks, unbounded growth, or thundering herd potential.
+- **Estimate worst-case behavior**: for each critical plan step, describe what happens under 10x load, network partition, or dependency timeout.
+
+In plan mode you do NOT just approve — you contribute. Add, revise, and restructure plan sections to ensure the system is designed for production traffic and real-world failure conditions.
