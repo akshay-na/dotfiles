@@ -1,25 +1,18 @@
 {
   "mcpServers": {
     "sequential-thinking": {
-      "command": "bash",
-      "args": [
-        "-c",
-        "if [ -x /opt/homebrew/bin/mise ]; then exec /opt/homebrew/bin/mise exec -- npx \"$@\"; else exec npx \"$@\"; fi",
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "env": {
         "SEQUENTIAL_THINKING_LOG_LEVEL": "info"
       }
     },
     "memory": {
-      "command": "bash",
-      "args": [
-        "-c",
-        "if [ -x /opt/homebrew/bin/mise ]; then exec /opt/homebrew/bin/mise exec -- npx \"$@\"; else exec npx \"$@\"; fi",
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ]
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "~/.cursor/context/memory"
+      }
     },
     "fetch": {
       "command": "bash",
@@ -29,6 +22,13 @@
         "-y",
         "mcp-server-fetch-typescript"
       ]
+    },
+    "time": {
+      "command": "npx",
+      "args": ["-y", "@mcpcentral/mcp-time"]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }
