@@ -9,4 +9,5 @@
 --ignore='LICENSE'
 --ignore='DotMate.sh'
 --ignore='.stowrc'
+--ignore='agents'
 

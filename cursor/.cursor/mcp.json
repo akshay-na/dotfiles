@@ -1,26 +1,34 @@
 {
   "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {
-        "CONTEXT7_TIMEOUT": "60000"
-      }
-    },
     "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "command": "bash",
+      "args": [
+        "-c",
+        "if [ -x /opt/homebrew/bin/mise ]; then exec /opt/homebrew/bin/mise exec -- npx \"$@\"; else exec npx \"$@\"; fi",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "env": {
         "SEQUENTIAL_THINKING_LOG_LEVEL": "info"
       }
     },
     "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "command": "bash",
+      "args": [
+        "-c",
+        "if [ -x /opt/homebrew/bin/mise ]; then exec /opt/homebrew/bin/mise exec -- npx \"$@\"; else exec npx \"$@\"; fi",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
     },
     "fetch": {
-      "command": "npx",
-      "args": ["-y", "@anthropic/mcp-server-fetch"]
+      "command": "bash",
+      "args": [
+        "-c",
+        "if [ -x /opt/homebrew/bin/mise ]; then exec /opt/homebrew/bin/mise exec -- npx \"$@\"; else exec npx \"$@\"; fi",
+        "-y",
+        "mcp-server-fetch-typescript"
+      ]
     }
   }
 }

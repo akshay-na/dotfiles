@@ -87,6 +87,7 @@ stow_dotfiles() {
     stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
   chmod +x ~/.local/bin/*
+  cp -rf $DOTFILES_DIR/cursor/.cursor/agents $HOME/.cursor/agents
 }
 
 # Remove symlinks created by stow
