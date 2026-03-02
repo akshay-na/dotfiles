@@ -1,5 +1,5 @@
 ---
-name: systems-architect
+name: sys-agent
 model: inherit
 description: Senior systems architect for stress-testing design decisions. Use proactively before implementing architecture changes, when evaluating scaling strategies, reviewing infrastructure proposals, or when design trade-offs need rigorous analysis.
 model: inherit

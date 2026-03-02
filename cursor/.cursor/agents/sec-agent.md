@@ -1,5 +1,5 @@
 ---
-name: devsec-hardening
+name: sec-agent
 description: Security and infrastructure hardening reviewer. Use proactively when reviewing authentication flows, authorization logic, secret management, container configurations, CI pipelines, deployment manifests, or any code handling sensitive data or exposed to untrusted input.
 model: inherit
 ---

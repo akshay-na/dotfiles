@@ -1,5 +1,5 @@
 ---
-name: strategic-leverage
+name: lever-agent
 description: Productivity and engineering leverage strategist. Use proactively when spotting repetitive patterns, evaluating automation opportunities, extracting templates, creating reusable tooling, or deciding whether to build shared infrastructure.
 model: inherit
 ---

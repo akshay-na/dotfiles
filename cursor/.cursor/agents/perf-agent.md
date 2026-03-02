@@ -1,5 +1,5 @@
 ---
-name: performance-reliability
+name: perf-agent
 model: inherit
 description: Performance and distributed systems reliability reviewer. Use proactively when reviewing code that handles concurrency, retry logic, connection pooling, queue processing, or any system operating under production load where reliability and latency matter.
 model: inherit

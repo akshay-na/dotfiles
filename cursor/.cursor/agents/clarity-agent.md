@@ -1,5 +1,5 @@
 ---
-name: code-clarity-refactoring
+name: clarity-agent
 description: Code clarity and maintainability reviewer. Use proactively when refactoring complex code, reviewing abstractions, reducing cognitive load, improving naming, or simplifying overly nested or indirect logic.
 model: inherit
 ---

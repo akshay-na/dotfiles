@@ -1,5 +1,5 @@
 ---
-name: observability-operability
+name: ops-agent
 description: SRE-focused observability and operability reviewer. Use proactively when reviewing logging strategies, metrics instrumentation, health checks, alerting configurations, SLO definitions, or any system where operational visibility and debuggability matter.
 model: inherit
 ---
