@@ -108,7 +108,7 @@ if [[ -o interactive ]]; then
   # ---------------------------------------------------------------
   # Load autosuggestions immediately for instant availability
   zinit light-mode for \
-    zsh-users/zsh-autosuggestions OMZP::starship
+    zsh-users/zsh-autosuggestions OMZP::direnv OMZP::starship
 
   # Load other essential plugins asynchronously for performance
   zinit wait lucid light-mode for \

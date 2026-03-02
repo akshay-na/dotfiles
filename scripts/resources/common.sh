@@ -57,6 +57,7 @@ install_common() {
     btop
     coreutils
     curl
+    direnv
     duf
     eza
     figlet
