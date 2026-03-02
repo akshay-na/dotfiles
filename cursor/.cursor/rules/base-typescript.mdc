@@ -1,11 +1,6 @@
 ---
-description:
-globs: *.ts,*.tsx
-alwaysApply: false
----
----
-description: TypeScript coding guidelines / style - check when working on TypeScript files
-globs: *.ts, *.tsx
+description: "TypeScript coding guidelines and style conventions"
+globs: "**/*.ts,**/*.tsx"
 alwaysApply: false
 ---
 # General

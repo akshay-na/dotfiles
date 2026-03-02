@@ -1,14 +1,7 @@
 ---
-description:
-globs: **/*.clj,"**/*.clj"s
+description: "Clojure coding conventions for naming, threading, collection ops, let usage, tests, and more"
+globs: "**/*.clj,**/*.cljs"
 alwaysApply: false
----
----
-description: Enforces our Clojure coding conventions for naming, threading, collection ops, let usage, tests, and more.
-globs:
-  - "**/*.clj"
-  - "**/*.cljs"
-alwaysApply: true
 ---
 
 # Clojure Coding Conventions

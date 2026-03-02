@@ -14,14 +14,13 @@
         "SEQUENTIAL_THINKING_LOG_LEVEL": "info"
       }
     },
-    "puppeteer": {
+    "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
-      "env": {
-        "PUPPETEER_HEADLESS": "false",
-        "PUPPETEER_SLOWMO": "250",
-        "PUPPETEER_TIMEOUT": "60000"
-      }
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-fetch"]
     }
   }
 }

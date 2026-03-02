@@ -1,11 +1,5 @@
 ---
-description:
-globs:
-alwaysApply: true
----
----
-description: Guidelines for AI Assistants
-globs: "**/*"
+description: "Guidelines for AI Assistants"
 alwaysApply: true
 ---
 

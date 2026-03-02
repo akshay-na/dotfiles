@@ -1,11 +1,5 @@
 ---
-description:
-globs:
-alwaysApply: false
----
----
-description: Git convention
-globs:
+description: "Git commit conventions and version control guidelines"
 alwaysApply: true
 ---
 # Git Commit Conventions
