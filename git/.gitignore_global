@@ -30,6 +30,12 @@ $RECYCLE.BIN/
 .vscode/
 *.code-workspace
 
+# Cursor
+.cursor/
+.cursorignore
+.cursorrules
+.cursorindexingignore
+
 # Sublime Text
 *.sublime-workspace
 *.sublime-project
