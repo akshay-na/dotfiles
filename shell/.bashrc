@@ -55,6 +55,11 @@ if [[ $- == *i* ]]; then
     eval "$(zoxide init bash)"
   fi
 
+  # direnv for managing environment variables
+  if command -v direnv &>/dev/null; then
+    eval "$(direnv hook bash)"
+  fi
+
   # ---------------------------------------------------------------
   # Interactive Shell Switching
   # ---------------------------------------------------------------
