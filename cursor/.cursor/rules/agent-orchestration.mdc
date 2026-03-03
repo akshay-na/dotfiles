@@ -8,11 +8,16 @@ alwaysApply: true
 - **Start with `cto` in plan mode** when a task has multiple steps, non-trivial trade-offs, or touches architecture, security, performance, or observability.
 - **Call `senior-dev` directly** only for genuinely small, localized tasks (single-file fixes, trivial config tweaks) where a full plan would be overkill.
 - **Use `vp-onboarding`** to bootstrap or refresh project-local agents, rules, and skills in a repo's `.cursor/` directory; never modify org-level agents from project agents.
+- **Default modes:** `cto` and other org VPs run in plan mode; `senior-dev` and all project-level `tech-lead`, `dev-*`, `sme-*`, and `qa` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
 
 - **Org vs project responsibilities**
   - Org agents (`cto`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `senior-dev`) own cross-project strategy, plans, and high-level standards.
   - Project agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) own implementation inside a specific repo, following org standards and project rules.
   - Project agents escalate up to org agents via `cto` when decisions affect architecture, security posture, performance budgets, or shared tooling.
+
+- **Call-chain boundaries**
+  - For multi-phase work: the user → `cto` (plan) → project `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
+  - `tech-lead` is the single entrypoint for project execution. The user should avoid invoking `dev-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve.
 
 - **When to escalate to specialists (via `cto`)**
   - `vp-architecture`: new services, significant refactors, data-model or boundary changes, cross-service contracts.
@@ -28,6 +33,10 @@ alwaysApply: true
     - Follow phases in order.
     - Run the specified verification for each phase before claiming it complete.
     - Stop and wait for explicit user approval at every checkpoint before moving to the next phase.
+
+- **User approval semantics**
+  - "Explicit user approval" at a checkpoint means the user uses the approval wording in the plan (for example replying with **"proceed"** as instructed) or an equally clear statement that the next phase may begin.
+  - Silence, unrelated conversation, side questions, or generic praise must **never** be treated as approval to move to the next phase by `senior-dev`, `tech-lead`, `dev-*`, `sme-*`, or `qa` agents.
 
 - **Division of labor during implementation**
   - `cto` and VPs: design the plan and define phases, risks, and verification.
