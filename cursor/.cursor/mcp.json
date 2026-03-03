@@ -4,7 +4,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "env": {
-        "SEQUENTIAL_THINKING_LOG_LEVEL": "info"
+        "SEQUENTIAL_THINKING_LOG_LEVEL": "warn"
       }
     },
     "memory": {
@@ -15,13 +15,8 @@
       }
     },
     "fetch": {
-      "command": "bash",
-      "args": [
-        "-c",
-        "if [ -x /opt/homebrew/bin/mise ]; then exec /opt/homebrew/bin/mise exec -- npx \"$@\"; else exec npx \"$@\"; fi",
-        "-y",
-        "mcp-server-fetch-typescript"
-      ]
+      "command": "npx",
+      "args": ["-y", "mcp-server-fetch-typescript"]
     },
     "time": {
       "command": "npx",
@@ -29,6 +24,15 @@
     },
     "context7": {
       "url": "https://mcp.context7.com/mcp"
+    },
+    "rovo": {
+      "type": "remote",
+      "url": "https://api.atlassian.com/mcp",
+      "auth": {
+        "type": "basic",
+        "username": "${ATLASSIAN_MCP_EMAIL}",
+        "password": "${ATLASSIAN_MCP_API_TOKEN}"
+      }
     }
   }
 }
