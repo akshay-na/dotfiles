@@ -88,7 +88,6 @@ stow_dotfiles() {
   done
   chmod +x ~/.local/bin/*
   cp -rf $DOTFILES_DIR/cursor/.cursor/agents $HOME/.cursor
-  mkdir -p $HOME/.cursor/context
 }
 
 # Remove symlinks created by stow

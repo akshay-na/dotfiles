@@ -17,24 +17,25 @@ Memory is stored in a single MCP knowledge graph at `~/.cursor/context/memory` (
 
 The MCP memory server uses entities, relations, and observations. Our schema maps as follows:
 
-| Our field | Graph representation |
-|-----------|------------------------|
-| namespace | Entity name prefix: `{namespace}.{category}.{id}` |
-| category | Entity type and name segment |
-| summary | Observation: `summary: <text>` |
-| tags | Observation: `tags: tag1,tag2,tag3` |
-| status | Observation: `status: accepted\|experimental\|deprecated\|superseded` |
-| created_at | Observation: `created_at: ISO8601` |
-| rationale | Observation: `rationale: <text>` (optional) |
-| supersedes | Relation: `entity_new --supersedes--> entity_old` |
+| Our field  | Graph representation                                                  |
+| ---------- | --------------------------------------------------------------------- |
+| namespace  | Entity name prefix: `{namespace}.{category}.{id}`                     |
+| category   | Entity type and name segment                                          |
+| summary    | Observation: `summary: <text>`                                        |
+| tags       | Observation: `tags: tag1,tag2,tag3`                                   |
+| status     | Observation: `status: accepted\|experimental\|deprecated\|superseded` |
+| created_at | Observation: `created_at: ISO8601`                                    |
+| rationale  | Observation: `rationale: <text>` (optional)                           |
+| supersedes | Relation: `entity_new --supersedes--> entity_old`                     |
 
-**Entity naming:** `{namespace}.{category}.{short_id}`  
-Examples: `org.global.decision.001`, `project.dotmate.api.constraint.auth`, `session.current.todo.xyz`  
+**Entity naming:** `{namespace}.{category}.{short_id}`
+Examples: `org.global.decision.001`, `project.dotmate.api.constraint.auth`, `session.current.todo.xyz`
 Use a unique short_id (timestamp fragment, uuid prefix, or descriptive slug) to avoid collisions.
 
 **Entity type:** Use the category value (`decision`, `constraint`, `assumption`, `rejected`, `todo`, `risk`, `principle`).
 
 **Observations (array of strings):**
+
 ```
 summary: <1-2 lines, max 300 chars, conclusion only>
 tags: tag1,tag2,tag3
@@ -58,16 +59,17 @@ Optional: `rationale`, `supersedes` (via relation), `confidence`.
 
 ## Namespace Hierarchy
 
-| Namespace | Use for |
-|-----------|---------|
-| `org.global` | Org-wide decisions, principles, constraints that apply across all projects |
-| `org.security` | Security policies, auth patterns, threat mitigations |
-| `project.<name>` | Project-level decisions; `<name>` from git remote or folder |
-| `project.<name>.<domain>` | Domain-scoped (e.g. `api`, `infra`, `security`, `agents`) |
-| `session.current` | Short-lived insights; promote or drop after 2 sessions |
-| `project.junk` | Cross-cutting items that don't fit a specific project |
+| Namespace                 | Use for                                                                    |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `org.global`              | Org-wide decisions, principles, constraints that apply across all projects |
+| `org.security`            | Security policies, auth patterns, threat mitigations                       |
+| `project.<name>`          | Project-level decisions; `<name>` from git remote or folder                |
+| `project.<name>.<domain>` | Domain-scoped (e.g. `api`, `infra`, `security`, `agents`)                  |
+| `session.current`         | Short-lived insights; promote or drop after 2 sessions                     |
+| `project.junk`            | Cross-cutting items that don't fit a specific project                      |
 
 **Project name derivation:**
+
 1. If in a git repo with remote: extract repo name from URL (e.g. `https://github.com/akshay-na/DotMate.git` → `dotmate`). Normalize to lowercase.
 2. If no remote: use repo root folder name, lowercase.
 3. If item doesn't belong anywhere: use `project.junk`.
@@ -81,6 +83,7 @@ When reading memory, agents MUST:
 3. Do NOT call `read_graph`.
 
 **Query construction:** Combine namespace fragment + category + relevant tags. Examples:
+
 - `search_nodes("org.global decision")` — org-level decisions
 - `search_nodes("project.dotmate security")` — dotmate security
 - `search_nodes("org.security auth")` — security auth decisions
@@ -92,22 +95,26 @@ When reading memory, agents MUST:
 **When to write:** After a decision or principle is clearly articulated and likely to matter beyond the current exchange. After identifying a meaningful risk, todo, constraint, or assumption.
 
 **How to write (create_entities):**
+
 ```json
 {
-  "entities": [{
-    "name": "org.global.decision.001",
-    "entityType": "decision",
-    "observations": [
-      "summary: Use Redis for session storage. Rationale: scalability.",
-      "tags: redis,auth",
-      "status: accepted",
-      "created_at: 2024-01-15T12:00:00Z"
-    ]
-  }]
+  "entities": [
+    {
+      "name": "org.global.decision.001",
+      "entityType": "decision",
+      "observations": [
+        "summary: Use Redis for session storage. Rationale: scalability.",
+        "tags: redis,auth",
+        "status: accepted",
+        "created_at: 2024-01-15T12:00:00Z"
+      ]
+    }
+  ]
 }
 ```
 
 **Supersession:** When a decision changes:
+
 1. Create a new entity with the updated content and `status: accepted` (or `experimental`).
 2. Create relation via `create_relations`: `{"from": "new_entity_name", "to": "old_entity_name", "relationType": "supersedes"}`.
 3. When retrieving, treat entities that are the target of a `supersedes` relation as superseded — exclude them from active results unless explicitly reviewing history.
@@ -141,3 +148,26 @@ When reading memory, agents MUST:
 - Memory is curated, not appended.
 - Structure replaces embeddings.
 - Determinism > fuzzy similarity.
+
+## MCP tool schemas (exact arguments)
+
+Use these argument shapes when calling the `memory` / `user-memory` server tools to avoid schema errors:
+
+- `create_entities`:
+  - **arguments**: `{ "entities": [{ "name": string, "entityType": string, "observations": string[] }] }`
+- `add_observations`:
+  - **arguments**: `{ "observations": [{ "entityName": string, "contents": string[] }] }`
+- `create_relations`:
+  - **arguments**: `{ "relations": [{ "from": string, "to": string, "relationType": string }] }`
+- `delete_relations`:
+  - **arguments**: `{ "relations": [{ "from": string, "to": string, "relationType": string }] }`
+- `delete_observations`:
+  - **arguments**: `{ "deletions": [{ "entityName": string, "observations": string[] }] }`
+- `delete_entities`:
+  - **arguments**: `{ "entityNames": string[] }`
+- `search_nodes`:
+  - **arguments**: `{ "query": string }`
+- `open_nodes`:
+  - **arguments**: `{ "names": string[] }`
+- `read_graph` (should still be avoided in normal use):
+  - **arguments**: `{}` (no parameters)

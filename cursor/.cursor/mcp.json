@@ -11,7 +11,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
-        "MEMORY_FILE_PATH": "~/.cursor/context/memory"
+        "MEMORY_FILE_PATH": "${HOME}/.cursor/context-memory.jsonl"
       }
     },
     "fetch": {
