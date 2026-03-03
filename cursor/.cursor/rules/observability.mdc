@@ -1,0 +1,30 @@
+---
+description: "Logging, metrics, health checks, and production readiness expectations"
+globs: "**/*"
+alwaysApply: false
+---
+
+# Observability and operations
+
+- **Logging**
+  - Use structured logging where available, including operation names and key identifiers (but not secrets or PII).
+  - Log at appropriate levels (debug/info/warn/error) consistent with existing project patterns.
+  - Avoid excessive noisy logs in hot paths; focus on events that matter for debugging and operations.
+
+- **Metrics and traces**
+  - For new long-running services or critical paths, consider adding metrics (counters, histograms, gauges) aligned with existing observability tooling.
+  - Add traces or span annotations where they meaningfully improve debugging across service boundaries.
+
+- **Health checks and readiness**
+  - Ensure services expose health/readiness checks consistent with the existing deployment platform (e.g. HTTP endpoints, CLI commands).
+  - When changing dependencies that affect startup or connectivity, review and update health checks as needed.
+
+- **When to involve `sre-lead`**
+  - Designing or changing SLOs, alerting, or on-call expectations.
+  - Introducing new services, queues, or external dependencies that affect reliability.
+  - Significant changes to logging, metrics, or tracing that may impact existing dashboards or alerts.
+
+- **Production readiness**
+  - Before declaring a feature production-ready, ensure there is at least a minimal path to observe its behavior (logs, metrics, or traces).
+  - Avoid shipping changes that meaningfully increase operational risk without updating observability accordingly.
+

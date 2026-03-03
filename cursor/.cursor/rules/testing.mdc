@@ -1,0 +1,32 @@
+---
+description: "Project-wide testing expectations and patterns"
+globs: "**/*"
+alwaysApply: false
+---
+
+# Testing strategy (cross-language)
+
+- **Default expectation**
+  - Every non-trivial code change should come with tests: unit where possible, integration where necessary.
+  - Bug fixes should include regression tests that fail before the fix and pass after.
+
+- **Naming and location (examples, adapt to project)**
+  - TypeScript/JavaScript: keep tests near code or under a `tests` directory using patterns like `*.test.ts`, `*.spec.ts`.
+  - Clojure: use `*_test.clj` under `test` namespaces mirroring `src`.
+  - Other languages: follow existing project patterns before introducing new ones.
+
+- **When adding tests**
+  - Cover happy path, key edge cases, and known historical bugs related to the change.
+  - Prefer small, focused tests over large, multi-assertion scenarios unless the project has clear integration-test patterns.
+
+- **When touching untested code**
+  - If feasible, introduce a small, focused test around the area you are changing.
+  - If adding tests would be disproportionately expensive, at least note the gap explicitly in your summary.
+
+- **Flaky or slow tests**
+  - Do not silently ignore flakiness; call it out and, where possible, mark or isolate flaky tests following existing project conventions.
+  - Avoid adding new flaky patterns (e.g. uncontrolled sleeps, external network calls without mocking).
+
+- **Verification before completion**
+  - Always run the relevant test commands before claiming a task or phase is complete, and report actual output (pass/fail, counts).
+

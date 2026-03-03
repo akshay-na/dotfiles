@@ -1,0 +1,31 @@
+---
+description: "Rules for design docs, implementation plans, and ADR-style decisions"
+alwaysApply: true
+---
+
+# Documentation and decision records
+
+- **Design docs and implementation plans**
+  - Store design docs and implementation plans under `docs/plans/` with date-stamped filenames (e.g. `YYYY-MM-DD-feature-name.md`).
+  - Use plan mode (`cto` + leadership) for multi-step or high-risk work; smaller tasks may use lightweight notes but should still capture key decisions.
+
+- **When a full plan is required**
+  - Significant architectural changes, new services, or large refactors.
+  - Security-sensitive features, performance-critical paths, or major observability changes.
+  - Cross-team or cross-project work that affects multiple codebases.
+
+- **Decision records**
+  - For important architectural or process decisions, record:
+    - The decision and its rationale.
+    - Alternatives considered and why they were rejected.
+    - Implications and follow-up actions.
+  - Link these decisions from memory entries (`org.global` or `project.<name>`) instead of duplicating full text.
+
+- **Keeping docs current**
+  - When a decision changes, append or create a new decision record and link it via supersession from the old one.
+  - Avoid silently drifting away from documented behavior; update docs/plans or record a new decision when the reality changes.
+
+- **Agent expectations**
+  - Org agents ensure major plans and decisions are captured and easy to find.
+  - Project agents reference existing docs before proposing new patterns, and update or extend docs when they introduce meaningful changes.
+

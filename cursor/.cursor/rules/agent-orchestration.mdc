@@ -1,0 +1,40 @@
+---
+description: "How org-level and project-level agents coordinate, escalate, and hand off work"
+alwaysApply: true
+---
+
+# Agent orchestration and escalation
+
+- **Start with `cto` in plan mode** when a task has multiple steps, non-trivial trade-offs, or touches architecture, security, performance, or observability.
+- **Call `senior-dev` directly** only for genuinely small, localized tasks (single-file fixes, trivial config tweaks) where a full plan would be overkill.
+- **Use `vp-onboarding`** to bootstrap or refresh project-local agents, rules, and skills in a repo's `.cursor/` directory; never modify org-level agents from project agents.
+
+- **Org vs project responsibilities**
+  - Org agents (`cto`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `senior-dev`) own cross-project strategy, plans, and high-level standards.
+  - Project agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) own implementation inside a specific repo, following org standards and project rules.
+  - Project agents escalate up to org agents via `cto` when decisions affect architecture, security posture, performance budgets, or shared tooling.
+
+- **When to escalate to specialists (via `cto`)**
+  - `vp-architecture`: new services, significant refactors, data-model or boundary changes, cross-service contracts.
+  - `ciso`: auth flows, secret management, input validation on public endpoints, CI/CD or container security.
+  - `vp-engineering`: concurrency, retries, connection pools, queueing, performance regressions on hot paths.
+  - `sre-lead`: logging, metrics, tracing, health checks, rollout/rollback strategy, SLO/SLA questions.
+  - `staff-engineer`: large refactors, de-tangling complex modules, naming/structure changes with wide impact.
+  - `vp-platform`: repeated patterns that suggest templates, CLIs, generators, or shared libraries.
+
+- **Plan and phase discipline**
+  - In plan mode, `cto` groups work into numbered phases with explicit verification and rollback for each phase.
+  - Implementation agents (usually `senior-dev` or project `tech-lead`/`dev-*`) must:
+    - Follow phases in order.
+    - Run the specified verification for each phase before claiming it complete.
+    - Stop and wait for explicit user approval at every checkpoint before moving to the next phase.
+
+- **Division of labor during implementation**
+  - `cto` and VPs: design the plan and define phases, risks, and verification.
+  - `senior-dev` / project `dev-*`: implement the plan with minimal diffs, matching existing patterns.
+  - `tech-lead`: maps plan phases to project agents, tracks progress, and enforces checkpoints inside the repo.
+  - Specialists (`ciso`, `sre-lead`, etc.): review or extend the plan/implementation only inside their domain.
+
+- **Golden rule**
+  - Every agent respects its scope, escalates instead of guessing outside that scope, and never skips plan checkpoints without explicit user instruction.
+

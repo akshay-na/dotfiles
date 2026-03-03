@@ -1,0 +1,43 @@
+---
+description: "When and how agents should use configured MCP servers (sequential-thinking, memory, fetch, time, context7, rovo)"
+alwaysApply: true
+---
+
+# MCP and external tools usage
+
+- **General principles**
+  - Prefer local reasoning and repo context first; use MCP servers when you need external knowledge, structured memory, or remote APIs.
+  - Never send secrets, tokens, or private credentials to MCP servers.
+  - When in doubt, state which MCP you are using and why.
+
+- **`sequential-thinking`**
+  - Use for: decomposing especially complex, multi-step reasoning tasks where additional structure helps (e.g., long proofs, many-branch trade-off analysis).
+  - Avoid for: simple refactors or straightforward feature work that can be handled in the main agent.
+  - Expectation: summarize its conclusions instead of pasting raw transcripts.
+
+- **`memory`**
+  - Use for: reading and writing long-lived org/project knowledge via the context-memory skill.
+  - Read before write: always query for existing decisions/constraints before adding new ones.
+  - Never store: raw chat logs, secrets, large code dumps, or volatile scratch notes.
+
+- **`fetch`**
+  - Use for: retrieving external HTTP content (docs, APIs, specs) when you need exact wording or examples.
+  - Prefer: official documentation, standards, and well-known sources.
+  - Summarize: extract only the relevant pieces into the conversation; do not paste entire pages unless necessary.
+
+- **`time`**
+  - Use for: getting accurate current timestamps or doing calendar/date calculations when they matter for behavior or logging.
+  - Do not overuse: most logic can use relative time without calling this server.
+
+- **`context7`**
+  - Use for: up-to-date library/framework documentation and code examples when implementing or updating features.
+  - Cross-check: use it to confirm APIs and behavior instead of guessing or hallucinating.
+
+- **`rovo`**
+  - Use for: interacting with Atlassian/Atlassian MCP surfaces (e.g. Jira/Confluence) when configured, such as looking up tickets or docs.
+  - Respect: project and org conventions around ticket naming, linking, and status updates.
+
+- **Safety and privacy**
+  - Strip or mask: user secrets, tokens, and sensitive identifiers from prompts before sending to any MCP server.
+  - Align with `ciso` guidance: when in doubt about data sensitivity, escalate to `ciso` rather than guessing.
+

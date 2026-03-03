@@ -1,0 +1,36 @@
+---
+description: "How agents use the memory MCP server and context-memory skill across org and projects"
+alwaysApply: true
+---
+
+# Memory and knowledge management
+
+- **Namespaces**
+  - Org-wide knowledge lives under `org.global` (and sub-namespaces like `org.global.security`, `org.global.automation`).
+  - Project knowledge lives under `project.<name>` (derived from git remote or repo folder, lowercased).
+  - Domain knowledge within a project uses `project.<name>.<domain>` (e.g. `.frontend`, `.backend`, `.api`, `.infra`).
+
+- **Read-first discipline**
+  - Before writing memory, always query relevant namespaces via `search_nodes` (e.g. `project.<name>`, then `org.global`) to avoid duplication.
+  - Prefer consuming existing decisions, constraints, and principles over creating new ones.
+
+- **What to store**
+  - Stable decisions (architecture, security posture, patterns that should persist).
+  - Constraints and principles (performance budgets, error-handling rules, API contracts).
+  - Important risks and TODOs that span sessions or tasks.
+  - Pointers to docs (paths, links), not the full content itself.
+
+- **What NOT to store**
+  - Raw chat logs or entire transcripts.
+  - Secrets, tokens, credentials, or PII.
+  - Large code dumps or generated artifacts that already live in git.
+  - Ephemeral scratch notes that only matter within the current session.
+
+- **Promotion and supersession**
+  - Start new insights as project- or session-scoped; promote to `org.global` only if they clearly apply across projects.
+  - When updating a decision, create a new entry that links to the old one via `supersedes` instead of editing history in place.
+
+- **Agent expectations**
+  - Org agents primarily read from and write to `org.global` plus relevant `project.<name>` namespaces.
+  - Project agents primarily read from and write to `project.<name>` and `project.<name>.<domain>`, escalating broadly useful insights via `tech-lead` and `cto`.
+

@@ -1,0 +1,29 @@
+---
+description: "Cross-cutting error handling and basic security expectations"
+alwaysApply: true
+---
+
+# Error handling and security basics
+
+- **Error handling principles**
+  - Never swallow errors silently; avoid empty catch blocks or broad "catch and ignore" patterns.
+  - Distinguish between user-facing error messages and internal logs; do not leak stack traces or secrets to users.
+  - Prefer structured logging that captures context (operation, identifiers, cause) without sensitive data.
+  - Use existing project error types/patterns (e.g. custom error classes, `Result` types) instead of inventing new ones casually.
+
+- **Security expectations**
+  - Treat all external input (HTTP, CLI, files, environment) as untrusted; validate and sanitize before use.
+  - Never log secrets, tokens, passwords, or other sensitive fields.
+  - Use the project's existing secret management approach (env vars, vault, config files) and do not hardcode secrets in code or tests.
+  - Minimize permissions when calling external services or databases; follow least-privilege patterns already in the project.
+
+- **When to involve `ciso`**
+  - New or modified auth flows, permission checks, or session/token logic.
+  - Storing or transmitting sensitive data (user PII, credentials, payment data, access tokens).
+  - Changes to CI/CD, container images, or infrastructure that affect security posture.
+
+- **Secure defaults**
+  - Prefer deny-by-default for access control, explicitly granting only needed permissions.
+  - Use secure protocol and library defaults unless there is a documented, reviewed reason not to.
+  - Avoid implementing custom crypto or security primitives; rely on well-reviewed libraries.
+
