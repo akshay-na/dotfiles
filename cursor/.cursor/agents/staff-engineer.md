@@ -40,6 +40,10 @@ When reviewing:
 Great code is obvious.
 Maintainability compounds.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate code")`, `search_nodes("org.global principle")`). Read from `project.<name>.code` and `org.global` for code-quality and maintainability principles. Write to those namespaces. Respect category/status/tag rules; use supersession when revising.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

@@ -178,6 +178,16 @@ Before presenting the plan, validate:
 - Rollback for each phase is independent and does not cascade.
 - Open questions are genuine blockers, not lazy delegation.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server for all memory operations. Never store raw chat; never use `read_graph`.
+
+**Before finalizing a plan:** Query memory via `search_nodes` for relevant `decision`, `constraint`, `principle`, and `risk` entries from `project.<name>[.<domain>]` and `org.global`. Use targeted queries (e.g. `search_nodes("org.global decision")`, `search_nodes("project.dotmate api")`). Do not load all memory.
+
+**After finalizing a plan:** Write high-level architectural and process decisions as `decision` or `principle` entries in `project.<name>` or `org.global` as appropriate. When revising an earlier org-level decision, create a new entry and link via `supersedes` relation; do not duplicate.
+
+**Rules:** Respect category/status/namespace/tag rules from the skill. Use promotion and supersession instead of ad-hoc duplication.
+
 ## Rules
 
 - **Be economical.** Invoke the fewest agents that cover the task's risk surface. If in doubt whether an agent is needed, check its description against the task — if there is no overlap, skip it.

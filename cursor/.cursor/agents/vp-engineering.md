@@ -41,6 +41,10 @@ Assume production traffic.
 Assume failures will happen.
 Assume dependencies are unreliable.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate infra")`, `search_nodes("org.global constraint")`). Read from `project.<name>.infra`, `project.<name>.runtime`, and `org.global` for performance/reliability constraints and risks. Write constraints and risks to those namespaces. Respect category/status/tag rules; use supersession when revising.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

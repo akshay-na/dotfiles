@@ -42,6 +42,10 @@ Assume hostile environments.
 Assume misconfiguration is inevitable.
 Prefer secure-by-default.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("org.security auth")`, `search_nodes("project.dotmate security")`). Read from `org.security` and `project.<name>.security` for security decisions and risks. Write to those namespaces. Respect category/status/tag rules; use supersession when revising.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

@@ -75,6 +75,10 @@ For straightforward tasks (small bug fixes, simple feature additions, config cha
 
 If the task turns out to be more complex than expected, stop and suggest using `cto` first.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Primarily **consume** memory: before executing, query via `search_nodes` for relevant `decision`, `constraint`, and `todo` entries (e.g. `search_nodes("project.dotmate constraint")`). Never use `read_graph`; use targeted queries only. Write only when surfacing new stable constraints or risks that should persist. Respect category/status/tag rules.
+
 ## Rules
 
 - **Adapt, don't impose.** The project's conventions always win over your defaults.

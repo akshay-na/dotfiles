@@ -26,6 +26,10 @@ vp-onboarding   — Builds project teams
 
 The org sets standards. The team knows the project.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. When onboarding a project, derive `project.<name>` from git remote or folder. Query `org.global` and `project.<name>` for existing conventions before creating agents. Optionally write project bootstrap decisions (e.g. team structure, scoping) to `project.<name>`. Never use `read_graph`; use targeted `search_nodes` queries only.
+
 ## Naming Convention
 
 Project-level agents use **team role** names, not org titles. This keeps them distinct and avoids confusion with global agents.
@@ -68,6 +72,19 @@ Each dev agent's description must state its scope clearly so the user knows whic
 - The project's dependency files, configs, and CI pipeline.
 - Its own scope — what it owns and what it doesn't.
 - How to escalate to org-level agents (`cto`, `ciso`, etc.) when something is beyond project scope.
+
+### Smart Context Memory (Required for All Project Agents)
+
+All project agents must use the shared **context-memory** skill and MCP `memory` server. Memory is stored globally at `~/.cursor/context/memory`; agents never load it all — they query via `search_nodes` with targeted namespace/category/tags only.
+
+**Project namespace derivation:**
+- If the project has a git remote: extract repo name from URL (e.g. `https://github.com/akshay-na/DotMate.git` → `dotmate`). Normalize to lowercase.
+- If no remote: use repo root folder name, lowercase.
+- If an item doesn't fit any project: use `project.junk`.
+
+**Rules:** Respect category/status/namespace/tag rules from the skill. Never store raw chat or brainstorming dumps. Use promotion and supersession instead of ad-hoc duplication. Never use `read_graph`.
+
+**When creating project agents:** Include a Memory section in each agent that declares which namespaces they read from and write to (e.g. `project.dotmate.frontend`, `project.dotmate.backend`), and how they use the context-memory skill.
 
 ### 2. Team Skills (as needed)
 
@@ -334,6 +351,10 @@ When given a phased plan (typically from `cto`):
 - If a task needs domain expertise, route it to the relevant `sme-*`.
 - Never assign a dev work outside their stated scope without flagging it to the user.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Your project namespace is `project.<name>` (e.g. `project.dotmate`) — derive `<name>` from git remote or folder. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate decision")`). Read from `project.<name>`, `project.<name>.<domain>` (e.g. `.api`, `.frontend`), and `org.global`. Write project-level decisions and principles to `project.<name>` or `project.<name>.<domain>`. You decide when project insights are stable enough to promote: if an insight persists across 2+ sessions, promote from `session.current` to `project.<name>`. Escalate cross-project patterns to `cto` for org.global promotion. Use supersession when revising decisions.
+
 ## Escalation
 
 - Architectural uncertainty or cross-project impact → `cto`
@@ -373,6 +394,10 @@ cross-cutting concerns.
 ## Your Scope
 
 [What this team member owns and what it doesn't]
+
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Your project namespace is `project.<name>` (derive from git remote or folder). Read from `project.<name>`, `project.<name>.<domain>` (match your scope, e.g. `.frontend`, `.api`), and `org.global`. Write mainly `experimental` entries and localized `todo`/`risk` items to `project.<name>.<domain>` or `session.current`. Promote stable insights to `project.<name>` or escalate to `tech-lead` for org-level promotion. Never use `read_graph`; use targeted `search_nodes` queries only.
 
 ## Escalation
 

@@ -46,6 +46,10 @@ Think in terms of:
 - Operational complexity
 - Long-term maintainability
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted namespace/category/tags (e.g. `search_nodes("project.dotmate architecture")`, `search_nodes("org.global decision")`). Read from `project.<name>.architecture` and `org.global` for architecture-related decisions and principles. Write architecture decisions and principles to those namespaces. Respect category/status/tag rules; use supersession when revising decisions.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

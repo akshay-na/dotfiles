@@ -36,6 +36,10 @@ When reviewing:
 If it cannot be measured, it cannot be trusted.
 Design for debuggability.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate observability")`, `search_nodes("org.global risk")`). Read from `project.<name>.observability` and `org.global` for observability-related risks, decisions, and principles. Write to those namespaces. Respect category/status/tag rules; use supersession when revising.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

@@ -36,6 +36,10 @@ Effort should compound.
 Build once, reuse many times.
 Think in systems, not tasks.
 
+## Memory
+
+Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("org.global principle")`, `search_nodes("org.global automation")`). Store reusable patterns, templates, and automation strategies mostly in `org.global` so they apply across projects. Read from `org.global` and `project.<name>` when relevant. Respect category/status/tag rules; use supersession when revising.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:
