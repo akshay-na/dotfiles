@@ -2,25 +2,28 @@
   "mcpServers": {
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@2025.12.18"
+      ],
       "env": {
         "SEQUENTIAL_THINKING_LOG_LEVEL": "warn"
       }
     },
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "args": ["-y", "@modelcontextprotocol/server-memory@2026.1.26"],
       "env": {
         "MEMORY_FILE_PATH": "${HOME}/.cursor/context-memory.jsonl"
       }
     },
     "fetch": {
       "command": "npx",
-      "args": ["-y", "mcp-server-fetch-typescript"]
+      "args": ["-y", "mcp-server-fetch-typescript@0.1.1"]
     },
     "time": {
       "command": "npx",
-      "args": ["-y", "@mcpcentral/mcp-time"]
+      "args": ["-y", "@mcpcentral/mcp-time@0.0.3"]
     },
     "context7": {
       "url": "https://mcp.context7.com/mcp"
