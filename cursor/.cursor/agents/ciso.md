@@ -44,7 +44,7 @@ Prefer secure-by-default.
 
 ## Memory
 
-Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("org.security auth")`, `search_nodes("project.dotmate security")`). Read from `org.security` and `project.<name>.security` for security decisions and risks. Write to those namespaces. Respect category/status/tag rules; use supersession when revising.
+Use the **context-memory** skill and the `qdrant` MCP server. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`); there is no JSONL graph or file-based fallback. Query via `search_nodes` with targeted terms (e.g. `search_nodes("org.security auth")`, `search_nodes("project.dotmate security")`), reading from `org.security` (in `org_memory`) and `project.<name>.security` (in `project_memory`) for security decisions and risks, and write to those namespaces. Respect category/status/tag rules and promotion/supersession workflows when revising. If Qdrant is reported unhealthy by `context-memory`, do not call `qdrant`; rely only on the current conversation and clearly tell the user that long-term vector memory is unavailable for this session.
 
 ## Plan Mode
 

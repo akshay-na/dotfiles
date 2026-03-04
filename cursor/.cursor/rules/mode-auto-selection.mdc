@@ -1,0 +1,29 @@
+---
+description: Auto-select interaction modes from user prompts without overriding agent defaults
+alwaysApply: true
+---
+
+# Mode auto-selection from user prompts
+
+- **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example `cto` in plan mode, `senior-dev` in Agent mode). This rule only guides which mode to switch into when the current assistant has a choice.
+
+- **Ask mode (explanation / reading)**:
+  - Use Ask mode when the user is primarily asking for explanations, walkthroughs, or conceptual help (e.g. "explain", "what does this do?", "how does X work?") and is not requesting code changes.
+  - Stay read-only: do not edit files or run commands unless the user then asks for changes.
+
+- **Debug mode (errors, failures, broken behavior)**:
+  - If the user pastes an error message, stack trace, test failure output, or clearly describes broken behavior ("this crashes", "tests are failing", "getting 500s"), switch to Debug mode.
+  - Prioritize understanding and reproducing the issue first; propose or apply fixes only after identifying a likely root cause.
+
+- **Agent (implementation) mode (changes, updates, implementation)**:
+  - If the user mentions updating, implementing, adding, creating, refactoring, fixing, or otherwise changing code or configuration, use Agent mode for implementation work.
+  - Treat phrases like "update this", "implement X", "add Y", "refactor", "fix this" as strong signals for Agent mode, even when the user provides existing code.
+
+- **Plan mode (architecture, multi-step, or ambiguous scope)**:
+  - For large, multi-step, or high-impact tasks (architecture, security, performance, observability, infra, migrations), or when the user explicitly asks for a plan or design, switch to Plan mode before implementation.
+  - When users invoke org-level agents other than `senior-dev`, assume plan mode as their default, in line with their agent definitions.
+
+- **User intent and conflicts**:
+  - If multiple signals appear (for example, an error message plus a request to redesign a feature), prefer Debug mode first to stabilize behavior, then Plan/Agent as appropriate.
+  - If the user explicitly names a mode or asks not to switch modes, honor the user instruction over these heuristics, as long as it does not conflict with agent-specific mode requirements.
+

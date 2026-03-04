@@ -1,173 +1,298 @@
 ---
 name: context-memory
-description: Use whenever reading from or writing to the MCP memory server. Defines schema, namespaces, retrieval order, promotion rules, and how to interact with the memory knowledge graph. All agents must follow this skill for memory operations.
+description: Use whenever reading from or writing to Qdrant-backed memory. Defines schema, namespaces, retrieval order, promotion rules, diagram handling, and how to interact with the Qdrant MCP server. All agents must follow this skill for memory operations.
 ---
 
-# Smart Context Memory
+# Smart Context Memory (Qdrant-only)
 
 ## Overview
 
-Memory is stored in a single MCP knowledge graph at `~/.cursor/context/memory` (configured via `MEMORY_FILE_PATH` in mcp.json). Ensure `~/.cursor/context/` exists; use an absolute path if `~` is not expanded by your environment. All agents use this shared store. Memory holds **conclusions only** — no raw chat, no brainstorming dumps. Structure replaces embeddings; retrieval is deterministic.
+Memory is stored **only** in Qdrant collections managed by the `qdrant` MCP server. There is **no JSONL graph file**, no `server-memory` MCP, and no fallback file-based cache.
 
-**MCP tools available:** `create_entities`, `create_relations`, `add_observations`, `delete_entities`, `delete_observations`, `delete_relations`, `search_nodes`, `open_nodes`, `read_graph`.
+The Qdrant data directory lives under:
 
-**Critical rule:** NEVER use `read_graph`. Always use `search_nodes` or `open_nodes` with targeted queries. Loading all memory pollutes context and wastes tokens.
+- `~/.cursor/memory/qdrant` (mounted into the Qdrant container)
 
-## Mapping to the Knowledge Graph
+All agents share a single Qdrant instance with a **fixed set of collections**:
 
-The MCP memory server uses entities, relations, and observations. Our schema maps as follows:
+- `org_memory` — org-wide, long-lived knowledge
+- `project_memory` — project-scoped, long-lived knowledge
+- `session_memory` — session-scoped knowledge (`session.current`)
+- `cache_memory` — ephemeral cache and staging area for new / experimental entries
 
-| Our field  | Graph representation                                                  |
-| ---------- | --------------------------------------------------------------------- |
-| namespace  | Entity name prefix: `{namespace}.{category}.{id}`                     |
-| category   | Entity type and name segment                                          |
-| summary    | Observation: `summary: <text>`                                        |
-| tags       | Observation: `tags: tag1,tag2,tag3`                                   |
-| status     | Observation: `status: accepted\|experimental\|deprecated\|superseded` |
-| created_at | Observation: `created_at: ISO8601`                                    |
-| rationale  | Observation: `rationale: <text>` (optional)                           |
-| supersedes | Relation: `entity_new --supersedes--> entity_old`                     |
+Qdrant is accessed via a single MCP server named `qdrant` in `~/.cursor/mcp.json`:
 
-**Entity naming:** `{namespace}.{category}.{short_id}`
-Examples: `org.global.decision.001`, `project.dotmate.api.constraint.auth`, `session.current.todo.xyz`
-Use a unique short_id (timestamp fragment, uuid prefix, or descriptive slug) to avoid collisions.
+- `QDRANT_URL` points at the running Qdrant instance.
+- `COLLECTION_NAME` defaults to `org_memory` (org-level collection).
+- Other collections are selected per-call using the `collection_name` argument on Qdrant tools.
 
-**Entity type:** Use the category value (`decision`, `constraint`, `assumption`, `rejected`, `todo`, `risk`, `principle`).
+Memory holds **conclusions only** — no raw chat, no brainstorming dumps. Structure (namespaces, categories, tags, status) drives retrieval; embeddings are a ranking signal on top.
 
-**Observations (array of strings):**
+## Namespaces and Collections
 
-```
-summary: <1-2 lines, max 300 chars, conclusion only>
-tags: tag1,tag2,tag3
-status: accepted
-created_at: 2024-01-15T12:00:00Z
-rationale: <optional brief explanation>
-```
+Namespaces are unchanged and still drive how you think about scope:
 
-## Mandatory Fields Per Entry
+- `org.global` — Org-wide decisions, principles, constraints that apply across all projects
+- `org.security` — Security policies, auth patterns, threat mitigations
+- `project.<name>` — Project-level decisions; `<name>` from git remote or folder, lowercase
+- `project.<name>.<domain>` — Domain-scoped (e.g. `api`, `infra`, `security`, `agents`)
+- `session.current` — Short-lived insights within the current session
+- `project.junk` — Cross-cutting items that don't fit a specific project
+
+These namespaces map to Qdrant collections as follows:
+
+- `org.global`, `org.security` → `org_memory`
+- All `project.<name>` and `project.<name>.<domain>`, and `project.junk` → `project_memory`
+- `session.current` → `session_memory`
+
+The `cache_memory` collection is used as an **ephemeral staging area**:
+
+- New or low-confidence entries start in `cache_memory` when appropriate.
+- Stable entries are promoted from `cache_memory` into `project_memory` or `org_memory`.
+
+## Entity Schema in Qdrant
+
+Each memory entry is stored as a single Qdrant point:
+
+- **ID**: `entity_name` (string; can be used directly as the point ID)
+- **Vector**: embedding of an `embedding_text` string derived from summary/rationale/tags
+- **Payload** (JSON object) with at least:
+  - `entity_name`: string (canonical identifier)
+  - `namespace`: string (e.g. `project.dotmate.api`)
+  - `category`: string
+  - `summary`: string (1–2 lines, <= 300 chars, conclusion only)
+  - `tags`: string[]
+  - `status`: string (`accepted`, `experimental`, `deprecated`, `superseded`)
+  - `created_at`: ISO 8601 string
+  - `rationale`: optional string
+  - `supersedes`: string[] of `entity_name`s (when applicable)
+  - `project`: string (derived from namespace, e.g. `dotmate`)
+  - `source`: `"primary" | "fallback" | "imported"` (typically `"primary"` in this architecture)
+  - `last_synced_at`: ISO 8601 string
+  - `confidence`: optional number between 0 and 1
+
+### Mandatory fields per entry
 
 Every memory entry must include:
 
 - **namespace** — one of `org.global`, `org.security`, `project.<name>`, `project.<name>.<domain>`, `session.current`, `project.junk`
-- **category** — one of: `decision`, `constraint`, `assumption`, `rejected`, `todo`, `risk`, `principle`
+- **category** — one of: `decision`, `constraint`, `assumption`, `rejected`, `todo`, `risk`, `principle`, `diagram`
 - **summary** — 1–2 lines max, <= 300 characters, conclusion only
 - **tags** — minimum 2: one technical (e.g. `auth`, `k8s`, `redis`), one domain (e.g. `api`, `infra`, `security`). Lowercase, no spaces.
 - **status** — one of: `accepted`, `experimental`, `deprecated`, `superseded`
 - **created_at** — ISO 8601 timestamp
 
-Optional: `rationale`, `supersedes` (via relation), `confidence`.
+Optional: `rationale`, `supersedes`, `confidence`, diagram-specific fields (see below).
 
-## Namespace Hierarchy
+### Entity naming
 
-| Namespace                 | Use for                                                                    |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `org.global`              | Org-wide decisions, principles, constraints that apply across all projects |
-| `org.security`            | Security policies, auth patterns, threat mitigations                       |
-| `project.<name>`          | Project-level decisions; `<name>` from git remote or folder                |
-| `project.<name>.<domain>` | Domain-scoped (e.g. `api`, `infra`, `security`, `agents`)                  |
-| `session.current`         | Short-lived insights; promote or drop after 2 sessions                     |
-| `project.junk`            | Cross-cutting items that don't fit a specific project                      |
+Use the same pattern as before:
 
-**Project name derivation:**
+- `entity_name = {namespace}.{category}.{short_id}`
+- Examples:
+  - `org.global.decision.001`
+  - `project.dotmate.api.constraint.auth`
+  - `session.current.todo.xyz`
 
-1. If in a git repo with remote: extract repo name from URL (e.g. `https://github.com/akshay-na/DotMate.git` → `dotmate`). Normalize to lowercase.
-2. If no remote: use repo root folder name, lowercase.
-3. If item doesn't belong anywhere: use `project.junk`.
+`short_id` should be unique (timestamp fragment, uuid prefix, or descriptive slug).
 
-## Retrieval Priority (Deterministic)
+## Embedding Text Construction
 
-When reading memory, agents MUST:
+Qdrant computes embeddings from a free-form text string. Construct `embedding_text` as:
 
-1. Determine the most specific namespace relevant to the question.
-2. Call `search_nodes` with a targeted query — e.g. `search_nodes("org.global decision auth")` or `search_nodes("project.dotmate api")`.
-3. Do NOT call `read_graph`.
+- For non-diagram entities:
 
-**Query construction:** Combine namespace fragment + category + relevant tags. Examples:
+```text
+{summary}
 
-- `search_nodes("org.global decision")` — org-level decisions
-- `search_nodes("project.dotmate security")` — dotmate security
-- `search_nodes("org.security auth")` — security auth decisions
+rationale: {rationale}
 
-**Filtering (post-retrieval):** Prefer `accepted` over `experimental`; prefer `created_at` descending. Ignore `deprecated` and `superseded` unless explicitly reviewing history.
+tags: {tag1,tag2,...}
 
-## Write Rules
-
-**When to write:** After a decision or principle is clearly articulated and likely to matter beyond the current exchange. After identifying a meaningful risk, todo, constraint, or assumption.
-
-**How to write (create_entities):**
-
-```json
-{
-  "entities": [
-    {
-      "name": "org.global.decision.001",
-      "entityType": "decision",
-      "observations": [
-        "summary: Use Redis for session storage. Rationale: scalability.",
-        "tags: redis,auth",
-        "status: accepted",
-        "created_at: 2024-01-15T12:00:00Z"
-      ]
-    }
-  ]
-}
+namespace: {namespace} category: {category}
 ```
 
-**Supersession:** When a decision changes:
+- For diagram entities (`category="diagram"`), see the dedicated section below.
 
-1. Create a new entity with the updated content and `status: accepted` (or `experimental`).
-2. Create relation via `create_relations`: `{"from": "new_entity_name", "to": "old_entity_name", "relationType": "supersedes"}`.
-3. When retrieving, treat entities that are the target of a `supersedes` relation as superseded — exclude them from active results unless explicitly reviewing history.
+Agents do **not** need to call the embedding model directly; they pass this `embedding_text` to the Qdrant MCP tools that handle embedding internally.
 
-## Promotion Workflow
+## Diagram Entities (`category="diagram"`)
 
-**Session → Project:** If an insight in `session.current` is referenced across 2+ sessions and still relevant, promote to `project.<name>` as `decision` or `principle` with `status=accepted`. Mark old session entry deprecated/superseded.
+Diagrams are first-class memory entities stored in Qdrant with `category="diagram"`.
 
-**Project → Org:** If a `decision` or `principle` is reinforced across multiple projects, create `org.global` entry with `status=accepted`. Optionally add `supersedes` relation to the most canonical prior project entry.
+When a plan or workflow is important enough to store (especially for org-wide agents like `cto`, `vp-architecture`, `vp-engineering`):
 
-**Cleanup:** Avoid storing temporary debugging state. Periodically phase out `deprecated`/`superseded` from active use. Use `delete_entities` or `delete_observations` for entries that are no longer needed.
+- Generate a mermaid diagram (e.g. `flowchart`, `sequence`, `state`).
+- Create a `diagram` entity with:
+  - `summary`: 1–2 lines describing what the diagram shows.
+  - `rationale`: why the diagram exists / what decision or flow it captures.
+  - `tags`: must include `diagram` and `mermaid` plus domain tags (`architecture`, `memory`, `infra`, etc.).
+  - Diagram-specific payload fields:
+    - `diagram_language`: string (e.g. `"mermaid"`)
+    - `diagram_type`: string (e.g. `"flowchart"`, `"sequence"`, `"state"`)
+    - `diagram_code`: string (the original mermaid code)
+    - `diagram_hash`: string (short hash of `diagram_code` for deduplication)
+    - `diagram_scope`: string (`"org"`, `"project"`, or `"session"`)
+    - `diagram_subject`: string (short label, e.g. `"qdrant_memory_architecture"`)
+    - `related_entities`: string[] of `entity_name`s this diagram explains
 
-## What NOT to Store
+Store diagram entities in:
 
-- Full conversation logs
-- Brainstorming dumps
-- Speculative reasoning chains
-- Temporary debugging state
+- `org_memory` with `namespace="org.global.diagram.*"` for cross-project/global flows.
+- `project_memory` with `namespace="project.<name>.diagram.*"` for project-specific flows.
 
-## Example Flows
+### Embedding text for diagrams
 
-**Decision change:** CTO previously stored `org.global.decision.001` (use Redis for sessions). New decision: use PostgreSQL instead. Create `org.global.decision.002` with updated summary; add relation `org.global.decision.002 --supersedes--> org.global.decision.001`. When querying, exclude entities that are targets of `supersedes` unless reviewing history.
+**Do not embed raw mermaid code.** Instead, describe the diagram in natural language:
 
-**Cross-project promotion:** `project.dotmate.api` and `project.otherproject.api` both have "prefer idempotent endpoints" as a principle. tech-lead or cto creates `org.global.principle.001` with that summary; optionally add `supersedes` relation to the most canonical project entry.
+```text
+{summary}
 
-**Junk handling:** A one-off insight about "prefer mise over nvm for Node version management" doesn't belong to a specific project. Store in `project.junk.principle.001` with tags `tooling,node`.
+rationale: {rationale}
+
+diagram_subject: {diagram_subject}
+
+diagram_type: {diagram_type}
+
+tags: {tag1,tag2,...}
+
+namespace: {namespace} category: {category}
+```
+
+Qdrant uses this text for embeddings so diagrams can be retrieved semantically by subject, type, and tags.
+
+## Read Behavior (Normal Mode)
+
+In **normal mode** (Qdrant healthy), agents read memory only via the `qdrant` MCP server.
+
+When reading memory:
+
+1. Determine the most specific namespace relevant to the question.
+2. Choose appropriate collections:
+   - Project-scoped questions → `project_memory` (+ optionally `org_memory`).
+   - Org-wide questions → `org_memory`.
+   - Session-focused questions → `session_memory`.
+   - For very recent or experimental context → also query `cache_memory`.
+3. Call Qdrant search tools with:
+   - `collection_name` set to the desired collection (`project_memory`, `session_memory`, `cache_memory`), or omit it to use the default `org_memory`.
+   - Filters on payload fields such as `namespace`, `category`, `project`, `status`, `tags`.
+   - A textual query (e.g. built from summary-like phrasing and key tags).
+4. Combine results from multiple collections when needed:
+   - Prefer long-lived entries from `org_memory` / `project_memory`.
+   - Augment with recent entries from `session_memory` and `cache_memory`.
+
+### Ranking and filtering
+
+After retrieving candidates:
+
+- Start from vector similarity.
+- Prefer:
+  - `status=accepted` over `experimental`.
+  - Recent `created_at` / `updated_at`.
+  - Strong tag overlap with the current task.
+- Ignore `deprecated` and `superseded` unless explicitly reviewing history.
+
+## Write Behavior (Normal Mode)
+
+Write to Qdrant only when a conclusion is stable or clearly worth persisting.
+
+**When to write:**
+
+- After a decision, principle, or constraint is clearly articulated and likely to matter beyond the current exchange.
+- After identifying a meaningful risk, todo, or assumption.
+- When recording important diagrams that represent flows or architectures.
+
+**Where to write (collection selection):**
+
+- `org_memory`:
+  - Org-level decisions, principles, constraints.
+  - Cross-project diagrams and global policies.
+- `project_memory`:
+  - Project-scoped decisions/principles/constraints.
+  - Project-specific diagrams.
+- `session_memory`:
+  - Short-lived insights that may or may not be promoted later.
+- `cache_memory`:
+  - New, unproven, or tentative entries, especially when confidence is low.
+
+**How to write:**
+
+- Construct `entity_name`, payload fields, and `embedding_text`.
+- Upsert via Qdrant MCP tools, passing:
+  - `collection_name` based on the mapping above.
+  - The point ID, payload, and embedding_text.
+
+**Supersession and updates:**
+
+- When a decision changes:
+  - Create a new entity with updated content and `status=accepted` or `experimental`.
+  - In payload, set `supersedes` to include the old `entity_name`.
+  - Treat entities that appear in `supersedes` lists as superseded in active retrieval.
+
+## Promotion Workflow (Cache → Project → Org)
+
+Promotion is how entries move from ephemeral to durable collections:
+
+- **Session → Project:**
+  - If a `session.current` insight is referenced across 2+ sessions and remains relevant:
+    - Create a new entity in `project_memory` (namespace `project.<name>` or `project.<name>.<domain>`).
+    - Mark the original `session.current` entry as `deprecated` or add it to `supersedes`.
+
+- **Cache → Project:**
+  - New or experimental entries may start in `cache_memory` with:
+    - `status=experimental`.
+    - Lower `confidence`.
+  - When they prove useful and stable:
+    - Re-write them into `project_memory` with `status=accepted` and higher `confidence`.
+    - Optionally mark the cache entry as `deprecated` or track supersession via payload.
+
+- **Project → Org:**
+  - If a decision/principle is reinforced across multiple projects:
+    - Create `org.global` entry in `org_memory` with `status=accepted`.
+    - Optionally include `supersedes` pointing at the most canonical prior project entry.
+
+- **Cleanup:**
+  - Periodically de-emphasize or remove:
+    - `deprecated` / `superseded` entries from active use.
+    - Stale entries in `cache_memory` that never graduated.
+
+## Fallback Behavior (Qdrant Unavailable)
+
+Qdrant is the **only** persistent memory backend. When it is unavailable:
+
+- Agents must **stop all memory reads/writes**.
+- Agents must **not** fall back to any JSONL files, `server-memory` MCPs, or alternate stores.
+
+### Detecting Qdrant health
+
+- On session start (and periodically), a lightweight Qdrant MCP call should be made (e.g. list collections or a dedicated health/`/collections` ping).
+- If the call succeeds:
+  - Mark Qdrant as healthy for this session (`fallback=false`).
+- If the call fails (timeout, connection error, non-OK status):
+  - Mark Qdrant as unavailable (`fallback=true` for this session).
+
+### Behavior in fallback mode
+
+When `fallback=true`:
+
+- **Do not** call any Qdrant MCP tools.
+- Do not claim that long-term memory has been read or updated.
+- Operate only on:
+  - The current conversation.
+  - Any ephemeral, in-process state (not persisted).
+- Clearly inform the user the first time you detect fallback:
+  - Example: “Vector memory (Qdrant) is unavailable; long-term memory reads/writes are disabled for this session.”
+- Optionally record a transient `session.current.risk` in *ephemeral* reasoning (not persisted) noting the outage.
+
+When a subsequent health check indicates Qdrant is healthy again:
+
+- Clear the `fallback` flag for new operations.
+- Resume normal mode (reads/writes via Qdrant collections).
+- There is **no** separate fallback datastore; anything that happened while Qdrant was down is not persisted.
 
 ## Design Philosophy
 
 - Memory stores conclusions, not reasoning chains.
 - Memory is curated, not appended.
-- Structure replaces embeddings.
-- Determinism > fuzzy similarity.
-
-## MCP tool schemas (exact arguments)
-
-Use these argument shapes when calling the `memory` / `user-memory` server tools to avoid schema errors:
-
-- `create_entities`:
-  - **arguments**: `{ "entities": [{ "name": string, "entityType": string, "observations": string[] }] }`
-- `add_observations`:
-  - **arguments**: `{ "observations": [{ "entityName": string, "contents": string[] }] }`
-- `create_relations`:
-  - **arguments**: `{ "relations": [{ "from": string, "to": string, "relationType": string }] }`
-- `delete_relations`:
-  - **arguments**: `{ "relations": [{ "from": string, "to": string, "relationType": string }] }`
-- `delete_observations`:
-  - **arguments**: `{ "deletions": [{ "entityName": string, "observations": string[] }] }`
-- `delete_entities`:
-  - **arguments**: `{ "entityNames": string[] }`
-- `search_nodes`:
-  - **arguments**: `{ "query": string }`
-- `open_nodes`:
-  - **arguments**: `{ "names": string[] }`
-- `read_graph` (should still be avoided in normal use):
-  - **arguments**: `{}` (no parameters)
+- Namespaces, categories, and tags provide structure; Qdrant embeddings rank within that structure.
+- Deterministic scoping (namespace and collection) comes first; similarity search is a supporting signal.

@@ -10,6 +10,16 @@ alwaysApply: true
   - Project knowledge lives under `project.<name>` (derived from git remote or repo folder, lowercased).
   - Domain knowledge within a project uses `project.<name>.<domain>` (e.g. `.frontend`, `.backend`, `.api`, `.infra`).
 
+- **Qdrant-backed storage (only backend)**
+  - Long-term memory is stored exclusively in Qdrant collections managed by the `qdrant` MCP server.
+  - Collections:
+    - `org_memory` for `org.*` namespaces (e.g. `org.global`, `org.security`).
+    - `project_memory` for all `project.<name>` / `project.<name>.<domain>` and `project.junk`.
+    - `session_memory` for `session.current`.
+    - `cache_memory` as an ephemeral cache and staging area.
+  - The Qdrant data directory is rooted at `~/.cursor/memory/qdrant/<EMBEDDING_MODEL_ID>/data` (mounted into the Qdrant container).
+  - There is no JSONL graph file, no `server-memory` MCP, and no alternate persistent backend.
+
 - **Read-first discipline**
   - Before writing memory, always query relevant namespaces via `search_nodes` (e.g. `project.<name>`, then `org.global`) to avoid duplication.
   - Prefer consuming existing decisions, constraints, and principles over creating new ones.
@@ -28,9 +38,11 @@ alwaysApply: true
 
 - **Promotion and supersession**
   - Start new insights as project- or session-scoped; promote to `org.global` only if they clearly apply across projects.
+  - Use `cache_memory` for experimental or low-confidence entries; promote into `project_memory` (and optionally `org_memory`) once they prove stable and broadly useful.
   - When updating a decision, create a new entry that links to the old one via `supersedes` instead of editing history in place.
 
 - **Agent expectations**
   - Org agents primarily read from and write to `org.global` plus relevant `project.<name>` namespaces.
   - Project agents primarily read from and write to `project.<name>` and `project.<name>.<domain>`, escalating broadly useful insights via `tech-lead` and `cto`.
+  - All memory operations must go through Qdrant via the `context-memory` skill; when Qdrant is unavailable, agents must not write or read long-term memory and must explicitly tell the user that vector memory is disabled for that session.
 

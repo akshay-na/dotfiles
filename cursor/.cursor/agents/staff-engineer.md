@@ -42,7 +42,7 @@ Maintainability compounds.
 
 ## Memory
 
-Use the **context-memory** skill and MCP `memory` server. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate code")`, `search_nodes("org.global principle")`). Read from `project.<name>.code` and `org.global` for code-quality and maintainability principles. Write to those namespaces. Respect category/status/tag rules; use supersession when revising.
+Use the **context-memory** skill and the `qdrant` MCP server. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`); there is no JSONL graph or file-based fallback. Query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate code")`, `search_nodes("org.global principle")`), reading from `project.<name>.code` and `org.global` for code-quality and maintainability principles, and write back to those namespaces. Respect category/status/tag rules and promotion/supersession workflows when revising. If Qdrant is reported unhealthy by `context-memory`, do not call `qdrant`; rely only on the current conversation and clearly tell the user that long-term vector memory is unavailable for this session.
 
 ## Plan Mode
 

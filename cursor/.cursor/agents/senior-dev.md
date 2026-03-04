@@ -79,7 +79,9 @@ If the task turns out to be more complex than expected, stop and suggest using `
 
 ## Memory
 
-Use the **context-memory** skill and MCP `memory` server. Primarily **consume** memory: before executing, query via `search_nodes` for relevant `decision`, `constraint`, and `todo` entries (e.g. `search_nodes("project.dotmate constraint")`). Never use `read_graph`; use targeted queries only. Write only when surfacing new stable constraints or risks that should persist. Respect category/status/tag rules.
+Use the **context-memory** skill and the `qdrant` MCP server. Primarily **consume** memory: before executing, query for relevant `decision`, `constraint`, and `todo` entries in the appropriate Qdrant collections (`project_memory` and `org_memory` for long-term knowledge, `session_memory` / `cache_memory` for very recent context). Write only when surfacing new stable constraints or risks that should persist, and respect category/status/tag rules and promotion workflows (e.g. from `cache_memory` to `project_memory` / `org_memory`).
+
+If Qdrant is reported unhealthy by `context-memory` (fallback mode), do not call `qdrant` at all. Rely only on the current conversation, avoid claiming that long-term memory was read or updated, and clearly tell the user that vector memory is disabled for this session.
 
 ## Rules
 

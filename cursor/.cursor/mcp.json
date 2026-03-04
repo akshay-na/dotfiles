@@ -10,13 +10,6 @@
         "SEQUENTIAL_THINKING_LOG_LEVEL": "warn"
       }
     },
-    "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory@2026.1.26"],
-      "env": {
-        "MEMORY_FILE_PATH": "${HOME}/.cursor/context-memory.jsonl"
-      }
-    },
     "fetch": {
       "command": "npx",
       "args": ["-y", "mcp-server-fetch-typescript@0.1.1"]
@@ -24,6 +17,14 @@
     "time": {
       "command": "npx",
       "args": ["-y", "@mcpcentral/mcp-time@0.0.3"]
+    },
+    "qdrant": {
+      "command": "uvx",
+      "args": ["--python", "3.12", "mcp-server-qdrant"],
+      "env": {
+        "QDRANT_URL": "http://localhost:6333",
+        "QDRANT_API_KEY": ""
+      }
     },
     "context7": {
       "url": "https://mcp.context7.com/mcp"

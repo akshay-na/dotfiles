@@ -87,6 +87,7 @@ install_common() {
     topgrade
     tree
     unzip
+    uv
     wget
     xq
     xxh

@@ -28,7 +28,7 @@ The org sets standards. The team knows the project.
 
 ## Memory
 
-Use the **context-memory** skill and MCP `memory` server. When onboarding a project, derive `project.<name>` from git remote or folder. Query `org.global` and `project.<name>` for existing conventions before creating agents. Optionally write project bootstrap decisions (e.g. team structure, scoping) to `project.<name>`. Never use `read_graph`; use targeted `search_nodes` queries only.
+Use the **context-memory** skill and the `qdrant` MCP server. When onboarding a project, derive `project.<name>` from git remote or folder. Query `org.global` (in `org_memory`) and `project.<name>` (in `project_memory`) for existing conventions before creating agents. Optionally write project bootstrap decisions (e.g. team structure, scoping) to `project.<name>`, using promotion/supersession rules when revising. Never use `read_graph`; use targeted `search_nodes` queries only. If Qdrant is reported unhealthy by `context-memory`, do not call `qdrant`; rely only on the current conversation and clearly tell the user that long-term vector memory is unavailable for this session.
 
 ## Naming Convention
 
@@ -75,7 +75,7 @@ Each dev agent's description must state its scope clearly so the user knows whic
 
 ### Smart Context Memory (Required for All Project Agents)
 
-All project agents must use the shared **context-memory** skill and MCP `memory` server. Memory is stored globally at `~/.cursor/context/memory`; agents never load it all — they query via `search_nodes` with targeted namespace/category/tags only.
+All project agents must use the shared **context-memory** skill and the `qdrant` MCP server. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`) under `~/.cursor/memory/qdrant`; agents never load everything — they query via `search_nodes` with targeted namespace/category/tags only.
 
 **Project namespace derivation:**
 - If the project has a git remote: extract repo name from URL (e.g. `https://github.com/akshay-na/DotMate.git` → `dotmate`). Normalize to lowercase.

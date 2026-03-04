@@ -6,7 +6,8 @@ alwaysApply: true
 # Agent orchestration and escalation
 
 - **Start with `cto` in plan mode** when a task has multiple steps, non-trivial trade-offs, or touches architecture, security, performance, or observability.
-- **Call `senior-dev` directly** only for genuinely small, localized tasks (single-file fixes, trivial config tweaks) where a full plan would be overkill.
+- **Use `senior-dev` as the default implementation agent** for any code or configuration change, unless the user explicitly requests a different agent or the work clearly requires a `cto`-driven multi-phase plan first.
+- **Call `senior-dev` directly** for genuinely small, localized tasks (single-file fixes, trivial config tweaks) where a full plan would be overkill, and as the primary executor for plan-driven work once the `cto` has produced an approved plan.
 - **Use `vp-onboarding`** to bootstrap or refresh project-local agents, rules, and skills in a repo's `.cursor/` directory; never modify org-level agents from project agents.
 - **Default modes:** `cto` and other org VPs run in plan mode; `senior-dev` and all project-level `tech-lead`, `dev-*`, `sme-*`, and `qa` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
 

@@ -15,10 +15,17 @@ alwaysApply: true
   - Avoid for: simple refactors or straightforward feature work that can be handled in the main agent.
   - Expectation: summarize its conclusions instead of pasting raw transcripts.
 
-- **`memory`**
-  - Use for: reading and writing long-lived org/project knowledge via the context-memory skill.
-  - Read before write: always query for existing decisions/constraints before adding new ones.
+- **`qdrant`**
+  - Use for: reading and writing long-lived org/project/session knowledge via the `context-memory` skill.
+  - Collections:
+    - `org_memory` (default via `COLLECTION_NAME`) for `org.*` namespaces.
+    - `project_memory` for all `project.<name>` / `project.<name>.<domain>` and `project.junk`.
+    - `session_memory` for `session.current`.
+    - `cache_memory` as an ephemeral cache/staging area.
+  - Always pass `collection_name` explicitly when targeting `org_memory`, `project_memory`, `session_memory`, or `cache_memory`. When using the `qdrant-store` and `qdrant-find` tools, always include a `collection_name` argument that matches the target collection (`org_memory`, `project_memory`, `session_memory`, or `cache_memory`).
+  - Read before write: use Qdrant search tools (through `context-memory`) to look for existing decisions/constraints before adding new ones.
   - Never store: raw chat logs, secrets, large code dumps, or volatile scratch notes.
+  - Fallback: if Qdrant health checks fail, do not call `qdrant` at all; operate from current conversation only and clearly tell the user that long-term vector memory is disabled.
 
 - **`fetch`**
   - Use for: retrieving external HTTP content (docs, APIs, specs) when you need exact wording or examples.
@@ -40,4 +47,3 @@ alwaysApply: true
 - **Safety and privacy**
   - Strip or mask: user secrets, tokens, and sensitive identifiers from prompts before sending to any MCP server.
   - Align with `ciso` guidance: when in doubt about data sensitivity, escalate to `ciso` rather than guessing.
-
