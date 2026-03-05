@@ -23,6 +23,17 @@ alwaysApply: true
     - Any known namespaces (`org.global`, `project.<name>`, etc.), categories (`decision`, `constraint`, `risk`, `todo`, `diagram`), and tags.
   - Agents should prefer **fewer, coarser-grained calls** to `memory-broker` (for example, “fetch all relevant decisions and constraints for this plan”) over many tiny queries, and should keep both requests and responses small.
 
+- **Docs orchestration**
+  - The org-level `docs-researcher` agent is the **only** agent that may call documentation MCPs directly (e.g. Context7 documentation-lookup, HTTP fetch/WebFetch for docs, `rovo` for Confluence/Jira docs).
+  - When an agent needs documentation or web research, it should:
+    - Summarize the question and relevant technologies/APIs.
+    - Delegate to `docs-researcher` as a subagent instead of calling documentation MCPs itself.
+  - Agents should keep docs requests **coarse-grained and focused** (for example, “summarize official guidance for X in version Y” or “compare options A vs B from the vendor docs”) and rely on `docs-researcher` for:
+    - Distilled answers.
+    - Key caveats.
+    - Links/citations for deeper reading.
+  - It is acceptable to run multiple `docs-researcher` subagents in parallel for independent topics, but each call should stay small and targeted to avoid bloating context.
+
 - **Call-chain boundaries**
   - For multi-phase work: the user → `cto` (plan) → project `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
   - `tech-lead` is the single entrypoint for project execution. The user should avoid invoking `dev-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve.

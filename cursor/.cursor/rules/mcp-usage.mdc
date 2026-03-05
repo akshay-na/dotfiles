@@ -31,6 +31,7 @@ alwaysApply: true
   - Use for: retrieving external HTTP content (docs, APIs, specs) when you need exact wording or examples.
   - Prefer: official documentation, standards, and well-known sources.
   - Summarize: extract only the relevant pieces into the conversation; do not paste entire pages unless necessary.
+  - **Broker rule:** Only the org-level `docs-researcher` agent should call HTTP/docs fetch tools directly. Other agents must delegate documentation/web research tasks to `docs-researcher` instead of using fetch/WebFetch themselves.
 
 - **`time`**
   - Use for: getting accurate current timestamps or doing calendar/date calculations when they matter for behavior or logging.
@@ -39,10 +40,12 @@ alwaysApply: true
 - **`context7`**
   - Use for: up-to-date library/framework documentation and code examples when implementing or updating features.
   - Cross-check: use it to confirm APIs and behavior instead of guessing or hallucinating.
+  - **Broker rule:** Only the org-level `docs-researcher` agent should call documentation-lookup tools like Context7 directly. Other agents must delegate such lookups to `docs-researcher` to keep their own contexts lean.
 
 - **`rovo`**
   - Use for: interacting with Atlassian/Atlassian MCP surfaces (e.g. Jira/Confluence) when configured, such as looking up tickets or docs.
   - Respect: project and org conventions around ticket naming, linking, and status updates.
+  - **Broker rule:** Only the org-level `docs-researcher` agent should call `rovo` for documentation research. Other agents must ask `docs-researcher` to retrieve or summarize Confluence/Jira docs on their behalf.
 
 - **Safety and privacy**
   - Strip or mask: user secrets, tokens, and sensitive identifiers from prompts before sending to any MCP server.

@@ -1,0 +1,39 @@
+---
+description: "Centralize documentation/web research through docs-researcher to keep other agents' contexts lean"
+alwaysApply: true
+---
+
+# Docs Researcher & Docs Broker Rules
+
+- **Single docs broker**
+  - The org-level `docs-researcher` agent is the single, global broker for documentation and web research.
+  - Only `docs-researcher` should call documentation MCPs directly (e.g. Context7 documentation lookup, HTTP fetch/WebFetch for docs, `rovo` for Confluence/Jira docs).
+
+- **Delegation pattern**
+  - All other agents (including ad-hoc/debug assistants) must delegate research/fetch tasks to `docs-researcher` instead of calling documentation MCPs themselves.
+  - When delegating, agents should send:
+    - A short brief of what they are trying to understand or decide.
+    - Key technologies, APIs, or products involved.
+    - Any constraints (version, vendor, on-prem vs cloud, etc.).
+  - Agents should avoid forwarding entire plans or large code dumps; send only what `docs-researcher` needs to perform targeted research.
+
+- **Context cleanliness**
+  - Non-research agents should **not** load heavy docs-related skills or long documentation snippets into their own context.
+  - `docs-researcher` decides which sources to consult and returns:
+    - Concise summaries.
+    - Focused details.
+    - Source links or citations.
+  - Callers embed only what they need (summary + key details) into their own reasoning, keeping their context windows clean.
+
+- **Parallel research**
+  - It is acceptable to spawn multiple `docs-researcher` subagents in parallel when independent research threads are needed (for example, separate libraries or services).
+  - Each sub-call should remain focused on its own question to avoid unnecessary cross-contamination of context.
+
+- **Separation from memory**
+  - `docs-researcher` is responsible for *external* documentation and web research.
+  - Persistent, internal knowledge (decisions, constraints, risks, todos, diagrams) remains the responsibility of `memory-broker`, which is the only agent that talks to Qdrant.
+  - Agents may combine outputs by:
+    - Asking `docs-researcher` for current docs behavior.
+    - Asking `memory-broker` for existing decisions/constraints.
+    - Making a decision in their own role based on both, then persisting the decision via `memory-broker` if appropriate.
+
