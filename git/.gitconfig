@@ -18,13 +18,13 @@
     }; f"  # Stash changes and then pop them
   set-ssh = "!f() { \
         git remote set-url origin $(git remote get-url origin | sed -E 's#https://([^/]+)/([^/]+)/(.*)#git@\\1:\\2/\\3#'); \
-        echo 'Changed remote URL to use SSH\n'; \
+        echo 'Changed remote URL to use SSH'; \
         git remote -v; \
         echo; \
     }; f"
   set-https = "!f() { \
         git remote set-url origin $(git remote get-url origin | sed -E 's#git@([^:]+):([^/]+)/#https://\\1/\\2/#'); \
-        echo 'Changed remote URL to use HTTPS\n'; \
+        echo 'Changed remote URL to use HTTPS'; \
         git remote -v; \
         echo; \
     }; f"
