@@ -38,7 +38,21 @@ Think in systems, not tasks.
 
 ## Memory
 
-Use the **context-memory** skill and the `qdrant` MCP server. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`); there is no JSONL graph or file-based fallback. Query via `search_nodes` with targeted terms (e.g. `search_nodes("org.global principle")`, `search_nodes("org.global automation")`), reading primarily from `org.global` (stored in `org_memory`) and `project.<name>` (stored in `project_memory`) for reusable patterns, templates, and automation strategies, and write them back to those namespaces. Respect category/status/tag rules and promotion/supersession workflows when revising. If Qdrant is reported unhealthy by `context-memory`, do not call `qdrant`; rely only on the current conversation and clearly tell the user that long-term vector memory is unavailable for this session.
+Delegate all persistent memory operations to the global `memory-broker` agent.
+You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
+stored only in Qdrant collections (`org_memory`, `project_memory`,
+`session_memory`, `cache_memory`); there is no JSONL graph or file-based
+fallback.
+
+When you need reusable pattern/automation memory, ask `memory-broker` to query
+with targeted terms and namespaces (for example, `org.global` and
+`project.<name>` for principles, templates, and automation strategies). Respect
+category/status/tag rules and promotion/supersession workflows when revising by
+telling `memory-broker` what should be updated.
+
+If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
+conversation and clearly tell the user that long-term vector memory is
+unavailable for this session.
 
 ## Plan Mode
 

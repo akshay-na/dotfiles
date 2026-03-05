@@ -28,7 +28,21 @@ The org sets standards. The team knows the project.
 
 ## Memory
 
-Use the **context-memory** skill and the `qdrant` MCP server. When onboarding a project, derive `project.<name>` from git remote or folder. Query `org.global` (in `org_memory`) and `project.<name>` (in `project_memory`) for existing conventions before creating agents. Optionally write project bootstrap decisions (e.g. team structure, scoping) to `project.<name>`, using promotion/supersession rules when revising. Never use `read_graph`; use targeted `search_nodes` queries only. If Qdrant is reported unhealthy by `context-memory`, do not call `qdrant`; rely only on the current conversation and clearly tell the user that long-term vector memory is unavailable for this session.
+Delegate all persistent memory operations to the global `memory-broker` agent.
+You do **not** call Qdrant or use the `context-memory` skill directly. When
+onboarding a project, derive `project.<name>` from git remote or folder and ask
+`memory-broker` to:
+
+- Query `org.global` (in `org_memory`) and `project.<name>` (in `project_memory`)
+  for existing conventions before creating agents.
+- Optionally write project bootstrap decisions (for example, team structure and
+  scoping) to `project.<name>`, using promotion/supersession rules when revising.
+
+Never use `read_graph`; rely on `memory-broker` and `context-memory`’s
+`search_nodes`-style operations instead. If `memory-broker` reports that Qdrant
+is unhealthy, do not attempt any memory reads or writes; rely only on the
+current conversation and clearly tell the user that long-term vector memory is
+unavailable for this session.
 
 ## Naming Convention
 
@@ -75,7 +89,12 @@ Each dev agent's description must state its scope clearly so the user knows whic
 
 ### Smart Context Memory (Required for All Project Agents)
 
-All project agents must use the shared **context-memory** skill and the `qdrant` MCP server. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`) under `~/.cursor/memory/qdrant`; agents never load everything — they query via `search_nodes` with targeted namespace/category/tags only.
+All project agents must route persistent memory operations through the global
+`memory-broker` agent, which uses the shared **context-memory** skill and the
+`qdrant` MCP server. Memory is stored only in Qdrant collections
+(`org_memory`, `project_memory`, `session_memory`, `cache_memory`) under
+`~/.cursor/memory/qdrant`; agents never load everything — they ask
+`memory-broker` to query with targeted namespace/category/tags only.
 
 **Project namespace derivation:**
 - If the project has a git remote: extract repo name from URL (e.g. `https://github.com/akshay-na/DotMate.git` → `dotmate`). Normalize to lowercase.
@@ -84,7 +103,11 @@ All project agents must use the shared **context-memory** skill and the `qdrant`
 
 **Rules:** Respect category/status/namespace/tag rules from the skill. Never store raw chat or brainstorming dumps. Use promotion and supersession instead of ad-hoc duplication. Never use `read_graph`.
 
-**When creating project agents:** Include a Memory section in each agent that declares which namespaces they read from and write to (e.g. `project.dotmate.frontend`, `project.dotmate.backend`), and how they use the context-memory skill.
+**When creating project agents:** Include a Memory section in each agent that
+declares which namespaces they read from and write to (e.g.
+`project.dotmate.frontend`, `project.dotmate.backend`), and how they delegate
+memory operations to the global `memory-broker` instead of calling Qdrant or
+`context-memory` directly.
 
 ### 2. Team Skills (as needed)
 
@@ -378,7 +401,21 @@ When given a phased plan (typically from `cto`):
 
 ## Memory
 
-Use the **context-memory** skill and MCP `memory` server. Your project namespace is `project.<name>` (e.g. `project.dotmate`) — derive `<name>` from git remote or folder. Never use `read_graph`; query via `search_nodes` with targeted terms (e.g. `search_nodes("project.dotmate decision")`). Read from `project.<name>`, `project.<name>.<domain>` (e.g. `.api`, `.frontend`), and `org.global`. Write project-level decisions and principles to `project.<name>` or `project.<name>.<domain>`. You decide when project insights are stable enough to promote: if an insight persists across 2+ sessions, promote from `session.current` to `project.<name>`. Escalate cross-project patterns to `cto` for org.global promotion. Use supersession when revising decisions.
+Delegate all persistent memory operations to the global `memory-broker` agent.
+You do **not** call Qdrant or use the `context-memory` skill directly. Your
+project namespace is `project.<name>` (e.g. `project.dotmate`) — derive `<name>`
+from git remote or folder. Never use `read_graph`; instead, ask
+`memory-broker` to query with targeted terms and namespaces (for example,
+`project.<name>`, `project.<name>.<domain>` such as `.api` or `.frontend`, and
+`org.global`).
+
+Write project-level decisions and principles by instructing `memory-broker` to
+persist them to `project.<name>` or `project.<name>.<domain>`. You decide when
+project insights are stable enough to promote: if an insight persists across 2+
+sessions, promote from `session.current` to `project.<name>` via
+`memory-broker`. Escalate cross-project patterns to `cto` for potential
+org-global promotion, again through `memory-broker`. Use supersession when
+revising decisions.
 
 ## Escalation
 
@@ -422,7 +459,18 @@ cross-cutting concerns.
 
 ## Memory
 
-Use the **context-memory** skill and MCP `memory` server. Your project namespace is `project.<name>` (derive from git remote or folder). Read from `project.<name>`, `project.<name>.<domain>` (match your scope, e.g. `.frontend`, `.api`), and `org.global`. Write mainly `experimental` entries and localized `todo`/`risk` items to `project.<name>.<domain>` or `session.current`. Promote stable insights to `project.<name>` or escalate to `tech-lead` for org-level promotion. Never use `read_graph`; use targeted `search_nodes` queries only.
+Delegate all persistent memory operations to the global `memory-broker` agent.
+You do **not** call Qdrant or use the `context-memory` skill directly. Your
+project namespace is `project.<name>` (derive from git remote or folder). Read
+from `project.<name>`, `project.<name>.<domain>` (match your scope, e.g.
+`.frontend`, `.api`), and `org.global` by asking `memory-broker` for the
+relevant entries.
+
+Write mainly `experimental` entries and localized `todo`/`risk` items by having
+`memory-broker` persist them to `project.<name>.<domain>` or `session.current`.
+Promote stable insights to `project.<name>` or escalate to `tech-lead` for
+org-level promotion, again via `memory-broker`. Never use `read_graph`; rely on
+`memory-broker` and its `context-memory`-backed search operations instead.
 
 ## Escalation
 

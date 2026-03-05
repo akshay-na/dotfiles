@@ -178,13 +178,28 @@ Before presenting the plan, validate:
 
 ## Memory
 
-Use the **context-memory** skill and the `qdrant` MCP server for all memory operations. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`); there is no JSONL graph or fallback file store. Never store raw chat.
+Delegate all persistent memory operations to the global `memory-broker` agent.
+You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
+stored only in Qdrant collections (`org_memory`, `project_memory`,
+`session_memory`, `cache_memory`); there is no JSONL graph or fallback file
+store. Never store raw chat.
 
-**Before finalizing a plan:** Use `context-memory` to query Qdrant for relevant `decision`, `constraint`, `principle`, and `risk` entries from `project.<name>[.<domain>]` and `org.global`, targeting the appropriate collections (`project_memory` + `org_memory`) instead of loading everything.
+**Before finalizing a plan:** Ask `memory-broker` to query for relevant
+`decision`, `constraint`, `principle`, and `risk` entries from
+`project.<name>[.<domain>]` and `org.global`, targeting the appropriate
+collections (`project_memory` + `org_memory`) instead of loading everything.
 
-**After finalizing a plan:** Write high-level architectural and process decisions as `decision` or `principle` entries in `project.<name>` (stored in `project_memory`) or `org.global` (stored in `org_memory`) as appropriate. When revising an earlier org-level decision, create a new entry and supersede the old one via payload metadata; do not duplicate.
+**After finalizing a plan:** Use `memory-broker` to write high-level
+architectural and process decisions as `decision` or `principle` entries in
+`project.<name>` (stored in `project_memory`) or `org.global` (stored in
+`org_memory`) as appropriate. When revising an earlier org-level decision,
+create a new entry and set `supersedes` to include the old entity instead of
+duplicating it.
 
-**Fallback:** If Qdrant health checks fail, do not attempt any memory reads or writes. Explicitly tell the user that long-term vector memory is unavailable for this session and rely only on the current conversation until Qdrant is healthy again.
+**Fallback:** If `memory-broker` reports that Qdrant is unavailable, do not
+attempt any memory reads or writes. Explicitly tell the user that long-term
+vector memory is unavailable for this session and rely only on the current
+conversation until Qdrant is healthy again.
 
 **Rules:** Respect category/status/namespace/tag rules from the skill. Use promotion and supersession instead of ad-hoc duplication.
 

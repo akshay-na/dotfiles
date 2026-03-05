@@ -16,6 +16,13 @@ alwaysApply: true
   - Project agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) own implementation inside a specific repo, following org standards and project rules.
   - Project agents escalate up to org agents via `cto` when decisions affect architecture, security posture, performance budgets, or shared tooling.
 
+- **Memory orchestration**
+  - The global `memory-broker` agent is the **only** agent that may call Qdrant MCP tools. All other agents (including ad-hoc/debug assistants) must delegate persistent memory operations to `memory-broker` instead of using the `context-memory` skill directly.
+  - When an agent needs long-lived knowledge or wants to persist a decision/risk/todo, it should invoke `memory-broker` as a subagent with:
+    - A short description of the task
+    - Any known namespaces (`org.global`, `project.<name>`, etc.), categories (`decision`, `constraint`, `risk`, `todo`, `diagram`), and tags.
+  - Agents should prefer **fewer, coarser-grained calls** to `memory-broker` (for example, “fetch all relevant decisions and constraints for this plan”) over many tiny queries, and should keep both requests and responses small.
+
 - **Call-chain boundaries**
   - For multi-phase work: the user → `cto` (plan) → project `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
   - `tech-lead` is the single entrypoint for project execution. The user should avoid invoking `dev-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve.
@@ -47,4 +54,5 @@ alwaysApply: true
 
 - **Golden rule**
   - Every agent respects its scope, escalates instead of guessing outside that scope, and never skips plan checkpoints without explicit user instruction.
+  - Every agent keeps its own context lean by delegating cross-cutting concerns (for example, persistent memory) to shared utility agents like `memory-broker`, instead of loading heavy skills and rules into every agent.
 

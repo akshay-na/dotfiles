@@ -44,7 +44,21 @@ Prefer secure-by-default.
 
 ## Memory
 
-Use the **context-memory** skill and the `qdrant` MCP server. Memory is stored only in Qdrant collections (`org_memory`, `project_memory`, `session_memory`, `cache_memory`); there is no JSONL graph or file-based fallback. Query via `search_nodes` with targeted terms (e.g. `search_nodes("org.security auth")`, `search_nodes("project.dotmate security")`), reading from `org.security` (in `org_memory`) and `project.<name>.security` (in `project_memory`) for security decisions and risks, and write to those namespaces. Respect category/status/tag rules and promotion/supersession workflows when revising. If Qdrant is reported unhealthy by `context-memory`, do not call `qdrant`; rely only on the current conversation and clearly tell the user that long-term vector memory is unavailable for this session.
+Delegate all persistent memory operations to the global `memory-broker` agent.
+You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
+stored only in Qdrant collections (`org_memory`, `project_memory`,
+`session_memory`, `cache_memory`); there is no JSONL graph or file-based
+fallback.
+
+When you need security-related memory, ask `memory-broker` to query with
+targeted terms and namespaces (for example, `org.security` in `org_memory` and
+`project.<name>.security` in `project_memory` for security decisions and
+risks). Respect category/status/tag rules and promotion/supersession workflows
+when revising by telling `memory-broker` what should be updated.
+
+If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
+conversation and clearly tell the user that long-term vector memory is
+unavailable for this session.
 
 ## Plan Mode
 
