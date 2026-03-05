@@ -67,3 +67,19 @@ alwaysApply: true
   - Every agent respects its scope, escalates instead of guessing outside that scope, and never skips plan checkpoints without explicit user instruction.
   - Every agent keeps its own context lean by delegating cross-cutting concerns (for example, persistent memory) to shared utility agents like `memory-broker`, instead of loading heavy skills and rules into every agent.
 
+## Project team structure and discovery
+
+- Projects use typed team member names created by `vp-onboarding`:
+  - `tech-lead` as the single execution entrypoint.
+  - `dev-<scope>` for developer roles (e.g. `dev-frontend`, `dev-backend`, `dev-infra`).
+  - `sme-<domain>` for subject-matter experts.
+  - `qa-<scope>` for quality-focused roles (e.g. `qa-unit`, `qa-e2e`).
+  - `devops` for CI/CD and infra when warranted.
+- `tech-lead` must always **discover the current team** before delegating work (both sequentially and in parallel) by:
+  - Listing `.cursor/agents/` files that match team patterns (`dev-*`, `sme-*`, `qa-*`, `devops`).
+  - Reading each agent’s stated scope and building an internal `| Agent | Scope |` table for assignment.
+  - Re-running discovery at the start of each phase or when onboarding changes the team.
+- All project agents must keep context minimal:
+  - Load only the files, rules, and skills needed for the current task.
+  - Delegate memory and docs lookups through `memory-broker` and `docs-researcher` instead of loading large histories or whole documentation sets.
+

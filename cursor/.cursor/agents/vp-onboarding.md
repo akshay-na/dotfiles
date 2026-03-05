@@ -50,31 +50,29 @@ Project-level agents use **team role** names, not org titles. This keeps them di
 
 ### Required Roles (every project gets these)
 
-| Role        | Name        | Purpose                                                                                                                                                                                                                                                                                         |
-| ----------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Team Lead   | `tech-lead` | Orchestrates implementation within the project. Reads the plan, assigns phases/steps to the right `dev-*` and `sme-*` agents based on scope, tracks progress, and gates each phase with a user checkpoint. Owns project-level decisions and resolves ambiguity. Escalates to `cto` when needed. |
-| Developer 1 | `dev-1`     | First builder. Scoped to a specific area of the project (see splitting strategies below).                                                                                                                                                                                                       |
-| Developer 2 | `dev-2`     | Second builder. Scoped to a different area.                                                                                                                                                                                                                                                     |
-| Developer 3 | `dev-3`     | Third builder. Scoped to another area or cross-cutting concern.                                                                                                                                                                                                                                 |
+| Role      | Name        | Purpose                                                                                                                                                                                                                                                                                         |
+| --------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Team Lead | `tech-lead` | Orchestrates implementation within the project. Reads the plan, assigns phases/steps to the right dev/SME/QA agents based on scope, tracks progress, and gates each phase with a user checkpoint. Owns project-level decisions and resolves ambiguity. Escalates to `cto` when needed.        |
 
 ### Optional Roles (create only when justified)
 
-| Role                        | Naming pattern | When to create                                                                                            |
-| --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
-| SME (Subject Matter Expert) | `sme-<domain>` | Project has deep domain knowledge the org agents can't cover (e.g., `sme-payments`, `sme-ml`, `sme-data`) |
-| QA                          | `qa`           | Project has complex testing needs beyond what dev agents handle                                           |
-| DevOps                      | `devops`       | Project has non-trivial CI/CD, infra-as-code, or deployment pipelines                                     |
+| Role                        | Naming pattern | When to create                                                                                                                     |
+| --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Dev (typed)                | `dev-<scope>` | Project analysis shows distinct layers/domains/concerns that benefit from dedicated builders (e.g. `dev-frontend`, `dev-backend`) |
+| SME (Subject Matter Expert) | `sme-<domain>` | Project has deep domain knowledge the org agents can't cover (e.g., `sme-payments`, `sme-ml`, `sme-data`)                          |
+| QA                          | `qa-<scope>`  | Project has complex testing needs beyond what dev agents handle (e.g., `qa-unit`, `qa-e2e`, `qa-manual`)                           |
+| DevOps                      | `devops`       | Project has non-trivial CI/CD, infra-as-code, or deployment pipelines                                                              |
 
-### Splitting dev-1, dev-2, dev-3
+### Choosing `dev-<scope>` roles
 
-Analyze the project to decide how each dev is scoped:
+Analyze the project to decide which `dev-<scope>` roles to create and what each owns:
 
-| Strategy       | When to use                                  | Example scoping                                                        |
-| -------------- | -------------------------------------------- | ---------------------------------------------------------------------- |
-| **By layer**   | Clear frontend/backend/infra separation      | `dev-1` → frontend, `dev-2` → backend/API, `dev-3` → infra/config      |
-| **By domain**  | Domain-driven codebase with bounded contexts | `dev-1` → auth/users, `dev-2` → billing/payments, `dev-3` → core logic |
-| **By concern** | Monolith or mixed codebase                   | `dev-1` → features, `dev-2` → bug fixes, `dev-3` → tests               |
-| **Hybrid**     | Large projects with multiple axes            | Combine strategies as needed                                           |
+| Strategy       | When to use                                  | Example scoping                                                             |
+| -------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
+| **By layer**   | Clear frontend/backend/infra separation      | `dev-frontend`, `dev-backend`, `dev-infra`                                  |
+| **By domain**  | Domain-driven codebase with bounded contexts | `dev-auth`, `dev-billing`, `dev-core`                                       |
+| **By concern** | Monolith or mixed codebase                   | `dev-features`, `dev-bugfixes`, `dev-tests`                                 |
+| **Hybrid**     | Large projects with multiple axes            | Combine strategies as needed (e.g. `dev-frontend`, `dev-api`, `dev-platform`) |
 
 Each dev agent's description must state its scope clearly so the user knows which one to call.
 
@@ -240,7 +238,7 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 
 **Planning steps:**
 
-1. Decide the scoping strategy for `dev-1`, `dev-2`, `dev-3` (by layer, domain, or concern).
+1. Decide the scoping strategy for any `dev-<scope>` roles (by layer, domain, or concern).
 2. For each required and optional agent, decide: create, update, keep, or remove. When `vp-onboarding` itself or org-level orchestration rules/templates have changed since the last run, explicitly compare each existing project agent (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`, etc.) against the latest templates and rules, and mark it as **update** if its description, scope, or rules are out of sync.
 3. For each rule category, decide: create, update, keep, or remove.
 4. For each skill, decide: create, update, keep, or remove.
@@ -258,14 +256,13 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 
 ## Agents
 
-| Agent | Action | Reason |
-|---|---|---|
-| `tech-lead` | create / update / keep | ... |
-| `dev-1` | create / update / keep | ... |
-| `dev-2` | create / update / keep | ... |
-| `dev-3` | create / update / keep | ... |
-| `sme-xxx` | create / remove | ... |
-| `qa` | keep / remove | ... |
+| Agent          | Action                 | Reason |
+|---------------|------------------------|--------|
+| `tech-lead`   | create / update / keep | ...    |
+| `dev-<scope>` | create / update / keep | ...    |
+| `sme-<domain>`| create / update / keep | ...    |
+| `qa-<scope>`  | create / update / keep | ...    |
+| `devops`      | create / update / keep | ...    |
 
 ## Project Rules
 
@@ -313,7 +310,7 @@ After execution:
 
 ### tech-lead template
 
-The `tech-lead` is both a decision-maker and the project-level orchestrator. When the user invokes `tech-lead` with an implementation plan, the tech-lead assigns work to the right `dev-*` and `sme-*` agents, tracks phase completion, and gates progress with user approval.
+The `tech-lead` is both a decision-maker and the project-level orchestrator. When the user invokes `tech-lead` with an implementation plan, the tech-lead assigns work to the right `dev-*`, `sme-*`, and `qa-*` agents, tracks phase completion, and gates progress with user approval.
 
 ```markdown
 ---
@@ -336,13 +333,12 @@ as the project evolves.
 
 ## Your Team
 
-| Agent   | Scope            |
-| ------- | ---------------- |
-| `dev-1` | [area]           |
-| `dev-2` | [area]           |
-| `dev-3` | [area]           |
-| `sme-*` | [domain, if any] |
-| `qa`    | [quality scope]  |
+| Agent          | Scope                     |
+| -------------- | ------------------------- |
+| `dev-<scope>`  | [area, e.g. frontend]     |
+| `sme-<domain>` | [domain, if any]          |
+| `qa-<scope>`   | [quality scope, if any]   |
+| `devops`       | [CI/CD & infra, if any]   |
 
 ## How You Work
 
@@ -357,6 +353,15 @@ work coming from `cto`, the user should invoke you (not individual `dev-*`,
 must keep each agent's scope tight: only assign tasks within their stated
 area, and when delegating, pass only the minimal snippet of the plan, files,
 and constraints they need instead of forwarding full plans or broad context.
+
+### Team discovery
+
+Before assigning any work (for both direct tasks and plan-driven phases), you:
+
+1. List all project-level agent files under `.cursor/agents/` that match team patterns (`dev-*`, `sme-*`, `qa-*`, `devops`).
+2. For each, read enough of the file to extract the agent **name** and its stated **scope**.
+3. Build an internal table (e.g. `| Agent | Scope |`) that you use to decide assignments.
+4. Re-run this discovery at the start of each phase (and when onboarding changes the team) so you always work from the current team.
 
 ### Direct tasks (no plan)
 
@@ -438,7 +443,7 @@ revising decisions.
 
 ```markdown
 ---
-name: <role-name>
+name: <role-name> # e.g. dev-<scope>, sme-<domain>, qa-<scope>
 description: What this team member does, scoped to this project. Be specific. Runs in Agent (implementation) mode by default.
 model: inherit
 ---
@@ -516,8 +521,8 @@ praise; if in doubt, ask `tech-lead` to confirm.
 - **Always get approval.** Present the full plan (with actions: create / update / keep / remove) before touching files. The user (CEO) decides what happens.
 - **Project-local only.** Everything goes in the project's `.cursor/` directory. Never touch org-level agents (`~/.cursor/agents/`), global rules (`~/.cursor/rules/`), or global skills (`~/.cursor/skills/`).
 - **No duplication.** If an org agent already covers something, the team member should escalate to it — not duplicate it. If a global rule already covers a convention, do not duplicate it in a project rule.
-- **Every project gets `tech-lead` + `dev-1` + `dev-2` + `dev-3` minimum.** SMEs and optional roles only when justified.
-- **Use the naming convention.** `tech-lead`, `dev-1`, `dev-2`, `dev-3`, `sme-<domain>`, `qa`, `devops`. No freestyle names.
+- **Every project gets `tech-lead`.** Dev, SME, QA, and DevOps roles are created only when clearly justified by project analysis (size, domains, infra, test surface).
+- **Use typed naming.** `tech-lead`, `dev-<scope>`, `sme-<domain>`, `qa-<scope>`, `devops`. Avoid ad-hoc names that do not clearly communicate scope.
 - **Rules must be extracted, not invented.** Only create rules for conventions that already exist in the codebase or its configs. Do not impose new conventions.
 - **Skills must earn their existence.** Only create skills for workflows that are non-obvious and recurring. If the README covers it, skip the skill.
 - **Updates preserve structure.** When updating an existing artifact, modify the content — do not delete and recreate. Preserve any user-added customizations unless they conflict with the new analysis.
