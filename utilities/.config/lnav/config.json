@@ -25,11 +25,14 @@
     "hide-user-messages": false,
     "hide-wrap-indicator": false,
     "text-wrap": true,
+    "word-wrap": true,
     "ui-clock": true,
     "ui-dim-text": false,
-    "mouse": true,
     "movement": {
       "mode": "cursor"
+    },
+    "mouse": {
+      "mode": "enabled"
     }
   },
 
@@ -52,25 +55,6 @@
   "session": {
     "enabled": true,
     "session-file": "~/.lnav/session.json"
-  },
-
-  "global": {
-    "default-command": "log",
-    "default-view": "pretty",
-    "enable-search": true,
-    "enable-word-wrap": true,
-    "hide-extra": false,
-    "hide-user-messages": false,
-    "load-formats": true,
-    "load-sql": true,
-    "min-log-level": "trace",
-    "preview-lines": 3,
-    "read-only": false,
-    "scroll-offset": 5,
-    "text-wrap": true,
-    "ui-clock": true,
-    "mouse": true,
-    "ui-dim-text": false
   },
 
   "views": {
@@ -281,43 +265,5 @@
     "inf": "info",
     "dbg": "debug",
     "trc": "trace"
-  },
-
-  "tuning": {
-    "ui": {
-      "clock-format": "%H:%M:%S",
-      "dim-text": false,
-      "hide-breadcrumbs": false,
-      "hide-expr": false,
-      "hide-fields": false,
-      "hide-file-size": false,
-      "hide-histogram": false,
-      "hide-lines-covered": false,
-      "hide-location": false,
-      "hide-logs": false,
-      "hide-mark": false,
-      "hide-menu-status": false,
-      "hide-rewrite": false,
-      "hide-search": false,
-      "hide-spectro": false,
-      "hide-status": false,
-      "hide-tabs": false,
-      "hide-time": false,
-      "hide-top-status": false,
-      "hide-user-messages": false,
-      "hide-wrap-indicator": false,
-      "text-wrap": true,
-      "ui-clock": true,
-      "ui-dim-text": false,
-      "ui-default-colors": false,
-      "mouse": true
-    },
-    "log": {
-      "min-log-level": "trace",
-      "preview-lines": 3,
-      "read-only": false,
-      "scroll-offset": 5,
-      "text-wrap": true
-    }
   }
 }
