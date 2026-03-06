@@ -90,6 +90,7 @@ xcuserdata/
 
 # Clojure
 .cpcache/
+.calva/
 .clj-kondo/
 .shadow-cljs/
 .lsp/
