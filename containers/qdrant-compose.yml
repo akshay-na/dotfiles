@@ -4,7 +4,7 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.9.2
     container_name: qdrant
-    restart: unless-stopped
+    restart: always
 
     # Set QDRANT_STORAGE_DIR (e.g. to ~/.cursor/memory/qdrant/<EMBEDDING_MODEL_ID>/data)
     # to control where Qdrant stores its data on the host. Defaults to ./storage.
@@ -14,13 +14,6 @@ services:
 
     volumes:
       - ${HOME}/.cursor/memory/qdrant:/qdrant/storage
-
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/collections"] # basic readiness check
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
 
     environment:
       QDRANT__SERVICE__HTTP_PORT: 6333
@@ -32,10 +25,16 @@ services:
     image: curlimages/curl:8.5.0
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
     restart: "no"
     entrypoint: >
       sh -c "
+      echo 'Waiting for Qdrant to become ready...';
+      until curl -sf http://qdrant:6333/collections > /dev/null; do
+        echo 'Qdrant not ready yet, sleeping...';
+        sleep 2;
+      done;
+
       echo 'Creating collections if missing...';
       curl -s -X PUT http://qdrant:6333/collections/org_memory \
         -H 'Content-Type: application/json' \

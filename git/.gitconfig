@@ -112,16 +112,12 @@
 [init]
   defaultBranch = main  # New git repo starts with main branch
 
-[interactive]
-  diffFilter = delta --color-only
-
 [maintenance]
   auto = true                       # Enable automatic background Git maintenance
   strategy = incremental            # Use incremental maintenance (lightweight, non-blocking tasks)
 
 [merge]
   summary = true           # Include a summary of merged commits in the merge commit message
-  conflictStyle = zdiff3  # Use zdiff3 for conflict resolution
 
 [pager]
   diff = true  # Use pager for diff output
