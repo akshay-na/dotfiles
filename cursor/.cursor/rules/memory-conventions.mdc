@@ -46,3 +46,14 @@ alwaysApply: true
   - Project agents primarily read from and write to `project.<name>` and `project.<name>.<domain>`, escalating broadly useful insights via `tech-lead` and `cto`, and ultimately through `memory-broker`.
   - All memory operations must go through Qdrant via the `context-memory` skill **used by `memory-broker`**; when Qdrant is unavailable, `memory-broker` must not write or read long-term memory and must explicitly tell the caller that vector memory is disabled for that session.
 
+## Project knowledge base
+
+- The same vector schema is used for both major entities (decisions, constraints, principles, diagrams) and finer-grained **project knowledge base** entries.
+- Project KB entries represent conclusions and pointers derived from project-local sources such as `README.md`, `Makefile`, `.cursor/rules/`, `.cursor/skills/`, and tech stack analysis.
+- Use the existing categories (`decision`, `constraint`, `principle`, `assumption`, `diagram`, etc.) and namespaces (`project.<name>`, `project.<name>.<domain>`) for these entries; **do not** introduce new categories or collections.
+- Distinguish project KB entries via tags:
+  - `project-kb` for any project knowledge base entity.
+  - `doc-pointer` when the entity primarily points at a local doc or config file.
+  - `skill-lookup` when the entity points at or summarizes a project skill.
+- When an entry points at a local file (for example a rule or skill), include an optional `source_path` payload field with the file path relative to the repo root (e.g. `cursor/.cursor/rules/memory-conventions.mdc` or `.cursor/skills/dotmate-config-changes/SKILL.md`).
+- The same "what to store / what NOT to store" rules apply: store short summaries and pointers, **not** full file contents, raw chat logs, or secrets.

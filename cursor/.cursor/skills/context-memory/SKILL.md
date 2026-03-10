@@ -161,6 +161,62 @@ namespace: {namespace} category: {category}
 
 Qdrant uses this text for embeddings so diagrams can be retrieved semantically by subject, type, and tags.
 
+## Qdrant MCP tools
+
+All Qdrant access happens through the `qdrant` MCP server. The two core tools are:
+
+- `qdrant-store` — upsert a single memory point.
+- `qdrant-find` — search for relevant memory points.
+
+Only the **`memory-broker`** agent calls these tools directly. Other agents must describe the desired read/write/search operation to `memory-broker`, which then:
+
+1. Builds the `embedding_text` (from summary, rationale, tags, namespace, category).
+2. Prepares the payload (metadata) fields described in **Entity Schema in Qdrant**.
+3. Chooses the target collection (`org_memory`, `project_memory`, `session_memory`, or `cache_memory`).
+4. Calls `qdrant-store` or `qdrant-find` with the appropriate arguments.
+
+### `qdrant-store`
+
+Schema (from the MCP descriptor):
+
+- **information** (string, required): free-form text to embed.
+- **collection_name** (string, required): one of `org_memory`, `project_memory`, `session_memory`, `cache_memory`.
+- **metadata** (object or null, optional): arbitrary JSON payload.
+
+How `memory-broker` should use it:
+
+- Set `information` to the **`embedding_text`** constructed in the *Embedding Text Construction* section (never raw JSON or large code dumps).
+- Set `collection_name` to match the target collection based on namespace:
+  - `org.global`, `org.security` → `org_memory`
+  - `project.<name>`, `project.<name>.<domain>`, `project.junk` → `project_memory`
+  - `session.current` → `session_memory`
+  - Experimental / low-confidence → `cache_memory`
+- Set `metadata` to the **payload** object, including fields such as:
+  - `entity_name`, `namespace`, `category`, `summary`, `tags`, `status`, `created_at`
+  - Optional: `rationale`, `supersedes`, `project`, `source`, `last_synced_at`, `confidence`
+  - Optional project knowledge base helpers (when applicable): `source_path` for local doc/skill pointers, plus tags like `project-kb`, `doc-pointer`, `skill-lookup`.
+
+### `qdrant-find`
+
+Schema (from the MCP descriptor):
+
+- **query** (string, required): what to search for.
+- **collection_name** (string, required): the collection to search in.
+
+How `memory-broker` should use it:
+
+- Build `query` from a short natural-language description of what is needed, often combining:
+  - Key phrases from the desired `summary`/`rationale`.
+  - Relevant tags (e.g. `auth api`, `project-kb doc-pointer`, `diagram architecture`).
+- Set `collection_name` based on scope, typically:
+  - `org_memory` for org-wide decisions/principles.
+  - `project_memory` for project- or domain-scoped entities (including project knowledge base entries).
+  - `session_memory` for very recent, session-specific insights.
+  - `cache_memory` only when explicitly looking for experimental entries.
+- Apply additional filtering (when available) via payload filters on `namespace`, `category`, `status`, `tags`, or `project` to narrow results after similarity ranking.
+
+Agents other than `memory-broker` **must not** call `qdrant-store` or `qdrant-find` directly; instead, they request operations like “search for accepted decisions in `project.<name>.api` about pagination” or “store this new project-kb doc-pointer entry”, and let `memory-broker` translate that into concrete tool calls.
+
 ## Read Behavior (Normal Mode)
 
 In **normal mode** (Qdrant healthy), agents read memory only via the `qdrant` MCP server.
