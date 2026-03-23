@@ -222,6 +222,10 @@ case "${1:-}" in
   git fetch origin
   echo "${CYAN}Merging origin/$2 into current branch (no commit)...${NC}"
   git merge --no-ff --no-commit "origin/$2"
+  echo ""
+  current_branch=$(git symbolic-ref --short HEAD)
+  echo "${YELLOW}Run 'gerrit --submit-merge $current_branch' to submit the merge commit for review.${NC}"
+  echo ""
   ;;
 
 -S | --submit-merge)
