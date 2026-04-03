@@ -16,19 +16,19 @@ alwaysApply: true
   - Project agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) own implementation inside a specific repo, following org standards and project rules.
   - Project agents escalate up to org agents via `cto` when decisions affect architecture, security posture, performance budgets, or shared tooling.
 
-- **Memory orchestration**
-  - The global `memory-broker` agent is the **only** agent that may call Qdrant MCP tools. All other agents (including ad-hoc/debug assistants) must delegate persistent memory operations to `memory-broker` instead of using the `context-memory` skill directly.
-  - When an agent needs long-lived knowledge or wants to persist a decision/risk/todo, it should invoke `memory-broker` as a subagent with:
-    - A short description of the task
-    - Any known namespaces (`org.global`, `project.<name>`, etc.), categories (`decision`, `constraint`, `risk`, `todo`, `diagram`), and tags.
-  - Agents should prefer **fewer, coarser-grained calls** to `memory-broker` (for example, “fetch all relevant decisions and constraints for this plan”) over many tiny queries, and should keep both requests and responses small.
+- **Memory access**
+  - All agents access memory directly via the `context-memory` skill and the always-apply `memory-access` and `memory-capture` rules. No broker agent is needed.
+  - Agents follow the skill's read protocol (check directory → read `_index.md` → read individual entries) to avoid context bloat.
+  - Agents follow the skill's write protocol (with mandatory `_index.md` update) to persist decisions, constraints, risks, and other entries.
+  - The `memory-capture` rule instructs all agents to auto-capture significant decisions as part of their normal workflow.
+  - Memory content is local per machine; it does not sync via dotfiles.
 
 - **Docs orchestration**
   - The org-level `docs-researcher` agent is the **only** agent that may call documentation MCPs directly (e.g. Context7 documentation-lookup, HTTP fetch/WebFetch for docs, `rovo` for Confluence/Jira docs).
   - When an agent needs documentation or web research, it should:
     - Summarize the question and relevant technologies/APIs.
     - Delegate to `docs-researcher` as a subagent instead of calling documentation MCPs itself.
-  - Agents should keep docs requests **coarse-grained and focused** (for example, “summarize official guidance for X in version Y” or “compare options A vs B from the vendor docs”) and rely on `docs-researcher` for:
+  - Agents should keep docs requests **coarse-grained and focused** (for example, "summarize official guidance for X in version Y" or "compare options A vs B from the vendor docs") and rely on `docs-researcher` for:
     - Distilled answers.
     - Key caveats.
     - Links/citations for deeper reading.
@@ -65,7 +65,7 @@ alwaysApply: true
 
 - **Golden rule**
   - Every agent respects its scope, escalates instead of guessing outside that scope, and never skips plan checkpoints without explicit user instruction.
-  - Every agent keeps its own context lean by delegating cross-cutting concerns (for example, persistent memory) to shared utility agents like `memory-broker`, instead of loading heavy skills and rules into every agent.
+  - Every agent keeps its own context lean by following the `context-memory` skill for memory operations instead of loading heavy skills and rules into every agent.
 
 ## Project team structure and discovery
 
@@ -77,9 +77,8 @@ alwaysApply: true
   - `devops` for CI/CD and infra when warranted.
 - `tech-lead` must always **discover the current team** before delegating work (both sequentially and in parallel) by:
   - Listing `.cursor/agents/` files that match team patterns (`dev-*`, `sme-*`, `qa-*`, `devops`).
-  - Reading each agent’s stated scope and building an internal `| Agent | Scope |` table for assignment.
+  - Reading each agent's stated scope and building an internal `| Agent | Scope |` table for assignment.
   - Re-running discovery at the start of each phase or when onboarding changes the team.
 - All project agents must keep context minimal:
   - Load only the files, rules, and skills needed for the current task.
-  - Delegate memory and docs lookups through `memory-broker` and `docs-researcher` instead of loading large histories or whole documentation sets.
-
+  - Access memory via the `context-memory` skill and delegate docs lookups to `docs-researcher` instead of loading large histories or whole documentation sets.

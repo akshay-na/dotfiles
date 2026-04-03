@@ -44,21 +44,11 @@ Prefer secure-by-default.
 
 ## Memory
 
-Delegate all persistent memory operations to the global `memory-broker` agent.
-You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
-stored only in Qdrant collections (`org_memory`, `project_memory`,
-`session_memory`, `cache_memory`); there is no JSONL graph or file-based
-fallback.
+Access memory directly using the `context-memory` skill.
 
-When you need security-related memory, ask `memory-broker` to query with
-targeted terms and namespaces (for example, `org.security` in `org_memory` and
-`project.<name>.security` in `project_memory` for security decisions and
-risks). Respect category/status/tag rules and promotion/supersession workflows
-when revising by telling `memory-broker` what should be updated.
+**Reading:** Query `org/security/`, `projects/<name>/security/`, and `org/global/` for security-related decisions, constraints, and risks.
 
-If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
-conversation and clearly tell the user that long-term vector memory is
-unavailable for this session.
+**Writing:** Follow the `memory-capture` rule to auto-capture security decisions, identified risks, and threat mitigations.
 
 ## Plan Mode
 

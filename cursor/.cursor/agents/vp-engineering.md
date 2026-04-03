@@ -43,21 +43,11 @@ Assume dependencies are unreliable.
 
 ## Memory
 
-Delegate all persistent memory operations to the global `memory-broker` agent.
-You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
-stored only in Qdrant collections (`org_memory`, `project_memory`,
-`session_memory`, `cache_memory`); there is no JSONL graph or file-based
-fallback.
+Access memory directly using the `context-memory` skill.
 
-When you need performance/reliability-related memory, ask `memory-broker` to
-query with targeted terms and namespaces (for example, `project.<name>.infra`,
-`project.<name>.runtime`, and `org.global` for constraints and risks). Respect
-category/status/tag rules and promotion/supersession workflows when revising
-constraints by telling `memory-broker` what should be updated.
+**Reading:** Query `projects/<name>/infra/`, `projects/<name>/runtime/`, and `org/global/` for performance constraints and reliability decisions.
 
-If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
-conversation and clearly tell the user that long-term vector memory is
-unavailable for this session.
+**Writing:** Follow the `memory-capture` rule to auto-capture performance constraints, concurrency decisions, and reliability patterns.
 
 ## Plan Mode
 

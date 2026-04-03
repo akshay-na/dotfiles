@@ -1,5 +1,5 @@
 ---
-description: "How agents use the memory MCP server and context-memory skill across org and projects"
+description: "How agents use file-based memory and the context-memory skill across org and projects"
 alwaysApply: true
 ---
 
@@ -10,18 +10,18 @@ alwaysApply: true
   - Project knowledge lives under `project.<name>` (derived from git remote or repo folder, lowercased).
   - Domain knowledge within a project uses `project.<name>.<domain>` (e.g. `.frontend`, `.backend`, `.api`, `.infra`).
 
-- **Qdrant-backed storage (only backend, mediated by `memory-broker`)**
-  - Long-term memory is stored exclusively in Qdrant collections managed by the `qdrant` MCP server.
-  - Collections:
-    - `org_memory` for `org.*` namespaces (e.g. `org.global`, `org.security`).
-    - `project_memory` for all `project.<name>` / `project.<name>.<domain>` and `project.junk`.
-    - `session_memory` for `session.current`.
-    - `cache_memory` as an ephemeral cache and staging area.
-  - The Qdrant data directory is rooted at `~/.cursor/memory/qdrant/<EMBEDDING_MODEL_ID>/data` (mounted into the Qdrant container).
-  - There is no JSONL graph file, no `server-memory` MCP, and no alternate persistent backend.
+- **File-based storage**
+  - Memory is stored as Markdown files at `~/.cursor/memory/`, local per machine. Managed via the `context-memory` skill. Any agent can read/write directly.
+  - See `memory-access` rule for namespace-to-directory mapping and read protocol.
+  - See `memory-capture` rule for auto-capture triggers.
+
+- **Local-only scope**
+  - Memory content (`~/.cursor/memory/`) is local to each machine and never tracked in the dotfiles repo.
+  - Rules, skills, and agents sync via dotfiles — memory content does not.
+  - A new machine starts with empty memory; `vp-onboarding` bootstraps project knowledge on first run.
 
 - **Read-first discipline**
-  - Before writing memory, always query relevant namespaces via `search_nodes` (e.g. `project.<name>`, then `org.global`) to avoid duplication.
+  - Before writing memory, check `_index.md` in the relevant namespace directory to avoid duplication.
   - Prefer consuming existing decisions, constraints, and principles over creating new ones.
 
 - **What to store**
@@ -38,17 +38,17 @@ alwaysApply: true
 
 - **Promotion and supersession**
   - Start new insights as project- or session-scoped; promote to `org.global` only if they clearly apply across projects.
-  - Use `cache_memory` for experimental or low-confidence entries; promote into `project_memory` (and optionally `org_memory`) once they prove stable and broadly useful.
+  - Mark experimental or low-confidence entries with `status: draft`; promote to `status: active` once they prove stable and useful.
   - When updating a decision, create a new entry that links to the old one via `supersedes` instead of editing history in place.
 
 - **Agent expectations**
-  - Org agents primarily read from and write to `org.global` plus relevant `project.<name>` namespaces **by delegating to the global `memory-broker` agent**.
-  - Project agents primarily read from and write to `project.<name>` and `project.<name>.<domain>`, escalating broadly useful insights via `tech-lead` and `cto`, and ultimately through `memory-broker`.
-  - All memory operations must go through Qdrant via the `context-memory` skill **used by `memory-broker`**; when Qdrant is unavailable, `memory-broker` must not write or read long-term memory and must explicitly tell the caller that vector memory is disabled for that session.
+  - All agents access memory directly via the `context-memory` skill. The `memory-capture` rule instructs agents to auto-capture decisions. No broker agent is needed.
+  - Org agents primarily read from and write to `org/global/` plus relevant `projects/<name>/` directories.
+  - Project agents primarily read from and write to `projects/<name>/` and `projects/<name>/<domain>/`, escalating broadly useful insights to `org/global/` via `tech-lead` and `cto`.
 
 ## Project knowledge base
 
-- The same vector schema is used for both major entities (decisions, constraints, principles, diagrams) and finer-grained **project knowledge base** entries.
+- The same entry schema is used for both major entities (decisions, constraints, principles, diagrams) and finer-grained **project knowledge base** entries.
 - Project KB entries represent conclusions and pointers derived from project-local sources such as `README.md`, `Makefile`, `.cursor/rules/`, `.cursor/skills/`, and tech stack analysis.
 - Use the existing categories (`decision`, `constraint`, `principle`, `assumption`, `diagram`, etc.) and namespaces (`project.<name>`, `project.<name>.<domain>`) for these entries; **do not** introduce new categories or collections.
 - Distinguish project KB entries via tags:

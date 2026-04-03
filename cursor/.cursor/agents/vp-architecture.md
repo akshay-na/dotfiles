@@ -48,21 +48,11 @@ Think in terms of:
 
 ## Memory
 
-Delegate all persistent memory operations to the global `memory-broker` agent.
-You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
-stored only in Qdrant collections (`org_memory`, `project_memory`,
-`session_memory`, `cache_memory`); there is no JSONL graph or file-based
-fallback.
+Access memory directly using the `context-memory` skill.
 
-When you need architecture-related memory, ask `memory-broker` to query with
-targeted namespaces, categories, and tags (for example, `project.<name>.architecture`
-and `org.global` for architecture decisions and principles). Respect
-category/status/tag rules and promotion/supersession workflows when revising
-decisions by telling `memory-broker` what should be updated.
+**Reading:** Query `projects/<name>/architecture/`, `projects/<name>/`, and `org/global/` for architectural decisions and constraints.
 
-If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
-conversation and clearly tell the user that long-term vector memory is
-unavailable for this session.
+**Writing:** Follow the `memory-capture` rule to auto-capture architecture decisions, system boundaries, and design principles.
 
 ## Plan Mode
 

@@ -1,0 +1,38 @@
+---
+description: "When and what agents must capture to memory"
+alwaysApply: true
+---
+
+# Memory Capture
+
+All agents must capture significant decisions as part of normal workflow. Automatic — don't wait to be asked.
+
+## Capture Triggers
+
+| Trigger | Category |
+|---|---|
+| Chose between alternatives | `decision` |
+| Discovered hard limitation | `constraint` |
+| Established pattern/standard | `principle` |
+| Identified risk/concern | `risk` |
+| Rejected approach with reasoning | `rejected` |
+| Flagged work for later | `todo` |
+| Produced architecture diagram | `diagram` |
+| Discovered implicit assumption | `assumption` |
+
+## Do NOT Capture
+
+- Implementation details obvious from code
+- Temporary debugging context
+- Duplicates (check `_index.md` first)
+- Trivial changes
+- Raw chat logs or transcripts
+
+## How to Capture
+
+Follow `context-memory` skill's write protocol. Derive namespace from task context.
+
+## Scope Mapping
+
+- **Org agents** → `org/global/` or `projects/<name>/`
+- **Project agents** → `projects/<name>/` or `projects/<name>/<domain>/`

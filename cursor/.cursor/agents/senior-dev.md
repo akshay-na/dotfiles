@@ -79,23 +79,11 @@ If the task turns out to be more complex than expected, stop and suggest using `
 
 ## Memory
 
-Delegate all persistent memory operations to the global `memory-broker` agent.
-You do **not** call Qdrant or use the `context-memory` skill directly. When you
-need long-lived knowledge, invoke `memory-broker` as a subagent with a short
-description of your task plus any known namespaces, categories, and tags. The
-broker will use the shared `context-memory` skill and Qdrant collections
-(`org_memory`, `project_memory`, `session_memory`, `cache_memory`) on your
-behalf, following the global memory rules.
+Access memory directly using the `context-memory` skill.
 
-Primarily **consume** memory: ask `memory-broker` to retrieve relevant
-`decision`, `constraint`, `risk`, and `todo` entries before executing. Request
-writes only for new stable constraints or risks that should persist, and let
-`memory-broker` handle category/status/tag fields and promotion workflows (for
-example, from `cache_memory` to `project_memory` / `org_memory`).
+**Reading:** Query `projects/<name>/` and `org/global/` for relevant decisions and constraints before implementing.
 
-If `memory-broker` reports that Qdrant is unhealthy or vector memory is
-unavailable, rely only on the current conversation and avoid claiming that
-long-term memory was read or updated.
+**Writing:** Follow the `memory-capture` rule. Primarily consume memory; write stable constraints, risks, and implementation decisions when they arise.
 
 ## Rules
 

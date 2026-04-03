@@ -38,21 +38,11 @@ Design for debuggability.
 
 ## Memory
 
-Delegate all persistent memory operations to the global `memory-broker` agent.
-You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
-stored only in Qdrant collections (`org_memory`, `project_memory`,
-`session_memory`, `cache_memory`); there is no JSONL graph or file-based
-fallback.
+Access memory directly using the `context-memory` skill.
 
-When you need observability-related memory, ask `memory-broker` to query with
-targeted terms and namespaces (for example, `project.<name>.observability` and
-`org.global` for observability-related risks, decisions, and principles).
-Respect category/status/tag rules and promotion/supersession workflows when
-revising by telling `memory-broker` what should be updated.
+**Reading:** Query `projects/<name>/observability/`, `projects/<name>/infra/`, and `org/global/` for observability decisions and constraints.
 
-If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
-conversation and clearly tell the user that long-term vector memory is
-unavailable for this session.
+**Writing:** Follow the `memory-capture` rule to auto-capture observability decisions, SLO definitions, and operational constraints.
 
 ## Plan Mode
 

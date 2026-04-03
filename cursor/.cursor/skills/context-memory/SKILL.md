@@ -1,354 +1,197 @@
 ---
 name: context-memory
-description: Use whenever reading from or writing to Qdrant-backed memory. Defines schema, namespaces, retrieval order, promotion rules, diagram handling, and how to interact with the Qdrant MCP server. All agents must follow this skill for memory operations.
+description: File-based Markdown memory at ~/.cursor/memory/. Any agent can read/write directly using this skill. No external dependencies.
 ---
 
-# Smart Context Memory (Qdrant-only)
+# Context Memory (File-based)
 
 ## Overview
 
-Memory is stored **only** in Qdrant collections managed by the `qdrant` MCP server. There is **no JSONL graph file**, no `server-memory` MCP, and no fallback file-based cache.
+Memory is stored as Markdown files under `~/.cursor/memory/`. No external services, no containers, no network dependencies. Any agent can access memory directly using this skill.
 
-The Qdrant data directory lives under:
+Each namespace maps to a directory. Each entry is a `.md` file with YAML frontmatter. Each directory has an `_index.md` for fast lookup.
 
-- `~/.cursor/memory/qdrant` (mounted into the Qdrant container)
+## Local-only Semantics
 
-All agents share a single Qdrant instance with a **fixed set of collections**:
+Memory content is **local to each machine** and never tracked in the dotfiles repo. Rules, skills, and agents sync via dotfiles; memory content does not. A new machine starts with empty memory — this is intentional. Rebuild context as you work.
 
-- `org_memory` — org-wide, long-lived knowledge
-- `project_memory` — project-scoped, long-lived knowledge
-- `session_memory` — session-scoped knowledge (`session.current`)
-- `cache_memory` — ephemeral cache and staging area for new / experimental entries
+## Namespaces and Directories
 
-Qdrant is accessed via a single MCP server named `qdrant` in `~/.cursor/mcp.json`:
+| Namespace | Directory |
+|---|---|
+| `org.global` | `org/global/` |
+| `org.security` | `org/security/` |
+| `project.<name>` | `projects/<name>/` |
+| `project.<name>.<domain>` | `projects/<name>/<domain>/` |
+| `project.junk` | `projects/junk/` |
+| `session.current` | `session/current/` |
 
-- `QDRANT_URL` points at the running Qdrant instance.
-- `COLLECTION_NAME` defaults to `org_memory` (org-level collection).
-- Other collections are selected per-call using the `collection_name` argument on Qdrant tools.
+All paths are relative to `~/.cursor/memory/`. Derive `<name>` from git remote or repo folder, lowercased.
 
-Memory holds **conclusions only** — no raw chat, no brainstorming dumps. Structure (namespaces, categories, tags, status) drives retrieval; embeddings are a ranking signal on top.
+## Entity Schema
 
-## Namespaces and Collections
+Each `.md` file has YAML frontmatter followed by a body:
 
-Namespaces are unchanged and still drive how you think about scope:
+```yaml
+---
+entity_name: org.global.decision.001
+namespace: org.global
+category: decision
+status: accepted
+tags: [auth, security]
+created_at: 2026-04-03T10:00:00Z
+rationale: Brief explanation of why
+supersedes: []
+confidence: 0.9
+source_path: docs:global/decisions/auth-flow.md
+updated_at: 2026-04-03T10:00:00Z
+---
 
-- `org.global` — Org-wide decisions, principles, constraints that apply across all projects
-- `org.security` — Security policies, auth patterns, threat mitigations
-- `project.<name>` — Project-level decisions; `<name>` from git remote or folder, lowercase
-- `project.<name>.<domain>` — Domain-scoped (e.g. `api`, `infra`, `security`, `agents`)
-- `session.current` — Short-lived insights within the current session
-- `project.junk` — Cross-cutting items that don't fit a specific project
-
-These namespaces map to Qdrant collections as follows:
-
-- `org.global`, `org.security` → `org_memory`
-- All `project.<name>` and `project.<name>.<domain>`, and `project.junk` → `project_memory`
-- `session.current` → `session_memory`
-
-The `cache_memory` collection is used as an **ephemeral staging area**:
-
-- New or low-confidence entries start in `cache_memory` when appropriate.
-- Stable entries are promoted from `cache_memory` into `project_memory` or `org_memory`.
-
-## Entity Schema in Qdrant
-
-Each memory entry is stored as a single Qdrant point:
-
-- **ID**: `entity_name` (string; can be used directly as the point ID)
-- **Vector**: embedding of an `embedding_text` string derived from summary/rationale/tags
-- **Payload** (JSON object) with at least:
-  - `entity_name`: string (canonical identifier)
-  - `namespace`: string (e.g. `project.dotmate.api`)
-  - `category`: string
-  - `summary`: string (1–2 lines, <= 300 chars, conclusion only)
-  - `tags`: string[]
-  - `status`: string (`accepted`, `experimental`, `deprecated`, `superseded`)
-  - `created_at`: ISO 8601 string
-  - `rationale`: optional string
-  - `supersedes`: string[] of `entity_name`s (when applicable)
-  - `project`: string (derived from namespace, e.g. `dotmate`)
-  - `source`: `"primary" | "fallback" | "imported"` (typically `"primary"` in this architecture)
-  - `last_synced_at`: ISO 8601 string
-  - `confidence`: optional number between 0 and 1
-
-### Mandatory fields per entry
-
-Every memory entry must include:
-
-- **namespace** — one of `org.global`, `org.security`, `project.<name>`, `project.<name>.<domain>`, `session.current`, `project.junk`
-- **category** — one of: `decision`, `constraint`, `assumption`, `rejected`, `todo`, `risk`, `principle`, `diagram`
-- **summary** — 1–2 lines max, <= 300 characters, conclusion only
-- **tags** — minimum 2: one technical (e.g. `auth`, `k8s`, `redis`), one domain (e.g. `api`, `infra`, `security`). Lowercase, no spaces.
-- **status** — one of: `accepted`, `experimental`, `deprecated`, `superseded`
-- **created_at** — ISO 8601 timestamp
-
-Optional: `rationale`, `supersedes`, `confidence`, diagram-specific fields (see below).
-
-### Entity naming
-
-Use the same pattern as before:
-
-- `entity_name = {namespace}.{category}.{short_id}`
-- Examples:
-  - `org.global.decision.001`
-  - `project.dotmate.api.constraint.auth`
-  - `session.current.todo.xyz`
-
-`short_id` should be unique (timestamp fragment, uuid prefix, or descriptive slug).
-
-## Embedding Text Construction
-
-Qdrant computes embeddings from a free-form text string. Construct `embedding_text` as:
-
-- For non-diagram entities:
-
-```text
-{summary}
-
-rationale: {rationale}
-
-tags: {tag1,tag2,...}
-
-namespace: {namespace} category: {category}
+Body text with the conclusion. 1-3 sentences. No reasoning chains.
 ```
 
-- For diagram entities (`category="diagram"`), see the dedicated section below.
+**Mandatory fields**: `entity_name`, `namespace`, `category`, `status`, `tags` (min 2), `created_at`
 
-Agents do **not** need to call the embedding model directly; they pass this `embedding_text` to the Qdrant MCP tools that handle embedding internally.
+**Optional fields**: `rationale`, `supersedes`, `confidence`, `source_path`, `updated_at`
 
-## Diagram Entities (`category="diagram"`)
+**Categories**: `decision`, `constraint`, `assumption`, `rejected`, `todo`, `risk`, `principle`, `diagram`
 
-Diagrams are first-class memory entities stored in Qdrant with `category="diagram"`.
+**Status values**: `accepted`, `experimental`, `deprecated`, `superseded`
 
-When a plan or workflow is important enough to store (especially for org-wide agents like `cto`, `vp-architecture`, `vp-engineering`):
+## Diagram Variant
 
-- Generate a mermaid diagram (e.g. `flowchart`, `sequence`, `state`).
-- Create a `diagram` entity with:
-  - `summary`: 1–2 lines describing what the diagram shows.
-  - `rationale`: why the diagram exists / what decision or flow it captures.
-  - `tags`: must include `diagram` and `mermaid` plus domain tags (`architecture`, `memory`, `infra`, etc.).
-  - Diagram-specific payload fields:
-    - `diagram_language`: string (e.g. `"mermaid"`)
-    - `diagram_type`: string (e.g. `"flowchart"`, `"sequence"`, `"state"`)
-    - `diagram_code`: string (the original mermaid code)
-    - `diagram_hash`: string (short hash of `diagram_code` for deduplication)
-    - `diagram_scope`: string (`"org"`, `"project"`, or `"session"`)
-    - `diagram_subject`: string (short label, e.g. `"qdrant_memory_architecture"`)
-    - `related_entities`: string[] of `entity_name`s this diagram explains
+Diagrams use additional frontmatter fields:
 
-Store diagram entities in:
-
-- `org_memory` with `namespace="org.global.diagram.*"` for cross-project/global flows.
-- `project_memory` with `namespace="project.<name>.diagram.*"` for project-specific flows.
-
-### Embedding text for diagrams
-
-**Do not embed raw mermaid code.** Instead, describe the diagram in natural language:
-
-```text
-{summary}
-
-rationale: {rationale}
-
-diagram_subject: {diagram_subject}
-
-diagram_type: {diagram_type}
-
-tags: {tag1,tag2,...}
-
-namespace: {namespace} category: {category}
+```yaml
+diagram_language: mermaid
+diagram_type: flowchart
+diagram_subject: memory-write-flow
+diagram_code: |
+  flowchart TD
+    A[Start] --> B[Write file]
+    B --> C[Update index]
+related_entities: [org.global.decision.001]
 ```
 
-Qdrant uses this text for embeddings so diagrams can be retrieved semantically by subject, type, and tags.
+The body describes the diagram in natural language. Mermaid code goes in `diagram_code` frontmatter, not the body.
 
-## Qdrant MCP tools
+## File Naming
 
-All Qdrant access happens through the `qdrant` MCP server. The two core tools are:
+- **File**: `{category}-{short_id}-{slug}.md` (e.g., `decision-001-auth-flow.md`)
+- **Entity**: `{namespace}.{category}.{short_id}` (e.g., `org.global.decision.001`)
+- **short_id**: Sequential number (001, 002) or descriptive slug
 
-- `qdrant-store` — upsert a single memory point.
-- `qdrant-find` — search for relevant memory points.
+## `_index.md` Schema
 
-Only the **`memory-broker`** agent calls these tools directly. Other agents must describe the desired read/write/search operation to `memory-broker`, which then:
+```markdown
+# Index: {namespace}
 
-1. Builds the `embedding_text` (from summary, rationale, tags, namespace, category).
-2. Prepares the payload (metadata) fields described in **Entity Schema in Qdrant**.
-3. Chooses the target collection (`org_memory`, `project_memory`, `session_memory`, or `cache_memory`).
-4. Calls `qdrant-store` or `qdrant-find` with the appropriate arguments.
+> Last updated: 2026-04-03T10:00:00Z
 
-### `qdrant-store`
+| Entity | Category | Summary | Tags | Status | File |
+|---|---|---|---|---|---|
+| org.global.decision.001 | decision | Auth uses JWT | auth, security | accepted | decision-001-auth-flow.md |
+```
 
-Schema (from the MCP descriptor):
+Every write must update the index. The index enables fast filtering without reading all files.
 
-- **information** (string, required): free-form text to embed.
-- **collection_name** (string, required): one of `org_memory`, `project_memory`, `session_memory`, `cache_memory`.
-- **metadata** (object or null, optional): arbitrary JSON payload.
+## Read Protocol
 
-How `memory-broker` should use it:
+1. Identify namespace(s) relevant to task
+2. Check if directory exists — if not, no memory for that namespace
+3. Read `_index.md`; scan table for category, tags, keyword, status matches
+4. Read individual `.md` files **only** for matches; **max 5 per query**
+5. Prefer `status: accepted` over `experimental`; prefer recent `created_at`; prefer strong tag overlap
+6. Ignore `deprecated` and `superseded` unless reviewing history
+7. Do NOT query `session/current/` unless explicitly needed for recent context
 
-- Set `information` to the **`embedding_text`** constructed in the *Embedding Text Construction* section (never raw JSON or large code dumps).
-- Set `collection_name` to match the target collection based on namespace:
-  - `org.global`, `org.security` → `org_memory`
-  - `project.<name>`, `project.<name>.<domain>`, `project.junk` → `project_memory`
-  - `session.current` → `session_memory`
-  - Experimental / low-confidence → `cache_memory`
-- Set `metadata` to the **payload** object, including fields such as:
-  - `entity_name`, `namespace`, `category`, `summary`, `tags`, `status`, `created_at`
-  - Optional: `rationale`, `supersedes`, `project`, `source`, `last_synced_at`, `confidence`
-  - Optional project knowledge base helpers (when applicable): `source_path` for local doc/skill pointers, plus tags like `project-kb`, `doc-pointer`, `skill-lookup`.
+## Write Protocol
 
-### `qdrant-find`
+**Steps 5 and 6 are atomic — never create a file without updating the index.**
 
-Schema (from the MCP descriptor):
+```
+Step 1: Determine target namespace and directory path
+Step 2: If directory does not exist, create it with empty _index.md
+Step 3: Read _index.md — check for duplicates by category + similar summary
+Step 4: Generate entity_name: {namespace}.{category}.{short_id}
+        (short_id: next sequential number from index, or descriptive slug)
+Step 5: Create the .md file with YAML frontmatter + body
+Step 6: MANDATORY — Append new row to _index.md with:
+        entity_name | category | summary (≤100 chars) | tags | status | filename
+Step 7: If updating existing entry, update the row in _index.md too
+```
 
-- **query** (string, required): what to search for.
-- **collection_name** (string, required): the collection to search in.
+## Index Self-Healing
 
-How `memory-broker` should use it:
+Any agent that detects mismatch between `_index.md` and actual files should repair inline:
 
-- Build `query` from a short natural-language description of what is needed, often combining:
-  - Key phrases from the desired `summary`/`rationale`.
-  - Relevant tags (e.g. `auth api`, `project-kb doc-pointer`, `diagram architecture`).
-- Set `collection_name` based on scope, typically:
-  - `org_memory` for org-wide decisions/principles.
-  - `project_memory` for project- or domain-scoped entities (including project knowledge base entries).
-  - `session_memory` for very recent, session-specific insights.
-  - `cache_memory` only when explicitly looking for experimental entries.
-- Apply additional filtering (when available) via payload filters on `namespace`, `category`, `status`, `tags`, or `project` to narrow results after similarity ranking.
+1. List all `.md` files (excluding `_index.md`, `_pending_refresh.md`)
+2. Parse YAML frontmatter from each
+3. Regenerate `_index.md` from parsed data
+4. Continue with original task
 
-Agents other than `memory-broker` **must not** call `qdrant-store` or `qdrant-find` directly; instead, they request operations like “search for accepted decisions in `project.<name>.api` about pagination” or “store this new project-kb doc-pointer entry”, and let `memory-broker` translate that into concrete tool calls.
+**Detection triggers** (lazy, not on every read):
+- File referenced in index doesn't exist
+- `.md` file exists but no row in index
+- Row count doesn't match file count
 
-## Read Behavior (Normal Mode)
+## Promotion and Supersession
 
-In **normal mode** (Qdrant healthy), agents read memory only via the `qdrant` MCP server.
+**Promotion**: Change `status` from `experimental` to `accepted` in both file and index. For namespace promotion (project → org), create new entry in target namespace with `supersedes` pointing to source.
 
-When reading memory:
+**Supersession**: When revising a decision:
+1. Create new entry with `supersedes: [old_entity_name]`
+2. Update old entry's status to `superseded` in both file and index
+3. Add `updated_at` to old entry noting when it was superseded
 
-1. Determine the most specific namespace relevant to the question.
-2. Choose appropriate collections:
-   - Project-scoped questions → `project_memory` (+ optionally `org_memory`).
-   - Org-wide questions → `org_memory`.
-   - Session-focused questions → `session_memory`.
-   - For very recent or experimental context → also query `cache_memory`.
-3. Call Qdrant search tools with:
-   - `collection_name` set to the desired collection (`project_memory`, `session_memory`, `cache_memory`), or omit it to use the default `org_memory`.
-   - Filters on payload fields such as `namespace`, `category`, `project`, `status`, `tags`.
-   - A textual query (e.g. built from summary-like phrasing and key tags).
-4. Combine results from multiple collections when needed:
-   - Prefer long-lived entries from `org_memory` / `project_memory`.
-   - Augment with recent entries from `session_memory` and `cache_memory`.
+## Session Memory
 
-### Ranking and filtering
+Session entries live in `session/current/`. They are ephemeral.
 
-After retrieving candidates:
+- Write only for insights that matter within current session
+- Before ending session with valuable insights, promote to project namespace
+- Do NOT load `session/current/_index.md` unless explicitly needed
+- Keep session entries minimal; stable insights go directly to project/org
 
-- Start from vector similarity.
-- Prefer:
-  - `status=accepted` over `experimental`.
-  - Recent `created_at` / `updated_at`.
-  - Strong tag overlap with the current task.
-- Ignore `deprecated` and `superseded` unless explicitly reviewing history.
+## Namespace Scaling
 
-## Write Behavior (Normal Mode)
+When a namespace exceeds ~50 entries, split by domain:
 
-Write to Qdrant only when a conclusion is stable or clearly worth persisting.
+- **Before**: `projects/myapp/` (55 entries, mixed)
+- **After**: `projects/myapp/api/`, `projects/myapp/frontend/`, etc.
 
-**When to write:**
+Move entries to subdirectories. Create `_index.md` in each. Update parent to contain only cross-cutting entries or remove it.
 
-- After a decision, principle, or constraint is clearly articulated and likely to matter beyond the current exchange.
-- After identifying a meaningful risk, todo, or assumption.
-- When recording important diagrams that represent flows or architectures.
+## What to Store / What NOT to Store
 
-**Where to write (collection selection):**
+**Store**: Stable decisions, constraints, principles, risks, todos, diagrams, pointers to docs
 
-- `org_memory`:
-  - Org-level decisions, principles, constraints.
-  - Cross-project diagrams and global policies.
-- `project_memory`:
-  - Project-scoped decisions/principles/constraints.
-  - Project-specific diagrams.
-- `session_memory`:
-  - Short-lived insights that may or may not be promoted later.
-- `cache_memory`:
-  - New, unproven, or tentative entries, especially when confidence is low.
+**Do NOT store**: Raw chat logs, secrets/tokens/PII, large code dumps (git has them), ephemeral scratch notes, implementation details obvious from code
 
-**How to write:**
+## Sync Hooks
 
-- Construct `entity_name`, payload fields, and `embedding_text`.
-- Upsert via Qdrant MCP tools, passing:
-  - `collection_name` based on the mapping above.
-  - The point ID, payload, and embedding_text.
+Install hooks to track file changes on main/master branch merges:
 
-**Supersession and updates:**
+```bash
+cp $HOME/dotfiles/scripts/.local/bin/cursor-memory-hook .git/hooks/post-merge
+cp $HOME/dotfiles/scripts/.local/bin/cursor-memory-hook .git/hooks/post-checkout
+chmod +x .git/hooks/post-merge .git/hooks/post-checkout
+```
 
-- When a decision changes:
-  - Create a new entity with updated content and `status=accepted` or `experimental`.
-  - In payload, set `supersedes` to include the old `entity_name`.
-  - Treat entities that appear in `supersedes` lists as superseded in active retrieval.
+The hook only runs on `main` or `master` branches. It writes `_pending_refresh.md` listing changed files. `memory-access` rule instructs agents to process pending refreshes at session start. `vp-onboarding` copies the hooks during project bootstrap (if the source file exists).
 
-## Promotion Workflow (Cache → Project → Org)
+## Migration from Previous System
 
-Promotion is how entries move from ephemeral to durable collections:
+If migrating from a previous memory system:
 
-- **Session → Project:**
-  - If a `session.current` insight is referenced across 2+ sessions and remains relevant:
-    - Create a new entity in `project_memory` (namespace `project.<name>` or `project.<name>.<domain>`).
-    - Mark the original `session.current` entry as `deprecated` or add it to `supersedes`.
-
-- **Cache → Project:**
-  - New or experimental entries may start in `cache_memory` with:
-    - `status=experimental`.
-    - Lower `confidence`.
-  - When they prove useful and stable:
-    - Re-write them into `project_memory` with `status=accepted` and higher `confidence`.
-    - Optionally mark the cache entry as `deprecated` or track supersession via payload.
-
-- **Project → Org:**
-  - If a decision/principle is reinforced across multiple projects:
-    - Create `org.global` entry in `org_memory` with `status=accepted`.
-    - Optionally include `supersedes` pointing at the most canonical prior project entry.
-
-- **Cleanup:**
-  - Periodically de-emphasize or remove:
-    - `deprecated` / `superseded` entries from active use.
-    - Stale entries in `cache_memory` that never graduated.
-
-## Fallback Behavior (Qdrant Unavailable)
-
-Qdrant is the **only** persistent memory backend. When it is unavailable:
-
-- Agents must **stop all memory reads/writes**.
-- Agents must **not** fall back to any JSONL files, `server-memory` MCPs, or alternate stores.
-
-### Detecting Qdrant health
-
-- On session start (and periodically), a lightweight Qdrant MCP call should be made (e.g. list collections or a dedicated health/`/collections` ping).
-- If the call succeeds:
-  - Mark Qdrant as healthy for this session (`fallback=false`).
-- If the call fails (timeout, connection error, non-OK status):
-  - Mark Qdrant as unavailable (`fallback=true` for this session).
-
-### Behavior in fallback mode
-
-When `fallback=true`:
-
-- **Do not** call any Qdrant MCP tools.
-- Do not claim that long-term memory has been read or updated.
-- Operate only on:
-  - The current conversation.
-  - Any ephemeral, in-process state (not persisted).
-- Clearly inform the user the first time you detect fallback:
-  - Example: “Vector memory (Qdrant) is unavailable; long-term memory reads/writes are disabled for this session.”
-- Optionally record a transient `session.current.risk` in *ephemeral* reasoning (not persisted) noting the outage.
-
-When a subsequent health check indicates Qdrant is healthy again:
-
-- Clear the `fallback` flag for new operations.
-- Resume normal mode (reads/writes via Qdrant collections).
-- There is **no** separate fallback datastore; anything that happened while Qdrant was down is not persisted.
+1. Export important entries before removing the old system
+2. Create equivalent `.md` entries in new `~/.cursor/memory/` structure
+3. Preserve old data at `~/.cursor/memory/archive/` as backup
+4. Remove old system after confirming migration complete
 
 ## Design Philosophy
 
-- Memory stores conclusions, not reasoning chains.
-- Memory is curated, not appended.
-- Namespaces, categories, and tags provide structure; Qdrant embeddings rank within that structure.
-- Deterministic scoping (namespace and collection) comes first; similarity search is a supporting signal.
+- Memory stores **conclusions**, not reasoning chains
+- Memory is **curated**, not appended
+- Namespaces, categories, tags provide **structure**
+- Directory scoping is **deterministic**; index scanning supports **filtering**

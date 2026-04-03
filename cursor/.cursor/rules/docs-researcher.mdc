@@ -31,9 +31,9 @@ alwaysApply: true
 
 - **Separation from memory**
   - `docs-researcher` is responsible for *external* documentation and web research.
-  - Persistent, internal knowledge (decisions, constraints, risks, todos, diagrams) remains the responsibility of `memory-broker`, which is the only agent that talks to Qdrant.
+  - Persistent, internal knowledge (decisions, constraints, risks, todos, diagrams) is managed directly by agents via the `context-memory` skill and stored as Markdown files at `~/.cursor/memory/`.
   - Agents may combine outputs by:
     - Asking `docs-researcher` for current docs behavior.
-    - Asking `memory-broker` for existing decisions/constraints.
-    - Making a decision in their own role based on both, then persisting the decision via `memory-broker` if appropriate.
+    - Reading existing decisions/constraints from memory via the `context-memory` skill.
+    - Making a decision in their own role based on both, then persisting the decision via the skill if appropriate.
 

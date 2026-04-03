@@ -53,9 +53,10 @@ description: Checklist for tech-lead and project agents on discovering and using
   - When assigning or executing a task:
     - Read only the specific files and rules relevant to that task.
     - Avoid scanning the entire repo or loading all rules/skills at once.
-- **Use brokers instead of raw docs/memory**
+- **Access memory directly, delegate docs research**
   - For persistent knowledge:
-    - Ask `memory-broker` to query the right namespaces (`project.<name>`, `project.<name>.<domain>`, `org.global`).
+    - Access memory directly via the `context-memory` skill (read/write protocols in `memory-access` and `memory-capture` rules).
+    - Query namespaces: `project.<name>`, `project.<name>.<domain>`, `org.global`.
   - For external documentation:
     - Ask `docs-researcher` rather than calling docs MCPs directly.
 - **Keep delegation tight**

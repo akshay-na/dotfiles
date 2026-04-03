@@ -38,21 +38,11 @@ Think in systems, not tasks.
 
 ## Memory
 
-Delegate all persistent memory operations to the global `memory-broker` agent.
-You do **not** call Qdrant or use the `context-memory` skill directly. Memory is
-stored only in Qdrant collections (`org_memory`, `project_memory`,
-`session_memory`, `cache_memory`); there is no JSONL graph or file-based
-fallback.
+Access memory directly using the `context-memory` skill.
 
-When you need reusable pattern/automation memory, ask `memory-broker` to query
-with targeted terms and namespaces (for example, `org.global` and
-`project.<name>` for principles, templates, and automation strategies). Respect
-category/status/tag rules and promotion/supersession workflows when revising by
-telling `memory-broker` what should be updated.
+**Reading:** Query `org/global/` for reusable patterns and automation decisions.
 
-If `memory-broker` reports that Qdrant is unhealthy, rely only on the current
-conversation and clearly tell the user that long-term vector memory is
-unavailable for this session.
+**Writing:** Follow the `memory-capture` rule to auto-capture platform decisions, automation patterns, and tooling choices.
 
 ## Plan Mode
 

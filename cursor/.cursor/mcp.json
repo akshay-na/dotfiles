@@ -18,25 +18,8 @@
       "command": "npx",
       "args": ["-y", "@mcpcentral/mcp-time@0.0.3"]
     },
-    "qdrant": {
-      "command": "uvx",
-      "args": ["--python", "3.12", "mcp-server-qdrant"],
-      "env": {
-        "QDRANT_URL": "http://localhost:6333",
-        "QDRANT_API_KEY": ""
-      }
-    },
     "context7": {
       "url": "https://mcp.context7.com/mcp"
-    },
-    "rovo": {
-      "type": "remote",
-      "url": "https://api.atlassian.com/mcp",
-      "auth": {
-        "type": "basic",
-        "username": "${ATLASSIAN_MCP_EMAIL}",
-        "password": "${ATLASSIAN_MCP_API_TOKEN}"
-      }
     }
   }
 }
