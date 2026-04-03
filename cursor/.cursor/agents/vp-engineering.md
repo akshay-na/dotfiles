@@ -46,6 +46,19 @@ Assume dependencies are unreliable.
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/infra/`, `projects/<name>/runtime/`, `org/global/`.
 
+**Before reviewing:**
+- Query `projects/<name>/runtime/` for existing performance baselines and reliability decisions.
+- Query `projects/<name>/infra/` for infrastructure constraints and capacity limits.
+- Query `org/global/` for org-wide reliability patterns.
+
+**After identifying reliability concerns:**
+- Write timeout/retry policies to `projects/<name>/runtime/resilience/`.
+- Write capacity and scaling decisions to `projects/<name>/infra/capacity/`.
+- Write performance baselines and benchmarks to `projects/<name>/runtime/perf/`.
+- Write failure mode analyses to `projects/<name>/runtime/failures/`.
+
+Capture production-relevant decisions — not theoretical load scenarios.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

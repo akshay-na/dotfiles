@@ -81,6 +81,18 @@ If the task turns out to be more complex than expected, stop and suggest using `
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/`, `org/global/`.
 
+**Before implementing:**
+- Query `projects/<name>/` for existing decisions, constraints, and conventions.
+- Query `projects/<name>/code/` for code patterns and naming conventions.
+- Use retrieved context to align implementation with established patterns.
+
+**During/after implementation:**
+- Write implementation decisions (why you chose approach X over Y) to `projects/<name>/decisions/`.
+- Write discovered gotchas or constraints to `projects/<name>/constraints/`.
+- If you find undocumented conventions, write them to `projects/<name>/code/`.
+
+Never store raw code diffs or verbose logs.
+
 ## Rules
 
 - **Adapt, don't impose.** The project's conventions always win over your defaults.

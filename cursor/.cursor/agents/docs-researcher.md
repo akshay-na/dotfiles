@@ -107,4 +107,14 @@ Task 3 (parallel): docs-researcher — "What are the security implications of JW
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill when correlating docs with internal decisions. Generally do not write — return results to calling agent who decides what to persist.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/docs/`, `projects/<name>/docs/`.
+
+**Before researching:**
+- Query `org/docs/` and `projects/<name>/docs/` for previously researched topics.
+- Check if the question has been answered before to avoid redundant lookups.
+
+**After researching:**
+- Generally do not write — return results to the calling agent who decides what to persist.
+- Exception: If you discover critical, reusable reference information (API gotchas, version-specific behaviors, deprecation notices), write to `org/docs/` or `projects/<name>/docs/` with proper citations.
+
+Never store full documentation dumps — only distilled, actionable summaries.

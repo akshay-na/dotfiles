@@ -51,6 +51,19 @@ Think in terms of:
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/architecture/`, `org/global/`.
 
+**Before reviewing:**
+- Query `projects/<name>/architecture/` for existing architectural decisions and trade-offs.
+- Query `org/global/` for org-wide design patterns and anti-patterns.
+- Use retrieved context to build on established foundations, not contradict them.
+
+**After making architectural recommendations:**
+- Write ADRs (Architecture Decision Records) to `projects/<name>/architecture/decisions/`.
+- Write component boundary definitions to `projects/<name>/architecture/boundaries/`.
+- Write integration contracts to `projects/<name>/architecture/contracts/`.
+- Write scaling assumptions and limits to `projects/<name>/architecture/scaling/`.
+
+Capture why decisions were made, not just what was decided.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

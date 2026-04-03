@@ -41,6 +41,19 @@ Design for debuggability.
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/observability/`, `projects/<name>/infra/`, `org/global/`.
 
+**Before reviewing:**
+- Query `projects/<name>/observability/` for existing SLOs, metrics, and alerting decisions.
+- Query `projects/<name>/infra/` for infrastructure constraints and operational context.
+- Query `org/global/` for org-wide observability standards.
+
+**After identifying observability needs:**
+- Write SLO definitions to `projects/<name>/observability/slos/`.
+- Write alerting thresholds and rationale to `projects/<name>/observability/alerts/`.
+- Write runbook references and debugging patterns to `projects/<name>/observability/runbooks/`.
+- Write incident learnings to `projects/<name>/observability/incidents/`.
+
+Capture what helps debug at 2AM — not verbose instrumentation plans.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

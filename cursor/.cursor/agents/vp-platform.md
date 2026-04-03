@@ -39,7 +39,19 @@ Think in systems, not tasks.
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/global/`.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/global/`, `org/platform/`, `projects/<name>/tooling/`.
+
+**Before reviewing:**
+- Query `org/platform/` for existing automation patterns and reusable tooling.
+- Query `org/global/` for org-wide templates and scaffolding.
+- Query `projects/<name>/tooling/` for project-specific utilities.
+
+**After identifying leverage opportunities:**
+- Write new automation patterns to `org/platform/`.
+- Write project-specific tooling decisions to `projects/<name>/tooling/`.
+- Write reusable template discoveries to `org/global/`.
+
+Capture patterns that have been used 3+ times — not one-offs.
 
 ## Plan Mode
 

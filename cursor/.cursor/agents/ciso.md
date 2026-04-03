@@ -47,6 +47,19 @@ Prefer secure-by-default.
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/security/`, `projects/<name>/security/`, `org/global/`.
 
+**Before reviewing:**
+- Query `org/security/` for org-wide security policies and standards.
+- Query `projects/<name>/security/` for project-specific trust boundaries and auth decisions.
+- Use retrieved context to avoid re-litigating settled security decisions.
+
+**After identifying security concerns:**
+- Write trust boundary definitions to `projects/<name>/security/boundaries/`.
+- Write auth/authz decisions to `projects/<name>/security/auth/`.
+- Write threat model updates to `projects/<name>/security/threats/`.
+- Write supply chain / dependency risks to `org/security/dependencies/`.
+
+Capture attack surfaces and mitigations — not generic security advice.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

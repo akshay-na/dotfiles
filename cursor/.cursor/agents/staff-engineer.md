@@ -45,6 +45,18 @@ Maintainability compounds.
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/code/`, `org/global/`.
 
+**Before reviewing:**
+- Query `projects/<name>/code/` for established code patterns, naming conventions, and module boundaries.
+- Query `org/global/` for org-wide code quality standards.
+- Use retrieved context to calibrate recommendations against existing decisions.
+
+**After identifying quality improvements:**
+- Write naming convention decisions to `projects/<name>/code/conventions/`.
+- Write abstraction boundaries and module ownership to `projects/<name>/code/architecture/`.
+- Write refactoring patterns that worked well to `org/global/patterns/`.
+
+Capture structural decisions, not style preferences.
+
 ## Plan Mode
 
 When operating in plan mode, shift from reviewing to actively shaping the plan:

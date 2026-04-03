@@ -197,7 +197,19 @@ Before presenting the plan, validate:
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/`, `org/global/`. Never store raw chat.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/`, `org/global/`.
+
+**Before planning:**
+- Query `projects/<name>/` for existing architectural decisions, constraints, and risks.
+- Query `org/global/` for org-wide patterns and standards.
+- Use retrieved context to inform triage and specialist delegation.
+
+**After planning:**
+- Write significant architectural decisions to `projects/<name>/decisions/`.
+- Write identified risks and mitigations to `projects/<name>/risks/`.
+- Write new constraints discovered during planning to `projects/<name>/constraints/`.
+
+Never store raw chat or conversation transcripts.
 
 ## Rules
 
