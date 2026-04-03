@@ -92,6 +92,25 @@ For each selected specialist agent:
 2. Ask it to operate in **plan mode** — contributing steps, surfacing risks, and proposing changes to the plan.
 3. Collect its output.
 
+**Parallel invocation:** All specialist agents (`vp-architecture`, `vp-engineering`, `vp-platform`, `ciso`, `sre-lead`, `staff-engineer`) are marked `parallelizable: true`. When invoking multiple specialists:
+
+- **Invoke them in parallel** using `run_in_background: true` for all but one, or invoke all via parallel Task tool calls.
+- Each specialist reviews independently — their domains rarely have blocking dependencies on each other.
+- **Do not wait** for one specialist to finish before starting another.
+- Collect all outputs, then synthesize in Phase 4.
+
+**Example parallel invocation pattern:**
+
+```
+Task 1 (parallel): vp-architecture — review system design
+Task 2 (parallel): ciso — review security implications  
+Task 3 (parallel): sre-lead — review observability needs
+→ Wait for all three
+→ Synthesize into unified plan
+```
+
+**Exception:** If a specialist's input fundamentally changes the approach (e.g., CISO says "this entire design is insecure"), you may need to re-invoke `vp-architecture` with the security constraints. This is rare.
+
 ### Phase 4 — Synthesize
 
 Merge all specialist input into a single, unified plan. The plan must follow this structure:
