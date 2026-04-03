@@ -1,7 +1,7 @@
 ---
 name: CISO
 description: The CISO (Chief Information Security Officer). Owns security posture across the org. Use proactively when reviewing authentication flows, authorization logic, secret management, container configurations, CI pipelines, deployment manifests, or any code handling sensitive data or exposed to untrusted input.
-model: inherit
+model: claude-4.6-opus-max-thinking
 parallelizable: true
 ---
 

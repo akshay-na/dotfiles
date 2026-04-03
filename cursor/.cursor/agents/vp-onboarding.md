@@ -108,6 +108,23 @@ Do NOT create QA agents when:
 
 Each QA agent's description must state its test scope clearly (what test types it owns, what frameworks it uses).
 
+### Model Selection
+
+Choose the appropriate model for each agent based on cognitive requirements:
+
+| Agent type | Recommended model | Reason |
+|------------|-------------------|--------|
+| `tech-lead` | `inherit` | Orchestration needs balanced capability for coordination |
+| `dev-<scope>` | `fast` | Implementation work follows explicit instructions |
+| `sme-<domain>` | `inherit` or higher | Complex domains may need more reasoning; simple domains use `fast` |
+| `qa-<scope>` | `fast` | Test writing follows patterns and conventions |
+| `devops` | `inherit` | CI/CD work varies; some tasks need more reasoning |
+
+**When to override:**
+- Use `inherit` (or higher) for `dev-*` when the scope involves complex algorithms or architecture-sensitive code
+- Use `inherit` for `sme-*` when the domain requires deep reasoning (ML, security, distributed systems)
+- Use `fast` for `sme-*` when the domain is well-documented and pattern-based
+
 ### Parallelization Flag
 
 Project agents can be marked `parallelizable: true` in their frontmatter when they can safely run in background/parallel with other agents.
@@ -559,7 +576,7 @@ Access memory directly using the `context-memory` skill. Your project namespace 
 ---
 name: <role-name> # e.g. dev-<scope>, sme-<domain>
 description: What this team member does, scoped to this project. Be specific. Runs in Agent (implementation) mode by default.
-model: inherit
+model: fast # dev agents use fast model for efficient implementation; sme agents may use inherit for complex domains
 parallelizable: true
 ---
 
@@ -646,7 +663,7 @@ QA agents have a dedicated template because they need test framework detection, 
 ---
 name: qa-<scope>
 description: QA agent for [scope] testing on [project name]. Detects and uses the project's existing test framework. Never creates a test framework without user approval.
-model: inherit
+model: fast
 parallelizable: true
 ---
 

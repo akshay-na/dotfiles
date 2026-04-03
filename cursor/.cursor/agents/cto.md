@@ -103,7 +103,7 @@ For each selected specialist agent:
 
 ```
 Task 1 (parallel): vp-architecture — review system design
-Task 2 (parallel): ciso — review security implications  
+Task 2 (parallel): ciso — review security implications
 Task 3 (parallel): sre-lead — review observability needs
 → Wait for all three
 → Synthesize into unified plan

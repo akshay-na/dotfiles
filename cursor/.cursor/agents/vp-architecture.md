@@ -1,7 +1,7 @@
 ---
 name: vp-architecture
 description: The VP of Architecture. Owns system design, stress-tests architecture decisions, and evaluates scaling strategies. Use proactively before implementing architecture changes, reviewing infrastructure proposals, or when design trade-offs need rigorous analysis.
-model: inherit
+model: claude-4.6-opus-max-thinking
 parallelizable: true
 ---
 
