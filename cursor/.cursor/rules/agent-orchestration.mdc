@@ -16,23 +16,9 @@ alwaysApply: true
   - Project agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) own implementation inside a specific repo, following org standards and project rules.
   - Project agents escalate up to org agents via `cto` when decisions affect architecture, security posture, performance budgets, or shared tooling.
 
-- **Memory access**
-  - All agents access memory directly via the `context-memory` skill and the always-apply `memory-access` and `memory-capture` rules. No broker agent is needed.
-  - Agents follow the skill's read protocol (check directory → read `_index.md` → read individual entries) to avoid context bloat.
-  - Agents follow the skill's write protocol (with mandatory `_index.md` update) to persist decisions, constraints, risks, and other entries.
-  - The `memory-capture` rule instructs all agents to auto-capture significant decisions as part of their normal workflow.
-  - Memory content is local per machine; it does not sync via dotfiles.
+- **Memory:** All agents follow the always-apply `memory` rule and the `context-memory` skill for reads and writes.
 
-- **Docs orchestration**
-  - The org-level `docs-researcher` agent is the **only** agent that may call documentation MCPs directly (e.g. Context7 documentation-lookup, HTTP fetch/WebFetch for docs, `rovo` for Confluence/Jira docs).
-  - When an agent needs documentation or web research, it should:
-    - Summarize the question and relevant technologies/APIs.
-    - Delegate to `docs-researcher` as a subagent instead of calling documentation MCPs itself.
-  - Agents should keep docs requests **coarse-grained and focused** (for example, "summarize official guidance for X in version Y" or "compare options A vs B from the vendor docs") and rely on `docs-researcher` for:
-    - Distilled answers.
-    - Key caveats.
-    - Links/citations for deeper reading.
-  - It is acceptable to run multiple `docs-researcher` subagents in parallel for independent topics, but each call should stay small and targeted to avoid bloating context.
+- **Docs research:** All agents delegate documentation and web research to `docs-researcher`. See the `docs-researcher` rule.
 
 - **Call-chain boundaries**
   - For multi-phase work: the user → `cto` (plan) → project `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.

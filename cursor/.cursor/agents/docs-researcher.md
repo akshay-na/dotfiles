@@ -107,8 +107,4 @@ Task 3 (parallel): docs-researcher — "What are the security implications of JW
 
 ## Memory
 
-Access memory directly using the `context-memory` skill when needed to correlate external docs with internal decisions.
-
-**Reading:** Query relevant namespaces for existing decisions that docs research might inform.
-
-**Writing:** Generally do not write to memory directly — return research results to the calling agent, who decides what to persist.
+Follow the always-apply `memory` rule and `context-memory` skill when correlating docs with internal decisions. Generally do not write — return results to calling agent who decides what to persist.

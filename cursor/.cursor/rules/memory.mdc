@@ -1,0 +1,44 @@
+---
+description: "How agents use file-based memory for cross-session knowledge"
+alwaysApply: true
+---
+
+# Memory
+
+**Location:** `~/.cursor/memory/` (local per machine, never in git)
+**Full protocol:** See `context-memory` skill for read/write operations and entry schema.
+
+## Namespace-to-Directory
+
+| Namespace | Directory |
+|---|---|
+| `org.global` | `org/global/` |
+| `org.security` | `org/security/` |
+| `project.<name>` | `projects/<name>/` |
+| `project.<name>.<domain>` | `projects/<name>/<domain>/` |
+| `session.current` | `session/current/` |
+
+## Capture Triggers
+
+| Trigger | Category |
+|---|---|
+| Chose between alternatives | `decision` |
+| Discovered hard limitation | `constraint` |
+| Established pattern/standard | `principle` |
+| Identified risk/concern | `risk` |
+| Rejected approach with reasoning | `rejected` |
+| Flagged work for later | `todo` |
+| Produced architecture diagram | `diagram` |
+
+## Store / Don't Store
+
+**Store:** Stable decisions, constraints, principles, risks, TODOs spanning sessions, doc pointers.
+**Don't store:** Raw chat logs, secrets/PII, large code dumps, ephemeral notes.
+
+## Project KB Tags
+
+Use `project-kb`, `doc-pointer`, `skill-lookup` tags. Include `source_path` for file pointers (repo-relative).
+
+## Doc-Pointer Paths
+
+Agent-generated docs live in `.cursor/docs/` (`plans/`, `decisions/`, `runbooks/`). Use repo-relative paths in `source_path`.

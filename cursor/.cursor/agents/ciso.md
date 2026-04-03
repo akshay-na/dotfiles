@@ -45,11 +45,7 @@ Prefer secure-by-default.
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `org/security/`, `projects/<name>/security/`, and `org/global/` for security-related decisions, constraints, and risks.
-
-**Writing:** Follow the `memory-capture` rule to auto-capture security decisions, identified risks, and threat mitigations.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/security/`, `projects/<name>/security/`, `org/global/`.
 
 ## Plan Mode
 

@@ -238,21 +238,42 @@ alwaysApply: false # true = applies to every file; false = only matching globs
 
 Analyze the codebase and existing configs (linters, formatters, editorconfig, CI checks) to derive rules. Do not invent conventions — extract what already exists.
 
-| Rule                  | File name             | When to create                                                                            | What to include                                                                                                  |
-| --------------------- | --------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Code style**        | `code-style.mdc`      | Project has consistent naming, formatting, or structural patterns                         | Variable naming (`camelCase`, `snake_case`), file naming, import ordering, bracket style, indentation            |
-| **Error handling**    | `error-handling.mdc`  | Project has a consistent error pattern (custom error classes, Result types, etc.)         | Error class usage, when to throw vs return, logging on catch, user-facing vs internal errors                     |
-| **Testing**           | `testing.mdc`         | Project has test conventions beyond "write tests"                                         | Test file location, naming (`*.test.ts`, `*_test.go`), fixture patterns, mocking approach, coverage expectations |
-| **API conventions**   | `api-conventions.mdc` | Project exposes or consumes APIs with consistent patterns                                 | Request/response shapes, pagination, error format, versioning, auth header usage                                 |
-| **Git & commits**     | `git.mdc`             | Project has commit message conventions, branch naming, or PR templates                    | Commit prefix format, branch naming (`feat/`, `fix/`), squash policy                                             |
-| **Do's and Don'ts**   | `dos-and-donts.mdc`   | Project has footguns, anti-patterns, or hard-learned lessons                              | Things that break the build, deprecated patterns to avoid, required patterns for new code                        |
-| **Language-specific** | `lang-<name>.mdc`     | Project uses a language with specific conventions beyond defaults                         | Idioms, type usage, import conventions, framework-specific patterns (e.g., React hook rules, Go error wrapping)  |
-| **Formatting**        | `formatting.mdc`      | Project has formatter config (Prettier, Black, gofmt, etc.) but agents keep overriding it | Formatter tool, config file location, "do not manually format" instruction, line length, trailing commas         |
-| **Dependencies**      | `dependencies.mdc`    | Project has rules about adding/updating deps                                              | Approval process, pinning policy, forbidden packages, preferred alternatives                                     |
+| Rule                  | File name             | Target lines | When to create                                                                            | What to include                                                                                                  |
+| --------------------- | --------------------- | ------------ | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Code style**        | `code-style.mdc`      | 20-30        | Project has consistent naming, formatting, or structural patterns                         | Variable naming (`camelCase`, `snake_case`), file naming, import ordering, bracket style, indentation            |
+| **Error handling**    | `error-handling.mdc`  | 15-25        | Project has a consistent error pattern (custom error classes, Result types, etc.)         | Error class usage, when to throw vs return, logging on catch, user-facing vs internal errors                     |
+| **Testing**           | `testing.mdc`         | 20-30        | Project has test conventions beyond "write tests"                                         | Test file location, naming (`*.test.ts`, `*_test.go`), fixture patterns, mocking approach, coverage expectations |
+| **API conventions**   | `api-conventions.mdc` | 20-30        | Project exposes or consumes APIs with consistent patterns                                 | Request/response shapes, pagination, error format, versioning, auth header usage                                 |
+| **Git & commits**     | `git.mdc`             | 10-20        | Project has commit message conventions, branch naming, or PR templates                    | Commit prefix format, branch naming (`feat/`, `fix/`), squash policy                                             |
+| **Do's and Don'ts**   | `dos-and-donts.mdc`   | 15-25        | Project has footguns, anti-patterns, or hard-learned lessons                              | Things that break the build, deprecated patterns to avoid, required patterns for new code                        |
+| **Language-specific** | `lang-<name>.mdc`     | 15-25        | Project uses a language with specific conventions beyond defaults                         | Idioms, type usage, import conventions, framework-specific patterns (e.g., React hook rules, Go error wrapping)  |
+| **Formatting**        | `formatting.mdc`      | 5-15         | Project has formatter config (Prettier, Black, gofmt, etc.) but agents keep overriding it | Formatter tool, config file location, "do not manually format" instruction, line length, trailing commas         |
+| **Dependencies**      | `dependencies.mdc`    | 10-20        | Project has rules about adding/updating deps                                              | Approval process, pinning policy, forbidden packages, preferred alternatives                                     |
 
 **Only create rules that reflect real project conventions.** If the project has no consistent pattern for something, do not make one up. If a linter/formatter config already enforces it mechanically, a rule file is still useful to tell agents _why_ and _what not to override_.
 
 **Glob targeting:** Use specific globs to scope rules to the right files. A React hook rule should target `**/*.ts,**/*.tsx`, not `**/*`. Use `alwaysApply: true` only for truly universal rules (like do's and don'ts).
+
+**Rule minimalism:**
+
+Project rules must be lean. Every line loaded as always-apply costs tokens in
+every conversation. Follow these constraints:
+
+- **15-30 lines per rule** (excluding frontmatter). Never exceed 40.
+- **Prefer `alwaysApply: false`** with targeted `globs` or a precise
+  `description`. Reserve `alwaysApply: true` only for universal do's-and-don'ts.
+- **Never restate org always-apply rules.** The org-level rules (memory,
+  agent-orchestration, error-handling-and-security, docs-researcher,
+  mcp-usage, mode-auto-selection, base) are already loaded in every
+  conversation. Cross-reference them ("See the org error-handling rule")
+  instead of duplicating their content.
+- **Tables and bullets, not prose.** A rule should be scannable in 10 seconds.
+- **Combine small related rules.** If code-style and formatting together
+  total <30 lines, merge them into one rule rather than two tiny files.
+- **Point at configs, don't transcribe them.** If `.eslintrc` or
+  `pyproject.toml` already enforces a convention, a 2-line rule saying
+  "follow the existing eslint config at `.eslintrc`; do not override"
+  is sufficient.
 
 ## How You Work
 
@@ -793,7 +814,7 @@ NOT parallel-safe:
 - **Keep means don't touch.** If an artifact is marked "keep", do not modify it in any way.
 - **Removals require explicit approval.** Never delete an artifact without the user approving removal in the plan.
 - **Keep team members under 80 lines.** Project context should be dense, not padded.
-- **Keep rules concise.** Bullet points over prose. A rule file should be scannable in 10 seconds.
+- **Keep rules lean.** 15-30 lines per rule (max 40). Bullets over prose, tables over lists. Scannable in 10 seconds. Never restate org always-apply content.
 - **Keep skills under 500 lines.** Follow progressive disclosure — SKILL.md for essentials, reference files for details.
 
 ## What You Do NOT Do

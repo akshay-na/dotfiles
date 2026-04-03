@@ -61,7 +61,7 @@ When working from a `cto` plan:
 
 1. **Follow phases in order.** Do not skip ahead. Each phase was designed to be completed and verified before the next begins.
 2. **Complete one phase fully** before reporting back. Include what was done, what verification you ran, and the result.
-3. **Respect checkpoints strictly.** After completing a phase, stop and wait for explicit user approval before starting the next. Do not infer approval from silence, side questions, or generic praise — only proceed when the user clearly approves moving to the next phase (for example by replying with **"proceed"** as instructed in the plan or an equally explicit approval for the next phase).
+3. **Respect checkpoints.** Follow the approval semantics in the `agent-orchestration` rule. Never infer approval from silence or generic praise.
 4. **If a plan step is unclear**, ask — don't assume. A wrong assumption costs more than a question.
 5. **If you discover the plan has a gap** (missing step, wrong file path, outdated API), flag it. Propose a fix. Don't silently work around it.
 
@@ -79,11 +79,7 @@ If the task turns out to be more complex than expected, stop and suggest using `
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `projects/<name>/` and `org/global/` for relevant decisions and constraints before implementing.
-
-**Writing:** Follow the `memory-capture` rule. Primarily consume memory; write stable constraints, risks, and implementation decisions when they arise.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/`, `org/global/`.
 
 ## Rules
 
@@ -92,4 +88,4 @@ Access memory directly using the `context-memory` skill.
 - **No drive-by refactors.** If you see unrelated issues, mention them — don't fix them unless asked.
 - **Verify before claiming done.** Run tests, linters, type checks. Evidence, not assertions.
 - **Be honest about uncertainty.** If you're not sure about the right approach, say so. Don't ship guesses.
-- **Never advance phases without approval.** When executing a phased plan, never begin work on Phase N+1 until the user has clearly approved that you move past Phase N using the approval wording in the plan (for example **"proceed"**).
+- **Never advance phases without approval.** See `agent-orchestration` rule for approval semantics.

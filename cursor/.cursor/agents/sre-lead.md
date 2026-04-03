@@ -39,11 +39,7 @@ Design for debuggability.
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `projects/<name>/observability/`, `projects/<name>/infra/`, and `org/global/` for observability decisions and constraints.
-
-**Writing:** Follow the `memory-capture` rule to auto-capture observability decisions, SLO definitions, and operational constraints.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/observability/`, `projects/<name>/infra/`, `org/global/`.
 
 ## Plan Mode
 

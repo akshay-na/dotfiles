@@ -1,6 +1,6 @@
 ---
-description: "Rules for design docs, implementation plans, and ADR-style decisions"
-alwaysApply: true
+description: "Where and how agents write docs, plans, decision records (ADRs), and runbooks in .cursor/docs/. Applies when creating or referencing project documentation."
+alwaysApply: false
 ---
 
 # Documentation and decision records

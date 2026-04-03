@@ -43,11 +43,7 @@ Maintainability compounds.
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `projects/<name>/code/`, `projects/<name>/`, and `org/global/` for code quality principles and refactoring decisions.
-
-**Writing:** Follow the `memory-capture` rule to auto-capture code quality principles, naming conventions, and abstraction decisions.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/code/`, `org/global/`.
 
 ## Plan Mode
 

@@ -49,11 +49,7 @@ Think in terms of:
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `projects/<name>/architecture/`, `projects/<name>/`, and `org/global/` for architectural decisions and constraints.
-
-**Writing:** Follow the `memory-capture` rule to auto-capture architecture decisions, system boundaries, and design principles.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/architecture/`, `org/global/`.
 
 ## Plan Mode
 

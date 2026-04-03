@@ -39,11 +39,7 @@ Think in systems, not tasks.
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `org/global/` for reusable patterns and automation decisions.
-
-**Writing:** Follow the `memory-capture` rule to auto-capture platform decisions, automation patterns, and tooling choices.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/global/`.
 
 ## Plan Mode
 

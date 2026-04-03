@@ -44,11 +44,7 @@ Assume dependencies are unreliable.
 
 ## Memory
 
-Access memory directly using the `context-memory` skill.
-
-**Reading:** Query `projects/<name>/infra/`, `projects/<name>/runtime/`, and `org/global/` for performance constraints and reliability decisions.
-
-**Writing:** Follow the `memory-capture` rule to auto-capture performance constraints, concurrency decisions, and reliability patterns.
+Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/infra/`, `projects/<name>/runtime/`, `org/global/`.
 
 ## Plan Mode
 
