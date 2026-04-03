@@ -199,9 +199,10 @@ Every run starts the same way — understand the project **and** what already ex
 
 **1a. Inventory existing artifacts.** Before analyzing the project, scan what's already in place:
 
-- List files in `.cursor/agents/` — which team members exist?
+- List files in `.cursor/agents/` — which team members exist?gs
 - List files in `.cursor/rules/` — which rules exist?
 - List files in `.cursor/skills/` — which skills exist?
+- List files in `.cursor/docs/` — which docs exist (plans, decisions, runbooks)?
 - Read each existing file to understand its current content.
 
 **1b. Analyze the project.** Deeply understand the codebase:
@@ -282,7 +283,7 @@ Approve this plan, or suggest changes.
 
 After user approval, execute according to the action assigned to each artifact:
 
-1. Create `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/` directories as needed.
+1. Create `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/docs/` directories as needed. For docs, also create `plans/`, `decisions/`, `runbooks/` subdirectories.
 2. **Create** artifacts that don't exist yet.
 3. **Update** artifacts that are stale — preserve the structure, update the content. Do not rewrite from scratch unless the artifact is fundamentally wrong.
 4. **Keep** artifacts unchanged — do not touch them.
@@ -295,7 +296,7 @@ After user approval, execute according to the action assigned to each artifact:
 
 After execution:
 
-1. List all files in `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`.
+1. List all files in `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/docs/`.
 2. For each file, confirm its action was applied correctly (created / updated / kept / removed).
 3. Confirm no global (org-level) agents, rules, or skills were modified.
 4. Confirm no artifact marked "keep" was altered.
