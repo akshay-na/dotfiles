@@ -5,27 +5,92 @@ alwaysApply: true
 
 # Documentation and decision records
 
-- **Design docs and implementation plans**
-  - Store design docs and implementation plans under `docs/plans/` with date-stamped filenames (e.g. `YYYY-MM-DD-feature-name.md`).
-  - Use plan mode (`cto` + leadership) for multi-step or high-risk work; smaller tasks may use lightweight notes but should still capture key decisions.
+## Centralized docs location
 
-- **When a full plan is required**
-  - Significant architectural changes, new services, or large refactors.
-  - Security-sensitive features, performance-critical paths, or major observability changes.
-  - Cross-team or cross-project work that affects multiple codebases.
+All agent-generated documentation (plans, runbooks, decisions) is stored under `~/.cursor/docs/` to ensure accessibility across git worktrees and Cursor sessions.
 
-- **Decision records**
-  - For important architectural or process decisions, record:
-    - The decision and its rationale.
-    - Alternatives considered and why they were rejected.
-    - Implications and follow-up actions.
-  - Link these decisions from memory entries (`org.global` or `project.<name>`) instead of duplicating full text.
+```
+~/.cursor/docs/
+├── global/                    # Org-wide docs (apply across all projects)
+│   ├── plans/
+│   ├── decisions/
+│   └── runbooks/
+└── projects/                  # Project-specific docs
+    └── <project-name>/        # e.g., "dotfiles", "myapp"
+        ├── plans/
+        ├── decisions/
+        └── runbooks/
+```
 
-- **Keeping docs current**
-  - When a decision changes, append or create a new decision record and link it via supersession from the old one.
-  - Avoid silently drifting away from documented behavior; update docs/plans or record a new decision when the reality changes.
+## Project name resolution
 
-- **Agent expectations**
-  - Org agents ensure major plans and decisions are captured and easy to find.
-  - Project agents reference existing docs before proposing new patterns, and update or extend docs when they introduce meaningful changes.
+Agents derive the project name using git commands. This produces a lowercase identifier stable across all worktrees of the same repo.
+
+**Primary method** (when remote exists):
+```bash
+basename -s .git "$(git remote get-url origin 2>/dev/null)" | tr '[:upper:]' '[:lower:]'
+```
+
+**Fallback** (no remote configured):
+```bash
+basename "$(git rev-parse --show-toplevel)" | tr '[:upper:]' '[:lower:]'
+```
+
+**Combined one-liner** (handles both cases):
+```bash
+git remote get-url origin 2>/dev/null | sed 's/.*\///; s/\.git$//' | tr '[:upper:]' '[:lower:]' || basename "$(git rev-parse --show-toplevel)" | tr '[:upper:]' '[:lower:]'
+```
+
+The primary method uses the remote URL which is consistent across worktrees. The fallback uses the repo directory name.
+
+## Writing docs
+
+- **Global docs** (`~/.cursor/docs/global/`): Org-wide standards, cross-project decisions, shared runbooks
+- **Project docs** (`~/.cursor/docs/projects/<project-name>/`): Project-specific plans, decisions, runbooks
+
+Before writing:
+1. Resolve project name using the git commands above
+2. Create target directory: `mkdir -p ~/.cursor/docs/projects/$PROJECT/{plans,decisions,runbooks}`
+3. Use date-stamped filenames: `YYYY-MM-DD-descriptive-name.md`
+
+## Doc types
+
+| Directory | Purpose | Examples |
+|-----------|---------|----------|
+| `plans/` | Implementation plans, design docs | `2026-04-03-auth-redesign.md` |
+| `decisions/` | ADR-style decision records | `2026-04-03-chose-postgres.md` |
+| `runbooks/` | Operational procedures, how-tos | `2026-04-03-deploy-procedure.md` |
+
+## When a full plan is required
+
+- Significant architectural changes, new services, or large refactors
+- Security-sensitive features, performance-critical paths, or major observability changes
+- Cross-team or cross-project work that affects multiple codebases
+- Use plan mode (`cto` + leadership) for multi-step or high-risk work
+
+## Decision records
+
+For important architectural or process decisions, record:
+- The decision and its rationale
+- Alternatives considered and why they were rejected
+- Implications and follow-up actions
+
+Link these decisions from memory entries (`org.global` or `project.<name>`) instead of duplicating full text.
+
+## Discovery pattern
+
+When looking for existing docs, agents check in order:
+1. `~/.cursor/docs/projects/<project-name>/` — project-specific docs
+2. `~/.cursor/docs/global/` — org-wide docs
+
+## Keeping docs current
+
+- When a decision changes, create a new decision record and link it via supersession from the old one
+- Avoid silently drifting away from documented behavior; update docs or record a new decision when reality changes
+
+## Agent expectations
+
+- Org agents write to `global/` for cross-project concerns and `projects/<name>/` for project work
+- Project agents write to `projects/<name>/` and reference `global/` for org standards
+- All agents check existing docs before proposing new patterns
 
