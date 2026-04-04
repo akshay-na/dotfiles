@@ -183,7 +183,7 @@ If `_pending_refresh.md` exists in a memory directory, it lists files changed si
 
 If the org-level orchestration system exists (`~/.cursor/skills/task-orchestration/`, `~/.cursor/skills/pipeline-executor/`, etc.), bootstrap project-level orchestration artifacts:
 
-**2a. Project pipelines.** Create `.cursor/configs/pipelines/` with project-specific pipelines:
+**2a. Project pipelines.** Create `.cursor/configurations/pipelines/` with project-specific pipelines:
 
 | Pipeline file | When to create | Content |
 |---------------|----------------|---------|
@@ -209,7 +209,7 @@ stages:
     skill: <project-skill if needed>
 ```
 
-**2b. Project routing overrides.** Create `.cursor/configs/routing-overrides.yml` if project needs task routing different from org defaults:
+**2b. Project routing overrides.** Create `.cursor/configurations/routing-overrides.yml` if project needs task routing different from org defaults:
 
 ```yaml
 version: 1
@@ -225,7 +225,7 @@ overrides:
     pipeline: default  # use project's default instead of org full-feature
 ```
 
-**2c. Project failure patterns.** Create `.cursor/configs/failure-patterns.yml` if project has domain-specific failure signatures:
+**2c. Project failure patterns.** Create `.cursor/configurations/failure-patterns.yml` if project has domain-specific failure signatures:
 
 ```yaml
 version: 1
@@ -508,7 +508,7 @@ Every run starts the same way — understand the project **and** what already ex
 - List files in `.cursor/rules/` — which rules exist?
 - List files in `.cursor/skills/` — which skills exist?
 - List files in `.cursor/docs/` — which docs exist (plans, decisions, runbooks)?
-- List files in `.cursor/configs/` — which orchestration configs exist (pipelines, routing)?
+- List files in `.cursor/configurations/` — which orchestration configs exist (pipelines, routing)?
 - Check if `~/.cursor/memory/projects/<name>/metrics/` exists — is metrics tracking enabled?
 - Read each existing file to understand its current content.
 
@@ -517,7 +517,7 @@ Every run starts the same way — understand the project **and** what already ex
 - Check `~/.cursor/skills/task-orchestration/` — does orchestration skill exist?
 - Check `~/.cursor/skills/pipeline-executor/` — does pipeline skill exist?
 - Check `~/.cursor/skills/skill-validation/` — does validation skill exist?
-- Check `~/.cursor/configs/` — do org-level configs exist?
+- Check `~/.cursor/configurations/` — do org-level configs exist?
 
 If org orchestration exists → include "Project Orchestration" section in plan.
 If org orchestration doesn't exist → skip orchestration bootstrapping.
@@ -608,9 +608,9 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 
 | Artifact | Action | Reason |
 |---|---|---|
-| `.cursor/configs/pipelines/default.yml` | create / keep / skip | ... |
-| `.cursor/configs/routing-overrides.yml` | create / skip | ... |
-| `.cursor/configs/failure-patterns.yml` | create / skip | ... |
+| `.cursor/configurations/pipelines/default.yml` | create / keep / skip | ... |
+| `.cursor/configurations/routing-overrides.yml` | create / skip | ... |
+| `.cursor/configurations/failure-patterns.yml` | create / skip | ... |
 | `projects/<name>/metrics/_index.md` | create / keep | ... |
 
 Approve this plan, or suggest changes.
@@ -630,10 +630,10 @@ After user approval, execute according to the action assigned to each artifact:
 6. **Remove** only if the user explicitly approved removal. When removing, move the content to the plan summary so the user has a record.
 7. Order of operations: rules first, then agents, then skills, then orchestration configs.
 8. **If org orchestration exists and plan includes orchestration:**
-   - Create `.cursor/configs/pipelines/` directory
+   - Create `.cursor/configurations/pipelines/` directory
    - Create project pipeline files (default.yml, etc.)
-   - Create `.cursor/configs/routing-overrides.yml` if project needs routing customization
-   - Create `.cursor/configs/failure-patterns.yml` if project has domain-specific failures
+   - Create `.cursor/configurations/routing-overrides.yml` if project needs routing customization
+   - Create `.cursor/configurations/failure-patterns.yml` if project has domain-specific failures
    - Initialize `~/.cursor/memory/projects/<name>/metrics/_index.md` for observability
    - Add enforcement frontmatter to project rules (priority, enforcement level)
 8. If `$HOME/dotfiles/scripts/.local/bin/cursor-memory-hook` exists, copy it to `.git/hooks/post-merge` and `.git/hooks/post-checkout` (make them executable). If the source file doesn't exist, skip this step silently.

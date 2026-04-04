@@ -1,6 +1,11 @@
 ---
 description: "Cross-cutting error handling and basic security expectations"
 alwaysApply: true
+priority: 900
+enforcement: strict
+pre_action: true
+post_action: true
+tags: [security, error-handling, critical]
 ---
 
 # Error handling and security basics
