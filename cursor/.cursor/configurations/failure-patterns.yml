@@ -1,0 +1,154 @@
+version: 1
+
+patterns:
+  - id: lint-error
+    signals: ["ESLint", "prettier", "linter", "formatting", "Biome", "eslint-plugin"]
+    strategy: auto_fix
+    description: "Run linter/formatter auto-fix, then retry"
+    max_auto_retries: 2
+    auto_fixable: true
+
+  - id: type-error
+    signals: ["TypeScript", "type error", "cannot assign", "Property.*does not exist", "Type.*is not assignable"]
+    strategy: context_expand
+    description: "Read surrounding type definitions, retry with broader context"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: test-failure
+    signals: ["FAIL", "AssertionError", "expected.*received", "test failed", "jest", "vitest", "pytest"]
+    strategy: analyze_then_fix
+    description: "Read test expectations, compare with implementation, fix the gap"
+    max_auto_retries: 3
+    auto_fixable: false
+
+  - id: import-not-found
+    signals: ["Cannot find module", "ModuleNotFoundError", "No module named", "Module not found"]
+    strategy: dependency_check
+    description: "Check package manifest, install missing dependency, retry"
+    max_auto_retries: 1
+    auto_fixable: true
+
+  - id: syntax-error
+    signals: ["SyntaxError", "Unexpected token", "Parse error", "Invalid syntax"]
+    strategy: analyze_then_fix
+    description: "Parse error location, fix syntax issue"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: permission-error
+    signals: ["EACCES", "Permission denied", "EPERM", "Operation not permitted"]
+    strategy: escalate
+    description: "Escalate to user — requires manual intervention"
+    max_auto_retries: 0
+    auto_fixable: false
+
+  - id: merge-conflict
+    signals: ["CONFLICT", "merge conflict", "both modified", "Merge conflict"]
+    strategy: escalate
+    description: "Escalate to user — merge conflicts require human resolution"
+    max_auto_retries: 0
+    auto_fixable: false
+
+  - id: network-error
+    signals: ["ECONNREFUSED", "ETIMEDOUT", "fetch failed", "network error", "ENOTFOUND"]
+    strategy: retry_with_backoff
+    description: "Transient network issue — retry with exponential backoff"
+    max_auto_retries: 3
+    auto_fixable: false
+
+  - id: build-error
+    signals: ["Build failed", "compilation error", "webpack", "vite", "esbuild", "tsc"]
+    strategy: analyze_then_fix
+    description: "Analyze build output, identify failing module, fix"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: runtime-error
+    signals: ["ReferenceError", "TypeError", "undefined is not", "null is not", "Cannot read property"]
+    strategy: context_expand
+    description: "Trace error to source, add null checks or fix logic"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: shell-error
+    signals: ["command not found", "exit code", "non-zero exit", "ENOENT"]
+    strategy: analyze_then_fix
+    description: "Check command existence, fix path or install tool"
+    max_auto_retries: 1
+    auto_fixable: true
+
+  - id: git-error
+    signals: ["git", "fatal:", "rejected", "failed to push", "diverged"]
+    strategy: escalate
+    description: "Git state issues require careful handling — escalate"
+    max_auto_retries: 0
+    auto_fixable: false
+
+strategies:
+  auto_fix:
+    description: "Run automatic fix command and retry"
+    steps:
+      - "Identify the auto-fix command (npm run lint:fix, prettier --write, etc.)"
+      - "Run the auto-fix command"
+      - "Verify fix resolved the issue"
+      - "Retry original operation"
+
+  context_expand:
+    description: "Expand context to understand the issue better"
+    steps:
+      - "Identify missing context from error"
+      - "Read additional files (type definitions, imports, related code)"
+      - "Retry with expanded context"
+
+  analyze_then_fix:
+    description: "Deep analysis before attempting fix"
+    steps:
+      - "Parse error details (file, line, message)"
+      - "Compare expected vs actual behavior"
+      - "Generate targeted fix"
+      - "Apply fix and verify"
+
+  dependency_check:
+    description: "Check and install missing dependencies"
+    steps:
+      - "Parse missing dependency name from error"
+      - "Check package manifest (package.json, requirements.txt, etc.)"
+      - "Install if missing (npm install, pip install, etc.)"
+      - "Retry original operation"
+
+  retry_with_backoff:
+    description: "Simple retry with exponential backoff"
+    steps:
+      - "Wait for backoff period (5s, 10s, 20s, ...)"
+      - "Retry original operation"
+
+  escalate:
+    description: "Cannot auto-fix — escalate to user"
+    steps:
+      - "Document full error context"
+      - "Report to user with suggested manual steps"
+      - "Mark task as blocked, awaiting user input"
+
+success_criteria:
+  bug_fix:
+    - "Error no longer reproducible"
+    - "Tests pass"
+    - "Linter clean"
+  feature:
+    - "Feature works as specified"
+    - "Tests pass"
+    - "Linter clean"
+    - "No regressions"
+  refactor:
+    - "Behavior unchanged"
+    - "Tests pass"
+    - "Linter clean"
+    - "Code quality improved"
+  security:
+    - "Vulnerability resolved"
+    - "Security tests pass"
+    - "CISO review passed"
+  config_change:
+    - "Config valid"
+    - "Tool loads without error"
