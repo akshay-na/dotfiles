@@ -28,3 +28,9 @@ alwaysApply: false
   - Before declaring a feature production-ready, ensure there is at least a minimal path to observe its behavior (logs, metrics, or traces).
   - Avoid shipping changes that meaningfully increase operational risk without updating observability accordingly.
 
+- **Agent observability**
+  - Every pipeline execution should produce a metric entry via the `agent-observability` skill.
+  - Decision audit trails are mandatory for routing overrides (when deviating from routing table).
+  - Session reports can be generated on request by reading all `metric` entries from `session.current/`.
+  - Promote metrics to `projects/{name}/metrics/` for cross-session trend analysis.
+

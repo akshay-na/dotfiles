@@ -1,0 +1,489 @@
+---
+name: agent-observability
+description: Track agent decisions, metrics, token costs, and generate reports. Use when logging task execution, tracking agent performance, or generating observability reports.
+version: 1
+input_schema:
+  required:
+    - name: operation
+      type: string
+      description: Operation type - log_metric, log_decision, generate_report, query_metrics
+  optional:
+    - name: task_id
+      type: string
+      description: Task ID for metric association
+    - name: metric_data
+      type: object
+      description: Metric data to log (for log_metric)
+    - name: decision_data
+      type: object
+      description: Decision data to log (for log_decision)
+    - name: report_type
+      type: string
+      description: Report type - session, weekly, agent_performance
+    - name: query_filter
+      type: object
+      description: Filter criteria for query_metrics
+output_schema:
+  required:
+    - name: status
+      type: string
+      description: Result - success, error
+  optional:
+    - name: report
+      type: object
+      description: Generated report (for generate_report)
+    - name: metrics
+      type: object[]
+      description: Query results (for query_metrics)
+    - name: entry_path
+      type: string
+      description: Path to created metric/decision entry
+---
+
+# Agent Observability
+
+Instruments agent operations with per-task metrics, decision audit trails, token cost attribution, and reporting.
+
+## Operations
+
+| Operation | Description |
+|-----------|-------------|
+| `log_metric` | Record a task metric entry |
+| `log_decision` | Record a decision audit entry |
+| `generate_report` | Generate session, weekly, or agent performance report |
+| `query_metrics` | Query metrics with filters |
+
+## Per-Task Metric Entry Schema
+
+Store task execution metrics using this schema:
+
+```yaml
+---
+entity_name: session.current.metric.{task_id}
+namespace: session.current
+category: metric
+status: accepted
+tags: [observability, task-tracking, {task_type}]
+created_at: ISO-8601
+updated_at: ISO-8601
+task_id: string
+task_type: string
+pipeline: string
+target_repo: string
+stages_executed:
+  - stage_id: string
+    agent: string
+    started_at: ISO-8601
+    completed_at: ISO-8601
+    duration_ms: number
+    outcome: success | failed | skipped
+    retry_count: number
+    token_estimate:
+      input: number
+      output: number
+total_duration_ms: number
+total_retries: number
+final_outcome: success | failed | dead_letter | cancelled
+decision_trail: []  # References to decision entries
+---
+
+Summary of task execution. Key decisions and outcomes.
+```
+
+**Field descriptions:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `task_id` | string | Unique identifier for the task |
+| `task_type` | string | Classification (feature, bug-fix, refactor, etc.) |
+| `pipeline` | string | Pipeline used (full-feature, bug-fix, etc.) |
+| `target_repo` | string | Repository being modified |
+| `stages_executed` | array | Per-stage execution records |
+| `total_duration_ms` | number | Total task duration in milliseconds |
+| `total_retries` | number | Sum of all retries across stages |
+| `final_outcome` | enum | Final task status |
+| `decision_trail` | array | References to decision entries for this task |
+
+## Decision Audit Entry Schema
+
+Record decisions for traceability:
+
+```yaml
+---
+entity_name: session.current.decision.{task_id}.{decision_id}
+namespace: session.current
+category: decision
+status: accepted
+tags: [observability, decision-audit, {agent}]
+created_at: ISO-8601
+task_id: string
+decision_id: string
+agent: string
+decision_type: routing | strategy | escalation | override
+decision: string
+rationale: string
+alternatives_considered: string[]
+context_summary: string
+---
+
+Full decision description and reasoning.
+```
+
+**Decision types:**
+
+| Type | When Used |
+|------|-----------|
+| `routing` | Task classification and pipeline selection |
+| `strategy` | Retry or recovery strategy selection |
+| `escalation` | Escalation to human or senior agent |
+| `override` | Deviation from routing table recommendation |
+
+## Capture Points
+
+Agents must write metrics at these events:
+
+| Event | What to Capture | When |
+|-------|-----------------|------|
+| Task classified | task_type, signals matched, confidence | After orchestrator classifies |
+| Agent selected | agent name, reason (routing table vs override) | After routing decision |
+| Stage started | stage_id, agent, timestamp | Before stage execution |
+| Stage completed | duration, outcome, retry_count, tokens | After stage finishes |
+| Retry triggered | failure pattern, strategy selected, retry number | When retry loop fires |
+| Dead letter | full error context, strategies attempted | When retries exhausted |
+| Pipeline complete | total duration, total retries, final outcome | After all stages done |
+| Override made | what was overridden, why, alternatives | When agent overrides routing |
+
+### Capture Point Examples
+
+**Task classified:**
+```yaml
+decision_type: routing
+decision: "Classified as 'feature'"
+rationale: "Signals matched: implement, create, new functionality"
+alternatives_considered: ["bug-fix", "refactor"]
+```
+
+**Stage completed:**
+```yaml
+stages_executed:
+  - stage_id: implementation
+    agent: senior-dev
+    started_at: "2024-01-15T10:30:00Z"
+    completed_at: "2024-01-15T10:45:00Z"
+    duration_ms: 900000
+    outcome: success
+    retry_count: 1
+    token_estimate:
+      input: 2500
+      output: 1800
+```
+
+**Override made:**
+```yaml
+decision_type: override
+decision: "Used vp-architecture instead of senior-dev"
+rationale: "Complex distributed system design requires architecture expertise"
+alternatives_considered: ["senior-dev", "staff-engineer"]
+context_summary: "Task involves new microservice with cross-service data flow"
+```
+
+## Token Estimation Heuristic
+
+Since exact token counts aren't available to agents, use this estimation:
+
+```
+Input tokens:  count_words(input_text) × 1.3
+Output tokens: count_words(output_text) × 1.3
+```
+
+**Guidelines:**
+- These are rough estimates for relative comparison, not absolute accuracy
+- Count words in prompts, context, and file contents for input
+- Count words in responses and generated code for output
+- The 1.3 multiplier accounts for tokenization overhead
+
+**Example calculation:**
+```
+Input: 500 words prompt + 2000 words context = 2500 words
+Estimated input tokens: 2500 × 1.3 = 3250
+
+Output: 800 words response + 1500 words code = 2300 words  
+Estimated output tokens: 2300 × 1.3 = 2990
+```
+
+## Metric Promotion Protocol
+
+Session metrics live in `session.current/` during execution. Promote to project-scoped storage for persistence.
+
+### Promotion Triggers
+
+| Trigger | Action |
+|---------|--------|
+| Pipeline completes (any outcome) | Promote task metrics |
+| User requests report | Promote and aggregate |
+| Session ends | Flush all pending metrics |
+
+### Promoted Location
+
+```
+~/.cursor/memory/projects/{project_name}/metrics/
+```
+
+**File naming:** `metric-{task_id}-{date}.md`
+
+**Example:** `metric-task-001-2024-01-15.md`
+
+### Index File
+
+Maintain an index for efficient queries:
+
+```
+~/.cursor/memory/projects/{project_name}/metrics/_index.md
+```
+
+**Index format:**
+```yaml
+---
+entity_name: projects.{name}.metrics._index
+namespace: projects.{name}.metrics
+category: index
+updated_at: ISO-8601
+metrics:
+  - task_id: task-001
+    date: "2024-01-15"
+    outcome: success
+    pipeline: full-feature
+  - task_id: task-002
+    date: "2024-01-15"
+    outcome: failed
+    pipeline: bug-fix
+---
+```
+
+## Session Report Template
+
+Generate session reports using this template:
+
+```markdown
+## Session Report: {date}
+
+### Summary
+- Tasks completed: X
+- Success rate: Y%
+- Total duration: Zmin
+- Total token estimate: Nk
+
+### Tasks
+| Task ID | Type | Pipeline | Duration | Retries | Outcome |
+|---------|------|----------|----------|---------|---------|
+| task-001 | feature | full-feature | 45min | 1 | success |
+
+### Agent Usage
+| Agent | Invocations | Avg Duration | Token Est. | Failure Rate |
+|-------|-------------|--------------|------------|--------------|
+| tech-lead | 4 | 15min | ~15k | 25% |
+| cto | 2 | 10min | ~8k | 0% |
+
+### Failure Analysis
+| Pattern | Count | Auto-resolved | Escalated |
+|---------|-------|---------------|-----------|
+| lint-error | 3 | 3 | 0 |
+| test-failure | 1 | 0 | 1 |
+
+### Decision Audit
+- task-001: Classified as 'feature' (signals: implement, create). 
+  Routing table selected full-feature pipeline.
+  Architecture review skipped (complexity: medium).
+```
+
+### Weekly Report Template
+
+Aggregate across sessions for trend analysis:
+
+```markdown
+## Weekly Report: {week_start} to {week_end}
+
+### Summary
+- Total tasks: X
+- Success rate: Y%
+- Total estimated tokens: Nk
+- Avg task duration: Zmin
+
+### Trends
+- Most common task type: {type} ({count})
+- Most used pipeline: {pipeline} ({count})
+- Most active agent: {agent} ({invocations})
+
+### Failure Patterns
+| Pattern | This Week | Last Week | Trend |
+|---------|-----------|-----------|-------|
+| lint-error | 5 | 3 | ↑ |
+| test-failure | 2 | 4 | ↓ |
+
+### Recommendations
+- Consider improving {area} based on failure patterns
+- Agent {name} has high retry rate — review prompts
+```
+
+## Query Protocol
+
+Query metrics using these operations:
+
+### Query Operations
+
+| Operation | Parameters | Returns |
+|-----------|------------|---------|
+| `query_by_date_range` | start, end | metrics[] |
+| `query_by_task_type` | type | metrics[] |
+| `query_by_agent` | agent | metrics[] |
+| `query_by_outcome` | outcome | metrics[] |
+| `aggregate_by_agent` | - | { agent: stats } |
+| `aggregate_by_pattern` | - | { pattern: counts } |
+
+### Query Examples
+
+**Query by date range:**
+```yaml
+query_filter:
+  operation: query_by_date_range
+  start: "2024-01-01"
+  end: "2024-01-15"
+```
+
+**Aggregate by agent:**
+```yaml
+query_filter:
+  operation: aggregate_by_agent
+```
+
+Returns:
+```yaml
+metrics:
+  tech-lead:
+    invocations: 12
+    total_duration_ms: 3600000
+    avg_duration_ms: 300000
+    token_estimate: 45000
+    failure_rate: 0.08
+  senior-dev:
+    invocations: 25
+    total_duration_ms: 7200000
+    avg_duration_ms: 288000
+    token_estimate: 95000
+    failure_rate: 0.04
+```
+
+## Integration with Other Skills
+
+### task-orchestration
+
+The `task-orchestration` skill should log:
+- Task classification decisions (task_type, signals, confidence)
+- Pipeline selection (which pipeline, why)
+- Agent routing decisions
+
+**Integration point:**
+```yaml
+# After task classification
+log_decision:
+  task_id: {task_id}
+  decision_type: routing
+  decision: "Selected {pipeline} pipeline"
+  rationale: "Task classified as {task_type} with signals: {signals}"
+```
+
+### pipeline-executor
+
+The `pipeline-executor` skill should log:
+- Stage start/completion
+- Stage metrics (duration, outcome, retries)
+- Pipeline completion
+
+**Integration point:**
+```yaml
+# After each stage
+log_metric:
+  task_id: {task_id}
+  stage:
+    stage_id: {stage}
+    agent: {agent}
+    duration_ms: {duration}
+    outcome: {outcome}
+    token_estimate: {estimate}
+```
+
+### closed-loop-execution
+
+The `closed-loop-execution` skill should log:
+- Retry attempts and patterns matched
+- Strategy selection for recovery
+- Dead letter entries
+
+**Integration point:**
+```yaml
+# On retry
+log_decision:
+  task_id: {task_id}
+  decision_type: strategy
+  decision: "Retry with {strategy}"
+  rationale: "Pattern matched: {pattern}"
+```
+
+### context-memory
+
+The `context-memory` skill provides the storage backend:
+- Use `write` for creating metric/decision entries
+- Use `read` for querying
+- Use `list` for aggregation
+- Namespace: `session.current/` during execution, `projects/{name}/metrics/` for persistence
+
+## Execution Flow
+
+### log_metric
+
+```
+1. Validate metric_data against schema
+2. Generate entity_name: session.current.metric.{task_id}
+3. Write to context-memory with category: metric
+4. Return { status: success, entry_path: ... }
+```
+
+### log_decision
+
+```
+1. Validate decision_data against schema
+2. Generate decision_id if not provided
+3. Generate entity_name: session.current.decision.{task_id}.{decision_id}
+4. Write to context-memory with category: decision
+5. Append decision_id to task metric's decision_trail
+6. Return { status: success, entry_path: ... }
+```
+
+### generate_report
+
+```
+1. Determine report_type (session, weekly, agent_performance)
+2. Query metrics from session.current/ or projects/{name}/metrics/
+3. Query decisions for decision audit section
+4. Aggregate statistics
+5. Format using appropriate template
+6. Return { status: success, report: { ... } }
+```
+
+### query_metrics
+
+```
+1. Parse query_filter
+2. Execute appropriate query operation
+3. For aggregations, compute statistics
+4. Return { status: success, metrics: [...] }
+```
+
+## Best Practices
+
+1. **Log early, log often** — Capture decisions at the moment they're made, not retroactively
+2. **Include rationale** — Every decision should have a clear "why"
+3. **Reference task IDs** — All entries should link back to the originating task
+4. **Keep estimates rough** — Token estimates are for relative comparison, don't over-engineer
+5. **Promote on completion** — Don't let session metrics pile up; promote when pipelines complete
+6. **Review reports** — Use weekly reports to identify patterns and improve agent prompts
