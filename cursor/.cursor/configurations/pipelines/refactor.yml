@@ -1,0 +1,46 @@
+name: refactor
+description: Refactoring workflow with analysis, planning, and quality review
+version: 1
+max_retries: 3
+
+stages:
+  - id: analyze
+    agent: staff-engineer
+    mode: plan
+    description: Analyze code for refactoring opportunities
+    inputs: [task_description, target_files]
+    outputs: [analysis, refactoring_recommendations]
+    timeout_minutes: 20
+
+  - id: plan
+    agent: cto
+    mode: plan
+    description: Create refactoring plan with safety checks
+    inputs: [analysis, refactoring_recommendations]
+    outputs: [implementation_plan]
+    requires_approval: true
+    timeout_minutes: 15
+
+  - id: implement
+    agent: tech-lead
+    mode: agent
+    description: Execute refactoring
+    inputs: [implementation_plan]
+    outputs: [code_changes]
+    timeout_minutes: 45
+    retry:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay_seconds: 5
+    rollback:
+      strategy: git_revert
+      description: "Revert all refactoring commits"
+    skill: closed-loop-execution
+
+  - id: quality_review
+    agent: staff-engineer
+    mode: plan
+    description: Verify refactoring improves code quality
+    inputs: [code_changes, analysis]
+    outputs: [quality_review]
+    timeout_minutes: 15

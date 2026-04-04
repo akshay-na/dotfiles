@@ -1,0 +1,37 @@
+name: bug-fix
+description: Quick bug fix workflow with diagnosis, fix, and verification
+version: 1
+max_retries: 3
+
+stages:
+  - id: diagnose
+    agent: tech-lead
+    mode: agent
+    description: Analyze the bug and identify root cause
+    inputs: [task_description, error_context]
+    outputs: [diagnosis, affected_files]
+    timeout_minutes: 15
+
+  - id: fix
+    agent: tech-lead
+    mode: agent
+    description: Implement the fix
+    inputs: [diagnosis, affected_files]
+    outputs: [code_changes]
+    timeout_minutes: 30
+    retry:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay_seconds: 5
+    rollback:
+      strategy: git_revert
+      description: "Revert commits made during fix stage"
+    skill: closed-loop-execution
+
+  - id: verify
+    agent: tech-lead
+    mode: agent
+    description: Verify the fix resolves the issue
+    inputs: [code_changes, diagnosis]
+    outputs: [verification_results]
+    timeout_minutes: 15

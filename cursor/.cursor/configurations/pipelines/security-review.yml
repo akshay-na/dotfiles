@@ -1,0 +1,47 @@
+name: security-review
+description: Security-focused workflow with threat modeling and validation
+version: 1
+max_retries: 3
+
+stages:
+  - id: threat_model
+    agent: ciso
+    mode: plan
+    description: Identify threats and security requirements
+    inputs: [task_description]
+    outputs: [threat_model, security_requirements]
+    timeout_minutes: 25
+
+  - id: plan
+    agent: cto
+    mode: plan
+    description: Create security-aware implementation plan
+    inputs: [threat_model, security_requirements]
+    outputs: [implementation_plan]
+    requires_approval: true
+    timeout_minutes: 20
+
+  - id: implement
+    agent: tech-lead
+    mode: agent
+    description: Implement with security controls
+    inputs: [implementation_plan, security_requirements]
+    outputs: [code_changes]
+    timeout_minutes: 45
+    retry:
+      max_attempts: 2
+      backoff: exponential
+      initial_delay_seconds: 5
+    rollback:
+      strategy: git_revert
+      description: "Revert commits made during implementation"
+    skill: closed-loop-execution
+
+  - id: security_verify
+    agent: ciso
+    mode: plan
+    description: Validate security implementation
+    inputs: [code_changes, threat_model, security_requirements]
+    outputs: [security_validation]
+    requires_approval: true
+    timeout_minutes: 20

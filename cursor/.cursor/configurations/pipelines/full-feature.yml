@@ -1,0 +1,66 @@
+name: full-feature
+description: Complete feature implementation with design review, security check, implementation, and quality review
+version: 1
+max_retries: 5
+
+stages:
+  - id: plan
+    agent: cto
+    mode: plan
+    description: Create phased implementation plan
+    inputs: [task_description]
+    outputs: [implementation_plan]
+    requires_approval: true
+    timeout_minutes: 30
+
+  - id: architecture_review
+    agent: vp-architecture
+    mode: plan
+    description: Review architectural impact and component boundaries
+    inputs: [implementation_plan]
+    outputs: [architecture_review]
+    condition: "complexity == 'high'"
+    timeout_minutes: 20
+
+  - id: security_review
+    agent: ciso
+    mode: plan
+    description: Review security implications
+    inputs: [implementation_plan]
+    outputs: [security_review]
+    condition: "task_type == 'security' or 'ciso' in always_include"
+    timeout_minutes: 20
+
+  - id: implement
+    agent: tech-lead
+    mode: agent
+    description: Execute the implementation plan (tech-lead coordinates project agents)
+    inputs: [implementation_plan, architecture_review, security_review]
+    outputs: [code_changes, verification_results]
+    requires_approval: true
+    timeout_minutes: 60
+    retry:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay_seconds: 5
+    rollback:
+      strategy: git_revert
+      description: "Revert all commits from this stage"
+    skill: closed-loop-execution
+
+  - id: observability_review
+    agent: sre-lead
+    mode: plan
+    description: Review operational readiness
+    inputs: [code_changes]
+    outputs: [observability_review]
+    condition: "complexity in ['high', 'medium']"
+    timeout_minutes: 15
+
+  - id: quality_review
+    agent: staff-engineer
+    mode: plan
+    description: Review code quality and maintainability
+    inputs: [code_changes, observability_review]
+    outputs: [quality_review]
+    timeout_minutes: 15
