@@ -1,6 +1,80 @@
 ---
 name: ai-orchestration-prompt-engineering
 description: Use when delegating tasks to AI agents, designing prompts for structured output, validating AI-generated code or reasoning, detecting hallucination, or when AI output needs constraint checking and human oversight before integration.
+version: 1
+input_schema:
+  required:
+    - name: task_description
+      type: string
+      description: Clear description of what the AI should accomplish
+  optional:
+    - name: constraints
+      type: string[]
+      description: Explicit boundaries and restrictions (what NOT to do)
+    - name: output_format
+      type: string
+      description: Required output structure - json, template, checklist, prose, or code
+    - name: context
+      type: object
+      description: Relevant background information (codebase, domain, prior decisions)
+    - name: examples
+      type: object[]
+      description: Example inputs and expected outputs for few-shot prompting
+    - name: success_criteria
+      type: string[]
+      description: Measurable criteria for determining task completion
+    - name: verification_method
+      type: string
+      description: How to verify the output - test, review, cross-check, or manual
+    - name: role
+      type: string
+      description: Explicit agent role (e.g., security reviewer, code architect)
+    - name: scope_boundaries
+      type: object
+      description: What to review/process vs what to ignore
+output_schema:
+  required:
+    - name: prompt
+      type: string
+      description: The engineered prompt ready for AI consumption
+    - name: validation_rules
+      type: string[]
+      description: Rules for validating the AI response
+  optional:
+    - name: expected_output_schema
+      type: object
+      description: Schema describing the expected AI output structure
+    - name: fallback_strategy
+      type: string
+      description: What to do if AI output is unusable
+    - name: iteration_guidance
+      type: string
+      description: How to refine the prompt if results are unsatisfactory
+    - name: delegation_decision
+      type: string
+      description: Whether to delegate (delegate) or handle manually (manual)
+    - name: risk_assessment
+      type: object
+      description: Assessment of risks from incorrect AI output
+pre_checks:
+  - description: Task is specific and bounded
+    validation: task_description is not vague (contains specific action and subject)
+  - description: Task has verifiable outcome
+    validation: success_criteria provided OR output is independently verifiable
+  - description: Output format is valid
+    validation: if output_format provided then output_format in [json, template, checklist, prose, code]
+  - description: Delegation is appropriate
+    validation: task benefits from AI (not faster to do manually)
+post_checks:
+  - description: Prompt includes role and context
+    validation: prompt contains role assignment and relevant context
+  - description: Prompt specifies output format
+    validation: prompt includes format requirements or structure
+  - description: Validation rules are actionable
+    validation: each validation_rule can be objectively evaluated
+  - description: Prompt has constraint boundaries
+    validation: prompt includes explicit constraints or scope limits
+cacheable: false
 ---
 
 # AI Orchestration & Prompt Engineering

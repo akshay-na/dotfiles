@@ -1,6 +1,73 @@
 ---
 name: failure-engineering
 description: Use when designing for graceful degradation, implementing retry or circuit breaker logic, handling partial failures, evaluating idempotency, setting up dead-letter queues, or when a system lacks resilience under dependency failure or network instability.
+version: 1
+input_schema:
+  required:
+    - name: system_description
+      type: string
+      description: Description of the system or component under analysis
+  optional:
+    - name: failure_scenarios
+      type: string[]
+      description: Specific failure scenarios to analyze (e.g., network timeout, dependency down)
+    - name: current_handling
+      type: object
+      description: Current failure handling mechanisms (retries, timeouts, fallbacks)
+    - name: dependencies
+      type: string[]
+      description: External dependencies the system relies on
+    - name: sla_requirements
+      type: object
+      description: Availability, latency, and error rate requirements
+    - name: data_consistency_requirements
+      type: string
+      description: Consistency model - strong, eventual, or best-effort
+    - name: analysis_scope
+      type: string
+      description: Focus area - idempotency, circuit_breakers, dead_letters, backpressure, or full
+      default: full
+output_schema:
+  required:
+    - name: recommendations
+      type: object[]
+      description: Prioritized list of resilience improvements with implementation guidance
+    - name: risk_assessment
+      type: object
+      description: Assessment of failure risks with severity and likelihood
+  optional:
+    - name: patterns
+      type: object[]
+      description: Applicable resilience patterns (circuit breaker, bulkhead, retry, etc.)
+    - name: checklist
+      type: string[]
+      description: Verification checklist for resilience requirements
+    - name: testing_scenarios
+      type: object[]
+      description: Chaos testing scenarios to validate resilience
+    - name: gaps
+      type: string[]
+      description: Identified gaps in current failure handling
+    - name: dependencies_analysis
+      type: object
+      description: Analysis of each dependency's failure modes and mitigations
+pre_checks:
+  - description: System has defined boundaries
+    validation: system_description identifies clear system boundaries and responsibilities
+  - description: System has external dependencies or failure exposure
+    validation: dependencies provided OR system has network/IO operations
+  - description: Analysis scope is valid
+    validation: if analysis_scope provided then analysis_scope in [idempotency, circuit_breakers, dead_letters, backpressure, partial_failure, chaos, full]
+post_checks:
+  - description: Recommendations are actionable
+    validation: each recommendation has specific implementation steps
+  - description: Risk assessment covers identified scenarios
+    validation: risk_assessment addresses each failure_scenario provided
+  - description: Patterns match the problem
+    validation: recommended patterns are appropriate for the system type
+  - description: No blind spots in critical paths
+    validation: all dependencies have failure handling recommendations
+cacheable: false
 ---
 
 # Failure Engineering

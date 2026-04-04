@@ -1,6 +1,81 @@
 ---
 name: context-memory
 description: File-based Markdown memory at ~/.cursor/memory/. Any agent can read/write directly using this skill. No external dependencies.
+version: 1
+input_schema:
+  required:
+    - name: operation
+      type: string
+      description: Operation type - read, write, update, delete, or heal
+    - name: namespace
+      type: string
+      description: Target namespace (e.g., org.global, projects.myapp, session.current)
+  optional:
+    - name: query
+      type: string
+      description: Search query for read operations (keywords, tags, or category filter)
+    - name: category
+      type: string
+      description: Entity category - decision, constraint, assumption, rejected, todo, risk, principle, or diagram
+    - name: content
+      type: object
+      description: Entity content for write operations (body text, tags, status, rationale)
+    - name: entity_name
+      type: string
+      description: Specific entity identifier for update/delete operations
+    - name: tags
+      type: string[]
+      description: Tags for filtering (read) or categorization (write)
+    - name: status
+      type: string
+      description: Status filter - accepted, experimental, deprecated, or superseded
+    - name: max_results
+      type: number
+      description: Maximum entities to return (default 5)
+      default: 5
+output_schema:
+  required:
+    - name: status
+      type: string
+      description: Operation result - success, not_found, created, updated, deleted, or error
+  optional:
+    - name: entities
+      type: object[]
+      description: Retrieved or created entities with frontmatter and body
+    - name: index
+      type: object
+      description: Updated index state after write operations
+    - name: entity_name
+      type: string
+      description: Name of created/updated entity
+    - name: file_path
+      type: string
+      description: Path to created/updated file
+    - name: error
+      type: string
+      description: Error message if operation failed
+pre_checks:
+  - description: Namespace follows naming convention
+    validation: namespace matches pattern ^(org|projects|session)\.[a-z0-9._-]+$
+  - description: Operation is valid
+    validation: operation in [read, write, update, delete, heal]
+  - description: Category is valid if provided
+    validation: if category provided then category in [decision, constraint, assumption, rejected, todo, risk, principle, diagram]
+  - description: Write operations have content
+    validation: if operation is write then content is provided
+  - description: Update/delete operations have entity_name
+    validation: if operation in [update, delete] then entity_name is provided
+post_checks:
+  - description: Status is always returned
+    validation: status is not empty
+  - description: Write operations return entity_name
+    validation: if operation is write and status is success then entity_name is returned
+  - description: Index is updated for mutations
+    validation: if operation in [write, update, delete] and status is success then _index.md is updated
+  - description: Read operations respect max_results
+    validation: if operation is read then entities.length <= max_results
+cacheable: true
+cache_ttl_minutes: 5
 ---
 
 # Context Memory (File-based)

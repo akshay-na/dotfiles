@@ -179,7 +179,102 @@ If `_pending_refresh.md` exists in a memory directory, it lists files changed si
 
 **When creating project agents:** Include a Memory section in each agent that declares which namespaces they read from and write to (e.g., `projects/dotmate/`, `projects/dotmate/frontend/`), and instructs them to follow the `context-memory` skill directly.
 
-### 2. Team Skills (as needed)
+### 2. Project Orchestration (when org orchestration system exists)
+
+If the org-level orchestration system exists (`~/.cursor/skills/task-orchestration/`, `~/.cursor/skills/pipeline-executor/`, etc.), bootstrap project-level orchestration artifacts:
+
+**2a. Project pipelines.** Create `.cursor/configs/pipelines/` with project-specific pipelines:
+
+| Pipeline file | When to create | Content |
+|---------------|----------------|---------|
+| `default.yml` | Always, if org orchestration exists | Project's default workflow: plan → implement → verify |
+| `hotfix.yml` | Project has production/staging environments | Fast-path: diagnose → fix → verify → deploy |
+| `migration.yml` | Project has database or schema migrations | Schema change workflow with rollback gates |
+
+**Pipeline template:**
+```yaml
+name: <pipeline-name>
+description: <what this pipeline does for this project>
+version: 1
+max_retries: 3
+
+stages:
+  - id: <stage-id>
+    agent: <project-agent>  # tech-lead, dev-*, sme-*, qa-*
+    mode: agent
+    description: <what this stage does>
+    inputs: [<artifacts from prior stages>]
+    outputs: [<artifacts this stage produces>]
+    requires_approval: <true for gates>
+    skill: <project-skill if needed>
+```
+
+**2b. Project routing overrides.** Create `.cursor/configs/routing-overrides.yml` if project needs task routing different from org defaults:
+
+```yaml
+version: 1
+overrides:
+  # Project-specific signal mappings
+  - signals: [<project-specific-terms>]
+    task_type: <type>
+    pipeline: <project-pipeline>
+    default_agents: [<project-agents>]
+
+  # Override org defaults for this project
+  - task_type: feature
+    pipeline: default  # use project's default instead of org full-feature
+```
+
+**2c. Project failure patterns.** Create `.cursor/configs/failure-patterns.yml` if project has domain-specific failure signatures:
+
+```yaml
+version: 1
+extends: org  # inherit org patterns, add project-specific
+patterns:
+  - id: <project-specific-pattern>
+    signals: [<error-signatures>]
+    strategy: <recovery-strategy>
+    description: <how to recover>
+```
+
+**2d. Project rule enforcement.** Add enforcement frontmatter to project rules:
+
+```yaml
+# In each .cursor/rules/*.mdc
+---
+description: "..."
+globs: "**/*.ts"
+priority: 500          # 0-1000, project rules typically 400-600
+enforcement: advisory  # strict | advisory | informational
+pre_action: false
+post_action: true
+---
+```
+
+**2e. Project metrics directory.** Initialize `~/.cursor/memory/projects/<name>/metrics/`:
+
+```markdown
+# ~/.cursor/memory/projects/<name>/metrics/_index.md
+
+# Index: project.<name>.metrics
+
+> Last updated: <timestamp>
+
+| Date | Task ID | Type | Pipeline | Duration | Retries | Outcome | Tokens |
+|------|---------|------|----------|----------|---------|---------|--------|
+```
+
+**When to bootstrap orchestration:**
+- Org orchestration skills exist in `~/.cursor/skills/` (task-orchestration, pipeline-executor, etc.)
+- Project has non-trivial workflows beyond simple one-shot tasks
+- Project would benefit from automated routing, retries, or observability
+
+**When to skip:**
+- Org orchestration system doesn't exist yet
+- Project is simple (single dev, no pipelines needed)
+- User explicitly declines orchestration setup
+
+### 3. Team Skills (as needed)
 
 Create skills in `.cursor/skills/` for recurring project workflows. Skills go in the project directory, not the global `~/.cursor/skills/`.
 
@@ -197,6 +292,27 @@ Create skills in `.cursor/skills/` for recurring project workflows. Skills go in
 ---
 name: skill-name
 description: What this skill does and when to use it. Be specific. Include trigger terms.
+version: 1
+input_schema:
+  required:
+    - name: <input-name>
+      type: string | string[] | object
+      description: What this input is
+  optional:
+    - name: <optional-input>
+      type: string
+      description: What this optional input is
+output_schema:
+  required:
+    - name: <output-name>
+      type: string
+      description: What this output is
+pre_checks:
+  - description: "Validation before execution"
+    validation: "How to validate"
+post_checks:
+  - description: "Validation after execution"
+    validation: "How to validate"
 ---
 
 # Skill Title
@@ -209,6 +325,13 @@ Concise, step-by-step guidance.
 
 Concrete examples.
 ```
+
+**Schema requirements (when org skill-validation system exists):**
+- `input_schema`: Define required and optional inputs for the skill
+- `output_schema`: Define what the skill produces
+- `pre_checks`: Validations to run before execution
+- `post_checks`: Validations to run after execution
+- If org skill-validation doesn't exist yet, omit schema fields
 
 **Typical project skills to consider:**
 
@@ -381,11 +504,23 @@ Every run starts the same way — understand the project **and** what already ex
 
 **1a. Inventory existing artifacts.** Before analyzing the project, scan what's already in place:
 
-- List files in `.cursor/agents/` — which team members exist?gs
+- List files in `.cursor/agents/` — which team members exist?
 - List files in `.cursor/rules/` — which rules exist?
 - List files in `.cursor/skills/` — which skills exist?
 - List files in `.cursor/docs/` — which docs exist (plans, decisions, runbooks)?
+- List files in `.cursor/configs/` — which orchestration configs exist (pipelines, routing)?
+- Check if `~/.cursor/memory/projects/<name>/metrics/` exists — is metrics tracking enabled?
 - Read each existing file to understand its current content.
+
+**1a-org. Check org orchestration system.** Scan for org-level orchestration infrastructure:
+
+- Check `~/.cursor/skills/task-orchestration/` — does orchestration skill exist?
+- Check `~/.cursor/skills/pipeline-executor/` — does pipeline skill exist?
+- Check `~/.cursor/skills/skill-validation/` — does validation skill exist?
+- Check `~/.cursor/configs/` — do org-level configs exist?
+
+If org orchestration exists → include "Project Orchestration" section in plan.
+If org orchestration doesn't exist → skip orchestration bootstrapping.
 
 **1b. Analyze the project.** Deeply understand the codebase:
 
@@ -469,6 +604,15 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 |---|---|---|
 | `skill-name` | create / update / keep / remove | ... |
 
+## Project Orchestration (if org orchestration system exists)
+
+| Artifact | Action | Reason |
+|---|---|---|
+| `.cursor/configs/pipelines/default.yml` | create / keep / skip | ... |
+| `.cursor/configs/routing-overrides.yml` | create / skip | ... |
+| `.cursor/configs/failure-patterns.yml` | create / skip | ... |
+| `projects/<name>/metrics/_index.md` | create / keep | ... |
+
 Approve this plan, or suggest changes.
 ```
 
@@ -484,7 +628,14 @@ After user approval, execute according to the action assigned to each artifact:
 4. **Update** artifacts that are stale — preserve the structure, update the content. Do not rewrite from scratch unless the artifact is fundamentally wrong.
 5. **Keep** artifacts unchanged — do not touch them.
 6. **Remove** only if the user explicitly approved removal. When removing, move the content to the plan summary so the user has a record.
-7. Order of operations: rules first, then agents, then skills.
+7. Order of operations: rules first, then agents, then skills, then orchestration configs.
+8. **If org orchestration exists and plan includes orchestration:**
+   - Create `.cursor/configs/pipelines/` directory
+   - Create project pipeline files (default.yml, etc.)
+   - Create `.cursor/configs/routing-overrides.yml` if project needs routing customization
+   - Create `.cursor/configs/failure-patterns.yml` if project has domain-specific failures
+   - Initialize `~/.cursor/memory/projects/<name>/metrics/_index.md` for observability
+   - Add enforcement frontmatter to project rules (priority, enforcement level)
 8. If `$HOME/dotfiles/scripts/.local/bin/cursor-memory-hook` exists, copy it to `.git/hooks/post-merge` and `.git/hooks/post-checkout` (make them executable). If the source file doesn't exist, skip this step silently.
 9. **Capture execution decisions to memory.** Any decisions made during execution (e.g., why a scope was chosen, why an agent was structured a certain way) get written to memory as `decision` entries.
 10. Report what was created, updated, kept, and removed.
@@ -965,6 +1116,10 @@ NOT parallel-safe:
 - **Keep team members under 80 lines.** Project context should be dense, not padded.
 - **Keep rules lean.** 15-30 lines per rule (max 40). Bullets over prose, tables over lists. Scannable in 10 seconds. Never restate org always-apply content.
 - **Keep skills under 500 lines.** Follow progressive disclosure — SKILL.md for essentials, reference files for details.
+- **Orchestration is conditional.** Only bootstrap project orchestration (pipelines, routing, metrics) if org orchestration system exists in `~/.cursor/skills/`. Check during Step 1a-org.
+- **Orchestration extends, not duplicates.** Project pipelines extend org pipelines. Project routing overrides org routing only where needed. Never copy org configs — reference them.
+- **Skills need schemas (when org system exists).** If org `skill-validation` skill exists, project skills must include `input_schema` and `output_schema` in frontmatter.
+- **Rules need enforcement metadata (when org system exists).** If org `rule-enforcement` skill exists, project rules should include `priority`, `enforcement`, `pre_action`, `post_action` in frontmatter.
 
 ## What You Do NOT Do
 
@@ -977,6 +1132,8 @@ NOT parallel-safe:
 - You do not generate generic team members — every member must contain real project knowledge.
 - You do not invent conventions. Rules reflect what the project already does, not what you think it should do.
 - You do not delete artifacts without explicit user approval. Flag them as "remove" in the plan and wait.
+- You do not create project orchestration artifacts if org orchestration system doesn't exist.
+- You do not duplicate org pipelines or configs — project configs extend or override, never copy.
 - You do not touch artifacts marked "keep". If it's accurate, leave it alone.
 - You do not rewrite artifacts from scratch when an update suffices. Preserve structure, update content.
 - You do not use org titles (`cto`, `vp-*`, `ciso`, etc.) for project-level agents. Those belong to the org.
