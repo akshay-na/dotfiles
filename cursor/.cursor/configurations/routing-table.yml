@@ -1,0 +1,175 @@
+version: 1
+
+# Explicit pipeline override syntax
+pipeline_override:
+  patterns:
+    - "use pipeline: {name}"
+    - "pipeline: {name}"
+  validation: pipeline must exist in configurations/pipelines/
+
+# Multi-repo workspace support
+workspace:
+  # Detect which repo a task belongs to
+  repo_detection:
+    - Check file paths mentioned in task for repo membership
+    - Check current working directory
+    - Check @-mentioned files/folders
+
+  # Isolation rules
+  isolation:
+    - Each repo has its own tech-lead and project agents
+    - Never mix agents from different repos in same task
+    - If task spans multiple repos, split into separate tasks per repo
+
+  # Agent resolution per repo
+  agent_resolution:
+    executor: tech-lead # Primary executor (project-level)
+    fallback: vp-onboarding # Bootstrap if tech-lead missing
+    org_agents:
+      [
+        cto,
+        vp-architecture,
+        vp-engineering,
+        vp-platform,
+        ciso,
+        sre-lead,
+        staff-engineer,
+        docs-researcher,
+      ]
+    last_resort: senior-dev
+
+# Tech-lead availability
+tech_lead:
+  check: "{repo}/.cursor/agents/tech-lead.md exists"
+  on_missing:
+    action: invoke vp-onboarding
+    purpose: Bootstrap project-level agents for this repo
+    wait_for_completion: true
+
+classification:
+  task_types:
+    bug_fix:
+      signals:
+        [
+          "fix",
+          "bug",
+          "error",
+          "broken",
+          "crash",
+          "failing",
+          "regression",
+          "issue",
+        ]
+      default_pipeline: bug-fix
+      default_agents: [tech-lead]
+      complexity: low
+      requires_plan: false
+
+    feature:
+      signals:
+        ["add", "implement", "create", "build", "new", "feature", "introduce"]
+      default_pipeline: full-feature
+      default_agents: [cto, tech-lead]
+      complexity: high
+      requires_plan: true
+
+    refactor:
+      signals:
+        [
+          "refactor",
+          "rename",
+          "restructure",
+          "simplify",
+          "clean up",
+          "extract",
+          "reorganize",
+        ]
+      default_pipeline: refactor
+      default_agents: [staff-engineer, tech-lead]
+      complexity: medium
+      requires_plan: true
+
+    security:
+      signals:
+        [
+          "auth",
+          "secret",
+          "permission",
+          "vulnerability",
+          "CVE",
+          "encrypt",
+          "token",
+          "credential",
+        ]
+      default_pipeline: security-review
+      default_agents: [ciso, tech-lead]
+      complexity: high
+      requires_plan: true
+      always_include: [ciso]
+
+    performance:
+      signals:
+        [
+          "slow",
+          "latency",
+          "throughput",
+          "optimize",
+          "bottleneck",
+          "cache",
+          "memory",
+          "CPU",
+        ]
+      default_pipeline: performance
+      default_agents: [vp-engineering, tech-lead]
+      complexity: medium
+      requires_plan: true
+
+    architecture:
+      signals:
+        [
+          "design",
+          "architecture",
+          "service",
+          "boundary",
+          "migration",
+          "schema",
+          "system",
+        ]
+      default_pipeline: full-feature
+      default_agents: [cto, vp-architecture, tech-lead]
+      complexity: high
+      requires_plan: true
+
+    documentation:
+      signals:
+        ["document", "README", "explain", "clarify", "API docs", "comment"]
+      default_pipeline: null
+      default_agents: [docs-researcher, tech-lead]
+      complexity: low
+      requires_plan: false
+
+    config_change:
+      signals: ["config", "setting", "environment", "dotfile", "alias", "shell"]
+      default_pipeline: bug-fix
+      default_agents: [tech-lead]
+      complexity: low
+      requires_plan: false
+
+  fallback:
+    pipeline: bug-fix
+    agents: [tech-lead]
+    requires_plan: false
+
+  compound_rules:
+    - if: ["feature", "security"]
+      then:
+        pipeline: full-feature
+        always_include: [ciso]
+    - if: ["refactor", "performance"]
+      then:
+        pipeline: refactor
+        always_include: [vp-engineering]
+    - if: ["feature", "architecture"]
+      then:
+        pipeline: full-feature
+        always_include: [vp-architecture]

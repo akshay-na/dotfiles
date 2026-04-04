@@ -184,7 +184,7 @@ If `_pending_refresh.md` exists in a memory directory, it lists files changed si
 If the org-level orchestration system exists (`~/.cursor/skills/task-orchestration/`, `~/.cursor/skills/pipeline-executor/`, etc.), bootstrap project-level orchestration artifacts:
 
 **2a. Project pipelines.** Create `.cursor/configurations/pipelines/` with project-specific pipelines:
-
+g
 | Pipeline file | When to create | Content |
 |---------------|----------------|---------|
 | `default.yml` | Always, if org orchestration exists | Project's default workflow: plan → implement → verify |
