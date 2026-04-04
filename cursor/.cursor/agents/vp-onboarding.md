@@ -181,98 +181,425 @@ If `_pending_refresh.md` exists in a memory directory, it lists files changed si
 
 ### 2. Project Orchestration (when org orchestration system exists)
 
-If the org-level orchestration system exists (`~/.cursor/skills/task-orchestration/`, `~/.cursor/skills/pipeline-executor/`, etc.), bootstrap project-level orchestration artifacts:
+If the org-level orchestration system exists (`~/.cursor/skills/task-orchestration/`, `~/.cursor/skills/pipeline-executor/`, etc.), bootstrap project-level orchestration artifacts that integrate with all 6 org-level systems.
 
-**2a. Project pipelines.** Create `.cursor/configurations/pipelines/` with project-specific pipelines:
-g
-| Pipeline file | When to create | Content |
+**Org orchestration check:** Before bootstrapping, verify these org-level skills exist:
+- `~/.cursor/skills/skill-validation/` — System 1: Callable Skills
+- `~/.cursor/skills/rule-enforcement/` — System 2: Rule Enforcement
+- `~/.cursor/skills/task-orchestration/` — System 3: Task Orchestration
+- `~/.cursor/skills/pipeline-executor/` — System 4: Pipeline Executor
+- `~/.cursor/skills/closed-loop-execution/` — System 5: Closed-Loop Execution
+- `~/.cursor/skills/agent-observability/` — System 6: Observability
+
+If ALL exist → full orchestration bootstrap. If SOME exist → partial bootstrap matching available systems.
+
+---
+
+#### 2a. Project Pipelines (System 4 Integration)
+
+Create `.cursor/configurations/pipelines/` with project-specific pipelines that use **project agents** (tech-lead, dev-*, sme-*, qa-*) for execution:
+
+| Pipeline file | When to create | Purpose |
 |---------------|----------------|---------|
-| `default.yml` | Always, if org orchestration exists | Project's default workflow: plan → implement → verify |
-| `hotfix.yml` | Project has production/staging environments | Fast-path: diagnose → fix → verify → deploy |
-| `migration.yml` | Project has database or schema migrations | Schema change workflow with rollback gates |
+| `default.yml` | Always, if org orchestration exists | Project's standard workflow |
+| `hotfix.yml` | Project has production/staging | Fast-path emergency fixes |
+| `migration.yml` | Database or schema migrations | Rollback-safe data changes |
+| `deploy.yml` | Non-trivial deployment | Multi-environment deploy |
 
-**Pipeline template:**
+**Pipeline template (project-level):**
+
 ```yaml
 name: <pipeline-name>
 description: <what this pipeline does for this project>
 version: 1
 max_retries: 3
 
+# Project pipelines use PROJECT agents, not org agents
+# tech-lead is the primary executor
+# dev-*, sme-*, qa-* are specialists within the project
+
 stages:
-  - id: <stage-id>
-    agent: <project-agent>  # tech-lead, dev-*, sme-*, qa-*
+  - id: plan
+    agent: tech-lead           # Project orchestrator
     mode: agent
-    description: <what this stage does>
-    inputs: [<artifacts from prior stages>]
-    outputs: [<artifacts this stage produces>]
-    requires_approval: <true for gates>
-    skill: <project-skill if needed>
+    description: Break down task and assign to team
+    inputs: [task_description]
+    outputs: [task_breakdown, assignments]
+    timeout_minutes: 15
+
+  - id: implement
+    agent: tech-lead           # Coordinates dev agents
+    mode: agent
+    description: Execute implementation via dev agents
+    inputs: [task_breakdown, assignments]
+    outputs: [code_changes]
+    timeout_minutes: 45
+    retry:
+      max_attempts: 3
+      backoff: exponential
+    rollback:
+      strategy: git_revert
+    skill: closed-loop-execution  # Enables auto-retry
+
+  - id: verify
+    agent: tech-lead           # Coordinates qa agents
+    mode: agent
+    description: Verify changes via qa agents
+    inputs: [code_changes]
+    outputs: [verification_results]
+    timeout_minutes: 20
 ```
 
-**2b. Project routing overrides.** Create `.cursor/configurations/routing-overrides.yml` if project needs task routing different from org defaults:
+**Key principle:** Project pipelines use `tech-lead` as the orchestrator who delegates to `dev-*`, `sme-*`, `qa-*` agents. Never call org agents (cto, vp-*, ciso) directly from project pipelines — they're invoked through escalation.
+
+---
+
+#### 2b. Project Routing Overrides (System 3 Integration)
+
+Create `.cursor/configurations/routing-overrides.yml` to customize task routing for this project:
 
 ```yaml
 version: 1
+
+# Inherit org routing table, then override
+extends: org
+
+# Project-specific signal mappings
+project_signals:
+  # Add project-specific terms that map to task types
+  - signals: ["<project-term-1>", "<project-term-2>"]
+    task_type: feature
+    pipeline: default  # Use project pipeline, not org
+
+  # Map domain terms to appropriate handling
+  - signals: ["<domain-term>"]
+    task_type: config_change
+    default_agents: [sme-<domain>]
+
+# Override org defaults for this project
 overrides:
-  # Project-specific signal mappings
-  - signals: [<project-specific-terms>]
-    task_type: <type>
-    pipeline: <project-pipeline>
-    default_agents: [<project-agents>]
-
-  # Override org defaults for this project
+  # Use project pipelines instead of org pipelines
   - task_type: feature
-    pipeline: default  # use project's default instead of org full-feature
+    pipeline: default           # Project's default.yml
+    default_agents: [tech-lead] # Project executor
+
+  - task_type: bug_fix
+    pipeline: default
+    default_agents: [tech-lead]
+
+  # Security still escalates to org
+  - task_type: security
+    pipeline: null              # Use org security-review
+    escalate_to_org: true       # CTO → CISO flow
+
+# Project complexity thresholds
+complexity_overrides:
+  # Smaller projects may treat "high" complexity as "medium"
+  feature:
+    threshold: medium           # Don't require architecture review
+  refactor:
+    threshold: low              # Tech-lead can handle directly
 ```
 
-**2c. Project failure patterns.** Create `.cursor/configurations/failure-patterns.yml` if project has domain-specific failure signatures:
+---
+
+#### 2c. Project Failure Patterns (System 5 Integration)
+
+Create `.cursor/configurations/failure-patterns.yml` for project-specific failure handling:
 
 ```yaml
 version: 1
-extends: org  # inherit org patterns, add project-specific
+extends: org  # Inherit all org patterns
+
+# Project-specific patterns (domain errors, framework errors)
 patterns:
-  - id: <project-specific-pattern>
-    signals: [<error-signatures>]
-    strategy: <recovery-strategy>
-    description: <how to recover>
+  # Framework-specific patterns
+  - id: <framework>-error
+    signals: ["<framework-specific-error-message>"]
+    strategy: analyze_then_fix
+    description: "<How to handle this framework error>"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  # Domain-specific patterns
+  - id: <domain>-validation
+    signals: ["<domain-validation-error>"]
+    strategy: context_expand
+    description: "Read domain rules, fix validation"
+    max_auto_retries: 2
+
+  # Project tooling patterns
+  - id: <tool>-config-error
+    signals: ["<tool-config-message>"]
+    strategy: auto_fix
+    description: "Run <tool> config fix command"
+    max_auto_retries: 1
+    auto_fixable: true
+    fix_command: "<tool-fix-command>"
+
+# Project-specific recovery strategies
+strategies:
+  project_specific_fix:
+    description: "<Custom recovery for this project>"
+    steps:
+      - "<Step 1>"
+      - "<Step 2>"
+      - "<Retry>"
+
+# Project success criteria overrides
+success_criteria:
+  feature:
+    - "Feature works as specified"
+    - "Tests pass"
+    - "Linter clean"
+    - "<Project-specific criterion>"
+
+  config_change:
+    - "Config valid"
+    - "<Project tool> loads without error"
+    - "<Project-specific verification>"
 ```
 
-**2d. Project rule enforcement.** Add enforcement frontmatter to project rules:
+---
+
+#### 2d. Project Rule Enforcement (System 2 Integration)
+
+All project rules MUST include enforcement frontmatter for programmatic validation:
 
 ```yaml
-# In each .cursor/rules/*.mdc
+# Template for project rules (.cursor/rules/*.mdc)
 ---
-description: "..."
-globs: "**/*.ts"
-priority: 500          # 0-1000, project rules typically 400-600
-enforcement: advisory  # strict | advisory | informational
-pre_action: false
-post_action: true
+description: "What this rule covers"
+globs: "**/*.ts,**/*.tsx"      # File patterns (specific, not **/*)
+alwaysApply: false             # Prefer false with targeted globs
+priority: 500                  # 0-1000, project rules: 400-600
+enforcement: advisory          # strict | advisory | informational
+pre_action: false              # Validate before agent writes
+post_action: true              # Validate after agent writes
+override_by: []                # Rules that can override this one
+tags: [<project>, <category>]  # For filtering
 ---
 ```
 
-**2e. Project metrics directory.** Initialize `~/.cursor/memory/projects/<name>/metrics/`:
+**Priority bands for project rules:**
 
+| Band | Range | Use case |
+|------|-------|----------|
+| Critical | 700-800 | Project-specific safety rules (never exceed org 900-1000) |
+| Standard | 400-600 | Conventions, style, patterns |
+| Informational | 100-300 | Suggestions, preferences |
+
+**Enforcement levels:**
+
+| Level | Behavior | When to use |
+|-------|----------|-------------|
+| `strict` | Blocks action until fixed | Safety-critical rules |
+| `advisory` | Warns but allows proceed | Style and conventions |
+| `informational` | Logged only | Nice-to-haves |
+
+---
+
+#### 2e. Project Skill Schemas (System 1 Integration)
+
+All project skills MUST include input/output schemas for validation:
+
+```yaml
+# Template for project skills (.cursor/skills/*/SKILL.md)
+---
+name: <skill-name>
+description: <When to use this skill>
+version: 1
+input_schema:
+  required:
+    - name: <required-input>
+      type: string | string[] | number | boolean | object
+      description: <What this input is>
+  optional:
+    - name: <optional-input>
+      type: string
+      description: <What this input is>
+      default: <default-value>
+output_schema:
+  required:
+    - name: <required-output>
+      type: string
+      description: <What this output is>
+  optional:
+    - name: <optional-output>
+      type: string
+      description: <What this output is>
+pre_checks:
+  - description: "<What to validate before execution>"
+    validation: "<How to validate>"
+post_checks:
+  - description: "<What to validate after execution>"
+    validation: "<How to validate>"
+cacheable: false               # true if outputs are deterministic
+cache_ttl_minutes: 0           # Cache lifetime if cacheable
+---
+```
+
+**When to add schemas:**
+- All project skills should have schemas when org skill-validation exists
+- Derive schemas from the skill's actual protocol (don't invent)
+- Pre-checks validate inputs are usable
+- Post-checks validate outputs are correct
+
+---
+
+#### 2f. Project Metrics & Observability (System 6 Integration)
+
+Initialize project metrics tracking for cross-session analysis:
+
+**Create metrics directory:**
+```
+~/.cursor/memory/projects/<name>/metrics/
+  _index.md           # Index of all task metrics
+  metric-*.md         # Individual task metric entries
+```
+
+**Metrics index template:**
 ```markdown
-# ~/.cursor/memory/projects/<name>/metrics/_index.md
-
 # Index: project.<name>.metrics
 
 > Last updated: <timestamp>
+
+## Summary
+- Total tasks: 0
+- Success rate: N/A
+- Avg duration: N/A
+- Avg retries: N/A
+
+## Tasks
 
 | Date | Task ID | Type | Pipeline | Duration | Retries | Outcome | Tokens |
 |------|---------|------|----------|----------|---------|---------|--------|
 ```
 
-**When to bootstrap orchestration:**
-- Org orchestration skills exist in `~/.cursor/skills/` (task-orchestration, pipeline-executor, etc.)
-- Project has non-trivial workflows beyond simple one-shot tasks
-- Project would benefit from automated routing, retries, or observability
+**What gets tracked:**
+- Task classification and routing decisions
+- Stage execution times and outcomes
+- Retry counts and failure patterns
+- Token estimates per agent/task
+- Decision audit trails (routing overrides)
 
-**When to skip:**
-- Org orchestration system doesn't exist yet
-- Project is simple (single dev, no pipelines needed)
-- User explicitly declines orchestration setup
+**Metric promotion:**
+- Session metrics start in `session.current/`
+- On pipeline completion, promote to `projects/<name>/metrics/`
+- Cross-session analysis via project metrics directory
+
+---
+
+#### 2g. Tech-Lead Orchestration Integration
+
+The project `tech-lead` is the **primary executor** that integrates with org orchestration:
+
+**Tech-lead responsibilities in orchestrated workflow:**
+
+```
+Org Pipeline → tech-lead receives task
+    ↓
+tech-lead reads project routing-overrides.yml
+    ↓
+tech-lead selects project pipeline (or uses org pipeline)
+    ↓
+tech-lead executes stages via dev-*, sme-*, qa-* agents
+    ↓
+closed-loop-execution handles retries
+    ↓
+agent-observability logs metrics
+    ↓
+tech-lead reports completion back to pipeline-executor
+```
+
+**Add to tech-lead template:**
+```markdown
+## Orchestration Integration
+
+When org orchestration invokes you:
+
+1. **Check project orchestration configs:**
+   - Read `.cursor/configurations/routing-overrides.yml` if exists
+   - Read `.cursor/configurations/pipelines/` for project pipelines
+   - Read `.cursor/configurations/failure-patterns.yml` for project patterns
+
+2. **Use closed-loop execution:**
+   - When implementing, use the `closed-loop-execution` skill
+   - This enables automatic retry on failure
+   - Failure patterns guide recovery strategy
+
+3. **Log observability:**
+   - Use `agent-observability` skill to log decisions
+   - Log when you override routing recommendations
+   - Log task completion metrics
+
+4. **Escalate to org when needed:**
+   - Architecture decisions → escalate to `cto` → `vp-architecture`
+   - Security concerns → escalate to `cto` → `ciso`
+   - Performance issues → escalate to `cto` → `vp-engineering`
+```
+
+---
+
+#### 2h. Multi-Repo Awareness
+
+For workspaces with multiple repositories, ensure project orchestration respects repo boundaries:
+
+**Repo isolation rules:**
+- Each repo has its own `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/configurations/`
+- Each repo has its own `tech-lead` who owns that repo's execution
+- Never mix agents from different repos in the same task
+- Org orchestrator routes to the correct repo's tech-lead based on file paths
+
+**Tech-lead repo awareness:**
+```markdown
+## Repo Scope
+
+This tech-lead owns: <repo-name>
+Repo root: <repo-root-path>
+
+**Boundaries:**
+- Only assign tasks involving files in this repo
+- If task mentions files from another repo, report to user
+- Never invoke agents from other repos
+
+**Cross-repo tasks:**
+- If user task spans multiple repos, inform them
+- Suggest splitting into separate tasks per repo
+- Each repo's tech-lead handles their portion
+```
+
+---
+
+#### When to Bootstrap Orchestration
+
+**Full bootstrap when:**
+- All 6 org orchestration skills exist
+- Project has non-trivial workflows (multiple stages, retries needed)
+- Project would benefit from automated routing
+- Project needs observability/metrics tracking
+
+**Partial bootstrap when:**
+- Only some org skills exist — match available systems
+- Project is medium complexity — skip advanced features
+
+**Skip orchestration when:**
+- Org orchestration doesn't exist yet
+- Project is trivially simple (single dev, one-shot tasks)
+- User explicitly declines
+
+---
+
+#### Orchestration Files Summary
+
+| File | System | Purpose |
+|------|--------|---------|
+| `.cursor/configurations/pipelines/*.yml` | Pipeline Executor | Project workflows |
+| `.cursor/configurations/routing-overrides.yml` | Task Orchestration | Routing customization |
+| `.cursor/configurations/failure-patterns.yml` | Closed-Loop | Project error handling |
+| `.cursor/rules/*.mdc` (with enforcement) | Rule Enforcement | Programmatic validation |
+| `.cursor/skills/*/SKILL.md` (with schemas) | Skill Validation | I/O contracts |
+| `~/.cursor/memory/projects/<name>/metrics/` | Observability | Task tracking |
 
 ### 3. Team Skills (as needed)
 
@@ -668,7 +995,7 @@ The `tech-lead` is both a decision-maker and the project-level orchestrator. Whe
 ```markdown
 ---
 name: tech-lead
-description: Team lead, project owner, and orchestrator for [project name]. Reads implementation plans, assigns tasks to dev, SME, QA, and other project agents by scope, tracks phase progress, and gates each phase with user approval. Owns project-level decisions and the lifecycle of project-level agents.
+description: Team lead, project owner, and orchestrator for [project name]. Primary executor for org orchestration system. Reads implementation plans, assigns tasks to dev, SME, QA, and other project agents by scope, tracks phase progress, and gates each phase with user approval. Owns project-level decisions, orchestration configs, and the lifecycle of project-level agents.
 model: inherit
 ---
 
@@ -840,6 +1167,74 @@ Task 3 (parallel): qa-e2e — write login flow e2e tests
 - Test database state is shared without isolation
 - QA agents would write to the same test file
 
+## Orchestration Integration
+
+When org orchestration system exists, integrate with all 6 systems:
+
+### Pipeline Execution
+
+When invoked by org `pipeline-executor` or directly by user:
+
+1. **Check project configs:**
+   - Read `.cursor/configurations/routing-overrides.yml` if exists
+   - Read `.cursor/configurations/pipelines/` for project pipelines
+   - Use project pipeline if defined, else follow org pipeline
+
+2. **Execute with closed-loop:**
+   - Use `closed-loop-execution` skill for implementation stages
+   - This enables automatic retry on failure
+   - Check `.cursor/configurations/failure-patterns.yml` for project patterns
+
+3. **Log observability:**
+   - Use `agent-observability` skill to log task metrics
+   - Log stage start/complete, duration, retry count
+   - Log decision audit trails for routing overrides
+
+### Routing Override Protocol
+
+When org orchestrator routes a task to you:
+
+```
+1. Receive task from org pipeline-executor
+2. Check project routing-overrides.yml
+3. If project override exists:
+   - Use project pipeline instead of org pipeline
+   - Log override decision via agent-observability
+4. If no override:
+   - Execute org pipeline stages
+5. Delegate to project agents (dev-*, sme-*, qa-*)
+6. Report completion back to pipeline-executor
+```
+
+### Failure Handling
+
+When a task or stage fails:
+
+```
+1. closed-loop-execution identifies failure pattern
+2. Check project failure-patterns.yml for project-specific patterns
+3. If project pattern matches:
+   - Use project-specific recovery strategy
+4. If no project pattern:
+   - Fall back to org failure-patterns.yml
+5. Execute recovery strategy
+6. Log retry attempt via agent-observability
+7. After max retries: dead-letter or escalate
+```
+
+### Multi-Repo Awareness
+
+```
+This tech-lead owns: [project-name]
+Repo root: [repo-root-path]
+
+Boundaries:
+- Only work on files within this repo
+- If task mentions files from another repo, inform user
+- Never invoke agents from other repos
+- For cross-repo tasks, suggest splitting by repo
+```
+
 ## Memory
 
 Follow the always-apply `memory` rule and `context-memory` skill. Your project namespace is `project.<name>` (derive from git remote or folder).
@@ -848,12 +1243,14 @@ Follow the always-apply `memory` rule and `context-memory` skill. Your project n
 - Check for `_pending_refresh.md` in `projects/<name>/` — if present, review and update affected memory entries.
 - Query `projects/<name>/` for existing decisions, constraints, and risks.
 - Query `org/global/` for org-wide patterns and standards.
+- Check `projects/<name>/metrics/` for recent task history and patterns.
 
 **During execution:**
 - Write project decisions to `projects/<name>/` with category `decision`.
 - Write discovered constraints to `projects/<name>/` with category `constraint`.
 - Write identified risks to `projects/<name>/` with category `risk`.
 - For domain-specific items, use `projects/<name>/<domain>/` (e.g., `projects/<name>/api/`).
+- Log task metrics to `projects/<name>/metrics/` via `agent-observability` skill.
 
 **Promotion:** If a project insight applies across projects, escalate to `cto` for org-level capture in `org/global/`.
 
@@ -871,6 +1268,10 @@ Follow the always-apply `memory` rule and `context-memory` skill. Your project n
 - **Track who did what.** Every phase report must attribute work to the agent that did it.
 - **Respect dev scopes.** Assignments must match agent ownership.
 - **Verify before reporting.** Run the phase's verification criteria before presenting to the user.
+- **Use closed-loop execution.** For implementation tasks, use `closed-loop-execution` skill to enable automatic retry.
+- **Log observability.** Use `agent-observability` skill to log task metrics, especially routing overrides.
+- **Check project configs first.** Before executing, check `.cursor/configurations/` for project overrides.
+- **Stay in repo.** Only work on files in this repo. For cross-repo tasks, inform user.
 - [Project-specific rules]
 ```
 
