@@ -93,24 +93,27 @@ Each QA agent's description must state its test scope clearly (what test types i
 
 Choose the appropriate model for each agent based on cognitive requirements:
 
-| Agent type     | Recommended model | Reason                                                             |
-| -------------- | ----------------- | ------------------------------------------------------------------ |
-| `tech-lead`    | `inherit`         | Orchestration needs balanced capability for coordination           |
-| `dev-<scope>`  | `fast`            | Implementation work follows explicit instructions                  |
+| Agent type     | Recommended model | Reason                                                                  |
+| -------------- | ----------------- | ----------------------------------------------------------------------- |
+| `tech-lead`    | `inherit`         | Orchestration needs balanced capability for coordination                |
+| `dev-<scope>`  | `fast`            | Implementation work follows explicit instructions                       |
 | `sme-<domain>` | `inherit`         | Domain expertise may need more reasoning; use `fast` for simple domains |
-| `qa-<scope>`   | `fast`            | Test writing follows patterns and conventions                      |
-| `devops`       | `inherit`         | CI/CD work varies; some tasks need more reasoning                  |
+| `qa-<scope>`   | `fast`            | Test writing follows patterns and conventions                           |
+| `devops`       | `inherit`         | CI/CD work varies; some tasks need more reasoning                       |
 
 **Available models:**
+
 - `fast`: Cost-effective, efficient for straightforward tasks
 - `inherit`: Inherits from parent/caller — balanced capability
 
 **When to use `fast`:**
+
 - Implementation work with explicit instructions
 - Pattern-based tasks (test writing, config changes)
 - Well-documented domains with clear conventions
 
 **When to use `inherit`:**
+
 - Orchestration and coordination tasks
 - Complex domains requiring deeper reasoning
 - Tasks with architectural implications
@@ -142,13 +145,13 @@ Project agents can be marked `parallelizable: true` in their frontmatter when th
 
 ### Delegation Patterns for Project Agents
 
-| Need | Delegate to | Via |
-|---|---|---|
-| Architectural decisions | `vp-architecture` | `cto` |
-| Security review | `ciso` | `cto` |
-| Performance/reliability | `vp-engineering` | `cto` |
-| Documentation lookup | `docs-researcher` | Direct (single docs broker) |
-| Code quality review | `staff-engineer` | `cto` |
+| Need                    | Delegate to       | Via                         |
+| ----------------------- | ----------------- | --------------------------- |
+| Architectural decisions | `vp-architecture` | `cto`                       |
+| Security review         | `ciso`            | `cto`                       |
+| Performance/reliability | `vp-engineering`  | `cto`                       |
+| Documentation lookup    | `docs-researcher` | Direct (single docs broker) |
+| Code quality review     | `staff-engineer`  | `cto`                       |
 
 **docs-researcher:** Project agents must delegate all documentation lookups (framework docs, API references, external specs) to `docs-researcher` instead of using doc MCPs directly. This keeps context lean.
 
@@ -166,9 +169,9 @@ All project agents access memory directly via the `context-memory` skill and the
 
 **Directory structure:**
 
-| Namespace | Directory | Use case |
-|---|---|---|
-| `project.<name>` | `projects/<name>/` | Cross-cutting project decisions, constraints |
+| Namespace                 | Directory                   | Use case                                                      |
+| ------------------------- | --------------------------- | ------------------------------------------------------------- |
+| `project.<name>`          | `projects/<name>/`          | Cross-cutting project decisions, constraints                  |
 | `project.<name>.<domain>` | `projects/<name>/<domain>/` | Domain-specific items (e.g., `frontend/`, `api/`, `testing/`) |
 
 **Sync hook integration:**
@@ -184,6 +187,7 @@ If `_pending_refresh.md` exists in a memory directory, it lists files changed si
 If the org-level orchestration system exists (`~/.cursor/skills/task-orchestration/`, `~/.cursor/skills/pipeline-executor/`, etc.), bootstrap project-level orchestration artifacts that integrate with all 6 org-level systems.
 
 **Org orchestration check:** Before bootstrapping, verify these org-level skills exist:
+
 - `~/.cursor/skills/skill-validation/` — System 1: Callable Skills
 - `~/.cursor/skills/rule-enforcement/` — System 2: Rule Enforcement
 - `~/.cursor/skills/task-orchestration/` — System 3: Task Orchestration
@@ -197,14 +201,14 @@ If ALL exist → full orchestration bootstrap. If SOME exist → partial bootstr
 
 #### 2a. Project Pipelines (System 4 Integration)
 
-Create `.cursor/configurations/pipelines/` with project-specific pipelines that use **project agents** (tech-lead, dev-*, sme-*, qa-*) for execution:
+Create `.cursor/configurations/pipelines/` with project-specific pipelines that use **project agents** (tech-lead, dev-_, sme-_, qa-\*) for execution:
 
-| Pipeline file | When to create | Purpose |
-|---------------|----------------|---------|
-| `default.yml` | Always, if org orchestration exists | Project's standard workflow |
-| `hotfix.yml` | Project has production/staging | Fast-path emergency fixes |
-| `migration.yml` | Database or schema migrations | Rollback-safe data changes |
-| `deploy.yml` | Non-trivial deployment | Multi-environment deploy |
+| Pipeline file   | When to create                      | Purpose                     |
+| --------------- | ----------------------------------- | --------------------------- |
+| `default.yml`   | Always, if org orchestration exists | Project's standard workflow |
+| `hotfix.yml`    | Project has production/staging      | Fast-path emergency fixes   |
+| `migration.yml` | Database or schema migrations       | Rollback-safe data changes  |
+| `deploy.yml`    | Non-trivial deployment              | Multi-environment deploy    |
 
 **Pipeline template (project-level):**
 
@@ -220,7 +224,7 @@ max_retries: 3
 
 stages:
   - id: plan
-    agent: tech-lead           # Project orchestrator
+    agent: tech-lead # Project orchestrator
     mode: agent
     description: Break down task and assign to team
     inputs: [task_description]
@@ -228,7 +232,7 @@ stages:
     timeout_minutes: 15
 
   - id: implement
-    agent: tech-lead           # Coordinates dev agents
+    agent: tech-lead # Coordinates dev agents
     mode: agent
     description: Execute implementation via dev agents
     inputs: [task_breakdown, assignments]
@@ -239,10 +243,10 @@ stages:
       backoff: exponential
     rollback:
       strategy: git_revert
-    skill: closed-loop-execution  # Enables auto-retry
+    skill: closed-loop-execution # Enables auto-retry
 
   - id: verify
-    agent: tech-lead           # Coordinates qa agents
+    agent: tech-lead # Coordinates qa agents
     mode: agent
     description: Verify changes via qa agents
     inputs: [code_changes]
@@ -250,7 +254,7 @@ stages:
     timeout_minutes: 20
 ```
 
-**Key principle:** Project pipelines use `tech-lead` as the orchestrator who delegates to `dev-*`, `sme-*`, `qa-*` agents. Never call org agents (cto, vp-*, ciso) directly from project pipelines — they're invoked through escalation.
+**Key principle:** Project pipelines use `tech-lead` as the orchestrator who delegates to `dev-*`, `sme-*`, `qa-*` agents. Never call org agents (cto, vp-\*, ciso) directly from project pipelines — they're invoked through escalation.
 
 ---
 
@@ -269,7 +273,7 @@ project_signals:
   # Add project-specific terms that map to task types
   - signals: ["<project-term-1>", "<project-term-2>"]
     task_type: feature
-    pipeline: default  # Use project pipeline, not org
+    pipeline: default # Use project pipeline, not org
 
   # Map domain terms to appropriate handling
   - signals: ["<domain-term>"]
@@ -280,7 +284,7 @@ project_signals:
 overrides:
   # Use project pipelines instead of org pipelines
   - task_type: feature
-    pipeline: default           # Project's default.yml
+    pipeline: default # Project's default.yml
     default_agents: [tech-lead] # Project executor
 
   - task_type: bug_fix
@@ -289,16 +293,16 @@ overrides:
 
   # Security still escalates to org
   - task_type: security
-    pipeline: null              # Use org security-review
-    escalate_to_org: true       # CTO → CISO flow
+    pipeline: null # Use org security-review
+    escalate_to_org: true # CTO → CISO flow
 
 # Project complexity thresholds
 complexity_overrides:
   # Smaller projects may treat "high" complexity as "medium"
   feature:
-    threshold: medium           # Don't require architecture review
+    threshold: medium # Don't require architecture review
   refactor:
-    threshold: low              # Tech-lead can handle directly
+    threshold: low # Tech-lead can handle directly
 ```
 
 ---
@@ -309,7 +313,7 @@ Create `.cursor/configurations/failure-patterns.yml` for project-specific failur
 
 ```yaml
 version: 1
-extends: org  # Inherit all org patterns
+extends: org # Inherit all org patterns
 
 # Project-specific patterns (domain errors, framework errors)
 patterns:
@@ -370,32 +374,32 @@ All project rules MUST include enforcement frontmatter for programmatic validati
 # Template for project rules (.cursor/rules/*.mdc)
 ---
 description: "What this rule covers"
-globs: "**/*.ts,**/*.tsx"      # File patterns (specific, not **/*)
-alwaysApply: false             # Prefer false with targeted globs
-priority: 500                  # 0-1000, project rules: 400-600
-enforcement: advisory          # strict | advisory | informational
-pre_action: false              # Validate before agent writes
-post_action: true              # Validate after agent writes
-override_by: []                # Rules that can override this one
-tags: [<project>, <category>]  # For filtering
+globs: "**/*.ts,**/*.tsx" # File patterns (specific, not **/*)
+alwaysApply: false # Prefer false with targeted globs
+priority: 500 # 0-1000, project rules: 400-600
+enforcement: advisory # strict | advisory | informational
+pre_action: false # Validate before agent writes
+post_action: true # Validate after agent writes
+override_by: [] # Rules that can override this one
+tags: [<project>, <category>] # For filtering
 ---
 ```
 
 **Priority bands for project rules:**
 
-| Band | Range | Use case |
-|------|-------|----------|
-| Critical | 700-800 | Project-specific safety rules (never exceed org 900-1000) |
-| Standard | 400-600 | Conventions, style, patterns |
-| Informational | 100-300 | Suggestions, preferences |
+| Band          | Range   | Use case                                                  |
+| ------------- | ------- | --------------------------------------------------------- |
+| Critical      | 700-800 | Project-specific safety rules (never exceed org 900-1000) |
+| Standard      | 400-600 | Conventions, style, patterns                              |
+| Informational | 100-300 | Suggestions, preferences                                  |
 
 **Enforcement levels:**
 
-| Level | Behavior | When to use |
-|-------|----------|-------------|
-| `strict` | Blocks action until fixed | Safety-critical rules |
-| `advisory` | Warns but allows proceed | Style and conventions |
-| `informational` | Logged only | Nice-to-haves |
+| Level           | Behavior                  | When to use           |
+| --------------- | ------------------------- | --------------------- |
+| `strict`        | Blocks action until fixed | Safety-critical rules |
+| `advisory`      | Warns but allows proceed  | Style and conventions |
+| `informational` | Logged only               | Nice-to-haves         |
 
 ---
 
@@ -434,12 +438,13 @@ pre_checks:
 post_checks:
   - description: "<What to validate after execution>"
     validation: "<How to validate>"
-cacheable: false               # true if outputs are deterministic
-cache_ttl_minutes: 0           # Cache lifetime if cacheable
+cacheable: false # true if outputs are deterministic
+cache_ttl_minutes: 0 # Cache lifetime if cacheable
 ---
 ```
 
 **When to add schemas:**
+
 - All project skills should have schemas when org skill-validation exists
 - Derive schemas from the skill's actual protocol (don't invent)
 - Pre-checks validate inputs are usable
@@ -452,6 +457,7 @@ cache_ttl_minutes: 0           # Cache lifetime if cacheable
 Initialize project metrics tracking for cross-session analysis:
 
 **Create metrics directory:**
+
 ```
 ~/.cursor/memory/projects/<name>/metrics/
   _index.md           # Index of all task metrics
@@ -459,12 +465,14 @@ Initialize project metrics tracking for cross-session analysis:
 ```
 
 **Metrics index template:**
+
 ```markdown
 # Index: project.<name>.metrics
 
 > Last updated: <timestamp>
 
 ## Summary
+
 - Total tasks: 0
 - Success rate: N/A
 - Avg duration: N/A
@@ -473,10 +481,11 @@ Initialize project metrics tracking for cross-session analysis:
 ## Tasks
 
 | Date | Task ID | Type | Pipeline | Duration | Retries | Outcome | Tokens |
-|------|---------|------|----------|----------|---------|---------|--------|
+| ---- | ------- | ---- | -------- | -------- | ------- | ------- | ------ |
 ```
 
 **What gets tracked:**
+
 - Task classification and routing decisions
 - Stage execution times and outcomes
 - Retry counts and failure patterns
@@ -484,6 +493,7 @@ Initialize project metrics tracking for cross-session analysis:
 - Decision audit trails (routing overrides)
 
 **Metric promotion:**
+
 - Session metrics start in `session.current/`
 - On pipeline completion, promote to `projects/<name>/metrics/`
 - Cross-session analysis via project metrics directory
@@ -513,6 +523,7 @@ tech-lead reports completion back to pipeline-executor
 ```
 
 **Add to tech-lead template:**
+
 ```markdown
 ## Orchestration Integration
 
@@ -546,12 +557,14 @@ When org orchestration invokes you:
 For workspaces with multiple repositories, ensure project orchestration respects repo boundaries:
 
 **Repo isolation rules:**
+
 - Each repo has its own `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/configurations/`
 - Each repo has its own `tech-lead` who owns that repo's execution
 - Never mix agents from different repos in the same task
 - Org orchestrator routes to the correct repo's tech-lead based on file paths
 
 **Tech-lead repo awareness:**
+
 ```markdown
 ## Repo Scope
 
@@ -559,11 +572,13 @@ This tech-lead owns: <repo-name>
 Repo root: <repo-root-path>
 
 **Boundaries:**
+
 - Only assign tasks involving files in this repo
 - If task mentions files from another repo, report to user
 - Never invoke agents from other repos
 
 **Cross-repo tasks:**
+
 - If user task spans multiple repos, inform them
 - Suggest splitting into separate tasks per repo
 - Each repo's tech-lead handles their portion
@@ -574,16 +589,19 @@ Repo root: <repo-root-path>
 #### When to Bootstrap Orchestration
 
 **Full bootstrap when:**
+
 - All 6 org orchestration skills exist
 - Project has non-trivial workflows (multiple stages, retries needed)
 - Project would benefit from automated routing
 - Project needs observability/metrics tracking
 
 **Partial bootstrap when:**
+
 - Only some org skills exist — match available systems
 - Project is medium complexity — skip advanced features
 
 **Skip orchestration when:**
+
 - Org orchestration doesn't exist yet
 - Project is trivially simple (single dev, one-shot tasks)
 - User explicitly declines
@@ -592,14 +610,14 @@ Repo root: <repo-root-path>
 
 #### Orchestration Files Summary
 
-| File | System | Purpose |
-|------|--------|---------|
-| `.cursor/configurations/pipelines/*.yml` | Pipeline Executor | Project workflows |
-| `.cursor/configurations/routing-overrides.yml` | Task Orchestration | Routing customization |
-| `.cursor/configurations/failure-patterns.yml` | Closed-Loop | Project error handling |
-| `.cursor/rules/*.mdc` (with enforcement) | Rule Enforcement | Programmatic validation |
-| `.cursor/skills/*/SKILL.md` (with schemas) | Skill Validation | I/O contracts |
-| `~/.cursor/memory/projects/<name>/metrics/` | Observability | Task tracking |
+| File                                           | System             | Purpose                 |
+| ---------------------------------------------- | ------------------ | ----------------------- |
+| `.cursor/configurations/pipelines/*.yml`       | Pipeline Executor  | Project workflows       |
+| `.cursor/configurations/routing-overrides.yml` | Task Orchestration | Routing customization   |
+| `.cursor/configurations/failure-patterns.yml`  | Closed-Loop        | Project error handling  |
+| `.cursor/rules/*.mdc` (with enforcement)       | Rule Enforcement   | Programmatic validation |
+| `.cursor/skills/*/SKILL.md` (with schemas)     | Skill Validation   | I/O contracts           |
+| `~/.cursor/memory/projects/<name>/metrics/`    | Observability      | Task tracking           |
 
 ### 3. Team Skills (as needed)
 
@@ -654,6 +672,7 @@ Concrete examples.
 ```
 
 **Schema requirements (when org skill-validation system exists):**
+
 - `input_schema`: Define required and optional inputs for the skill
 - `output_schema`: Define what the skill produces
 - `pre_checks`: Validations to run before execution
@@ -784,13 +803,13 @@ else:
 3. Analyze the project (same analysis as Step 1b)
 4. Write initial memory entries — one `.md` file per entry with YAML frontmatter:
 
-   | Analysis finding                     | Category     | Example entity_name             | Example filename                     |
-   | ------------------------------------ | ------------ | ------------------------------- | ------------------------------------ |
-   | Tech stack and versions              | `constraint` | `project.<name>.constraint.001` | `constraint-001-tech-stack.md`       |
-   | File structure and module boundaries | `decision`   | `project.<name>.decision.001`   | `decision-001-file-structure.md`     |
-   | Key conventions found                | `principle`  | `project.<name>.principle.001`  | `principle-001-conventions.md`       |
-   | Dependencies and implications        | `constraint` | `project.<name>.constraint.002` | `constraint-002-dependencies.md`     |
-   | Project namespace chosen             | `decision`   | `project.<name>.decision.002`   | `decision-002-namespace.md`          |
+   | Analysis finding                     | Category     | Example entity_name             | Example filename                 |
+   | ------------------------------------ | ------------ | ------------------------------- | -------------------------------- |
+   | Tech stack and versions              | `constraint` | `project.<name>.constraint.001` | `constraint-001-tech-stack.md`   |
+   | File structure and module boundaries | `decision`   | `project.<name>.decision.001`   | `decision-001-file-structure.md` |
+   | Key conventions found                | `principle`  | `project.<name>.principle.001`  | `principle-001-conventions.md`   |
+   | Dependencies and implications        | `constraint` | `project.<name>.constraint.002` | `constraint-002-dependencies.md` |
+   | Project namespace chosen             | `decision`   | `project.<name>.decision.002`   | `decision-002-namespace.md`      |
 
    Each entry file must have YAML frontmatter with: `entity_name`, `namespace`, `category`, `status`, `tags` (min 2), `created_at`. See `context-memory` skill for full schema.
 
@@ -837,6 +856,7 @@ Every run starts the same way — understand the project **and** what already ex
 - List files in `.cursor/docs/` — which docs exist (plans, decisions, runbooks)?
 - List files in `.cursor/configurations/` — which orchestration configs exist (pipelines, routing)?
 - Check if `~/.cursor/memory/projects/<name>/metrics/` exists — is metrics tracking enabled?
+- Read the repo root `.gitignore` (if any) and note whether local Cursor paths and `AGENTS.md` are already ignored.
 - Read each existing file to understand its current content.
 
 **1a-org. Check org orchestration system.** Scan for org-level orchestration infrastructure:
@@ -931,6 +951,12 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 |---|---|---|
 | `skill-name` | create / update / keep / remove | ... |
 
+## Gitignore (local Cursor + AGENTS.md)
+
+| Artifact | Action | Reason |
+|---|---|---|
+| Repo root `.gitignore` | create / update / keep | Ensure machine-local Cursor dirs/files and `AGENTS.md` are not committed |
+
 ## Project Orchestration (if org orchestration system exists)
 
 | Artifact | Action | Reason |
@@ -951,37 +977,51 @@ After user approval, execute according to the action assigned to each artifact:
 
 1. **Verify Step 0 complete.** Confirm `~/.cursor/memory/projects/<name>/` exists with `_index.md`. If not, stop and complete Step 0 first.
 2. Create `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/docs/` directories as needed. For docs, also create `plans/`, `decisions/`, `runbooks/` subdirectories.
-3. **Create** artifacts that don't exist yet.
-4. **Update** artifacts that are stale — preserve the structure, update the content. Do not rewrite from scratch unless the artifact is fundamentally wrong.
-5. **Keep** artifacts unchanged — do not touch them.
-6. **Remove** only if the user explicitly approved removal. When removing, move the content to the plan summary so the user has a record.
-7. Order of operations: rules first, then agents, then skills, then orchestration configs.
-8. **If org orchestration exists and plan includes orchestration:**
+3. **Gitignore — local Cursor and `AGENTS.md`.** At the repo root, ensure `.gitignore` exists and includes the following block (append if any line is missing; use this comment header so duplicates are easy to spot):
+
+   ```
+   # Local Cursor / agent index (machine-specific; do not commit)
+   .cursor/
+   .cursorignore
+   .cursorrules
+   .cursorindexingignore
+   AGENTS.md
+   ```
+
+   Do not remove unrelated ignore rules. If the project already tracks part of `.cursor/` in git and the user has declined ignoring the tree, skip this step and record that decision in memory.
+
+4. **Create** artifacts that don't exist yet.
+5. **Update** artifacts that are stale — preserve the structure, update the content. Do not rewrite from scratch unless the artifact is fundamentally wrong.
+6. **Keep** artifacts unchanged — do not touch them.
+7. **Remove** only if the user explicitly approved removal. When removing, move the content to the plan summary so the user has a record.
+8. Order of operations: gitignore (Execute step 3), rules, agents, skills, then orchestration configs.
+9. **If org orchestration exists and plan includes orchestration:**
    - Create `.cursor/configurations/pipelines/` directory
    - Create project pipeline files (default.yml, etc.)
    - Create `.cursor/configurations/routing-overrides.yml` if project needs routing customization
    - Create `.cursor/configurations/failure-patterns.yml` if project has domain-specific failures
    - Initialize `~/.cursor/memory/projects/<name>/metrics/_index.md` for observability
    - Add enforcement frontmatter to project rules (priority, enforcement level)
-8. If `$HOME/dotfiles/scripts/.local/bin/cursor-memory-hook` exists, copy it to `.git/hooks/post-merge` and `.git/hooks/post-checkout` (make them executable). If the source file doesn't exist, skip this step silently.
-9. **Capture execution decisions to memory.** Any decisions made during execution (e.g., why a scope was chosen, why an agent was structured a certain way) get written to memory as `decision` entries.
-10. Report what was created, updated, kept, and removed.
+10. If `$HOME/dotfiles/scripts/.local/bin/cursor-memory-hook` exists, copy it to `.git/hooks/post-merge` and `.git/hooks/post-checkout` (make them executable). If the source file doesn't exist, skip this step silently.
+11. **Capture execution decisions to memory.** Any decisions made during execution (e.g., why a scope was chosen, why an agent was structured a certain way) get written to memory as `decision` entries.
+12. Report what was created, updated, kept, and removed.
 
 ### Step 4 — Verify
 
 After execution:
 
-1. **Verify memory knowledge base exists.** Confirm `~/.cursor/memory/projects/<name>/` contains:
+1. **Verify `.gitignore` for local Cursor + `AGENTS.md`.** Confirm repo root `.gitignore` contains the local Cursor + AGENTS.md block from Execute step 3 (or document skip if user opted out).
+2. **Verify memory knowledge base exists.** Confirm `~/.cursor/memory/projects/<name>/` contains:
    - `_index.md` with at least one entry row
    - At least one `.md` entry file (e.g., `constraint-001-tech-stack.md`)
    - Report memory status: "Knowledge base verified: X entries in `projects/<name>/`"
-2. List all files in `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/docs/`.
-3. For each file, confirm its action was applied correctly (created / updated / kept / removed).
-4. Confirm no global (org-level) agents, rules, or skills were modified.
-5. Confirm no artifact marked "keep" was altered.
-6. If this was a bootstrap or fill-gaps run, suggest the user test each new team member with a small task from their scope.
-7. If this was a refresh run, summarize all changes made so the user can verify accuracy.
-8. **Final memory summary.** Report total memory entries and categories:
+3. List all files in `.cursor/agents/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/docs/`.
+4. For each file, confirm its action was applied correctly (created / updated / kept / removed).
+5. Confirm no global (org-level) agents, rules, or skills were modified.
+6. Confirm no artifact marked "keep" was altered.
+7. If this was a bootstrap or fill-gaps run, suggest the user test each new team member with a small task from their scope.
+8. If this was a refresh run, summarize all changes made so the user can verify accuracy.
+9. **Final memory summary.** Report total memory entries and categories:
    ```
    Memory: X entries (Y constraints, Z decisions, W principles)
    ```
@@ -1195,6 +1235,7 @@ When invoked by org `pipeline-executor` or directly by user:
 When org orchestrator routes a task to you:
 
 ```
+
 1. Receive task from org pipeline-executor
 2. Check project routing-overrides.yml
 3. If project override exists:
@@ -1202,8 +1243,9 @@ When org orchestrator routes a task to you:
    - Log override decision via agent-observability
 4. If no override:
    - Execute org pipeline stages
-5. Delegate to project agents (dev-*, sme-*, qa-*)
+5. Delegate to project agents (dev-_, sme-_, qa-\*)
 6. Report completion back to pipeline-executor
+
 ```
 
 ### Failure Handling
@@ -1211,6 +1253,7 @@ When org orchestrator routes a task to you:
 When a task or stage fails:
 
 ```
+
 1. closed-loop-execution identifies failure pattern
 2. Check project failure-patterns.yml for project-specific patterns
 3. If project pattern matches:
@@ -1220,19 +1263,23 @@ When a task or stage fails:
 5. Execute recovery strategy
 6. Log retry attempt via agent-observability
 7. After max retries: dead-letter or escalate
+
 ```
 
 ### Multi-Repo Awareness
 
 ```
+
 This tech-lead owns: [project-name]
 Repo root: [repo-root-path]
 
 Boundaries:
+
 - Only work on files within this repo
 - If task mentions files from another repo, inform user
 - Never invoke agents from other repos
 - For cross-repo tasks, suggest splitting by repo
+
 ```
 
 ## Memory
@@ -1304,11 +1351,13 @@ cross-cutting concerns.
 Follow the always-apply `memory` rule and `context-memory` skill. Your project namespace is `project.<name>` (derive from git remote or folder).
 
 **Reading:**
+
 - Query `projects/<name>/<domain>/` for domain-specific decisions (matching your scope).
 - Query `projects/<name>/` for cross-cutting project context.
 - Query `org/global/` for org-wide patterns.
 
 **Writing:**
+
 - Write decisions within your scope to `projects/<name>/<domain>/` with category `decision`.
 - Write discovered constraints to `projects/<name>/<domain>/` with category `constraint`.
 - Cross-cutting items go to `projects/<name>/`.
@@ -1431,11 +1480,13 @@ If detection finds NO existing test framework:
 Follow the always-apply `memory` rule and `context-memory` skill. Your project namespace is `project.<name>` (derive from git remote or folder).
 
 **Reading:**
+
 - Query `projects/<name>/testing/` for test patterns, framework constraints.
 - Query `projects/<name>/` for cross-cutting project context.
 - Query `org/global/` for org-wide testing patterns.
 
 **Writing:**
+
 - Write test pattern decisions to `projects/<name>/testing/` with category `principle`.
 - Write framework constraints to `projects/<name>/testing/` with category `constraint`.
 - Write discovered conventions to `projects/<name>/testing/` with category `principle`.
@@ -1506,6 +1557,7 @@ NOT parallel-safe:
 - **Always inventory first.** Every run starts by scanning what already exists. Never assume a clean slate.
 - **Always get approval.** Present the full plan (with actions: create / update / keep / remove) before touching files. The user (CEO) decides what happens.
 - **Project-local only.** Everything goes in the project's `.cursor/` directory. Never touch org-level agents (`~/.cursor/agents/`), global rules (`~/.cursor/rules/`), or global skills (`~/.cursor/skills/`).
+- **Gitignore local Cursor + `AGENTS.md`.** During execution, ensure the repo root `.gitignore` ignores `.cursor/`, `.cursorignore`, `.cursorrules`, `.cursorindexingignore`, and `AGENTS.md` unless the user has an explicit reason to track them (then skip and record in memory).
 - **No duplication.** If an org agent already covers something, the team member should escalate to it — not duplicate it. If a global rule already covers a convention, do not duplicate it in a project rule.
 - **Every project gets `tech-lead`.** Dev, SME, QA, and DevOps roles are created only when clearly justified by project analysis (size, domains, infra, test surface).
 - **Use typed naming.** `tech-lead`, `dev-<scope>`, `sme-<domain>`, `qa-<scope>`, `devops`. Avoid ad-hoc names that do not clearly communicate scope.
