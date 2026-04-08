@@ -307,7 +307,84 @@ complexity_overrides:
 
 ---
 
-#### 2c. Project Failure Patterns (System 5 Integration)
+#### 2c. Dev-QA Loop Configuration
+
+Create `.cursor/configurations/dev-qa-loop.yml` to configure the closed loop behavior:
+
+```yaml
+version: 1
+
+# Global defaults
+defaults:
+  max_iterations: 3
+  test_scope: changed        # changed | affected | full
+  full_suite_on_final: true  # Run full suite on last passing iteration
+  track_in_memory: true      # Log loop state to session memory
+
+# Per-scope overrides
+scopes:
+  # Frontend may need more iterations due to visual complexity
+  frontend:
+    max_iterations: 4
+    test_scope: affected
+
+  # Backend auth is critical, always run full suite
+  backend:
+    test_scope: full
+    
+  # E2E tests are slow, limit iterations
+  e2e:
+    max_iterations: 2
+    test_scope: changed
+
+# Escalation rules
+escalation:
+  # Escalate if same test fails identically twice
+  repeated_failure_threshold: 2
+  
+  # Always escalate these error types
+  immediate_escalation:
+    - framework_error
+    - environment_mismatch
+    - ci_failure
+    - timeout
+
+  # Patterns that suggest human intervention
+  escalation_signals:
+    - "cannot resolve"
+    - "dependency conflict"
+    - "permission denied"
+    - "out of memory"
+
+# Feedback quality requirements
+feedback_requirements:
+  # QA must provide these fields
+  required_fields:
+    - status
+    - tests_failed (if status: failed)
+    - analysis
+    - suggested_fix
+  
+  # Reject vague feedback
+  min_analysis_length: 50
+  require_line_numbers: true
+
+# Integration with closed-loop-execution skill
+closed_loop_integration:
+  enabled: true
+  use_failure_patterns: true  # Match against failure-patterns.yml
+  auto_fix_lint: true         # Auto-run lint fix between iterations
+```
+
+**When to create:**
+
+- Always create for projects with QA agents.
+- Customize when project has specific test scopes or timing constraints.
+- Skip if project has no QA agents (devs own their tests).
+
+---
+
+#### 2d. Project Failure Patterns (System 5 Integration)
 
 Create `.cursor/configurations/failure-patterns.yml` for project-specific failure handling:
 
@@ -610,14 +687,15 @@ Repo root: <repo-root-path>
 
 #### Orchestration Files Summary
 
-| File                                           | System             | Purpose                 |
-| ---------------------------------------------- | ------------------ | ----------------------- |
-| `.cursor/configurations/pipelines/*.yml`       | Pipeline Executor  | Project workflows       |
-| `.cursor/configurations/routing-overrides.yml` | Task Orchestration | Routing customization   |
-| `.cursor/configurations/failure-patterns.yml`  | Closed-Loop        | Project error handling  |
-| `.cursor/rules/*.mdc` (with enforcement)       | Rule Enforcement   | Programmatic validation |
-| `.cursor/skills/*/SKILL.md` (with schemas)     | Skill Validation   | I/O contracts           |
-| `~/.cursor/memory/projects/<name>/metrics/`    | Observability      | Task tracking           |
+| File                                           | System             | Purpose                  |
+| ---------------------------------------------- | ------------------ | ------------------------ |
+| `.cursor/configurations/pipelines/*.yml`       | Pipeline Executor  | Project workflows        |
+| `.cursor/configurations/routing-overrides.yml` | Task Orchestration | Routing customization    |
+| `.cursor/configurations/failure-patterns.yml`  | Closed-Loop        | Project error handling   |
+| `.cursor/configurations/dev-qa-loop.yml`       | Dev-QA Loop        | QA verification settings |
+| `.cursor/rules/*.mdc` (with enforcement)       | Rule Enforcement   | Programmatic validation  |
+| `.cursor/skills/*/SKILL.md` (with schemas)     | Skill Validation   | I/O contracts            |
+| `~/.cursor/memory/projects/<name>/metrics/`    | Observability      | Task tracking            |
 
 ### 3. Team Skills (as needed)
 
@@ -964,6 +1042,7 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 | `.cursor/configurations/pipelines/default.yml` | create / keep / skip | ... |
 | `.cursor/configurations/routing-overrides.yml` | create / skip | ... |
 | `.cursor/configurations/failure-patterns.yml` | create / skip | ... |
+| `.cursor/configurations/dev-qa-loop.yml` | create / skip | Required if QA agents exist |
 | `projects/<name>/metrics/_index.md` | create / keep | ... |
 
 Approve this plan, or suggest changes.
@@ -1000,6 +1079,7 @@ After user approval, execute according to the action assigned to each artifact:
    - Create project pipeline files (default.yml, etc.)
    - Create `.cursor/configurations/routing-overrides.yml` if project needs routing customization
    - Create `.cursor/configurations/failure-patterns.yml` if project has domain-specific failures
+   - Create `.cursor/configurations/dev-qa-loop.yml` if project has QA agents
    - Initialize `~/.cursor/memory/projects/<name>/metrics/_index.md` for observability
    - Add enforcement frontmatter to project rules (priority, enforcement level)
 10. If `$HOME/dotfiles/scripts/.local/bin/cursor-memory-hook` exists, copy it to `.git/hooks/post-merge` and `.git/hooks/post-checkout` (make them executable). If the source file doesn't exist, skip this step silently.
@@ -1161,6 +1241,129 @@ When given a phased plan (typically from `cto`):
 - Never assign a dev work outside their stated scope without flagging it to the user.
 - If a task produces or modifies functionality, check for matching `qa-*` agents and assign test creation/update as a follow-up.
 
+### Dev-QA Closed Loop Orchestration
+
+When the project has QA agents and a dev task modifies functionality, execute
+the **Dev-QA Closed Loop** for each implementation task:
+
+**Loop orchestration protocol:**
+
+```
+for each implementation_task in phase:
+    iteration = 0
+    max_iterations = 3  # configurable per project
+    
+    while iteration < max_iterations:
+        iteration += 1
+        
+        # Step 1: Dev implements/fixes
+        if iteration == 1:
+            invoke dev-<scope> with task_context
+        else:
+            invoke dev-<scope> with task_context + qa_feedback
+        
+        dev_result = await dev-<scope> completion
+        
+        # Step 2: QA creates/updates tests and runs them
+        invoke qa-<scope> with:
+            - dev_result (files changed, approach)
+            - iteration count
+            - previous feedback (if any)
+        
+        qa_feedback = await qa-<scope> completion
+        
+        # Step 3: Evaluate QA feedback
+        if qa_feedback.status == "passed":
+            mark task complete
+            break  # exit loop, proceed to next task
+        
+        # Step 4: Decide on retry or escalate
+        if should_escalate(qa_feedback, iteration):
+            escalate_to_user(qa_feedback)
+            await user_guidance
+            # user may: provide fix hint, approve skip, or abort
+        
+        # else: continue loop with qa_feedback for dev
+    
+    if iteration >= max_iterations and not passed:
+        escalate_to_user("Max iterations reached without passing tests")
+```
+
+**Escalation decision function:**
+
+```
+should_escalate(qa_feedback, iteration):
+    # Always escalate at max iterations
+    if iteration >= max_iterations:
+        return true
+    
+    # Escalate if same test fails with same error twice
+    if qa_feedback has repeated_failure(same_test, same_error):
+        return true
+    
+    # Escalate if dev reported cannot_fix
+    if previous_dev_result.status == "cannot_fix":
+        return true
+    
+    # Escalate for environment/tooling issues
+    if qa_feedback.error_type in [framework_error, env_error, ci_mismatch]:
+        return true
+    
+    return false
+```
+
+**Context passed to dev on retry:**
+
+When re-invoking dev agent after QA failure, include:
+
+```yaml
+retry_context:
+  iteration: 2
+  original_task: "Implement user authentication"
+  previous_attempt:
+    files_changed: [src/auth.ts, src/middleware.ts]
+    approach: "JWT-based auth with middleware validation"
+  qa_feedback:
+    tests_failed:
+      - test: "test_invalid_token"
+        error: "expected 401, got 500"
+        file: "tests/auth.test.ts:42"
+    analysis: "Error handler returns 500 for all auth errors"
+    suggested_fix: "Check auth.ts:78 - missing case for invalid tokens"
+  instruction: |
+    Fix the failing tests without regressing passing tests.
+    Focus on: {qa_feedback.suggested_fix}
+    Do not rewrite unrelated code.
+```
+
+**Tracking loop state:**
+
+Maintain loop state in session memory for observability:
+
+```yaml
+# session.current/dev-qa-loop-{task_id}.md
+task_id: task-a1b2c3-implement-auth
+phase: 2
+task: "Implement user authentication"
+status: in_progress | passed | escalated
+iterations:
+  - iteration: 1
+    dev_agent: dev-backend
+    qa_agent: qa-unit
+    dev_result: {files: [...], status: completed}
+    qa_result: {status: failed, tests_failed: 2}
+    duration_ms: 45000
+  - iteration: 2
+    dev_agent: dev-backend
+    qa_agent: qa-unit
+    dev_result: {files: [...], status: completed}
+    qa_result: {status: passed, tests_passed: 12}
+    duration_ms: 32000
+final_status: passed
+total_iterations: 2
+total_duration_ms: 77000
+```
+
 ### QA workflow
 
 When the project has `qa-*` agents:
@@ -1177,6 +1380,143 @@ When the project has `qa-*` agents:
    framework decision before proceeding.
 4. **Review:** After QA agents produce tests, verify the tests actually run
    and pass before reporting phase completion.
+
+### Dev-QA Closed Loop Execution
+
+For each implementation task within a phase, execute a **closed loop** between
+dev and QA agents to ensure code and tests are verified before proceeding:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DEV-QA CLOSED LOOP                           │
+└─────────────────────────────────────────────────────────────────┘
+
+    ┌──────────┐
+    │ ASSIGN   │ tech-lead assigns task to dev-<scope>
+    └────┬─────┘
+         │
+         ▼
+    ┌──────────┐
+    │   DEV    │ dev-<scope> implements the task
+    └────┬─────┘
+         │
+         ▼
+    ┌──────────┐
+    │   QA     │ qa-<scope> creates/updates tests
+    └────┬─────┘
+         │
+         ▼
+    ┌──────────┐
+    │  VERIFY  │ qa-<scope> runs tests
+    └────┬─────┘
+         │
+    ┌────┴────┐
+    │         │
+   PASS      FAIL
+    │         │
+    ▼         ▼
+┌────────┐ ┌──────────┐
+│ DONE   │ │ FEEDBACK │ qa-<scope> reports failures to tech-lead
+└────────┘ └────┬─────┘
+                │
+                ▼
+           ┌──────────┐
+           │  DECIDE  │ tech-lead evaluates: retry or escalate?
+           └────┬─────┘
+                │
+           ┌────┴────┐
+           │         │
+        RETRY     ESCALATE
+           │         │
+           ▼         ▼
+     (back to DEV)  (user/cto)
+```
+
+**Closed loop protocol:**
+
+1. **DEV phase:** Assign implementation task to `dev-<scope>`. Dev completes
+   and reports: files changed, approach taken, any risks noted.
+
+2. **QA phase:** Assign test task to `qa-<scope>` with dev's output context.
+   QA must:
+   - Create or update tests covering the changed functionality.
+   - Run the full test suite (or scoped tests for the change).
+   - Report structured results (see QA feedback format below).
+
+3. **VERIFY phase:** If all tests pass → task complete, proceed to next task
+   or phase. If tests fail → enter feedback loop.
+
+4. **FEEDBACK phase:** QA provides structured feedback to tech-lead:
+   ```yaml
+   feedback:
+     status: failed
+     dev_agent: dev-<scope>
+     files_changed: [list from dev]
+     tests_failed:
+       - test: "test name or path"
+         error: "assertion/error message"
+         file: "test file path"
+         line: line_number
+     tests_passed: N
+     tests_total: M
+     analysis: "Brief analysis of likely cause"
+     suggested_fix: "What dev should investigate"
+   ```
+
+5. **DECIDE phase:** Tech-lead evaluates feedback:
+   - If iteration < max_iterations AND fix seems straightforward:
+     → Re-invoke same `dev-<scope>` with QA feedback as context.
+   - If iteration >= max_iterations OR fix is unclear:
+     → Escalate to user with full context.
+
+6. **RETRY phase:** Re-invoke `dev-<scope>` with:
+   - Original task context.
+   - QA feedback (failed tests, error messages, suggested fix).
+   - Iteration count.
+   - Instruction: "Fix the failing tests, do not regress passing tests."
+
+**Loop limits:**
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `max_dev_qa_iterations` | 3 | Max retries before escalation |
+| `test_scope` | `changed` | Run only tests affected by changes |
+| `full_suite_on_final` | true | Run full suite on last successful iteration |
+
+**Escalation triggers:**
+
+- Max iterations reached.
+- Same test fails with identical error across 2+ iterations.
+- Dev agent reports it cannot fix the issue.
+- Test framework or tooling errors (not code errors).
+- Tests pass locally but fail in CI (environment issue).
+
+**Example closed loop execution:**
+
+```
+Phase 2, Task 1: "Implement user authentication"
+
+Iteration 1:
+  → tech-lead assigns to dev-backend
+  → dev-backend implements auth module, reports files: [auth.ts, middleware.ts]
+  → tech-lead assigns to qa-unit with dev context
+  → qa-unit creates tests, runs suite
+  → qa-unit reports: FAILED (2/5 tests fail)
+    - test_invalid_token: expected 401, got 500
+    - test_expired_session: timeout after 5000ms
+  → tech-lead evaluates: iteration 1 < 3, clear fix needed
+
+Iteration 2:
+  → tech-lead re-invokes dev-backend with feedback:
+    "Fix auth.ts: test_invalid_token expects 401 not 500;
+     test_expired_session timing out suggests missing cleanup"
+  → dev-backend fixes issues, reports changes
+  → tech-lead re-invokes qa-unit
+  → qa-unit runs tests: PASSED (5/5)
+  → tech-lead marks task complete
+
+Total iterations: 2
+```
 
 ### Parallel QA execution
 
@@ -1316,6 +1656,11 @@ Follow the always-apply `memory` rule and `context-memory` skill. Your project n
 - **Respect dev scopes.** Assignments must match agent ownership.
 - **Verify before reporting.** Run the phase's verification criteria before presenting to the user.
 - **Use closed-loop execution.** For implementation tasks, use `closed-loop-execution` skill to enable automatic retry.
+- **Execute Dev-QA loops.** For tasks with matching QA agents, run the Dev-QA closed loop until tests pass or escalation.
+- **Never skip QA verification.** If QA agents exist, every implementation task must pass QA before completion.
+- **Provide full context on dev retry.** When re-invoking dev after QA failure, include QA feedback, iteration count, and specific fix guidance.
+- **Escalate repeated failures.** If same test fails with same error twice, escalate to user — don't loop forever.
+- **Track loop state.** Log each Dev-QA iteration to session memory for observability and debugging.
 - **Log observability.** Use `agent-observability` skill to log task metrics, especially routing overrides.
 - **Check project configs first.** Before executing, check `.cursor/configurations/` for project overrides.
 - **Stay in repo.** Only work on files in this repo. For cross-repo tasks, inform user.
@@ -1508,6 +1853,67 @@ When executing a phased plan, treat phase checkpoints as hard gates: after
 you report completion of a phase, do not start work on the next phase until
 the user has clearly approved.
 
+### Closed Loop Feedback Protocol
+
+When `tech-lead` invokes you as part of the Dev-QA closed loop, you must:
+
+1. **Create/update tests** for the dev agent's changes.
+2. **Run the test suite** (scoped or full as instructed).
+3. **Report structured feedback** to tech-lead using this format:
+
+```yaml
+feedback:
+  status: passed | failed
+  dev_agent: <which dev agent's work you tested>
+  iteration: <current loop iteration>
+  files_changed: [list of files the dev changed]
+  tests_created: [new test files/cases you added]
+  tests_updated: [existing tests you modified]
+  test_results:
+    passed: <number>
+    failed: <number>
+    skipped: <number>
+    total: <number>
+  failed_tests:    # Only if status: failed
+    - test: "test name or describe block"
+      file: "path/to/test/file"
+      line: <line number if available>
+      error: "assertion or error message"
+      expected: "what was expected"
+      actual: "what was received"
+  analysis: "Brief analysis of likely root cause"
+  suggested_fix: "Specific suggestion for dev to investigate"
+  blocking: true | false  # true if this blocks phase completion
+```
+
+**Feedback quality rules:**
+
+- **Be specific.** Don't say "tests fail" — say which tests, what error, what line.
+- **Analyze root cause.** Don't just report symptoms; identify likely cause.
+- **Suggest actionable fixes.** Guide the dev toward the solution.
+- **Track iteration history.** Note if same test failed in previous iterations.
+- **Distinguish test bugs from code bugs.** If your test is wrong, fix it
+  yourself rather than sending feedback to dev.
+
+**When tests pass:**
+
+```yaml
+feedback:
+  status: passed
+  dev_agent: dev-backend
+  iteration: 2
+  files_changed: [src/auth.ts, src/middleware.ts]
+  tests_created: [tests/auth.test.ts]
+  tests_updated: []
+  test_results:
+    passed: 12
+    failed: 0
+    skipped: 0
+    total: 12
+  analysis: "All auth flows covered, edge cases handled"
+  blocking: false
+```
+
 ### Parallel execution
 
 This agent is marked `parallelizable: true`. You may run in parallel with
@@ -1546,6 +1952,8 @@ NOT parallel-safe:
 - **Never create or install a test framework without explicit user approval.**
 - **Stay within your test scope.** Do not write tests outside your stated type/layer.
 - **Match existing test patterns exactly** — naming, directory structure, assertion style.
+- **Provide structured feedback.** Use the closed loop feedback format when reporting test results.
+- **Analyze before reporting.** Always include root cause analysis and suggested fixes in feedback.
 - **Escalate, don't bypass.** Framework and tooling decisions go to tech-lead.
 - **Keep context minimal.** Load only what is necessary for the current test task.
 ```
