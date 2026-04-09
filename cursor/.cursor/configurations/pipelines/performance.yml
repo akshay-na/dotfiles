@@ -1,0 +1,54 @@
+name: performance
+description: Performance and reliability workflow — analysis, phased plan, implementation, observability and verification
+version: 1
+max_retries: 3
+
+stages:
+  - id: analyze
+    agent: vp-engineering
+    mode: plan
+    description: Analyze latency, throughput, resource use, concurrency, and reliability risks
+    inputs: [task_description, target_files, metrics_if_any]
+    outputs: [analysis, performance_recommendations]
+    timeout_minutes: 25
+
+  - id: plan
+    agent: cto
+    mode: plan
+    description: Create phased implementation plan with verification targets and rollback
+    inputs: [analysis, performance_recommendations]
+    outputs: [implementation_plan]
+    requires_approval: true
+    timeout_minutes: 20
+
+  - id: implement
+    agent: tech-lead
+    mode: agent
+    description: Execute optimizations and fixes per plan
+    inputs: [implementation_plan]
+    outputs: [code_changes]
+    timeout_minutes: 45
+    retry:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay_seconds: 5
+    rollback:
+      strategy: git_revert
+      description: "Revert performance-related commits"
+    skill: closed-loop-execution
+
+  - id: observability_review
+    agent: sre-lead
+    mode: plan
+    description: Confirm metrics, logging, tracing, and operational visibility for the change
+    inputs: [code_changes, implementation_plan]
+    outputs: [observability_review]
+    timeout_minutes: 15
+
+  - id: verify
+    agent: vp-engineering
+    mode: plan
+    description: Verify improvements against goals and check for regressions
+    inputs: [code_changes, analysis, observability_review]
+    outputs: [performance_verification]
+    timeout_minutes: 15

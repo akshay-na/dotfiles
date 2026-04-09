@@ -30,8 +30,8 @@ $RECYCLE.BIN/
 .vscode/
 *.code-workspace
 
-# Cursor
-.cursor/
+# Cursor (ignore top-level .cursor but NOT subdirs like cursor/.cursor)
+/.cursor/
 .cursorignore
 .cursorrules
 .cursorindexingignore

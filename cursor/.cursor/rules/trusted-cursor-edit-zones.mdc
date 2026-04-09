@@ -1,0 +1,34 @@
+---
+description: "Low-friction AI edits under ~/.cursor/memory, ~/.cursor/docs, and project .cursor/; symlink/stow targets require review"
+alwaysApply: false
+---
+# Trusted Cursor edit zones (review policy)
+
+## Paths treated as low-friction (do not flag for review on path alone)
+
+Agents may **create, update, move, or delete** files under these locations **without** treating the change as needing extra human review **solely because** of where the file lives:
+
+| Scope               | Path pattern                                                 |
+| ------------------- | ------------------------------------------------------------ |
+| Memory              | `$HOME/.cursor/memory/**`                                    |
+| User docs           | `$HOME/.cursor/docs/**`                                      |
+| Project Cursor tree | `<workspace>/.cursor/**` (rules, agents, skills, docs, etc.) |
+
+Use normal judgment for secrets, destructive operations, and project rules; this policy only removes **path-based** “needs review” friction for the zones above.
+
+## Exception: symlinks and stowed layouts (flag for review)
+
+Before editing any path that falls under the table above, **resolve whether the path is “real” or indirect**:
+
+1. **Symlink at any relevant segment**
+   If the file or any parent directory in the chain is a symbolic link (e.g. `~/.cursor` itself, or a subpath), **treat the operation as flagged for review**: confirm with the user and follow DotMate/dotfiles guidance (edit sources in the repo, use `make` / Stow — do not edit only the symlink target in `$HOME` ad hoc).
+
+2. **Stow / dotfiles-managed targets**
+   If the canonical resolved path lives under a dotfiles/stow source tree (typical: symlink from `$HOME` into a checked-out repo), **flag for review** the same way: prefer changing tracked sources and reinstalling/stowing rather than editing the deployed link target blindly.
+
+**Practical check (when unsure):** From a shell, `ls -ld <path>` / `readlink` / `realpath` (or equivalent) to see symlinks and canonical location before writing.
+
+## Summary
+
+- **Safe to proceed without path-based review:** ordinary files under `$HOME/.cursor/memory`, `$HOME/.cursor/docs`, and the workspace’s `.cursor/`, when those paths are **not** symlinked into a stow/dotfiles layout.
+- **Require review / correct workflow:** anything that is symlinked or resolves into stowed dotfiles sources.

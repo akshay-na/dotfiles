@@ -20,12 +20,9 @@ priority_bands:
     range: [0, 200]
     description: Suggestions, best practices - nice to have
 
-overrides:
-  - rule: local-overrides
-    can_override: [shell-conventions, toml-configs, git-conventions]
-  - rule: error-handling-and-security
-    enforcement: strict
-    priority: 900
+# Project-local override relationships (e.g. local-overrides -> conventions) live in
+# rule-priorities-dotfiles.yml or .cursor/configurations/rule-priorities-local.yml
+overrides: []
 
 rule_defaults:
   # Critical rules - security and error handling
@@ -51,43 +48,12 @@ rule_defaults:
     post_action: true
     tags: [memory, context]
 
-  # Structure rules - important for consistency
-  stow-structure:
-    priority: 700
+  docs-researcher:
+    priority: 650
     enforcement: strict
-    pre_action: true
-    post_action: true
-    tags: [structure, stow, dotfiles]
-
-  # Convention rules - advisory level
-  shell-conventions:
-    priority: 500
-    enforcement: advisory
     pre_action: false
     post_action: true
-    tags: [conventions, shell, bash, zsh]
-
-  git-conventions:
-    priority: 500
-    enforcement: advisory
-    pre_action: false
-    post_action: true
-    tags: [conventions, git, commits]
-
-  toml-configs:
-    priority: 500
-    enforcement: advisory
-    pre_action: false
-    post_action: true
-    tags: [conventions, toml, config]
-
-  # Override rule - allows local customization
-  local-overrides:
-    priority: 600
-    enforcement: advisory
-    pre_action: false
-    post_action: true
-    tags: [overrides, local]
+    tags: [documentation, research, mcp-broker]
 
   # Mode selection - important for agent behavior
   mode-auto-selection:
@@ -103,7 +69,7 @@ rule_defaults:
     enforcement: advisory
     pre_action: false
     post_action: true
-    tags: [documentation, decisions]
+    tags: [core, assistants]
 
   # Testing rules
   testing:

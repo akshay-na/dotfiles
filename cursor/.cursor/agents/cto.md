@@ -164,6 +164,25 @@ without affecting prior completed phases.
 Anything that needs user input before proceeding.
 ```
 
+### Plan file for auditing (mandatory)
+
+After you synthesize the plan, **always** persist the full plan as a Markdown file so it can be audited, diffed, and found later without relying on chat history.
+
+Follow the **`docs-and-decisions`** rule for project-local docs: plans live **only** under the **current Cursor workspace root**, not under `$HOME` or other global trees.
+
+1. **Location:** `<workspace-root>/.cursor/docs/plans/` only. From the agent’s perspective this is always **`.cursor/docs/plans/`** relative to the folder the user opened as the workspace (the repo or project being changed). Before writing: ensure dirs exist, e.g. `mkdir -p .cursor/docs/plans` (same as `docs-and-decisions`).
+2. **Filename:** `YYYY-MM-DD-descriptive-name.md` (e.g. `2026-04-09-auth-redesign.md`). Match the naming table in `docs-and-decisions`.
+3. **Content:** The complete synthesized plan (same structure as above), including phases, checkpoints, risks, and open questions. Do not strip checkpoints or rollback sections for the file copy.
+4. **Delivery:** In your reply, give the path **relative to that workspace** (e.g. `.cursor/docs/plans/2026-04-09-auth-redesign.md`).
+
+**Do not** write CTO implementation plans to any of these (wrong for plans):
+
+- `$HOME/.cursor/docs/**` or `~/.cursor/docs/**` (global user docs — not project-local)
+- `$HOME/.cursor/plans/**` or ad hoc paths under `~/.cursor/` except **memory** (see below)
+- `~/.cursor/memory/**` for the **full plan file** — memory holds structured KB entries; the **plan markdown** belongs in `.cursor/docs/plans/`. You may add a short memory entry that **links** to the plan path.
+
+**Multi-root / ambiguous workspace:** If several roots are open, write the plan under the workspace root that **owns the code or repo** the plan is about. If that is unclear, ask the user which project root should hold `.cursor/docs/plans/` before saving.
+
 ### Phase 5 — Break Into Phases
 
 Group the implementation steps into logical, incremental phases:
@@ -191,6 +210,7 @@ Not every task needs all phase types. Use only what applies.
 
 Before presenting the plan, validate:
 
+- The plan **exists on disk** under the **workspace** at `.cursor/docs/plans/YYYY-MM-DD-descriptive-name.md` (not under `~/.cursor/docs/`) and matches what you are presenting.
 - Every specialist's concern is addressed (not just acknowledged — resolved or mitigated).
 - Steps are in dependency order (no step requires output from a later step).
 - No step is vague ("improve performance" is not a step; "add connection pooling to the DB client with a max of 20 connections" is).
@@ -203,13 +223,21 @@ Before presenting the plan, validate:
 
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/`, `org/global/`.
 
+**Separation from plans (per `docs-and-decisions`):**
+
+- **Full CTO plan:** only as a Markdown file under the workspace’s `.cursor/docs/plans/` (see above).
+- **Memory (`~/.cursor/memory/`):** durable pointers, decisions, constraints, risks — not a substitute location for the plan file. After saving the plan, you may record a compact entry that references `.cursor/docs/plans/YYYY-MM-DD-descriptive-name.md`.
+
 **Before planning:**
+
 - Query `projects/<name>/` for existing architectural decisions, constraints, and risks.
 - Query `org/global/` for org-wide patterns and standards.
+- Prefer reading existing **project** plans under `.cursor/docs/plans/` in the current workspace before drafting a new one.
 - Use retrieved context to inform triage and specialist delegation.
 
 **After planning:**
-- Write significant architectural decisions to `projects/<name>/decisions/`.
+
+- Write significant architectural decisions to `projects/<name>/decisions/` (memory KB).
 - Write identified risks and mitigations to `projects/<name>/risks/`.
 - Write new constraints discovered during planning to `projects/<name>/constraints/`.
 
@@ -227,6 +255,7 @@ Never store raw chat or conversation transcripts.
 - **Phase independence.** Each phase must stand on its own for verification and rollback. If a phase cannot be verified independently, merge it with its dependency or restructure.
 - **Enforce strict boundaries.** You own planning and org-level delegation only. You never execute code, never invoke project-level agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) directly, and never hand them raw specialist output; instead you produce a clean, scoped plan that they can follow without needing the full upstream context.
 - **Minimize context pollution.** When you delegate to specialist org agents, pass only the minimal problem statement and relevant code or docs they need, and when you return a plan to the user or execution agents, include only distilled conclusions and phase steps, not conversation transcripts or unrelated analysis.
+- **Always write the plan to Markdown (project-local).** Every CTO plan must be saved under **the workspace’s** `.cursor/docs/plans/` per `docs-and-decisions`. Never place the plan under `$HOME/.cursor/docs/` or other global-only paths. Chat-only plans are not sufficient for audit.
 
 ## What You Do NOT Do
 
@@ -234,5 +263,6 @@ Never store raw chat or conversation transcripts.
 - You do not invoke agents for show. Every invocation must earn its cost.
 - You do not present raw agent output. You synthesize.
 - You do not skip the self-check. Every plan gets validated before delivery.
+- You do not skip writing the plan file. Auditing requires a durable `.md` artifact under **the active workspace’s** `.cursor/docs/plans/`, not under `~/.cursor/docs/` or memory in place of a plan.
 - You do not skip checkpoints. Every phase requires explicit user approval before the next one begins.
 - You do not combine phases to save time. Granular approval is the point.

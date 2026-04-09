@@ -52,31 +52,31 @@ Rules use YAML frontmatter with these fields:
 
 ```yaml
 ---
-description: string              # Required. What the rule does.
-globs: string                    # File patterns (e.g., "**/*.sh", "**/*.ts,**/*.tsx")
-alwaysApply: boolean             # If true, applies regardless of globs (default false)
-priority: number                 # 0-1000, higher wins on conflict (default 500)
-enforcement: strict | advisory | informational  # Default advisory
-pre_action: boolean              # Validate before agent writes (default false)
-post_action: boolean             # Validate after agent writes (default true)
-override_by: string[]            # Rules that can override this one
-tags: string[]                   # For categorization and filtering
+description: string # Required. What the rule does.
+globs: string # File patterns (e.g., "**/*.sh", "**/*.ts,**/*.tsx")
+alwaysApply: boolean # If true, applies regardless of globs (default false)
+priority: number # 0-1000, higher wins on conflict (default 500)
+enforcement: strict | advisory | informational # Default advisory
+pre_action: boolean # Validate before agent writes (default false)
+post_action: boolean # Validate after agent writes (default true)
+override_by: string[] # Rules that can override this one
+tags: string[] # For categorization and filtering
 ---
 ```
 
 ### Field Details
 
-| Field | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `description` | yes | — | Clear explanation of rule purpose |
-| `globs` | no | — | Comma-separated glob patterns for file matching |
-| `alwaysApply` | no | `false` | If `true`, rule applies to all files regardless of globs |
-| `priority` | no | `500` | Conflict resolution priority (0-1000) |
-| `enforcement` | no | `advisory` | How strictly to enforce violations |
-| `pre_action` | no | `false` | Run validation before file modifications |
-| `post_action` | no | `true` | Run validation after file modifications |
-| `override_by` | no | `[]` | List of rule names that can override this rule |
-| `tags` | no | `[]` | Tags for filtering and categorization |
+| Field         | Required | Default    | Description                                              |
+| ------------- | -------- | ---------- | -------------------------------------------------------- |
+| `description` | yes      | —          | Clear explanation of rule purpose                        |
+| `globs`       | no       | —          | Comma-separated glob patterns for file matching          |
+| `alwaysApply` | no       | `false`    | If `true`, rule applies to all files regardless of globs |
+| `priority`    | no       | `500`      | Conflict resolution priority (0-1000)                    |
+| `enforcement` | no       | `advisory` | How strictly to enforce violations                       |
+| `pre_action`  | no       | `false`    | Run validation before file modifications                 |
+| `post_action` | no       | `true`     | Run validation after file modifications                  |
+| `override_by` | no       | `[]`       | List of rule names that can override this rule           |
+| `tags`        | no       | `[]`       | Tags for filtering and categorization                    |
 
 ## Rule Discovery Protocol
 
@@ -126,11 +126,11 @@ When the same rule name exists at both levels:
 
 ### Priority Bands
 
-| Band | Range | Description |
-|------|-------|-------------|
-| **Critical** | 900-1000 | Security, error handling — must never be violated |
-| **Standard** | 400-600 | Conventions, style — should be followed |
-| **Informational** | 0-200 | Suggestions, best practices — nice to have |
+| Band              | Range    | Description                                       |
+| ----------------- | -------- | ------------------------------------------------- |
+| **Critical**      | 900-1000 | Security, error handling — must never be violated |
+| **Standard**      | 400-600  | Conventions, style — should be followed           |
+| **Informational** | 0-200    | Suggestions, best practices — nice to have        |
 
 ### Conflict Resolution
 
@@ -207,7 +207,7 @@ pre_action_result:
       severity: strict
       message: What would violate the rule
       suggested_fix: How to modify the planned change
-  proceed: boolean  # false if any strict violations
+  proceed: boolean # false if any strict violations
 ```
 
 ## Post-Action Validation Protocol
@@ -243,7 +243,7 @@ post_action_result:
       message: What violated the rule
       suggested_fix: How to fix it
       auto_fixable: boolean
-      fixed: boolean  # true if auto-fixed
+      fixed: boolean # true if auto-fixed
   rules_checked: [rule1, rule2, rule3]
   files_validated: [file1.ts, file2.ts]
 ```
@@ -254,14 +254,14 @@ Each violation includes:
 
 ```yaml
 violations:
-  - rule: rule-name           # Name of the violated rule
-    file: path/to/file        # Full path to the file
-    line: number              # Line number if applicable, null otherwise
-    severity: strict          # strict | advisory | informational
-    message: "what violated"  # Clear description of the violation
+  - rule: rule-name # Name of the violated rule
+    file: path/to/file # Full path to the file
+    line: number # Line number if applicable, null otherwise
+    severity: strict # strict | advisory | informational
+    message: "what violated" # Clear description of the violation
     suggested_fix: "how to fix" # Actionable fix instruction
-    auto_fixable: boolean     # true if agent can fix automatically
-    code_context: |           # Optional: surrounding code for context
+    auto_fixable: boolean # true if agent can fix automatically
+    code_context: | # Optional: surrounding code for context
       relevant code snippet
 ```
 
@@ -302,13 +302,13 @@ For violations marked `auto_fixable: true`:
 
 ### 1. Determine Fix Type
 
-| Fix Type | Description | Example |
-|----------|-------------|---------|
-| `format` | Code formatting | Indentation, line length |
-| `import_order` | Import statement ordering | Alphabetize imports |
-| `header` | Add/update header comments | Shell file headers |
-| `trailing_whitespace` | Remove trailing whitespace | Line cleanup |
-| `newline_eof` | Ensure newline at end of file | File endings |
+| Fix Type              | Description                   | Example                  |
+| --------------------- | ----------------------------- | ------------------------ |
+| `format`              | Code formatting               | Indentation, line length |
+| `import_order`        | Import statement ordering     | Alphabetize imports      |
+| `header`              | Add/update header comments    | Shell file headers       |
+| `trailing_whitespace` | Remove trailing whitespace    | Line cleanup             |
+| `newline_eof`         | Ensure newline at end of file | File endings             |
 
 ### 2. Apply Fix
 
