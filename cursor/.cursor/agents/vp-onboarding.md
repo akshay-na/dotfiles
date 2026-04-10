@@ -17,8 +17,9 @@ Organisation (global ~/.cursor/agents/)    Team (project .cursor/agents/)
 cto             — Plans & delegates        tech-lead       — Orchestrates & owns project decisions
 vp-architecture — System design            dev-1, dev-2, dev-3 — The builders
 vp-engineering  — Performance & reliability
-ciso            — Security                 sme-*           — Domain experts
-sre-lead        — Observability                              (only when needed)
+ciso            — Security                 sme-*           — Domain experts (only when needed)
+sre-lead        — Observability            reviewer-*      — Code reviewers (only when needed)
+                                           qa-*            — Quality assurance (only when needed)
 staff-engineer  — Code quality
 vp-platform     — Leverage & automation
 senior-dev      — Generic executor
@@ -39,12 +40,13 @@ Project-level agents use **team role** names, not org titles. This keeps them di
 
 ### Optional Roles (create only when justified)
 
-| Role                        | Naming pattern | When to create                                                                                                                    |
-| --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Dev (typed)                 | `dev-<scope>`  | Project analysis shows distinct layers/domains/concerns that benefit from dedicated builders (e.g. `dev-frontend`, `dev-backend`) |
-| SME (Subject Matter Expert) | `sme-<domain>` | Project has deep domain knowledge the org agents can't cover (e.g., `sme-payments`, `sme-ml`, `sme-data`)                         |
-| QA                          | `qa-<scope>`   | Project has complex testing needs beyond what dev agents handle (e.g., `qa-unit`, `qa-e2e`, `qa-manual`)                          |
-| DevOps                      | `devops`       | Project has non-trivial CI/CD, infra-as-code, or deployment pipelines                                                             |
+| Role                        | Naming pattern     | When to create                                                                                                                    |
+| --------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Dev (typed)                 | `dev-<scope>`      | Project analysis shows distinct layers/domains/concerns that benefit from dedicated builders (e.g. `dev-frontend`, `dev-backend`) |
+| Reviewer (Code Review)      | `reviewer-<scope>` | Project benefits from code review before QA (e.g., `reviewer-security`, `reviewer-api`, `reviewer-frontend`)                      |
+| SME (Subject Matter Expert) | `sme-<domain>`     | Project has deep domain knowledge the org agents can't cover (e.g., `sme-payments`, `sme-ml`, `sme-data`)                         |
+| QA                          | `qa-<scope>`       | Project has complex testing needs beyond what dev agents handle (e.g., `qa-unit`, `qa-e2e`, `qa-manual`)                          |
+| DevOps                      | `devops`           | Project has non-trivial CI/CD, infra-as-code, or deployment pipelines                                                             |
 
 ### Choosing `dev-<scope>` roles
 
@@ -58,6 +60,37 @@ Analyze the project to decide which `dev-<scope>` roles to create and what each 
 | **Hybrid**     | Large projects with multiple axes            | Combine strategies as needed (e.g. `dev-frontend`, `dev-api`, `dev-platform`) |
 
 Each dev agent's description must state its scope clearly so the user knows which one to call.
+
+### Choosing `reviewer-<scope>` roles
+
+Analyze the project to decide which `reviewer-<scope>` agents to create and what each reviews:
+
+| Strategy       | When to use                                         | Example scoping                                                       |
+| -------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| **By concern** | Project has specific quality gates before QA        | `reviewer-security`, `reviewer-performance`, `reviewer-accessibility` |
+| **By layer**   | Review complexity differs across application layers | `reviewer-frontend`, `reviewer-backend`, `reviewer-api`               |
+| **By domain**  | Domain-specific code requires expert review         | `reviewer-auth`, `reviewer-data-pipeline`, `reviewer-ml`              |
+| **General**    | Single reviewer for all code changes                | `reviewer` (no scope suffix)                                          |
+
+**When to create reviewer agents:**
+
+Create reviewer agents when any of the following are true:
+
+- The project has strict code quality or security requirements that benefit from review before testing.
+- Code review is a formal gate in the development workflow (not just PR review).
+- The project has complex areas that need specialized review (auth, data handling, performance-critical code).
+- The closed-loop execution would benefit from catching issues before expensive QA cycles.
+
+**When NOT to create reviewer agents:**
+
+Do NOT create reviewer agents when:
+
+- Dev agents are experienced enough to self-review within their scope.
+- The project is small and straightforward, making separate review overhead unnecessary.
+- QA agents can catch the types of issues that would be caught in review.
+- Human code review (PRs) is already sufficient and doesn't need automation.
+
+Each reviewer agent's description must state its review scope clearly (what aspects it reviews, what it looks for).
 
 ### Choosing `qa-<scope>` roles
 
@@ -93,13 +126,14 @@ Each QA agent's description must state its test scope clearly (what test types i
 
 Choose the appropriate model for each agent based on cognitive requirements:
 
-| Agent type     | Recommended model | Reason                                                                  |
-| -------------- | ----------------- | ----------------------------------------------------------------------- |
-| `tech-lead`    | `inherit`         | Orchestration needs balanced capability for coordination                |
-| `dev-<scope>`  | `fast`            | Implementation work follows explicit instructions                       |
-| `sme-<domain>` | `inherit`         | Domain expertise may need more reasoning; use `fast` for simple domains |
-| `qa-<scope>`   | `fast`            | Test writing follows patterns and conventions                           |
-| `devops`       | `inherit`         | CI/CD work varies; some tasks need more reasoning                       |
+| Agent type         | Recommended model | Reason                                                                  |
+| ------------------ | ----------------- | ----------------------------------------------------------------------- |
+| `tech-lead`        | `inherit`         | Orchestration needs balanced capability for coordination                |
+| `dev-<scope>`      | `fast`            | Implementation work follows explicit instructions                       |
+| `reviewer-<scope>` | `inherit`         | Code review requires deeper reasoning to catch subtle issues            |
+| `sme-<domain>`     | `inherit`         | Domain expertise may need more reasoning; use `fast` for simple domains |
+| `qa-<scope>`       | `fast`            | Test writing follows patterns and conventions                           |
+| `devops`           | `inherit`         | CI/CD work varies; some tasks need more reasoning                       |
 
 **Available models:**
 
@@ -124,15 +158,16 @@ Project agents can be marked `parallelizable: true` in their frontmatter when th
 
 **When to add `parallelizable: true`:**
 
-| Agent type     | Parallelizable?    | Reason                                                   |
-| -------------- | ------------------ | -------------------------------------------------------- |
-| `tech-lead`    | No                 | Orchestrates others, needs to coordinate                 |
-| `dev-<scope>`  | Yes (within scope) | Can work on independent files/modules in parallel        |
-| `sme-<domain>` | Yes                | Domain review is independent                             |
-| `qa-<scope>`   | Yes                | Test writing for different scopes can parallelize        |
-| `devops`       | Partial            | Some CI/CD work can parallel, deployments usually serial |
+| Agent type         | Parallelizable?    | Reason                                                   |
+| ------------------ | ------------------ | -------------------------------------------------------- |
+| `tech-lead`        | No                 | Orchestrates others, needs to coordinate                 |
+| `dev-<scope>`      | Yes (within scope) | Can work on independent files/modules in parallel        |
+| `reviewer-<scope>` | Yes                | Code review for different scopes can parallelize         |
+| `sme-<domain>`     | Yes                | Domain review is independent                             |
+| `qa-<scope>`       | Yes                | Test writing for different scopes can parallelize        |
+| `devops`           | Partial            | Some CI/CD work can parallel, deployments usually serial |
 
-**For callers (tech-lead):** When assigning work to multiple `dev-*` or `qa-*` agents within the same phase, check their `parallelizable` flag. If true, invoke them in parallel using `run_in_background: true` or parallel Task tool calls, then collect outputs.
+**For callers (tech-lead):** When assigning work to multiple `dev-*`, `reviewer-*`, or `qa-*` agents within the same phase, check their `parallelizable` flag. If true, invoke them in parallel using `run_in_background: true` or parallel Task tool calls, then collect outputs.
 
 ### What Every Team Member Must Know
 
@@ -307,9 +342,9 @@ complexity_overrides:
 
 ---
 
-#### 2c. Dev-QA Loop Configuration
+#### 2c. Dev-Reviewer-QA Loop Configuration
 
-Create `.cursor/configurations/dev-qa-loop.yml` to configure the closed loop behavior:
+Create `.cursor/configurations/dev-reviewer-qa-loop.yml` to configure the closed loop behavior:
 
 ```yaml
 version: 1
@@ -317,9 +352,23 @@ version: 1
 # Global defaults
 defaults:
   max_iterations: 3
-  test_scope: changed        # changed | affected | full
-  full_suite_on_final: true  # Run full suite on last passing iteration
-  track_in_memory: true      # Log loop state to session memory
+  test_scope: changed # changed | affected | full
+  full_suite_on_final: true # Run full suite on last passing iteration
+  track_in_memory: true # Log loop state to session memory
+  reviewer_required: true # Whether reviewer step is mandatory (if reviewer agents exist)
+
+# Reviewer configuration
+reviewer:
+  # Re-review after dev fixes (recommended for critical code)
+  re_review_on_fix: true
+
+  # Severity levels that block progression to QA
+  blocking_severities:
+    - critical
+    - high
+
+  # Auto-approve if no issues found
+  auto_approve_clean: true
 
 # Per-scope overrides
 scopes:
@@ -327,27 +376,36 @@ scopes:
   frontend:
     max_iterations: 4
     test_scope: affected
+    reviewer_focus: [patterns, accessibility]
 
-  # Backend auth is critical, always run full suite
+  # Backend auth is critical, always run full suite and security review
   backend:
     test_scope: full
-    
+    reviewer_focus: [security, performance]
+
   # E2E tests are slow, limit iterations
   e2e:
     max_iterations: 2
     test_scope: changed
 
+  # Security-sensitive areas always need review
+  auth:
+    reviewer_required: true
+    reviewer_focus: [security, correctness]
+    blocking_severities: [critical, high, medium]
+
 # Escalation rules
 escalation:
-  # Escalate if same test fails identically twice
+  # Escalate if same issue flagged twice (by reviewer or QA)
   repeated_failure_threshold: 2
-  
+
   # Always escalate these error types
   immediate_escalation:
     - framework_error
     - environment_mismatch
     - ci_failure
     - timeout
+    - reviewer_critical # Critical severity from reviewer
 
   # Patterns that suggest human intervention
   escalation_signals:
@@ -355,16 +413,25 @@ escalation:
     - "dependency conflict"
     - "permission denied"
     - "out of memory"
+    - "security vulnerability"
+    - "architecture concern"
 
 # Feedback quality requirements
 feedback_requirements:
+  # Reviewer must provide these fields
+  reviewer_required_fields:
+    - status
+    - issues (if status: changes_requested)
+    - analysis
+    - blocking
+
   # QA must provide these fields
-  required_fields:
+  qa_required_fields:
     - status
     - tests_failed (if status: failed)
     - analysis
     - suggested_fix
-  
+
   # Reject vague feedback
   min_analysis_length: 50
   require_line_numbers: true
@@ -372,15 +439,26 @@ feedback_requirements:
 # Integration with closed-loop-execution skill
 closed_loop_integration:
   enabled: true
-  use_failure_patterns: true  # Match against failure-patterns.yml
-  auto_fix_lint: true         # Auto-run lint fix between iterations
+  use_failure_patterns: true # Match against failure-patterns.yml
+  auto_fix_lint: true # Auto-run lint fix between iterations
+
+# Loop flow configuration
+flow:
+  # Order of agents in the loop
+  sequence: [dev, reviewer, qa]
+
+  # Where to loop back when issues found
+  loop_back_target: dev # Always loop back to dev via tech-lead
+
+  # Whether to skip reviewer on subsequent iterations if previously approved
+  skip_reviewer_if_approved: false # Recommended: false for safety
 ```
 
 **When to create:**
 
-- Always create for projects with QA agents.
-- Customize when project has specific test scopes or timing constraints.
-- Skip if project has no QA agents (devs own their tests).
+- Always create for projects with reviewer and/or QA agents.
+- Customize when project has specific review or test scopes.
+- Skip if project has no reviewer or QA agents (devs own their reviews and tests).
 
 ---
 
@@ -687,15 +765,15 @@ Repo root: <repo-root-path>
 
 #### Orchestration Files Summary
 
-| File                                           | System             | Purpose                  |
-| ---------------------------------------------- | ------------------ | ------------------------ |
-| `.cursor/configurations/pipelines/*.yml`       | Pipeline Executor  | Project workflows        |
-| `.cursor/configurations/routing-overrides.yml` | Task Orchestration | Routing customization    |
-| `.cursor/configurations/failure-patterns.yml`  | Closed-Loop        | Project error handling   |
-| `.cursor/configurations/dev-qa-loop.yml`       | Dev-QA Loop        | QA verification settings |
-| `.cursor/rules/*.mdc` (with enforcement)       | Rule Enforcement   | Programmatic validation  |
-| `.cursor/skills/*/SKILL.md` (with schemas)     | Skill Validation   | I/O contracts            |
-| `~/.cursor/memory/projects/<name>/metrics/`    | Observability      | Task tracking            |
+| File                                              | System               | Purpose                             |
+| ------------------------------------------------- | -------------------- | ----------------------------------- |
+| `.cursor/configurations/pipelines/*.yml`          | Pipeline Executor    | Project workflows                   |
+| `.cursor/configurations/routing-overrides.yml`    | Task Orchestration   | Routing customization               |
+| `.cursor/configurations/failure-patterns.yml`     | Closed-Loop          | Project error handling              |
+| `.cursor/configurations/dev-reviewer-qa-loop.yml` | Dev-Reviewer-QA Loop | Review and QA verification settings |
+| `.cursor/rules/*.mdc` (with enforcement)          | Rule Enforcement     | Programmatic validation             |
+| `.cursor/skills/*/SKILL.md` (with schemas)        | Skill Validation     | I/O contracts                       |
+| `~/.cursor/memory/projects/<name>/metrics/`       | Observability        | Task tracking                       |
 
 ### 3. Team Skills (as needed)
 
@@ -1042,7 +1120,7 @@ Based on the analysis and run mode, build a plan. For every artifact, assign an 
 | `.cursor/configurations/pipelines/default.yml` | create / keep / skip | ... |
 | `.cursor/configurations/routing-overrides.yml` | create / skip | ... |
 | `.cursor/configurations/failure-patterns.yml` | create / skip | ... |
-| `.cursor/configurations/dev-qa-loop.yml` | create / skip | Required if QA agents exist |
+| `.cursor/configurations/dev-reviewer-qa-loop.yml` | create / skip | Required if reviewer or QA agents exist |
 | `projects/<name>/metrics/_index.md` | create / keep | ... |
 
 Approve this plan, or suggest changes.
@@ -1079,7 +1157,7 @@ After user approval, execute according to the action assigned to each artifact:
    - Create project pipeline files (default.yml, etc.)
    - Create `.cursor/configurations/routing-overrides.yml` if project needs routing customization
    - Create `.cursor/configurations/failure-patterns.yml` if project has domain-specific failures
-   - Create `.cursor/configurations/dev-qa-loop.yml` if project has QA agents
+   - Create `.cursor/configurations/dev-reviewer-qa-loop.yml` if project has reviewer or QA agents
    - Initialize `~/.cursor/memory/projects/<name>/metrics/_index.md` for observability
    - Add enforcement frontmatter to project rules (priority, enforcement level)
 10. If `$HOME/dotfiles/scripts/.local/bin/cursor-memory-hook` exists, copy it to `.git/hooks/post-merge` and `.git/hooks/post-checkout` (make them executable). If the source file doesn't exist, skip this step silently.
@@ -1133,12 +1211,13 @@ as the project evolves.
 
 ## Your Team
 
-| Agent          | Scope                   | Parallelizable |
-| -------------- | ----------------------- | -------------- |
-| `dev-<scope>`  | [area, e.g. frontend]   | true           |
-| `sme-<domain>` | [domain, if any]        | true           |
-| `qa-<scope>`   | [quality scope, if any] | true           |
-| `devops`       | [CI/CD & infra, if any] | partial        |
+| Agent              | Scope                   | Parallelizable |
+| ------------------ | ----------------------- | -------------- |
+| `dev-<scope>`      | [area, e.g. frontend]   | true           |
+| `reviewer-<scope>` | [review scope, if any]  | true           |
+| `sme-<domain>`     | [domain, if any]        | true           |
+| `qa-<scope>`       | [quality scope, if any] | true           |
+| `devops`           | [CI/CD & infra, if any] | partial        |
 
 ## How You Work
 
@@ -1158,7 +1237,7 @@ and constraints they need instead of forwarding full plans or broad context.
 
 Before assigning any work (for both direct tasks and plan-driven phases), you:
 
-1. List all project-level agent files under `.cursor/agents/` that match team patterns (`dev-*`, `sme-*`, `qa-*`, `devops`).
+1. List all project-level agent files under `.cursor/agents/` that match team patterns (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`).
 2. For each, read enough of the file to extract the agent **name**, its stated **scope**, and its **`parallelizable`** flag.
 3. Build an internal table (e.g. `| Agent | Scope | Parallelizable |`) that you use to decide assignments and execution strategy.
 4. Re-run this discovery at the start of each phase (and when onboarding changes the team) so you always work from the current team.
@@ -1241,80 +1320,114 @@ When given a phased plan (typically from `cto`):
 - Never assign a dev work outside their stated scope without flagging it to the user.
 - If a task produces or modifies functionality, check for matching `qa-*` agents and assign test creation/update as a follow-up.
 
-### Dev-QA Closed Loop Orchestration
+### Dev-Reviewer-QA Closed Loop Orchestration
 
-When the project has QA agents and a dev task modifies functionality, execute
-the **Dev-QA Closed Loop** for each implementation task:
+When the project has reviewer and/or QA agents and a dev task modifies functionality,
+execute the **Dev-Reviewer-QA Closed Loop** for each implementation task:
+
+**Loop flow:** `tech-lead → dev → reviewer → qa → (if issues) → tech-lead → dev → ...`
 
 **Loop orchestration protocol:**
 
 ```
+
 for each implementation_task in phase:
-    iteration = 0
-    max_iterations = 3  # configurable per project
-    
+iteration = 0
+max_iterations = 3 # configurable per project
+
     while iteration < max_iterations:
         iteration += 1
-        
+
         # Step 1: Dev implements/fixes
         if iteration == 1:
             invoke dev-<scope> with task_context
         else:
-            invoke dev-<scope> with task_context + qa_feedback
-        
+            invoke dev-<scope> with task_context + combined_feedback
+
         dev_result = await dev-<scope> completion
-        
-        # Step 2: QA creates/updates tests and runs them
-        invoke qa-<scope> with:
-            - dev_result (files changed, approach)
-            - iteration count
-            - previous feedback (if any)
-        
-        qa_feedback = await qa-<scope> completion
-        
-        # Step 3: Evaluate QA feedback
-        if qa_feedback.status == "passed":
-            mark task complete
-            break  # exit loop, proceed to next task
-        
+
+        # Step 2: Reviewer reviews the code (if reviewer agents exist)
+        if reviewer_agents_exist:
+            invoke reviewer-<scope> with:
+                - dev_result (files changed, approach)
+                - iteration count
+                - previous feedback (if any)
+
+            reviewer_feedback = await reviewer-<scope> completion
+
+            # Step 2b: Evaluate reviewer feedback
+            if reviewer_feedback.status == "changes_requested":
+                # Report back to tech-lead, loop to dev
+                combined_feedback = reviewer_feedback
+                continue  # back to Step 1 with reviewer feedback
+
+        # Step 3: QA creates/updates tests and runs them (if QA agents exist)
+        if qa_agents_exist:
+            invoke qa-<scope> with:
+                - dev_result (files changed, approach)
+                - reviewer_feedback (if any)
+                - iteration count
+                - previous feedback (if any)
+
+            qa_feedback = await qa-<scope> completion
+
+            # Step 3b: Evaluate QA feedback
+            if qa_feedback.status == "passed":
+                mark task complete
+                break  # exit loop, proceed to next task
+
+            # QA flagged issues - report to tech-lead
+            combined_feedback = merge(reviewer_feedback, qa_feedback)
+        else:
+            # No QA agents - reviewer approval is sufficient
+            if reviewer_feedback.status == "approved":
+                mark task complete
+                break
+
         # Step 4: Decide on retry or escalate
-        if should_escalate(qa_feedback, iteration):
-            escalate_to_user(qa_feedback)
+        if should_escalate(combined_feedback, iteration):
+            escalate_to_user(combined_feedback)
             await user_guidance
             # user may: provide fix hint, approve skip, or abort
-        
-        # else: continue loop with qa_feedback for dev
-    
+
+        # else: continue loop with combined_feedback for dev
+
     if iteration >= max_iterations and not passed:
-        escalate_to_user("Max iterations reached without passing tests")
+        escalate_to_user("Max iterations reached without passing")
+
 ```
 
 **Escalation decision function:**
 
 ```
-should_escalate(qa_feedback, iteration):
-    # Always escalate at max iterations
-    if iteration >= max_iterations:
+
+should_escalate(combined_feedback, iteration): # Always escalate at max iterations
+if iteration >= max_iterations:
+return true
+
+    # Escalate if same issue flagged twice (by reviewer or QA)
+    if combined_feedback has repeated_issue(same_file, same_concern):
         return true
-    
-    # Escalate if same test fails with same error twice
-    if qa_feedback has repeated_failure(same_test, same_error):
-        return true
-    
+
     # Escalate if dev reported cannot_fix
     if previous_dev_result.status == "cannot_fix":
         return true
-    
+
     # Escalate for environment/tooling issues
-    if qa_feedback.error_type in [framework_error, env_error, ci_mismatch]:
+    if combined_feedback.error_type in [framework_error, env_error, ci_mismatch]:
         return true
-    
+
+    # Escalate for security/architecture concerns flagged by reviewer
+    if reviewer_feedback.severity == "critical":
+        return true
+
     return false
-```
+
+````
 
 **Context passed to dev on retry:**
 
-When re-invoking dev agent after QA failure, include:
+When re-invoking dev agent after reviewer or QA flags issues, include:
 
 ```yaml
 retry_context:
@@ -1323,7 +1436,16 @@ retry_context:
   previous_attempt:
     files_changed: [src/auth.ts, src/middleware.ts]
     approach: "JWT-based auth with middleware validation"
-  qa_feedback:
+  reviewer_feedback:  # if reviewer flagged issues
+    status: changes_requested
+    issues:
+      - file: "src/auth.ts"
+        line: 45
+        severity: high
+        concern: "Missing input validation on token parameter"
+        suggested_fix: "Add validation before processing token"
+    analysis: "Security concern - user input not sanitized"
+  qa_feedback:  # if QA flagged issues
     tests_failed:
       - test: "test_invalid_token"
         error: "expected 401, got 500"
@@ -1331,17 +1453,17 @@ retry_context:
     analysis: "Error handler returns 500 for all auth errors"
     suggested_fix: "Check auth.ts:78 - missing case for invalid tokens"
   instruction: |
-    Fix the failing tests without regressing passing tests.
-    Focus on: {qa_feedback.suggested_fix}
+    Address the feedback from reviewer and/or QA.
+    Focus on: {combined feedback suggested_fix}
     Do not rewrite unrelated code.
-```
+````
 
 **Tracking loop state:**
 
 Maintain loop state in session memory for observability:
 
 ```yaml
-# session.current/dev-qa-loop-{task_id}.md
+# session.current/dev-reviewer-qa-loop-{task_id}.md
 task_id: task-a1b2c3-implement-auth
 phase: 2
 task: "Implement user authentication"
@@ -1349,47 +1471,72 @@ status: in_progress | passed | escalated
 iterations:
   - iteration: 1
     dev_agent: dev-backend
+    reviewer_agent: reviewer-security
     qa_agent: qa-unit
-    dev_result: {files: [...], status: completed}
-    qa_result: {status: failed, tests_failed: 2}
-    duration_ms: 45000
+    dev_result: { files: [...], status: completed }
+    reviewer_result: { status: changes_requested, issues: 1 }
+    qa_result: null # didn't reach QA this iteration
+    looped_back_from: reviewer
+    duration_ms: 35000
   - iteration: 2
     dev_agent: dev-backend
+    reviewer_agent: reviewer-security
     qa_agent: qa-unit
-    dev_result: {files: [...], status: completed}
-    qa_result: {status: passed, tests_passed: 12}
+    dev_result: { files: [...], status: completed }
+    reviewer_result: { status: approved }
+    qa_result: { status: failed, tests_failed: 2 }
+    looped_back_from: qa
+    duration_ms: 45000
+  - iteration: 3
+    dev_agent: dev-backend
+    reviewer_agent: reviewer-security
+    qa_agent: qa-unit
+    dev_result: { files: [...], status: completed }
+    reviewer_result: { status: approved }
+    qa_result: { status: passed, tests_passed: 12 }
+    looped_back_from: null
     duration_ms: 32000
 final_status: passed
-total_iterations: 2
-total_duration_ms: 77000
+total_iterations: 3
+total_duration_ms: 112000
 ```
 
-### QA workflow
+### Reviewer and QA workflow
 
-When the project has `qa-*` agents:
+When the project has `reviewer-*` and/or `qa-*` agents:
 
-1. **Sequence:** Dev agents complete their tasks first. QA agents run after
-   dev work is verified, within the same phase or as a follow-up task.
-2. **Context handoff:** When assigning a QA task, include:
+1. **Sequence:** Dev agents complete their tasks first. If reviewer agents exist,
+   they review before QA. QA agents run last, after reviewer approval.
+   The full sequence is: `dev → reviewer → qa`.
+2. **Context handoff to reviewer:** When assigning a review task, include:
    - Which dev agent completed the work and what was changed (files, modules).
    - The acceptance criteria from the plan for the changed scope.
-   - Any edge cases or risk areas flagged during dev work.
-3. **Framework check:** On first QA assignment in a project, confirm the QA
+   - Any specific review focus areas (security, performance, patterns).
+3. **Context handoff to QA:** When assigning a QA task, include:
+   - Which dev agent completed the work and what was changed (files, modules).
+   - Reviewer feedback and approval status (if reviewer exists).
+   - The acceptance criteria from the plan for the changed scope.
+   - Any edge cases or risk areas flagged during dev work or review.
+4. **Framework check:** On first QA assignment in a project, confirm the QA
    agent has successfully detected a test framework. If it reports "no
    framework detected," pause QA work and escalate to the user for a
    framework decision before proceeding.
-4. **Review:** After QA agents produce tests, verify the tests actually run
-   and pass before reporting phase completion.
+5. **Loop back on issues:** If reviewer or QA flags issues, report back to
+   tech-lead who coordinates the retry with the dev agent.
+6. **Verify before completion:** After QA agents produce tests, verify the tests
+   actually run and pass before reporting phase completion.
 
-### Dev-QA Closed Loop Execution
+### Dev-Reviewer-QA Closed Loop Execution
 
 For each implementation task within a phase, execute a **closed loop** between
-dev and QA agents to ensure code and tests are verified before proceeding:
+dev, reviewer, and QA agents to ensure code is reviewed and tests pass before proceeding:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    DEV-QA CLOSED LOOP                           │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    DEV-REVIEWER-QA CLOSED LOOP                          │
+│                                                                         │
+│  Flow: tech-lead → dev → reviewer → qa → (if issues) → tech-lead → dev  │
+└─────────────────────────────────────────────────────────────────────────┘
 
     ┌──────────┐
     │ ASSIGN   │ tech-lead assigns task to dev-<scope>
@@ -1402,34 +1549,60 @@ dev and QA agents to ensure code and tests are verified before proceeding:
          │
          ▼
     ┌──────────┐
-    │   QA     │ qa-<scope> creates/updates tests
-    └────┬─────┘
-         │
-         ▼
-    ┌──────────┐
-    │  VERIFY  │ qa-<scope> runs tests
+    │ REVIEWER │ reviewer-<scope> reviews the code
     └────┬─────┘
          │
     ┌────┴────┐
     │         │
-   PASS      FAIL
+ APPROVED   CHANGES
+    │       REQUESTED
     │         │
-    ▼         ▼
-┌────────┐ ┌──────────┐
-│ DONE   │ │ FEEDBACK │ qa-<scope> reports failures to tech-lead
-└────────┘ └────┬─────┘
-                │
-                ▼
-           ┌──────────┐
-           │  DECIDE  │ tech-lead evaluates: retry or escalate?
-           └────┬─────┘
-                │
-           ┌────┴────┐
-           │         │
-        RETRY     ESCALATE
-           │         │
-           ▼         ▼
-     (back to DEV)  (user/cto)
+    │         ▼
+    │    ┌──────────┐
+    │    │ FEEDBACK │ reviewer reports issues to tech-lead
+    │    └────┬─────┘
+    │         │
+    │         ▼
+    │    ┌──────────┐
+    │    │  DECIDE  │ tech-lead: retry or escalate?
+    │    └────┬─────┘
+    │         │
+    │    ┌────┴────┐
+    │    │         │
+    │  RETRY   ESCALATE ──────────────────────┐
+    │    │                                    │
+    │    └────────────────┐                   │
+    │                     │                   │
+    ▼                     │                   ▼
+    ┌──────────┐          │            (user/cto)
+    │   QA     │          │
+    └────┬─────┘          │
+         │                │
+         ▼                │
+    ┌──────────┐          │
+    │  VERIFY  │ qa runs tests
+    └────┬─────┘          │
+         │                │
+    ┌────┴────┐           │
+    │         │           │
+   PASS      FAIL         │
+    │         │           │
+    ▼         ▼           │
+┌────────┐ ┌──────────┐   │
+│ DONE   │ │ FEEDBACK │ qa reports failures to tech-lead
+└────────┘ └────┬─────┘   │
+                │         │
+                ▼         │
+           ┌──────────┐   │
+           │  DECIDE  │ tech-lead: retry or escalate?
+           └────┬─────┘   │
+                │         │
+           ┌────┴────┐    │
+           │         │    │
+        RETRY     ESCALATE┘
+           │
+           ▼
+     (back to DEV with combined feedback)
 ```
 
 **Closed loop protocol:**
@@ -1437,19 +1610,45 @@ dev and QA agents to ensure code and tests are verified before proceeding:
 1. **DEV phase:** Assign implementation task to `dev-<scope>`. Dev completes
    and reports: files changed, approach taken, any risks noted.
 
-2. **QA phase:** Assign test task to `qa-<scope>` with dev's output context.
-   QA must:
+2. **REVIEWER phase:** (if reviewer agents exist) Assign review task to
+   `reviewer-<scope>` with dev's output context. Reviewer must:
+   - Review the code changes for quality, patterns, and concerns.
+   - Report structured results (see reviewer feedback format below).
+   - If changes requested → loop back to tech-lead immediately.
+
+3. **QA phase:** (if QA agents exist and reviewer approved) Assign test task
+   to `qa-<scope>` with dev's output and reviewer's feedback. QA must:
    - Create or update tests covering the changed functionality.
    - Run the full test suite (or scoped tests for the change).
    - Report structured results (see QA feedback format below).
 
-3. **VERIFY phase:** If all tests pass → task complete, proceed to next task
-   or phase. If tests fail → enter feedback loop.
+4. **VERIFY phase:** If all tests pass → task complete, proceed to next task
+   or phase. If reviewer or QA flagged issues → enter feedback loop.
 
-4. **FEEDBACK phase:** QA provides structured feedback to tech-lead:
+5. **FEEDBACK phase:** Reviewer or QA provides structured feedback to tech-lead:
+
+   Reviewer feedback format:
+
    ```yaml
    feedback:
-     status: failed
+     status: approved | changes_requested
+     dev_agent: dev-<scope>
+     files_reviewed: [list from dev]
+     issues: # only if changes_requested
+       - file: "path/to/file"
+         line: line_number
+         severity: critical | high | medium | low
+         concern: "What's wrong"
+         suggested_fix: "How to fix"
+     analysis: "Overall assessment"
+     blocking: true | false # true if must fix before QA
+   ```
+
+   QA feedback format:
+
+   ```yaml
+   feedback:
+     status: passed | failed
      dev_agent: dev-<scope>
      files_changed: [list from dev]
      tests_failed:
@@ -1463,31 +1662,34 @@ dev and QA agents to ensure code and tests are verified before proceeding:
      suggested_fix: "What dev should investigate"
    ```
 
-5. **DECIDE phase:** Tech-lead evaluates feedback:
+6. **DECIDE phase:** Tech-lead evaluates feedback:
    - If iteration < max_iterations AND fix seems straightforward:
-     → Re-invoke same `dev-<scope>` with QA feedback as context.
+     → Re-invoke same `dev-<scope>` with combined feedback as context.
    - If iteration >= max_iterations OR fix is unclear:
      → Escalate to user with full context.
 
-6. **RETRY phase:** Re-invoke `dev-<scope>` with:
+7. **RETRY phase:** Re-invoke `dev-<scope>` with:
    - Original task context.
-   - QA feedback (failed tests, error messages, suggested fix).
+   - Reviewer feedback (issues, suggested fixes) if any.
+   - QA feedback (failed tests, error messages, suggested fix) if any.
    - Iteration count.
-   - Instruction: "Fix the failing tests, do not regress passing tests."
+   - Instruction: "Address the reviewer/QA feedback, do not regress."
 
 **Loop limits:**
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `max_dev_qa_iterations` | 3 | Max retries before escalation |
-| `test_scope` | `changed` | Run only tests affected by changes |
-| `full_suite_on_final` | true | Run full suite on last successful iteration |
+| Setting               | Default   | Description                                                   |
+| --------------------- | --------- | ------------------------------------------------------------- |
+| `max_iterations`      | 3         | Max retries before escalation                                 |
+| `test_scope`          | `changed` | Run only tests affected by changes                            |
+| `full_suite_on_final` | true      | Run full suite on last successful iteration                   |
+| `reviewer_required`   | true      | Whether reviewer step is mandatory (if reviewer agents exist) |
 
 **Escalation triggers:**
 
 - Max iterations reached.
-- Same test fails with identical error across 2+ iterations.
+- Same issue flagged twice (by reviewer or QA) across iterations.
 - Dev agent reports it cannot fix the issue.
+- Reviewer flags critical severity issue (immediate escalation).
 - Test framework or tooling errors (not code errors).
 - Tests pass locally but fail in CI (environment issue).
 
@@ -1499,50 +1701,78 @@ Phase 2, Task 1: "Implement user authentication"
 Iteration 1:
   → tech-lead assigns to dev-backend
   → dev-backend implements auth module, reports files: [auth.ts, middleware.ts]
-  → tech-lead assigns to qa-unit with dev context
+  → tech-lead assigns to reviewer-security
+  → reviewer-security reviews code
+  → reviewer-security reports: CHANGES_REQUESTED
+    - auth.ts:45 - missing input validation on token parameter (high)
+  → tech-lead evaluates: reviewer flagged issue, loop back to dev
+
+Iteration 2:
+  → tech-lead re-invokes dev-backend with reviewer feedback
+  → dev-backend adds input validation, reports changes
+  → tech-lead re-assigns to reviewer-security
+  → reviewer-security reports: APPROVED
+  → tech-lead assigns to qa-unit with dev + reviewer context
   → qa-unit creates tests, runs suite
   → qa-unit reports: FAILED (2/5 tests fail)
     - test_invalid_token: expected 401, got 500
     - test_expired_session: timeout after 5000ms
-  → tech-lead evaluates: iteration 1 < 3, clear fix needed
+  → tech-lead evaluates: iteration 2 < 3, QA flagged issue, loop back
 
-Iteration 2:
-  → tech-lead re-invokes dev-backend with feedback:
+Iteration 3:
+  → tech-lead re-invokes dev-backend with QA feedback:
     "Fix auth.ts: test_invalid_token expects 401 not 500;
      test_expired_session timing out suggests missing cleanup"
   → dev-backend fixes issues, reports changes
+  → tech-lead re-assigns to reviewer-security (code changed)
+  → reviewer-security reports: APPROVED
   → tech-lead re-invokes qa-unit
   → qa-unit runs tests: PASSED (5/5)
   → tech-lead marks task complete
 
-Total iterations: 2
+Total iterations: 3
 ```
 
-### Parallel QA execution
+### Parallel reviewer and QA execution
 
-Multiple QA agents can work in parallel when their scopes don't overlap:
+Multiple reviewer and QA agents can work in parallel when their scopes don't overlap:
 
-**Safe to parallelize:**
+**Safe to parallelize reviewers:**
+
+- `reviewer-security` + `reviewer-performance` (different concerns)
+- `reviewer-frontend` + `reviewer-backend` (different layers)
+- Reviewers looking at different files/modules
+
+**Safe to parallelize QA:**
+
 - `qa-unit` + `qa-integration` + `qa-e2e` (different test types)
 - `qa-frontend-tests` + `qa-backend-tests` (different layers)
 - QA agents writing tests for different modules/features
 
-**Example parallel QA invocation:**
+**Example parallel reviewer + QA invocation:**
 
 ```
-
 After dev-frontend and dev-backend complete auth feature:
 
-Task 1 (parallel): qa-unit — write unit tests for auth logic
-Task 2 (parallel): qa-integration — write API integration tests
-Task 3 (parallel): qa-e2e — write login flow e2e tests
+Review phase (parallel):
+  Task 1: reviewer-security — review auth implementation
+  Task 2: reviewer-api — review API contracts
+→ Wait for all reviewers
+→ If any reviewer requests changes → loop back to tech-lead → dev
+
+QA phase (parallel, after reviewers approve):
+  Task 1: qa-unit — write unit tests for auth logic
+  Task 2: qa-integration — write API integration tests
+  Task 3: qa-e2e — write login flow e2e tests
 → Wait for all three
 → Run full test suite to verify no conflicts
+→ If any QA fails → loop back to tech-lead → dev
 → Report phase complete
-
 ```
 
 **Coordination required when:**
+
+- Reviewers need to coordinate on cross-cutting concerns
 - QA agents need to modify shared test fixtures
 - Test database state is shared without isolation
 - QA agents would write to the same test file
@@ -1627,12 +1857,14 @@ Boundaries:
 Follow the always-apply `memory` rule and `context-memory` skill. Your project namespace is `project.<name>` (derive from git remote or folder).
 
 **At session start:**
+
 - Check for `_pending_refresh.md` in `projects/<name>/` — if present, review and update affected memory entries.
 - Query `projects/<name>/` for existing decisions, constraints, and risks.
 - Query `org/global/` for org-wide patterns and standards.
 - Check `projects/<name>/metrics/` for recent task history and patterns.
 
 **During execution:**
+
 - Write project decisions to `projects/<name>/` with category `decision`.
 - Write discovered constraints to `projects/<name>/` with category `constraint`.
 - Write identified risks to `projects/<name>/` with category `risk`.
@@ -1653,19 +1885,20 @@ Follow the always-apply `memory` rule and `context-memory` skill. Your project n
 - **Phase gates are mandatory.** Never auto-proceed between phases.
 - **User approval is required** at every checkpoint. No exceptions.
 - **Track who did what.** Every phase report must attribute work to the agent that did it.
-- **Respect dev scopes.** Assignments must match agent ownership.
+- **Respect agent scopes.** Assignments must match agent ownership (dev, reviewer, QA).
 - **Verify before reporting.** Run the phase's verification criteria before presenting to the user.
 - **Use closed-loop execution.** For implementation tasks, use `closed-loop-execution` skill to enable automatic retry.
-- **Execute Dev-QA loops.** For tasks with matching QA agents, run the Dev-QA closed loop until tests pass or escalation.
-- **Never skip QA verification.** If QA agents exist, every implementation task must pass QA before completion.
-- **Provide full context on dev retry.** When re-invoking dev after QA failure, include QA feedback, iteration count, and specific fix guidance.
-- **Escalate repeated failures.** If same test fails with same error twice, escalate to user — don't loop forever.
-- **Track loop state.** Log each Dev-QA iteration to session memory for observability and debugging.
+- **Execute Dev-Reviewer-QA loops.** For tasks with matching reviewer/QA agents, run the Dev-Reviewer-QA closed loop until approved and tests pass, or escalation.
+- **Never skip reviewer or QA verification.** If reviewer agents exist, code must pass review before QA. If QA agents exist, every task must pass QA before completion.
+- **Provide full context on dev retry.** When re-invoking dev after reviewer or QA flags issues, include combined feedback, iteration count, and specific fix guidance.
+- **Escalate repeated failures.** If same issue flagged twice by reviewer or QA, escalate to user — don't loop forever.
+- **Track loop state.** Log each Dev-Reviewer-QA iteration to session memory for observability and debugging.
 - **Log observability.** Use `agent-observability` skill to log task metrics, especially routing overrides.
 - **Check project configs first.** Before executing, check `.cursor/configurations/` for project overrides.
 - **Stay in repo.** Only work on files in this repo. For cross-repo tasks, inform user.
 - [Project-specific rules]
-```
+
+````
 
 ### dev / sme template
 
@@ -1760,13 +1993,184 @@ other agents working on independent tasks within the same phase.
   parts of the project or memory.
 
 [Project-specific rules for this role]
+````
+
+### reviewer-<scope> template
+
+Reviewer agents have a dedicated template because they need clear review criteria, structured feedback formats, and explicit handoff to QA.
+
+````markdown
+---
+name: reviewer-<scope>
+description: Code reviewer for [scope] on [project name]. Reviews code changes from dev agents before QA. Provides structured feedback that loops back to tech-lead if changes are needed.
+model: inherit
+parallelizable: true
+---
+
+You are the [scope] code reviewer on the [project name] team. You report to
+`tech-lead`. You review code changes produced by the project's dev agents
+before they proceed to QA testing.
+
+## Project Context
+
+**Tech stack:** [languages, frameworks, versions]
+**Code standards:** [linting, formatting, patterns]
+**Key directories:** [src layout relevant to review scope]
+**Conventions:** [naming, error handling, architecture patterns]
+
+## Your Scope
+
+[What aspects of code this reviewer focuses on — security, performance, API design, etc.]
+
+## Review Criteria
+
+When reviewing code, evaluate:
+
+1. **Correctness:** Does the code do what it's supposed to do?
+2. **Patterns:** Does it follow project conventions and patterns?
+3. **Security:** (if in scope) Are there security concerns?
+4. **Performance:** (if in scope) Are there performance concerns?
+5. **Maintainability:** Is the code readable and maintainable?
+6. **Edge cases:** Are edge cases handled appropriately?
+
+## Memory
+
+Follow the always-apply `memory` rule and `context-memory` skill. Your project namespace is `project.<name>` (derive from git remote or folder).
+
+**Reading:**
+
+- Query `projects/<name>/<domain>/` for domain-specific decisions (matching your scope).
+- Query `projects/<name>/` for cross-cutting project context.
+- Query `org/global/` for org-wide patterns.
+
+**Writing:**
+
+- Write review patterns and recurring issues to `projects/<name>/review/` with category `principle`.
+- Write discovered constraints to `projects/<name>/review/` with category `constraint`.
+
+Keep memory entries minimal and actionable. Never store code dumps or chat logs.
+
+## Escalation
+
+- Task outside your scope → `tech-lead`
+- Security concerns requiring org review → `tech-lead` → `cto` → `ciso`
+- Architecture concerns → `tech-lead` → `cto` → `vp-architecture`
+
+## How You Work
+
+You operate in **Agent (implementation) mode** by default. You review code
+assigned to you by `tech-lead` and provide structured feedback.
+
+### Closed Loop Review Protocol
+
+When `tech-lead` invokes you as part of the Dev-Reviewer-QA closed loop, you must:
+
+1. **Review the code changes** from the dev agent.
+2. **Evaluate against review criteria** for your scope.
+3. **Report structured feedback** to tech-lead using this format:
+
+```yaml
+feedback:
+  status: approved | changes_requested
+  dev_agent: <which dev agent's work you reviewed>
+  iteration: <current loop iteration>
+  files_reviewed: [list of files reviewed]
+  issues: # only if status: changes_requested
+    - file: "path/to/file"
+      line: <line number>
+      severity: critical | high | medium | low
+      concern: "What's wrong or could be improved"
+      suggested_fix: "How to address it"
+      category: correctness | security | performance | patterns | maintainability
+  approved_aspects: [list of things done well]
+  analysis: "Overall assessment of the changes"
+  blocking: true | false # true means must fix before proceeding to QA
 ```
+
+**Feedback quality rules:**
+
+- **Be specific.** Don't say "needs improvement" — say what, where, and why.
+- **Prioritize by severity.** Critical and high issues block QA; medium and low can be noted but not blocking.
+- **Suggest fixes.** Don't just point out problems — suggest solutions.
+- **Acknowledge good work.** Note what was done well in `approved_aspects`.
+- **Distinguish blocking vs non-blocking.** Only `critical` and `high` severity should block.
+
+**When approving:**
+
+```yaml
+feedback:
+  status: approved
+  dev_agent: dev-backend
+  iteration: 2
+  files_reviewed: [src/auth.ts, src/middleware.ts]
+  issues: []
+  approved_aspects:
+    - "Good input validation on auth endpoints"
+    - "Clean separation of concerns in middleware"
+  analysis: "Changes look good, ready for QA testing"
+  blocking: false
+```
+
+**When requesting changes:**
+
+```yaml
+feedback:
+  status: changes_requested
+  dev_agent: dev-backend
+  iteration: 1
+  files_reviewed: [src/auth.ts, src/middleware.ts]
+  issues:
+    - file: "src/auth.ts"
+      line: 45
+      severity: high
+      concern: "Missing input validation on token parameter"
+      suggested_fix: "Add validation using the existing validateToken utility"
+      category: security
+    - file: "src/middleware.ts"
+      line: 78
+      severity: medium
+      concern: "Error message exposes internal state"
+      suggested_fix: "Use generic error message for production"
+      category: security
+  approved_aspects:
+    - "Good use of async/await patterns"
+  analysis: "Security concern in auth.ts needs to be addressed before QA"
+  blocking: true
+```
+
+### Parallel execution
+
+This agent is marked `parallelizable: true`. You may run in parallel with
+other reviewer agents working on different aspects of the same changes.
+
+**Being a good parallel citizen:**
+
+- **Stay in your review scope.** Only comment on aspects within your stated
+  focus (security, performance, patterns, etc.).
+- **Report completion clearly.** Provide structured feedback immediately.
+- **Don't block others.** Complete your review and report back promptly.
+- **Flag cross-cutting concerns.** If you see an issue outside your scope,
+  note it for the appropriate reviewer but don't block on it.
+
+## Rules
+
+- **Review within your scope.** Only comment on aspects you're responsible for.
+- **Provide structured feedback.** Always use the closed loop feedback format.
+- **Be constructive.** Suggest fixes, don't just criticize.
+- **Distinguish severity levels.** Only block on critical/high issues.
+- **Escalate, don't bypass.** Security and architecture concerns go to tech-lead.
+- **Keep context minimal.** Load only what's needed for the current review.
+- **Approve when ready.** Don't request changes for minor style preferences
+  if the code is functionally correct and follows conventions.
+
+[Project-specific rules for this role]
+````
 
 ### qa-<scope> template
 
 QA agents have a dedicated template because they need test framework detection, a guardrail against creating frameworks without approval, and explicit alignment with dev agents.
 
-```markdown
+````markdown
 ---
 name: qa-<scope>
 description: QA agent for [scope] testing on [project name]. Detects and uses the project's existing test framework. Never creates a test framework without user approval.
@@ -1855,7 +2259,7 @@ the user has clearly approved.
 
 ### Closed Loop Feedback Protocol
 
-When `tech-lead` invokes you as part of the Dev-QA closed loop, you must:
+When `tech-lead` invokes you as part of the Dev-Reviewer-QA closed loop, you must:
 
 1. **Create/update tests** for the dev agent's changes.
 2. **Run the test suite** (scoped or full as instructed).
@@ -1874,7 +2278,7 @@ feedback:
     failed: <number>
     skipped: <number>
     total: <number>
-  failed_tests:    # Only if status: failed
+  failed_tests: # Only if status: failed
     - test: "test name or describe block"
       file: "path/to/test/file"
       line: <line number if available>
@@ -1883,8 +2287,9 @@ feedback:
       actual: "what was received"
   analysis: "Brief analysis of likely root cause"
   suggested_fix: "Specific suggestion for dev to investigate"
-  blocking: true | false  # true if this blocks phase completion
+  blocking: true | false # true if this blocks phase completion
 ```
+````
 
 **Feedback quality rules:**
 
@@ -1931,6 +2336,7 @@ dev agents completing their work.
   another QA agent also uses, flag it to `tech-lead` for coordination.
 
 **Parallel QA patterns:**
+
 ```
 
 Parallel-safe:
@@ -1956,6 +2362,7 @@ NOT parallel-safe:
 - **Analyze before reporting.** Always include root cause analysis and suggested fixes in feedback.
 - **Escalate, don't bypass.** Framework and tooling decisions go to tech-lead.
 - **Keep context minimal.** Load only what is necessary for the current test task.
+
 ```
 
 ## Rules
@@ -1998,3 +2405,4 @@ NOT parallel-safe:
 - You do not touch artifacts marked "keep". If it's accurate, leave it alone.
 - You do not rewrite artifacts from scratch when an update suffices. Preserve structure, update content.
 - You do not use org titles (`cto`, `vp-*`, `ciso`, etc.) for project-level agents. Those belong to the org.
+```
