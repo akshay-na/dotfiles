@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["title", "type", "project", "generated_at", "generated_by"],
+  "properties": {
+    "title": { "type": "string" },
+    "type": { "enum": ["overview", "module", "service", "architecture", "dependency"] },
+    "project": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "generated_by": { "const": "kb-engineer" },
+    "source_files": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "stale": { "type": "boolean" },
+    "aliases": { "type": "array", "items": { "type": "string" } }
+  }
+}

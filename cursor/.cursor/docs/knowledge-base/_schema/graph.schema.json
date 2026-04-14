@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["version", "project", "generated_at", "nodes", "edges"],
+  "properties": {
+    "version": { "const": 1 },
+    "project": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "type": { "enum": ["module", "service", "external_dep", "config", "function", "class"] },
+          "source_file": { "type": "string" },
+          "kb_doc": { "type": "string" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "target", "relation", "confidence"],
+        "properties": {
+          "source": { "type": "string" },
+          "target": { "type": "string" },
+          "relation": { "enum": ["imports", "depends_on", "exposes", "calls", "configures", "extends", "implements"] },
+          "confidence": { "enum": ["EXTRACTED", "INFERRED"] },
+          "source_location": { "type": "string" }
+        }
+      }
+    }
+  }
+}

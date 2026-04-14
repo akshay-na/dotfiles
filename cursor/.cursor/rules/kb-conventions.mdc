@@ -1,0 +1,122 @@
+---
+description: "Knowledge Base conventions for Obsidian-compatible project documentation. Defines KB location, document types, diagram conventions, and agent responsibilities."
+alwaysApply: true
+---
+
+# Knowledge Base Conventions
+
+## Location
+
+The Knowledge Base lives at `~/.cursor/docs/knowledge-base/`. This is an Obsidian-compatible vault containing generated structural documentation for all projects.
+
+```
+~/.cursor/docs/knowledge-base/
+├── Home.md                          # Vault home page, project index
+├── _schema/                         # Cross-project validation schemas
+│   ├── frontmatter.schema.json
+│   ├── graph.schema.json
+│   └── manifest.schema.json
+├── templates/                       # Document templates
+└── projects/
+    └── <project-name>/              # Per-project documentation
+        ├── README.md                # Project overview
+        ├── architecture.md          # Architecture with mermaid diagrams
+        ├── dependencies.md          # Dependency inventory
+        ├── modules/                  # Per-module documentation
+        │   ├── _index.md
+        │   └── <module>.md
+        ├── services/                 # Per-service documentation
+        │   ├── _index.md
+        │   └── <service>.md
+        ├── graph.json               # Machine-readable relationship graph
+        └── .meta/                   # Generation metadata
+            ├── manifest.json        # File hashes for incremental updates
+            ├── identity.json        # Project identity
+            └── generation-log.json  # Generation stats
+```
+
+## Document Types
+
+| Type | File | Purpose |
+|------|------|---------|
+| `overview` | `README.md` | Project entry point, tech stack, quick stats |
+| `architecture` | `architecture.md` | System design with mermaid diagrams |
+| `module` | `modules/<name>.md` | Module internals, APIs, relationships |
+| `service` | `services/<name>.md` | Service boundaries, protocols, dependencies |
+| `dependency` | `dependencies.md` | External dependency inventory |
+
+## Frontmatter Schema
+
+Every KB document has YAML frontmatter:
+
+```yaml
+---
+title: "Module: auth"
+type: module
+project: myapp
+tags: [myapp, module, auth]
+generated_at: 2026-04-14T10:00:00Z
+generated_by: kb-engineer
+source_files: ["src/auth/**"]
+confidence: high
+stale: false
+aliases: ["authentication"]
+---
+```
+
+See `_schema/frontmatter.schema.json` for full validation schema.
+
+## Diagram Convention
+
+**All diagrams MUST be mermaid code blocks.** No images, no external diagram tools.
+
+| Document | Diagram Type | Mermaid Syntax |
+|----------|-------------|----------------|
+| `architecture.md` | System overview | `flowchart TD` or `C4Context` |
+| `architecture.md` | Component diagram | `flowchart LR` with subgraphs |
+| `dependencies.md` | Dependency graph | `flowchart LR` with external nodes |
+| `modules/<name>.md` | Module internals | `flowchart TD` for call flows |
+| `services/<name>.md` | Service interactions | `sequenceDiagram` for API flows |
+
+Obsidian renders mermaid natively. Diagrams are version-controlled as text.
+
+## Agent Responsibilities
+
+| Agent | KB Interaction |
+|-------|----------------|
+| `kb-engineer` | **Sole writer** to `~/.cursor/docs/knowledge-base/projects/`. Generates, updates, maintains KB docs. |
+| `vp-onboarding` | Invokes `kb-engineer` during project bootstrap. |
+| `tech-lead` | Queries KB for project understanding. Requests KB refresh after significant changes. |
+| `dev-*`, `sme-*` | Read KB via `kb-query` skill. Do NOT write to KB. |
+
+## Three-Tier Documentation Model
+
+| Tier | Location | Content | Ownership |
+|------|----------|---------|-----------|
+| **Memory** | `~/.cursor/memory/` | Decisions, constraints, risks, principles | Any agent via `context-memory` skill |
+| **Project Docs** | `<project>/.cursor/docs/` | Plans, ADRs, runbooks | Agents write, optionally git-tracked |
+| **Knowledge Base** | `~/.cursor/docs/knowledge-base/projects/<name>/` | Generated structural docs | `kb-engineer` only |
+
+**When to use which:**
+- Memory: Conclusions, "why we decided X"
+- Project Docs: "How to do Y", detailed plans
+- Knowledge Base: "What this project IS" — structure, relationships, architecture
+
+## Querying the KB
+
+Use the `kb-query` skill with token-efficient tiers:
+
+| Query Need | Method | Token Cost |
+|------------|--------|------------|
+| "What is this project?" | Level 0 | ~50 |
+| "What does this project do?" | Level 1 | ~200 |
+| "What modules exist?" | Level 1 | ~150 |
+| "How does module X work?" | Level 2 | ~500 |
+| "What depends on module X?" | Level 3 | ~300 |
+
+## Staleness Handling
+
+- KB docs have a `stale` flag in frontmatter
+- `.meta/identity.json` has `needs_refresh` flag
+- `kb-query` skill warns when returning stale content
+- `vp-onboarding` triggers refresh on re-runs

@@ -5,6 +5,50 @@ alwaysApply: false
 
 # Documentation and decision records
 
+## Three-Tier Documentation Model
+
+The org uses three complementary documentation systems:
+
+| Tier               | Location                                         | Content                                   | Ownership                            |
+| ------------------ | ------------------------------------------------ | ----------------------------------------- | ------------------------------------ |
+| **Memory**         | `~/.cursor/memory/`                              | Decisions, constraints, risks, principles | Any agent via `context-memory` skill |
+| **Project Docs**   | `<project>/.cursor/docs/`                        | Plans, ADRs, runbooks                     | Agents write, optionally git-tracked |
+| **Knowledge Base** | `~/.cursor/docs/knowledge-base/projects/<name>/` | Generated structural docs                 | `kb-engineer` only                   |
+
+### When to use which tier
+
+**Memory** — Use for conclusions and knowledge that persists across sessions:
+
+- "We decided to use JWT for auth because..."
+- "The API rate limit is 100 req/min"
+- "Never use library X due to CVE..."
+
+**Project Docs** — Use for detailed write-ups that benefit from version control:
+
+- Implementation plans and design docs
+- ADR-style decision records with full context
+- Operational runbooks and procedures
+
+**Knowledge Base** — Generated automatically by `kb-engineer`:
+
+- Project architecture and structure
+- Module and service documentation
+- Dependency graphs and relationships
+
+### Querying the Knowledge Base
+
+To understand a project's structure, use the `kb-query` skill:
+
+```
+kb-query: project_name=myapp, query_type=overview     # What is this project?
+kb-query: project_name=myapp, query_type=module, target=auth  # How does auth work?
+kb-query: project_name=myapp, query_type=relationship, target=auth  # What uses auth?
+```
+
+Do NOT write to the KB directly — only `kb-engineer` generates KB content.
+
+---
+
 ## Project-local docs
 
 Agent-generated documentation (plans, runbooks, decisions) lives in each project's `.cursor/docs/` directory. This keeps docs with the project and allows optional git tracking.
@@ -23,14 +67,15 @@ Agent-generated documentation (plans, runbooks, decisions) lives in each project
 ## Writing docs
 
 Before writing:
+
 1. Create target directory if needed: `mkdir -p .cursor/docs/{plans,decisions,runbooks}`
 2. Use date-stamped filenames: `YYYY-MM-DD-descriptive-name.md`
 
-| Directory | Purpose | Examples |
-|-----------|---------|----------|
-| `plans/` | Implementation plans, design docs | `2026-04-03-auth-redesign.md` |
-| `decisions/` | ADR-style decision records | `2026-04-03-chose-postgres.md` |
-| `runbooks/` | Operational procedures, how-tos | `2026-04-03-deploy-procedure.md` |
+| Directory    | Purpose                           | Examples                         |
+| ------------ | --------------------------------- | -------------------------------- |
+| `plans/`     | Implementation plans, design docs | `2026-04-03-auth-redesign.md`    |
+| `decisions/` | ADR-style decision records        | `2026-04-03-chose-postgres.md`   |
+| `runbooks/`  | Operational procedures, how-tos   | `2026-04-03-deploy-procedure.md` |
 
 ## When a full plan is required
 
@@ -42,6 +87,7 @@ Before writing:
 ## Decision records
 
 For important architectural or process decisions, record:
+
 - The decision and its rationale
 - Alternatives considered and why they were rejected
 - Implications and follow-up actions
@@ -65,4 +111,3 @@ Use memory for quick lookups and knowledge persistence. Use docs for detailed wr
 - All agents write to `.cursor/docs/` in the current project
 - Check existing docs before proposing new patterns
 - Cross-reference memory entries with doc paths when relevant
-
