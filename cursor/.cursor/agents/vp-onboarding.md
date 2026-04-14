@@ -690,22 +690,63 @@ When org orchestration invokes you:
    - Read `.cursor/configurations/routing-overrides.yml` if exists
    - Read `.cursor/configurations/pipelines/` for project pipelines
    - Read `.cursor/configurations/failure-patterns.yml` for project patterns
+   - Read `.cursor/configurations/verification-gates-local.yml` for project-specific gates
+   - Read `.cursor/configurations/feedback-loop-config.yml` for iteration caps and regression scope
 
 2. **Orchestrate closed-loop execution (do not implement):**
    - Assign implementation and verification to `dev-*`, `reviewer-*`, `qa-*`
    - Ensure those agents follow `closed-loop-execution` / Dev-Reviewer-QA protocols where applicable
    - You collect outputs, merge feedback, and re-dispatch — you do not edit the codebase yourself
 
-3. **Log observability:**
+3. **Handle cross-stage feedback:**
+   - When review stages produce `feedback_items`, invoke `cross-stage-feedback` skill
+   - Re-dispatch to implementation agents with the feedback brief
+   - Track iteration count against `feedback-loop-config.yml` caps
+   - Escalate to user when iteration cap reached
+
+4. **Log observability:**
    - Use `agent-observability` skill to log orchestration decisions
    - Log when you override routing recommendations
    - Log task completion metrics
+   - Log feedback loop iterations and resolutions
 
-4. **Escalate to org when needed:**
+5. **Escalate to org when needed:**
    - Architecture decisions → escalate to `cto` → `vp-architecture`
    - Security concerns → escalate to `cto` → `ciso`
    - Performance issues → escalate to `cto` → `vp-engineering`
 ```
+
+#### Feedback-Aware Agent Templates
+
+When creating project agents, ensure they reference the appropriate feedback loop skills:
+
+**tech-lead template additions:**
+- Reference `cross-stage-feedback` skill for coordinating feedback loops
+- Load `feedback-loop-config.yml` to determine iteration caps per scope
+- Track feedback iterations in session memory
+
+**dev-\* template additions:**
+- Reference `pre-execution-validation` skill for pre-write validation
+- Reference `closed-loop-execution` skill for implementation work
+- When receiving feedback from tech-lead, incorporate the `implementation_brief` into the next attempt
+
+**reviewer-\* template additions:**
+- Produce `feedback_items` in outputs when issues found
+- Use standard feedback item schema:
+  ```yaml
+  feedback_items:
+    - severity: blocking | advisory | informational
+      file: string
+      description: string
+      suggested_fix: string
+      source_agent: string
+  ```
+- Distinguish blocking vs advisory issues clearly
+
+**qa-\* template additions:**
+- Produce `feedback_items` for test failures
+- Include test output in feedback for debugging
+- Reference `testing-patterns` skill for project test conventions
 
 ---
 
@@ -765,6 +806,133 @@ Repo root: <repo-root-path>
 
 ---
 
+#### 2i. Verification Gates & Feedback Loop Configuration
+
+Bootstrap project-level verification gates and feedback loop configuration for projects that have custom tooling.
+
+**Generate `.cursor/configurations/verification-gates-local.yml` when:**
+
+- Project has a custom test runner (not just `npm test` / `pytest`)
+- Project has language-specific linting tools not covered by global defaults
+- Project has a custom build pipeline
+- Project has specific schema validation needs
+
+**Template:**
+
+```yaml
+version: 1
+extends: global
+
+# Override specific gates for this project
+gates:
+  - id: test_check
+    check_command:
+      fallback: "<project-specific-test-command>"
+
+  - id: lint_check
+    check_command:
+      by_extension:
+        ts: "<project-linter> {file}"
+        py: "<project-linter> {file}"
+
+# Add project-specific gates
+project_gates:
+  - id: <custom-gate>
+    when: pre_write | post_write
+    blocking: true | false
+    description: "<What this gate checks>"
+    applies_to: ["**/*.ts", "**/*.tsx"]
+    check_command: "<command>"
+    condition: "<optional complexity or task_type condition>"
+
+# Override task gate assignments if needed
+task_gates:
+  feature:
+    post_write:
+      - lint_check
+      - type_check
+      - test_check
+      - <custom-gate>
+
+# Override complexity behavior
+complexity_gates:
+  medium:
+    add: [<custom-gate>]
+```
+
+**Detection for generating verification-gates-local.yml:**
+
+| Source | What to detect | Gate override |
+|--------|---------------|---------------|
+| `package.json` scripts | Custom lint/test/build commands | Override fallback commands |
+| `Makefile` / `justfile` | Custom targets | Add as project gates |
+| CI config files | Test/lint steps with custom flags | Match CI behavior |
+| `pyproject.toml` | Tool configurations (ruff, mypy, pytest) | Use same tools in gates |
+
+---
+
+**Generate `.cursor/configurations/feedback-loop-config.yml` when:**
+
+- Project has review or QA agents (feedback loops will be active)
+- Project has specific areas that need different iteration caps
+- Project has different escalation thresholds based on area
+
+**Template:**
+
+```yaml
+version: 1
+extends: global
+
+# Override global defaults per-project
+feedback_iterations:
+  default: 2  # global default
+
+  # Pipeline-specific overrides
+  security: 1  # tighter for security pipelines
+
+  # Scope-specific overrides (optional)
+  scopes:
+    frontend: 3  # more iterations for complex UI
+    api: 2
+    infra: 1  # infrastructure changes escalate quickly
+
+regression_detection:
+  # Default: [medium, high]
+  # Always on: [low, medium, high]
+  # Only expensive tasks: [high]
+  enabled_for_complexity: [medium, high]
+
+  # Scope of dependent file search
+  search_depth: 2
+
+  # Skip patterns from regression checks
+  exclude_patterns:
+    - "**/*.test.ts"
+    - "**/*.spec.ts"
+    - "**/mocks/**"
+
+pattern_learning:
+  # Cadence for pattern review prompts
+  review_cadence: weekly  # daily, weekly, biweekly
+
+escalation:
+  # When to escalate to user instead of auto-fixing
+  repeated_failure_threshold: 2  # same issue twice
+  cross_stage_max_iterations: 2  # review→implement loops
+```
+
+**Inference for feedback-loop-config.yml values:**
+
+| Analysis | Inference | Configuration |
+|----------|-----------|---------------|
+| Large project (>50k LOC) | More chances to fix | `feedback_iterations.default: 3` |
+| Complex test suite (multiple types) | More iterations | `scopes.<area>: 3` |
+| CI has retry configs | Match CI behavior | `feedback_iterations.default: <CI-retries>` |
+| TypeScript project | More type-check retries | `scopes.frontend: 3` |
+| Security-sensitive areas | Quick escalation | `scopes.auth: 1` |
+
+---
+
 #### Orchestration Files Summary
 
 | File                                              | System               | Purpose                             |
@@ -773,6 +941,8 @@ Repo root: <repo-root-path>
 | `.cursor/configurations/routing-overrides.yml`    | Task Orchestration   | Routing customization               |
 | `.cursor/configurations/failure-patterns.yml`     | Closed-Loop          | Project error handling              |
 | `.cursor/configurations/dev-reviewer-qa-loop.yml` | Dev-Reviewer-QA Loop | Review and QA verification settings |
+| `.cursor/configurations/verification-gates-local.yml` | Verification Gates | Project-specific quality gates |
+| `.cursor/configurations/feedback-loop-config.yml` | Feedback Loops | Iteration caps, regression scope, review cadence |
 | `.cursor/rules/*.mdc` (with enforcement)          | Rule Enforcement     | Programmatic validation             |
 | `.cursor/skills/*/SKILL.md` (with schemas)        | Skill Validation     | I/O contracts                       |
 | `~/.cursor/memory/projects/<name>/metrics/`       | Observability        | Task tracking                       |

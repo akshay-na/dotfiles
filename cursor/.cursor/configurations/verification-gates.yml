@@ -1,0 +1,432 @@
+version: 1
+
+# Verification Gates Configuration
+# Defines quality gates for pre-write and post-write validation
+# Reference: Used by pre-execution-validation and closed-loop-execution skills
+
+# Runtime detection protocol for check commands
+# Gates use this protocol to discover project-specific commands
+runtime_detection:
+  sources:
+    - type: package_json
+      path: package.json
+      extract:
+        lint: scripts.lint || scripts["lint:check"]
+        lint_fix: scripts["lint:fix"]
+        typecheck: scripts.typecheck || scripts["type-check"] || scripts.tsc
+        test: scripts.test || scripts["test:unit"]
+        build: scripts.build
+    - type: makefile
+      path: Makefile
+      extract:
+        lint: target lint
+        test: target test
+        build: target build
+    - type: justfile
+      path: justfile
+      extract:
+        lint: recipe lint
+        test: recipe test
+        build: recipe build
+    - type: pyproject_toml
+      path: pyproject.toml
+      extract:
+        lint: tool.ruff || tool.flake8 || tool.pylint
+        typecheck: tool.mypy || tool.pyright
+        test: tool.pytest
+    - type: ci_config
+      paths:
+        - .github/workflows/*.yml
+        - .gitlab-ci.yml
+        - .circleci/config.yml
+      extract:
+        lint: step containing "lint"
+        test: step containing "test"
+        build: step containing "build"
+  fallback_commands:
+    syntax_js: "node --check {file}"
+    syntax_ts: "tsc --noEmit --pretty {file}"
+    syntax_py: "python -m py_compile {file}"
+    syntax_yaml: "python -c \"import yaml; yaml.safe_load(open('{file}'))\""
+    syntax_toml: "python -c \"import tomllib; tomllib.load(open('{file}', 'rb'))\""
+    syntax_json: "python -c \"import json; json.load(open('{file}'))\""
+    lint_js: "npx eslint {file} || npx biome check {file}"
+    lint_ts: "npx eslint {file} || npx biome check {file}"
+    lint_py: "ruff check {file} || flake8 {file}"
+    typecheck_ts: "tsc --noEmit"
+    typecheck_py: "mypy {file} || pyright {file}"
+    test_js: "npm test"
+    test_py: "pytest"
+    build_js: "npm run build"
+
+# Gate definitions
+gates:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PRE-WRITE GATES - Run before writing to disk
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  - id: syntax_check
+    when: pre_write
+    blocking: true
+    description: "Parse-only validation to catch syntax errors before writing"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.mjs"
+      - "**/*.py"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.toml"
+      - "**/*.json"
+    check_command:
+      detect_from: runtime_detection
+      by_extension:
+        ts: "{detected_command} || tsc --noEmit --pretty"
+        tsx: "{detected_command} || tsc --noEmit --pretty"
+        js: "{detected_command} || node --check {file}"
+        jsx: "{detected_command} || node --check {file}"
+        mjs: "{detected_command} || node --check {file}"
+        py: "python -m py_compile {file}"
+        yaml: "python -c \"import yaml; yaml.safe_load(open('{file}'))\""
+        yml: "python -c \"import yaml; yaml.safe_load(open('{file}'))\""
+        toml: "python -c \"import tomllib; tomllib.load(open('{file}', 'rb'))\""
+        json: "python -c \"import json; json.load(open('{file}'))\""
+    pass_criteria: "Exit code 0, no parse errors"
+    failure_pattern: syntax-error
+    
+  - id: import_check
+    when: pre_write
+    blocking: true
+    description: "Verify all imports resolve before writing"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.py"
+    check_command:
+      detect_from: runtime_detection
+      by_extension:
+        ts: "tsc --noEmit --resolveJsonModule"
+        tsx: "tsc --noEmit --resolveJsonModule"
+        js: "Check package.json dependencies for referenced modules"
+        jsx: "Check package.json dependencies for referenced modules"
+        py: "Check pyproject.toml/requirements.txt for referenced modules"
+    pass_criteria: "All imports resolvable"
+    failure_pattern: import-not-found
+    condition: "complexity in ['medium', 'high']"
+
+  - id: schema_check
+    when: pre_write
+    blocking: true
+    description: "Validate config files against known schemas"
+    applies_to:
+      - "**/*.json"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/tsconfig*.json"
+      - "**/package.json"
+      - "**/.cursor/**/*.yml"
+      - "**/.cursor/**/*.yaml"
+    check_command:
+      by_pattern:
+        "tsconfig*.json": "Validate against TypeScript config schema"
+        "package.json": "Validate required fields (name, version if publishing)"
+        ".cursor/**/pipelines/*.yml": "Validate pipeline schema (stages, agents, modes)"
+        ".cursor/**/failure-patterns.yml": "Validate pattern schema (id, signals, strategy)"
+    pass_criteria: "Schema validation passes"
+    failure_pattern: config-parse-error
+
+  - id: self_review
+    when: pre_write
+    blocking: false
+    description: "Agent re-reads generated output for common issues"
+    applies_to:
+      - "**/*"
+    check_protocol: |
+      Review this diff for:
+      1. Unintended changes (modifications outside the task scope)
+      2. Missing error handling (empty catch blocks, unhandled promises)
+      3. Hardcoded values (credentials, URLs, magic numbers)
+      4. Incomplete implementations (TODO comments, placeholder code)
+      5. Broken imports (new imports without dependencies)
+      6. Debug artifacts (console.log, debugger statements, test code)
+      7. Security issues (exposed secrets, SQL injection, XSS vectors)
+      
+      For each issue found, return:
+        severity: blocking | advisory
+        file: <path>
+        description: <what's wrong>
+        suggested_fix: <how to fix>
+    pass_criteria: "No blocking issues found"
+    failure_pattern: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # POST-WRITE GATES - Run after writing to disk
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: lint_check
+    when: post_write
+    blocking: true
+    description: "Run linter to catch style and quality issues"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.mjs"
+      - "**/*.py"
+      - "**/*.go"
+      - "**/*.rs"
+    check_command:
+      detect_from: runtime_detection
+      by_extension:
+        ts: "{detected_command} || npx eslint {file} || npx biome check {file}"
+        tsx: "{detected_command} || npx eslint {file} || npx biome check {file}"
+        js: "{detected_command} || npx eslint {file} || npx biome check {file}"
+        jsx: "{detected_command} || npx eslint {file} || npx biome check {file}"
+        mjs: "{detected_command} || npx eslint {file} || npx biome check {file}"
+        py: "{detected_command} || ruff check {file} || flake8 {file}"
+        go: "golangci-lint run {file} || go vet {file}"
+        rs: "cargo clippy -- -D warnings"
+    pass_criteria: "Exit code 0, no lint errors"
+    failure_pattern: lint-error
+    auto_fix_available: true
+    fix_command:
+      by_extension:
+        ts: "npx eslint --fix {file} || npx biome check --apply {file}"
+        tsx: "npx eslint --fix {file} || npx biome check --apply {file}"
+        js: "npx eslint --fix {file} || npx biome check --apply {file}"
+        jsx: "npx eslint --fix {file} || npx biome check --apply {file}"
+        py: "ruff check --fix {file}"
+
+  - id: type_check
+    when: post_write
+    blocking: true
+    description: "Run type checker for type safety"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.py"
+      - "**/*.go"
+      - "**/*.rs"
+    check_command:
+      detect_from: runtime_detection
+      by_extension:
+        ts: "{detected_command} || tsc --noEmit"
+        tsx: "{detected_command} || tsc --noEmit"
+        py: "{detected_command} || mypy {file} || pyright {file}"
+        go: "go build ./..."
+        rs: "cargo check"
+    pass_criteria: "Exit code 0, no type errors"
+    failure_pattern: type-error
+
+  - id: test_check
+    when: post_write
+    blocking: true
+    description: "Run tests for modified files"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.py"
+      - "**/*.go"
+      - "**/*.rs"
+    check_command:
+      detect_from: runtime_detection
+      fallback: "{detected_command} || npm test -- --findRelatedTests {file}"
+    pass_criteria: "All tests pass"
+    failure_pattern: test-failure
+    scope: changed_files
+
+  - id: build_check
+    when: post_write
+    blocking: true
+    description: "Verify build succeeds with changes"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+    check_command:
+      detect_from: runtime_detection
+      fallback: "{detected_command} || npm run build"
+    pass_criteria: "Build completes without errors"
+    failure_pattern: build-error
+    condition: "task_type in ['feature', 'refactor']"
+
+  - id: regression_check
+    when: post_write
+    blocking: false
+    description: "Run tests for files that depend on modified files"
+    applies_to:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.py"
+    check_command:
+      protocol: |
+        1. Identify files that import/depend on modified files
+        2. Run tests for dependent files
+        3. Compare results against baseline
+    pass_criteria: "No new test failures in dependent files"
+    failure_pattern: regression-detected
+    condition: "complexity in ['medium', 'high']"
+    scope: dependent_files
+
+  - id: diff_review
+    when: post_write
+    blocking: false
+    description: "Agent reviews its own diff for unintended changes"
+    applies_to:
+      - "**/*"
+    check_protocol: |
+      Review the git diff for:
+      1. Files modified that shouldn't be (scope creep)
+      2. Debug code left in (console.log, debugger, print statements)
+      3. Commented-out code that should be removed
+      4. TODO/FIXME comments without associated issues
+      5. Formatting-only changes mixed with logic changes
+      
+      Return findings with severity (blocking/advisory)
+    pass_criteria: "No blocking issues found"
+    failure_pattern: null
+
+# Gate groups by task type
+task_gates:
+  bug_fix:
+    pre_write:
+      - syntax_check
+      - import_check
+      - self_review
+    post_write:
+      - lint_check
+      - type_check
+      - test_check
+      - diff_review
+
+  feature:
+    pre_write:
+      - syntax_check
+      - import_check
+      - schema_check
+      - self_review
+    post_write:
+      - lint_check
+      - type_check
+      - test_check
+      - build_check
+      - regression_check
+      - diff_review
+
+  refactor:
+    pre_write:
+      - syntax_check
+      - import_check
+      - self_review
+    post_write:
+      - lint_check
+      - type_check
+      - test_check
+      - regression_check
+      - diff_review
+
+  security:
+    pre_write:
+      - syntax_check
+      - import_check
+      - schema_check
+      - self_review
+    post_write:
+      - lint_check
+      - type_check
+      - test_check
+      - regression_check
+      - diff_review
+
+  config_change:
+    pre_write:
+      - syntax_check
+      - schema_check
+      - self_review
+    post_write:
+      - lint_check
+      - diff_review
+
+# Complexity gates - skip expensive checks for low complexity tasks
+complexity_gates:
+  low:
+    skip:
+      - regression_check
+      - build_check
+  medium:
+    skip: []
+  high:
+    skip: []
+    add:
+      - import_check
+
+# Project-level overrides (referenced by vp-onboarding)
+# Projects extend this by creating .cursor/configurations/verification-gates-local.yml
+custom_gates:
+  schema: |
+    version: 1
+    extends: global
+    
+    # Override specific gates
+    gates:
+      - id: <gate-id>
+        # Override any field from the global gate
+        
+    # Add project-specific gates
+    project_gates:
+      - id: <custom-gate>
+        when: pre_write | post_write
+        blocking: boolean
+        description: string
+        applies_to: glob[]
+        check_command: string
+        
+    # Override task gate assignments
+    task_gates:
+      <task_type>:
+        pre_write: [gate_ids]
+        post_write: [gate_ids]
+        
+    # Override complexity behavior
+    complexity_gates:
+      <level>:
+        skip: [gate_ids]
+        add: [gate_ids]
+
+  example: |
+    version: 1
+    extends: global
+    
+    # Project uses vitest instead of jest
+    gates:
+      - id: test_check
+        check_command:
+          fallback: "npx vitest run --reporter=verbose"
+    
+    # Add custom e2e gate for this project
+    project_gates:
+      - id: e2e_smoke
+        when: post_write
+        blocking: false
+        description: "Run e2e smoke tests"
+        applies_to: ["src/**/*.ts"]
+        check_command: "npx playwright test --grep @smoke"
+        condition: "task_type == 'feature'"
+    
+    task_gates:
+      feature:
+        post_write:
+          - lint_check
+          - type_check
+          - test_check
+          - e2e_smoke

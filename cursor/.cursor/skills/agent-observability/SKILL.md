@@ -479,6 +479,134 @@ The `context-memory` skill provides the storage backend:
 4. Return { status: success, metrics: [...] }
 ```
 
+## Feedback Loop Metrics
+
+Track the effectiveness of feedback loops introduced by the feedback loop improvements.
+
+### Metric Fields
+
+```yaml
+feedback_loop_metrics:
+  # Pre-execution validation metrics
+  pre_validation_runs: number
+  pre_validation_pass_rate: number  # % of validations that pass
+  pre_validation_catches: string[]  # Types of errors caught pre-write
+  
+  # Self-critique metrics
+  self_critique_runs: number
+  self_critique_catch_rate: number  # % of self-reviews that find issues
+  self_critique_categories: string[]  # Categories of issues found
+  
+  # Cross-stage feedback metrics
+  cross_stage_feedback_iterations: number
+  cross_stage_feedback_resolutions: number  # Fixed without user intervention
+  cross_stage_escalations: number
+  
+  # Regression detection metrics
+  regression_checks_run: number
+  regression_checks_skipped: number  # Skipped due to low complexity
+  regressions_detected: number
+  regressions_auto_fixed: number
+  
+  # Strategy effectiveness (from failure-patterns.yml tracking)
+  strategy_effectiveness:
+    per_strategy:
+      - strategy: string
+        uses: number
+        success_rate: number
+        avg_attempts: number
+```
+
+### Capture Points
+
+| Event | What to Capture | When |
+|-------|-----------------|------|
+| Pre-validation complete | gates_run, passed, catches | After VALIDATE phase in closed-loop |
+| Self-critique finding | category, severity, file | During pre-execution-validation self_review |
+| Cross-stage feedback | source_stage, target_stage, items, action | During pipeline feedback loop |
+| Regression check | complexity, skipped, detected, resolved | During regression check in closed-loop |
+| Strategy execution | pattern_id, strategy, succeeded, attempts | After each strategy in closed-loop |
+
+### Strategy Effectiveness Report Template
+
+Include in session and weekly reports:
+
+```markdown
+### Strategy Effectiveness
+
+| Strategy | Uses | Success Rate | Avg Attempts | Trend |
+|----------|------|-------------|-------------|-------|
+| auto_fix | {n} | {rate}% | {avg} | {trend} |
+| context_expand | {n} | {rate}% | {avg} | {trend} |
+| analyze_then_fix | {n} | {rate}% | {avg} | {trend} |
+| dependency_check | {n} | {rate}% | {avg} | {trend} |
+| retry_with_backoff | {n} | {rate}% | {avg} | {trend} |
+
+#### Strategy Insights
+- Most effective: {strategy} ({rate}% success)
+- Needs review: {strategy} (below 30% success after 10+ uses)
+- Common failure chains: {strategy_a} → {strategy_b}
+```
+
+### Feedback Loop Summary Report Template
+
+Include in session reports:
+
+```markdown
+### Feedback Loop Summary
+
+#### Pre-Execution Validation
+- Runs: {n}
+- Pass rate: {rate}%
+- Top catches: {categories}
+- Estimated cycles saved: {n} (errors caught before write)
+
+#### Cross-Stage Feedback
+- Feedback loops: {n}
+- Resolution rate: {rate}% (without escalation)
+- Avg iterations: {avg}
+- Most active source: {stage}
+
+#### Regression Detection
+- Checks run: {n}
+- Skipped (low complexity): {n}
+- Regressions detected: {n}
+- Auto-resolved: {n}
+```
+
+### Integration with Existing Capture Points
+
+Update existing capture points to include feedback loop data:
+
+```yaml
+# After each stage completes
+log_metric:
+  task_id: {task_id}
+  stage:
+    stage_id: {stage}
+    agent: {agent}
+    duration_ms: {duration}
+    outcome: {outcome}
+    token_estimate: {estimate}
+    # NEW: Feedback loop data
+    validation_passed: boolean | null
+    validation_catches: string[] | null
+    feedback_items_produced: number | null
+    feedback_loop_triggered: boolean | null
+
+# On pipeline completion
+log_metric:
+  task_id: {task_id}
+  final_outcome: {outcome}
+  # NEW: Feedback loop aggregates
+  feedback_loops:
+    pre_validation_runs: number
+    pre_validation_catches: number
+    cross_stage_iterations: number
+    regression_checks: number
+    regressions_found: number
+```
+
 ## Best Practices
 
 1. **Log early, log often** — Capture decisions at the moment they're made, not retroactively
@@ -487,3 +615,5 @@ The `context-memory` skill provides the storage backend:
 4. **Keep estimates rough** — Token estimates are for relative comparison, don't over-engineer
 5. **Promote on completion** — Don't let session metrics pile up; promote when pipelines complete
 6. **Review reports** — Use weekly reports to identify patterns and improve agent prompts
+7. **Track feedback loops** — Monitor pre-validation catch rates and cross-stage resolution rates to measure feedback loop effectiveness
+8. **Review strategy effectiveness** — Identify underperforming strategies for improvement or replacement

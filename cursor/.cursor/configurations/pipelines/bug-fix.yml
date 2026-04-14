@@ -1,6 +1,6 @@
 name: bug-fix
 description: Quick bug fix workflow with diagnosis, fix, and verification
-version: 1
+version: 2
 max_retries: 3
 
 stages:
@@ -15,7 +15,7 @@ stages:
   - id: fix
     agent: tech-lead
     mode: agent
-    description: Implement the fix
+    description: Implement the fix with pre-execution validation
     inputs: [diagnosis, affected_files]
     outputs: [code_changes]
     timeout_minutes: 30
@@ -31,7 +31,12 @@ stages:
   - id: verify
     agent: tech-lead
     mode: agent
-    description: Verify the fix resolves the issue
+    description: Verify fix resolves issue, run regression checks
     inputs: [code_changes, diagnosis]
     outputs: [verification_results]
     timeout_minutes: 15
+    retry:
+      max_attempts: 2
+      backoff: fixed
+      initial_delay_seconds: 3
+    skill: closed-loop-execution

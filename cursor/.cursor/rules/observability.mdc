@@ -34,3 +34,11 @@ alwaysApply: false
   - Session reports can be generated on request by reading all `metric` entries from `session.current/`.
   - Promote metrics to `projects/{name}/metrics/` for cross-session trend analysis.
 
+- **Feedback loop observability**
+  - Pre-execution validation runs must produce pass/fail metrics via `agent-observability`. Track gates run, violations found, and errors caught before write.
+  - Cross-stage feedback iterations must be logged with source stage, target stage, iteration count, and resolution (re_implement, accept, or escalate).
+  - Regression detection results (baseline vs post-change) must be included in stage metrics. Track checks run, skipped (due to complexity), detected, and auto-fixed.
+  - Strategy effectiveness must be tracked per-session and aggregated to `projects/{name}/metrics/strategy-effectiveness.md` on pipeline completion.
+  - Dead letter aggregation summaries must reference similar prior failures when available. Include error signatures and smart suggestions.
+  - Pattern learning candidates discovered from dead letters must be logged and surfaced for periodic review per the `pattern_learning` protocol in `failure-patterns.yml`.
+

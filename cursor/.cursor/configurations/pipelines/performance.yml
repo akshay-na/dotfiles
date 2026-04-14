@@ -1,6 +1,6 @@
 name: performance
 description: Performance and reliability workflow — analysis, phased plan, implementation, observability and verification
-version: 1
+version: 2
 max_retries: 3
 
 stages:
@@ -24,7 +24,7 @@ stages:
   - id: implement
     agent: tech-lead
     mode: agent
-    description: Execute optimizations and fixes per plan
+    description: Execute optimizations and fixes per plan with pre-execution validation
     inputs: [implementation_plan]
     outputs: [code_changes]
     timeout_minutes: 45
@@ -42,13 +42,20 @@ stages:
     mode: plan
     description: Confirm metrics, logging, tracing, and operational visibility for the change
     inputs: [code_changes, implementation_plan]
-    outputs: [observability_review]
+    outputs: [observability_review, feedback_items]
     timeout_minutes: 15
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2
 
   - id: verify
     agent: vp-engineering
     mode: plan
     description: Verify improvements against goals and check for regressions
     inputs: [code_changes, analysis, observability_review]
-    outputs: [performance_verification]
+    outputs: [performance_verification, feedback_items]
     timeout_minutes: 15
+    skill: closed-loop-execution
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2

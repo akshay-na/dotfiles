@@ -723,6 +723,181 @@ Transitions:
   running      → success      (all stages done)
 ```
 
+## Cross-Stage Feedback Protocol
+
+Review stages can send structured feedback back to implementation stages for automated fixing.
+
+### Feedback Loop Configuration
+
+Stages can declare a `feedback_loop` config:
+
+```yaml
+stages:
+  - id: quality_review
+    agent: staff-engineer
+    mode: plan
+    description: Review code quality
+    inputs: [code_changes]
+    outputs: [quality_review, feedback_items]
+    feedback_loop:
+      target_stage: implement       # Stage to re-run with feedback
+      max_iterations: 2             # Hard cap before escalation
+      feedback_format: structured   # How feedback is passed
+```
+
+### Feedback Loop Execution
+
+```
+After a review stage completes:
+
+1. Check for feedback_items in stage outputs:
+   if stage.outputs contains "feedback_items":
+     feedback_items = stage.outputs.feedback_items
+
+2. Check for blocking items:
+   blocking_items = filter(feedback_items, severity == "blocking")
+   
+   if len(blocking_items) == 0:
+     Log: "[pipeline] stage={id} feedback=none, continuing"
+     Continue to next stage
+
+3. Invoke cross-stage-feedback skill:
+   result = invoke("cross-stage-feedback", {
+     source_stage: stage.id,
+     target_stage: stage.feedback_loop.target_stage,
+     feedback_items: feedback_items,
+     task_id: task_id,
+     iteration: current_feedback_iteration,
+     max_iterations: stage.feedback_loop.max_iterations
+   })
+
+4. Handle result:
+   
+   If result.action == "re_implement":
+     Log: "[pipeline] feedback_loop source={stage.id} target={target} iteration={n}"
+     
+     # Re-run target stage with feedback as additional input
+     target_stage = find_stage(stage.feedback_loop.target_stage)
+     target_stage.additional_input = {
+       feedback_brief: result.implementation_brief,
+       feedback_source: stage.id,
+       iteration: result.iteration_count
+     }
+     
+     # Jump back to target stage in pipeline
+     current_stage_index = index_of(target_stage)
+     Continue from target_stage
+   
+   If result.action == "escalate":
+     Log: "[pipeline] feedback_loop escalated source={stage.id} iterations={n}"
+     
+     # Pause pipeline, present to user
+     pipeline_state = "waiting_escalation"
+     Display escalation context to user
+     
+     Wait for user response:
+       "fix and retry" → resume from target stage
+       "accept" → continue pipeline
+       "abort" → cancel pipeline
+   
+   If result.action == "accept":
+     Log: "[pipeline] feedback_loop accepted source={stage.id}"
+     Continue to next stage
+```
+
+### Feedback Loop State Machine
+
+```
+                    ┌─────────────────┐
+                    │  Review Stage   │
+                    │   completes     │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ Has blocking    │───No───► Continue pipeline
+                    │ feedback_items? │
+                    └────────┬────────┘
+                             │ Yes
+                             ▼
+                    ┌─────────────────┐
+                    │ Invoke cross-   │
+                    │ stage-feedback  │
+                    └────────┬────────┘
+                             │
+            ┌────────────────┼────────────────┐
+            │                │                │
+            ▼                ▼                ▼
+     ┌────────────┐   ┌────────────┐   ┌────────────┐
+     │ re_implement│   │  escalate  │   │   accept   │
+     └──────┬─────┘   └──────┬─────┘   └──────┬─────┘
+            │                │                │
+            ▼                ▼                ▼
+     ┌────────────┐   ┌────────────┐   Continue
+     │ Re-run     │   │ Pause for  │   pipeline
+     │ target     │   │ user       │
+     │ stage      │   └────────────┘
+     └──────┬─────┘
+            │
+            └─────────► Review stage (re-evaluate)
+```
+
+### Feedback Loop Constraints
+
+1. **User approval gates are NEVER bypassed:**
+   - Feedback loops only re-run implementation stages
+   - If target stage has `requires_approval: true`, approval is still required
+   - Escalation always pauses for user
+
+2. **Iteration caps prevent infinite loops:**
+   - Default: 2 iterations
+   - Security-related: 1 iteration (escalate quickly)
+   - Configurable per stage via `feedback_loop.max_iterations`
+
+3. **Only review→implement pairs can loop:**
+   - Source must be a `mode: plan` review stage
+   - Target must be a `mode: agent` implementation stage
+   - No feedback loops between implementation stages
+
+### Review Stage Output Convention
+
+Review stages that want to participate in feedback loops must:
+
+1. Include `feedback_items` in their declared `outputs`
+2. Produce feedback items in the standard schema:
+
+```yaml
+feedback_item:
+  severity: blocking | advisory | informational
+  file: string
+  line: number | null
+  description: string
+  suggested_fix: string
+  source_agent: string
+  gate_id: string | null
+```
+
+3. Use consistent severity levels:
+   - `blocking`: Must be fixed before proceeding
+   - `advisory`: Should be fixed but doesn't block
+   - `informational`: FYI only
+
+### Feedback Loop Metrics
+
+Captured per feedback loop:
+
+```yaml
+feedback_loop_metrics:
+  task_id: string
+  source_stage: string
+  target_stage: string
+  iterations: number
+  resolved_without_escalation: boolean
+  blocking_items_initial: number
+  blocking_items_resolved: number
+  total_loop_duration_ms: number
+```
+
 ## Integration Points
 
 ### With Task Orchestration

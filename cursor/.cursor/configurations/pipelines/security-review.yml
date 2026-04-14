@@ -1,6 +1,6 @@
 name: security-review
 description: Security-focused workflow with threat modeling and validation
-version: 1
+version: 2
 max_retries: 3
 
 stages:
@@ -24,7 +24,7 @@ stages:
   - id: implement
     agent: tech-lead
     mode: agent
-    description: Implement with security controls
+    description: Implement with security controls and pre-execution validation
     inputs: [implementation_plan, security_requirements]
     outputs: [code_changes]
     timeout_minutes: 45
@@ -37,11 +37,27 @@ stages:
       description: "Revert commits made during implementation"
     skill: closed-loop-execution
 
+  - id: verify
+    agent: tech-lead
+    mode: agent
+    description: Verify security controls implemented correctly
+    inputs: [code_changes, security_requirements]
+    outputs: [verification_results]
+    timeout_minutes: 15
+    retry:
+      max_attempts: 2
+      backoff: fixed
+      initial_delay_seconds: 3
+    skill: closed-loop-execution
+
   - id: security_verify
     agent: ciso
     mode: plan
     description: Validate security implementation
-    inputs: [code_changes, threat_model, security_requirements]
-    outputs: [security_validation]
+    inputs: [code_changes, threat_model, security_requirements, verification_results]
+    outputs: [security_validation, feedback_items]
     requires_approval: true
     timeout_minutes: 20
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 1

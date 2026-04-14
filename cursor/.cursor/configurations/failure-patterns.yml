@@ -1,5 +1,9 @@
 version: 1
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# CORE PATTERNS - Cross-language, high-confidence patterns
+# ═══════════════════════════════════════════════════════════════════════════════
+
 patterns:
   - id: lint-error
     signals: ["ESLint", "prettier", "linter", "formatting", "Biome", "eslint-plugin"]
@@ -85,6 +89,116 @@ patterns:
     max_auto_retries: 0
     auto_fixable: false
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # LANGUAGE-SPECIFIC PATTERNS - Variants with language-specific signals
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # Python-specific patterns
+  - id: type-error-python
+    signals: ["mypy", "pyright", "TypeError", "AttributeError", "has no attribute", "incompatible type", "Argument.*has incompatible type"]
+    strategy: context_expand
+    description: "Read Python type stubs and class definitions, fix type annotations"
+    max_auto_retries: 2
+    auto_fixable: false
+    language: python
+
+  - id: lint-error-python
+    signals: ["ruff", "flake8", "pylint", "black", "isort", "E501", "W503", "F401"]
+    strategy: auto_fix
+    description: "Run ruff/black auto-fix, then retry"
+    max_auto_retries: 2
+    auto_fixable: true
+    fix_command: "ruff check --fix {file} && black {file}"
+    language: python
+
+  - id: test-failure-python
+    signals: ["pytest", "unittest", "FAILED", "AssertionError", "assert.*==", "fixture.*not found"]
+    strategy: analyze_then_fix
+    description: "Read pytest output, compare expected vs actual, fix implementation or test"
+    max_auto_retries: 3
+    auto_fixable: false
+    language: python
+
+  # Go-specific patterns
+  - id: type-error-go
+    signals: ["cannot use", "undefined:", "not enough arguments", "too many arguments", "cannot convert", "invalid operation"]
+    strategy: context_expand
+    description: "Read Go type definitions and interfaces, fix type mismatches"
+    max_auto_retries: 2
+    auto_fixable: false
+    language: go
+
+  - id: lint-error-go
+    signals: ["golint", "golangci-lint", "go vet", "staticcheck", "ineffectual assignment", "should have comment"]
+    strategy: auto_fix
+    description: "Run golangci-lint fix, then retry"
+    max_auto_retries: 2
+    auto_fixable: true
+    fix_command: "golangci-lint run --fix"
+    language: go
+
+  # Rust-specific patterns
+  - id: type-error-rust
+    signals: ["mismatched types", "expected", "found", "the trait.*is not implemented", "cannot borrow", "lifetime"]
+    strategy: context_expand
+    description: "Read Rust type definitions and trait bounds, fix ownership/type issues"
+    max_auto_retries: 2
+    auto_fixable: false
+    language: rust
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CROSS-LANGUAGE PATTERNS - Common issues across all languages
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: circular-dependency
+    signals: ["circular import", "circular reference", "dependency cycle", "circular dependency", "import cycle"]
+    strategy: analyze_then_fix
+    description: "Identify cycle in dependency graph, refactor to break cycle"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: memory-limit
+    signals: ["ENOMEM", "heap out of memory", "JavaScript heap", "MemoryError", "out of memory", "OOM"]
+    strategy: escalate
+    description: "Memory exhaustion requires architectural review — escalate"
+    max_auto_retries: 0
+    auto_fixable: false
+
+  - id: timeout-error
+    signals: ["ETIMEDOUT", "deadline exceeded", "context deadline", "timeout", "timed out", "operation timed out"]
+    strategy: retry_with_backoff
+    description: "Operation timeout — retry with backoff, then analyze if persistent"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: version-mismatch
+    signals: ["version", "incompatible", "peer dependency", "requires", "conflict", "ERESOLVE"]
+    strategy: dependency_check
+    description: "Check package versions, resolve conflicts, update lockfile"
+    max_auto_retries: 2
+    auto_fixable: true
+
+  - id: config-parse-error
+    signals: ["YAML", "JSON.parse", "TOML", "invalid configuration", "parse error", "unexpected end", "invalid syntax"]
+    strategy: analyze_then_fix
+    description: "Parse config file error, fix syntax or structure"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: env-missing
+    signals: ["undefined environment", "missing env", "not set", "environment variable", "env var", "process.env"]
+    strategy: escalate
+    description: "Missing environment variable — escalate for user to provide"
+    max_auto_retries: 0
+    auto_fixable: false
+
+  - id: regression-detected
+    signals: ["regression", "previously passing", "new failure", "broken by", "dependent test failed"]
+    strategy: context_expand
+    description: "Regression in dependent code — read dependent file, understand why change broke it"
+    max_auto_retries: 2
+    auto_fixable: false
+
 strategies:
   auto_fix:
     description: "Run automatic fix command and retry"
@@ -152,3 +266,215 @@ success_criteria:
   config_change:
     - "Config valid"
     - "Tool loads without error"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STRATEGY EFFECTIVENESS TRACKING
+# Track success rates per strategy to enable data-driven improvements
+# ═══════════════════════════════════════════════════════════════════════════════
+
+strategy_effectiveness:
+  tracking_protocol:
+    on_strategy_execution:
+      - Record: pattern_id, strategy_used, succeeded (boolean), attempts_to_success
+      - Store in: session.current/strategy-stats-{task_id}.md
+      - Format: |
+          ---
+          entity_name: session.current.strategy-stats.{task_id}
+          namespace: session.current
+          category: strategy-stats
+          task_id: {task_id}
+          created_at: {timestamp}
+          ---
+          
+          ## Strategy Execution Log
+          
+          | Pattern | Strategy | Succeeded | Attempts |
+          |---------|----------|-----------|----------|
+          | {pattern_id} | {strategy} | {yes/no} | {n} |
+    
+    on_pipeline_completion:
+      - Aggregate session stats to: projects/{name}/metrics/strategy-effectiveness.md
+      - Merge with existing data (don't overwrite)
+      - Update per-strategy totals
+  
+  effectiveness_fields:
+    per_strategy:
+      - total_uses: number
+      - success_count: number
+      - success_rate: number  # computed: success_count / total_uses
+      - avg_attempts_to_success: number
+      - common_failure_chains: string[]  # patterns that frequently follow this strategy failing
+    
+    example: |
+      ## Strategy Effectiveness Report
+      
+      | Strategy | Uses | Successes | Rate | Avg Attempts | Trend |
+      |----------|------|-----------|------|--------------|-------|
+      | auto_fix | 45 | 39 | 87% | 1.2 | → |
+      | context_expand | 32 | 22 | 69% | 1.8 | ↑ |
+      | analyze_then_fix | 28 | 18 | 64% | 2.1 | → |
+      | dependency_check | 15 | 14 | 93% | 1.1 | → |
+      | retry_with_backoff | 8 | 5 | 63% | 2.4 | ↓ |
+      
+      ### Failure Chains (strategies that often fail together)
+      - context_expand → analyze_then_fix (12 occurrences)
+      - retry_with_backoff → escalate (5 occurrences)
+  
+  calibration:
+    thresholds:
+      low_effectiveness: 0.3   # Flag for review if success_rate < 30%
+      high_effectiveness: 0.8  # Mark as reliable if success_rate > 80%
+      minimum_sample_size: 10  # Don't judge until 10+ uses
+    
+    actions:
+      on_low_effectiveness: |
+        Log: "[strategy-effectiveness] {strategy} success_rate={rate} uses={n} — flagged for review"
+        Add to: projects/{name}/metrics/strategy-review-needed.md
+      
+      on_high_effectiveness: |
+        Log: "[strategy-effectiveness] {strategy} success_rate={rate} uses={n} — marked reliable"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PATTERN LEARNING PROTOCOL
+# Discover new patterns from dead letters, promote after human review
+# ═══════════════════════════════════════════════════════════════════════════════
+
+pattern_learning:
+  discovery_protocol:
+    trigger: "Dead letter entry where no pattern matched with confidence >= 0.5"
+    
+    steps:
+      - name: Extract error signature
+        action: |
+          signature = {
+            error_type: first line of error message
+            error_code: extracted error code (e.g., E001, TS2322)
+            file_extension: extension of failing file
+            context_hint: keywords from error (max 3)
+          }
+      
+      - name: Check for similar unmatched errors
+        action: |
+          Search session.current/dead-letter-*.md for matching signatures:
+          - Same error_type prefix (first 20 chars)
+          - Same file_extension
+          - Similar context_hint (1+ overlap)
+          
+          Count matches as similar_count
+      
+      - name: Propose candidate pattern
+        condition: similar_count >= 3
+        action: |
+          candidate = {
+            id: auto-generated from error_type
+            signals: extracted from error signatures
+            suggested_strategy: inferred from error type
+            occurrences: similar_count
+            source_dead_letters: [task_ids]
+            discovered_at: timestamp
+          }
+          
+          Write to: session.current/candidate-pattern-{hash}.md
+          Log: "[pattern-learning] Candidate pattern: {id} from {n} dead letters"
+    
+    constraints:
+      - Never auto-add patterns to failure-patterns.yml
+      - Minimum 3 occurrences before candidacy
+      - Candidates stored in session memory, not in production config
+      - All promotions require human review
+  
+  periodic_review:
+    cadence: weekly  # configurable: daily, weekly, biweekly
+    
+    trigger_conditions:
+      - pending_candidates > 0
+      - days_since_last_review >= cadence_days
+      - Session start (checked automatically)
+    
+    prompt_template: |
+      ## Pattern Review Required
+      
+      **{n} candidate patterns** discovered since last review ({last_review_date}):
+      
+      | Pattern ID | Occurrences | Signals | Suggested Strategy |
+      |------------|-------------|---------|-------------------|
+      {candidate_table}
+      
+      ### Review Options
+      
+      For each pattern, reply with one of:
+      - **approve {id}**: Merge into failure-patterns.yml
+      - **reject {id} <reason>**: Mark as rejected (won't be proposed again)
+      - **defer {id}**: Review next week
+      
+      Or reply **skip** to defer all patterns to next review.
+      
+      ### Example Responses
+      ```
+      approve memory-leak-node
+      reject flaky-test-timeout reason: too environment-specific
+      defer config-validation
+      ```
+    
+    on_approve:
+      - Append pattern to failure-patterns.yml (additive, preserves existing)
+      - Remove from candidate storage
+      - Log: "[pattern-learning] Pattern {id} promoted by user"
+      - Update last_review_date
+    
+    on_reject:
+      - Mark candidate as rejected with reason
+      - Add to session.current/rejected-patterns.md
+      - Exclude from future candidacy unless signals change significantly
+      - Log: "[pattern-learning] Pattern {id} rejected: {reason}"
+    
+    on_defer:
+      - Keep in candidate storage
+      - Increment defer_count
+      - Re-prompt at next cadence
+      - Log: "[pattern-learning] Pattern {id} deferred (count: {n})"
+    
+    on_skip:
+      - Keep all candidates
+      - Update last_review_date (prevents immediate re-prompt)
+      - Log: "[pattern-learning] Review skipped, {n} patterns deferred"
+  
+  on_demand:
+    command: "review patterns"
+    aliases: ["pattern review", "check patterns", "show candidates"]
+    behavior: Same as periodic_review prompt
+  
+  storage:
+    candidates: session.current/candidate-pattern-*.md
+    rejected: session.current/rejected-patterns.md
+    review_state: projects/{name}/metrics/pattern-review-state.md
+    
+    candidate_schema: |
+      ---
+      entity_name: session.current.candidate-pattern.{hash}
+      namespace: session.current
+      category: candidate-pattern
+      pattern_id: string
+      signals: string[]
+      suggested_strategy: string
+      occurrences: number
+      source_dead_letters: string[]
+      discovered_at: timestamp
+      defer_count: number
+      ---
+      
+      ## Candidate Pattern: {pattern_id}
+      
+      **Signals:** {signals}
+      **Strategy:** {suggested_strategy}
+      **Occurrences:** {occurrences}
+      
+      ### Source Errors
+      {error_samples}
+  
+  constraints:
+    - Never auto-promote patterns — always require human review
+    - Minimum 3 occurrences before candidacy
+    - Rejected patterns can be reconsidered if signals change >50%
+    - Maximum 10 candidates shown per review (oldest first)
+    - Defer count > 3 triggers escalation message

@@ -1,6 +1,6 @@
 name: full-feature
 description: Complete feature implementation with design review, security check, implementation, and quality review
-version: 1
+version: 2
 max_retries: 5
 
 stages:
@@ -36,7 +36,7 @@ stages:
     mode: agent
     description: Execute the implementation plan (tech-lead coordinates project agents)
     inputs: [implementation_plan, architecture_review, security_review]
-    outputs: [code_changes, verification_results]
+    outputs: [code_changes]
     requires_approval: true
     timeout_minutes: 60
     retry:
@@ -48,19 +48,38 @@ stages:
       description: "Revert all commits from this stage"
     skill: closed-loop-execution
 
+  - id: verify
+    agent: tech-lead
+    mode: agent
+    description: Run full verification suite (lint, type check, tests, regression check)
+    inputs: [code_changes]
+    outputs: [verification_results]
+    timeout_minutes: 15
+    retry:
+      max_attempts: 2
+      backoff: fixed
+      initial_delay_seconds: 3
+    skill: closed-loop-execution
+
   - id: observability_review
     agent: sre-lead
     mode: plan
     description: Review operational readiness
-    inputs: [code_changes]
-    outputs: [observability_review]
+    inputs: [code_changes, verification_results]
+    outputs: [observability_review, feedback_items]
     condition: "complexity in ['high', 'medium']"
     timeout_minutes: 15
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2
 
   - id: quality_review
     agent: staff-engineer
     mode: plan
     description: Review code quality and maintainability
-    inputs: [code_changes, observability_review]
-    outputs: [quality_review]
+    inputs: [code_changes, observability_review, verification_results]
+    outputs: [quality_review, feedback_items]
     timeout_minutes: 15
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2

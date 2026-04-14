@@ -1,6 +1,6 @@
 name: refactor
 description: Refactoring workflow with analysis, planning, and quality review
-version: 1
+version: 2
 max_retries: 3
 
 stages:
@@ -24,7 +24,7 @@ stages:
   - id: implement
     agent: tech-lead
     mode: agent
-    description: Execute refactoring
+    description: Execute refactoring with pre-execution validation
     inputs: [implementation_plan]
     outputs: [code_changes]
     timeout_minutes: 45
@@ -37,10 +37,26 @@ stages:
       description: "Revert all refactoring commits"
     skill: closed-loop-execution
 
+  - id: verify
+    agent: tech-lead
+    mode: agent
+    description: Verify behavior unchanged — run full test suite and regression check
+    inputs: [code_changes, analysis]
+    outputs: [verification_results]
+    timeout_minutes: 20
+    retry:
+      max_attempts: 2
+      backoff: fixed
+      initial_delay_seconds: 3
+    skill: closed-loop-execution
+
   - id: quality_review
     agent: staff-engineer
     mode: plan
     description: Verify refactoring improves code quality
-    inputs: [code_changes, analysis]
-    outputs: [quality_review]
+    inputs: [code_changes, analysis, verification_results]
+    outputs: [quality_review, feedback_items]
     timeout_minutes: 15
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2

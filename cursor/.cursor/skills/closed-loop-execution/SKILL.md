@@ -70,7 +70,7 @@ The loop continues until success, escalation, or retry budget exhaustion.
 
 ## Execution Loop Protocol
 
-The closed-loop execution follows a strict state machine with six phases.
+The closed-loop execution follows a strict state machine with seven phases.
 
 ### Phase Diagram
 
@@ -81,28 +81,80 @@ The closed-loop execution follows a strict state machine with six phases.
                            │
                            ▼
                     ┌─────────────┐
-                    │   EXECUTE   │
-                    └──────┬──────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-              ┌─────│   EVALUATE  │─────┐
+              ┌─────│   VALIDATE  │─────┐
               │     └─────────────┘     │
               │ PASS                    │ FAIL
-              ▼                         ▼
-        ┌──────────┐             ┌─────────────┐
-        │ SUCCESS  │             │   ANALYZE   │
-        └──────────┘             └──────┬──────┘
-                                        │
-                           ┌────────────┼────────────┐
-                           │            │            │
-                           ▼            ▼            ▼
-                     ┌──────────┐ ┌──────────┐ ┌─────────────┐
-                     │   FIX    │ │ ESCALATE │ │ DEAD LETTER │
-                     └────┬─────┘ └──────────┘ └─────────────┘
-                          │
-                          └───────────► GENERATE (loop)
+              ▼                         │
+        ┌─────────────┐                 │
+        │   EXECUTE   │                 │
+        └──────┬──────┘                 │
+               │                        │
+               ▼                        │
+        ┌─────────────┐                 │
+  ┌─────│   EVALUATE  │─────┐           │
+  │     └─────────────┘     │           │
+  │ PASS                    │ FAIL      │
+  ▼                         ▼           │
+┌──────────┐          ┌─────────────┐   │
+│ SUCCESS  │          │   ANALYZE   │◄──┘
+└──────────┘          └──────┬──────┘
+                             │
+                ┌────────────┼────────────┐
+                │            │            │
+                ▼            ▼            ▼
+          ┌──────────┐ ┌──────────┐ ┌─────────────┐
+          │   FIX    │ │ ESCALATE │ │ DEAD LETTER │
+          └────┬─────┘ └──────────┘ └─────────────┘
+               │
+               └───────────► GENERATE (loop, not VALIDATE)
 ```
+
+### VALIDATE Phase (NEW)
+
+Pre-execution validation catches errors before writing to disk.
+
+```
+Input: generated_output, target_files, task_type, task_id, complexity
+Output: validation_result
+
+1. Invoke pre-execution-validation skill:
+   validation_result = invoke("pre-execution-validation", {
+     generated_output: generated_output,
+     target_files: action.files,
+     task_type: task_context.task_type,
+     task_id: task_id,
+     complexity: task_context.complexity
+   })
+
+2. Handle result:
+   
+   If validation_result.passed == true:
+     - Log: "[closed-loop] task={task_id} validation=passed gates={count}"
+     - Proceed to EXECUTE phase
+   
+   If validation_result.passed == false:
+     - Log: "[closed-loop] task={task_id} validation=failed violations={count}"
+     - Route to ANALYZE phase with validation context:
+       error_context = {
+         source: "pre_validation",
+         violations: validation_result.violations,
+         gates_checked: validation_result.gates_checked
+       }
+     - ANALYZE treats validation failures like any other failure
+     - After FIX, loop back to GENERATE (not VALIDATE)
+       This ensures a clean regeneration rather than patching
+
+3. Capture metrics:
+   - pre_validation_runs: increment
+   - pre_validation_passed: increment if passed
+   - pre_validation_catches: append violation types
+   - gates_run: validation_result.gates_checked.length
+   - duration_ms: validation_result total duration
+```
+
+**Why loop to GENERATE, not VALIDATE:**
+
+When validation fails, the FIX phase modifies the approach or expands context. Returning to GENERATE produces a fresh, clean output incorporating the fix. This is more reliable than trying to patch the invalid output.
 
 ### GENERATE Phase
 
@@ -122,6 +174,8 @@ Output: generated_output
    - Load strategy being applied
    - Load what was already tried
    - Adjust approach based on failure analysis
+   - NOTE: Retries come from ANALYZE→FIX, not from VALIDATE
+     (validation failures route through ANALYZE like any failure)
 
 3. Generate output:
    - Code changes (file edits)
@@ -141,6 +195,8 @@ Output: generated_output
      commands: string[],
      description: string
    }
+
+6. Next phase: VALIDATE (pre-execution validation)
 ```
 
 ### EXECUTE Phase
@@ -397,6 +453,198 @@ Output: dead_letter_entry
    - blocked_reason: retry_budget_exhausted | unrecoverable_error
 
 5. Halt execution
+```
+
+## Regression Detection Protocol
+
+Catches regressions in dependent files after changes are applied.
+
+### Complexity Gate
+
+Regression detection is expensive. Skip it for low-complexity tasks:
+
+```
+Input: task_context.complexity
+Output: run_regression_check (boolean)
+
+1. Load complexity from task metadata:
+   complexity = task_context.complexity  # low | medium | high
+
+2. Check project-level override:
+   If .cursor/configurations/verification-gates-local.yml exists:
+     Load regression_detection.enabled_for_complexity
+   Else:
+     Use default: ["medium", "high"]
+
+3. Evaluate gate:
+   If complexity in enabled_for_complexity:
+     run_regression_check = true
+     Log: "[closed-loop] regression_check=enabled complexity={complexity}"
+   Else:
+     run_regression_check = false
+     Log: "[closed-loop] regression_check=skipped complexity={complexity}"
+```
+
+### Baseline Capture (Before GENERATE)
+
+```
+Trigger: First iteration AND complexity gate passes
+
+1. Identify files to be modified:
+   target_files = action.files
+
+2. Find dependent files:
+   For each target_file:
+     Find files that import/reference target_file
+     Add to dependent_files[]
+   
+   Methods by language:
+     TypeScript/JavaScript: Parse imports, check tsconfig paths
+     Python: Parse imports, check __init__.py
+     Go: Parse import statements
+
+3. Capture baseline test results:
+   For each file in (target_files + dependent_files):
+     Run tests for this file
+     Record: {file, test_count, pass_count, fail_count}
+   
+   Store as baseline_results
+
+4. Store baseline:
+   Write to session.current/baseline-{task_id}.md:
+   ---
+   entity_name: session.current.baseline.{task_id}
+   namespace: session.current
+   category: regression-baseline
+   task_id: {task_id}
+   target_files: [...]
+   dependent_files: [...]
+   baseline_results: [...]
+   captured_at: {timestamp}
+   ---
+```
+
+### Regression Check (After EVALUATE Passes)
+
+```
+Trigger: EVALUATE passes all checks AND run_regression_check is true
+
+1. Load baseline:
+   baseline = read(session.current/baseline-{task_id}.md)
+
+2. Re-run tests for dependent files:
+   For each file in baseline.dependent_files:
+     Run tests for this file
+     Record: {file, test_count, pass_count, fail_count}
+   
+   Store as current_results
+
+3. Compare against baseline:
+   regressions = []
+   
+   For each file in current_results:
+     baseline_file = find(baseline.baseline_results, file)
+     
+     # New failures = regression
+     new_failures = current_results.fail_count - baseline_file.fail_count
+     
+     If new_failures > 0:
+       regressions.append({
+         file: file,
+         baseline_pass: baseline_file.pass_count,
+         current_pass: current_results.pass_count,
+         new_failures: new_failures
+       })
+
+4. Handle results:
+   If len(regressions) > 0:
+     Log: "[closed-loop] regressions_detected={len(regressions)}"
+     
+     # Treat as evaluation failure
+     evaluation_result.passed = false
+     evaluation_result.first_failure = {
+       name: "regression_check",
+       output: format_regression_report(regressions)
+     }
+     
+     # Route to ANALYZE with regression pattern
+     # Pattern: regression-detected
+     # Strategy: context_expand (read dependent file, understand why)
+     
+   Else:
+     Log: "[closed-loop] regression_check=passed dependents={len(dependent_files)}"
+```
+
+### Regression Report Format
+
+```markdown
+## Regression Detected
+
+{n} dependent files have new test failures after your changes:
+
+| File | Baseline | Current | New Failures |
+|------|----------|---------|--------------|
+| src/utils/helper.ts | 5/5 pass | 3/5 pass | 2 |
+| src/api/client.ts | 8/8 pass | 7/8 pass | 1 |
+
+### Affected Tests
+
+**src/utils/helper.ts:**
+- `should parse valid input` - was passing, now failing
+- `should handle empty input` - was passing, now failing
+
+### Suggested Investigation
+
+1. Read the dependent file to understand its usage of modified code
+2. Check if API contract changed (function signature, return type)
+3. Update dependent code or add backwards compatibility
+```
+
+### Regression Analysis Strategy
+
+When `regression-detected` pattern matches:
+
+```yaml
+strategy: context_expand
+
+steps:
+  1. Read the dependent file that has new failures
+  2. Identify how it uses the modified code:
+     - Function calls
+     - Type dependencies
+     - Imported constants/configs
+  3. Determine if the change broke the contract:
+     - Signature change?
+     - Return type change?
+     - Side effect change?
+  4. Generate fix:
+     - If contract should change: update dependent file
+     - If contract should stay: revert breaking change, find alternative
+```
+
+### Project-Level Override
+
+Projects can customize regression detection via `verification-gates-local.yml`:
+
+```yaml
+# .cursor/configurations/verification-gates-local.yml
+version: 1
+extends: global
+
+regression_detection:
+  # Default: [medium, high]
+  # Always on: [low, medium, high]
+  # Only expensive tasks: [high]
+  enabled_for_complexity: [medium, high]
+  
+  # Scope of dependent file search
+  search_depth: 2  # How many levels of imports to follow
+  
+  # Skip certain patterns from regression checks
+  exclude_patterns:
+    - "**/*.test.ts"
+    - "**/*.spec.ts"
+    - "**/mocks/**"
 ```
 
 ## Same-Error Escalation Rule
@@ -714,6 +962,8 @@ strategies_exhausted: [context_expand, analyze_then_fix]
 blocked_at: 2026-04-04T11:30:00Z
 blocked_reason: retry_budget_exhausted
 tags: [dead-letter, blocked]
+similar_failures: 2
+error_signature: "type-error:ts:circular_reference"
 ---
 
 ## Task Description
@@ -746,6 +996,23 @@ Add user preferences feature with persistence to localStorage.
 - src/types/preferences.d.ts (created)
 - src/hooks/usePreferences.ts (modified)
 
+## Smart Suggestions
+
+Based on 2 similar failures:
+
+1. **Most likely root cause:** Circular type references in TypeScript definitions
+2. **Specific area to investigate:** `src/types/preferences.d.ts` — check for self-referencing types
+3. **Alternative approach:** Use type aliasing instead of interface extension to break the cycle
+
+### Similar Failures
+
+- task-a1b2c3-add-settings: Circular reference in Settings type (2026-04-02)
+- task-d4e5f6-user-profile: Self-referencing Profile type (2026-04-01)
+
+### Common Thread
+
+All failures involve TypeScript type definitions with nested optional properties that create circular dependencies. The pattern occurs when types reference each other or themselves through optional properties.
+
 ## Suggested Manual Steps
 
 1. Review the Preferences type definition in `src/types/preferences.d.ts`
@@ -759,6 +1026,98 @@ When retrying, consider:
 - The type system is rejecting nested optional properties
 - Previous attempts tried adding defaults and guards
 - Root cause may be in the type definition itself, not usage
+```
+
+## Dead Letter Aggregation Protocol
+
+Aggregate similar dead letters to surface systemic issues and provide smarter suggestions.
+
+### On Dead Letter Creation
+
+```
+1. Extract error signature:
+   signature = {
+     error_type: first line of final error message (normalized)
+     file_extension: extension of primary failing file
+     pattern_id: final_pattern matched
+   }
+   
+   Format: "{pattern_id}:{extension}:{error_type_hash}"
+   Example: "type-error:ts:circular_reference"
+
+2. Search for similar dead letters:
+   Search session.current/dead-letter-*.md for:
+   - Same pattern_id
+   - Same file_extension
+   - Similar error_type (first 50 chars match OR same error code)
+   
+   Store matches as similar_dead_letters[]
+
+3. If similar_dead_letters.count >= 1:
+   Generate smart suggestions based on common thread
+
+4. Add to dead letter entry:
+   - similar_failures: count
+   - error_signature: formatted signature
+   - Smart Suggestions section with:
+     - Most likely root cause (inferred from common patterns)
+     - Specific area to investigate (files/patterns that recur)
+     - Alternative approach (based on what hasn't been tried)
+   - Similar Failures section with task IDs and brief descriptions
+   - Common Thread section explaining what all failures share
+```
+
+### Smart Suggestion Generation
+
+```
+Input: current_error, similar_dead_letters[]
+Output: smart_suggestions
+
+1. Identify common thread:
+   - What patterns appear in all failures?
+   - What file types are consistently involved?
+   - What strategies have been exhausted across all?
+
+2. Generate root cause hypothesis:
+   Based on common thread, suggest most likely root cause:
+   - If all type-error + .ts: "Type system constraints"
+   - If all import-not-found + .py: "Python path/module resolution"
+   - If all test-failure + same test file: "Test environment or fixture issue"
+
+3. Identify investigation target:
+   - Most frequently mentioned file across failures
+   - Most frequently mentioned line number range
+   - Most frequently mentioned function/class
+
+4. Suggest alternative approach:
+   - What strategies were NOT tried?
+   - What patterns in successful similar tasks could apply?
+   - Is there a simpler approach that avoids the problematic area?
+
+5. Format suggestions concisely (max 200 tokens):
+   ## Smart Suggestions
+   
+   Based on {n} similar failures:
+   
+   1. **Most likely root cause:** {root_cause_hypothesis}
+   2. **Specific area to investigate:** {investigation_target}
+   3. **Alternative approach:** {alternative_suggestion}
+```
+
+### Aggregation for Pattern Learning
+
+When similar_failures >= 3 and no pattern matched with confidence >= 0.5:
+
+```
+1. Trigger pattern learning discovery (see pattern_learning in failure-patterns.yml)
+
+2. Include in dead letter entry:
+   ## Pattern Learning Candidate
+   
+   This failure matches {n} others with no confident pattern match.
+   A candidate pattern has been proposed for review.
+   
+   See: session.current/candidate-pattern-{hash}.md
 ```
 
 ## Integration with Pipeline Executor
@@ -998,6 +1357,15 @@ per_execution:
   - strategies_used: string[]
   - files_modified: string[]
   - final_status: success | failed | escalated
+  # VALIDATE phase metrics (new)
+  - pre_validation_runs: number
+  - pre_validation_pass_rate: number
+  - pre_validation_catches: string[]  # Types of errors caught pre-write
+  # Regression detection metrics (new)
+  - regression_checks_run: number
+  - regression_checks_skipped: number  # Skipped due to low complexity
+  - regressions_detected: number
+  - regressions_auto_fixed: number
 
 per_attempt:
   - attempt_number
@@ -1005,12 +1373,19 @@ per_attempt:
   - pattern_matched
   - strategy_used
   - success: boolean
+  # VALIDATE phase details (new)
+  - validation_passed: boolean
+  - validation_gates_run: number
+  - validation_violations: number
 
 aggregated:
   - success_rate_by_pattern
   - avg_attempts_by_pattern
   - escalation_rate
   - dead_letter_rate
+  # VALIDATE phase aggregates (new)
+  - pre_validation_catch_rate: number  # % of errors caught before write
+  - most_common_pre_validation_catches: string[]
 ```
 
 ### Logging Format
@@ -1019,4 +1394,6 @@ aggregated:
 [closed-loop] task={task_id} attempt={n} pattern={pattern} strategy={strategy} result={success|failed}
 [closed-loop] task={task_id} status={success|failed|escalated} total_attempts={n} duration_ms={ms}
 [closed-loop] task={task_id} dead_letter reason={reason}
+[closed-loop] task={task_id} validation={passed|failed} gates={count} violations={count}
+[closed-loop] task={task_id} regression_check={passed|failed|skipped} complexity={level}
 ```
