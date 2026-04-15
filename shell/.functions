@@ -398,15 +398,14 @@ function git_worktree_add() {
     git fetch origin "$BRANCH_NAME"
   fi
 
-  if [ -d "./.cursor" ]; then
-    echo "Copying .cursor to $WORKTREE_PATH/.cursor"
-    cp -rf "./.cursor" "$WORKTREE_PATH/"
-    return 1
-  fi
-
   # Add the new worktree based on the specified branch
   git worktree add --guess-remote "$WORKTREE_PATH" "$BRANCH_NAME"
   echo "Worktree added for branch '$BRANCH_NAME'."
+
+  if [ -d "./.cursor" ]; then
+    echo "Copying .cursor to $WORKTREE_PATH/.cursor"
+    cp -rf "./.cursor" "$WORKTREE_PATH/.cursor"
+  fi
 
   cd "$WORKTREE_PATH"
 }

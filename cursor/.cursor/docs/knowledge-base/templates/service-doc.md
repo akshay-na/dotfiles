@@ -1,15 +1,21 @@
 ---
 title: "Service: {{service_name}}"
 type: service
-project: {{project_name}}
-tags: [{{project_name}}, service, {{service_name}}]
-generated_at: {{timestamp}}
+project: { { project_name } }
+tags:
+  - kb
+  - kb/project/{{project_name}}
+  - kb/project/{{project_name}}/service/{{service_name}}
+  - kb/type/service
+generated_at: { { timestamp } }
 generated_by: kb-engineer
-source_files: [{{source_files}}]
-confidence: {{confidence}}
+source_files: [{ { source_files } }]
+confidence: { { confidence } }
 stale: false
-aliases: [{{aliases}}]
+aliases: [{ { aliases } }]
 ---
+
+<!-- TAGS: Hierarchical for Obsidian graph grouping and AI querying -->
 
 # {{service_name}}
 
@@ -68,12 +74,43 @@ flowchart LR
 ## Configuration Files
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
+
 {{config_files_rows}}
+
+## Cross-Project Services
+
+> Service-to-service links to other projects (connected/dependent services).
+
+{{cross_project_service_links}}
+
+```mermaid
+flowchart LR
+    this["{{service_name}}"]
+
+    {{cross_project_service_nodes}}
+
+    {{cross_project_service_edges}}
+```
 
 ## Related
 
-- [[../README|Project Overview]]
+### Project Hub
+
+> **REQUIRED**: This link makes [[../{{project_name}}|{{project_name}}]] the center of the graph.
+
+- [[../{{project_name}}|{{project_name}}]]
+
+### This Project
+
 - [[../architecture|Architecture]]
+- [[../dependencies|Dependencies]]
 - [[_index|All Services]]
+
+### Related Services (Same Project)
+
 {{related_services}}
+
+### Related Services (Other Projects)
+
+{{cross_project_related}}

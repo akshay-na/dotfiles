@@ -21,464 +21,184 @@ output_schema:
       description: Result status - success, partial, not_git_repo, or error
     - name: project_name
       type: string
-      description: Derived project name
     - name: kb_path
       type: string
-      description: Path to generated KB directory
   optional:
     - name: documents_generated
       type: number
-      description: Count of documents created
     - name: documents_updated
       type: number
-      description: Count of documents updated (incremental mode)
     - name: documents_skipped
       type: number
-      description: Count of unchanged documents skipped
     - name: stats
       type: object
-      description: Generation statistics - modules, services, dependencies, edges
     - name: error
       type: string
-      description: Error message if status is error
 pre_checks:
-  - description: Project root must be provided
-    validation: project_root is not empty
-  - description: Mode must be valid
-    validation: mode in ["full", "incremental", "refresh-stale"]
-  - description: Scope must be valid if provided
-    validation: if scope provided then scope in ["all", "architecture", "modules", "services", "dependencies"]
+  - validation: project_root is not empty
+  - validation: mode in ["full", "incremental", "refresh-stale"]
 post_checks:
-  - description: Status is always returned
-    validation: status is not empty
-  - description: Success returns path
-    validation: if status is success then kb_path is returned
-  - description: Manifest updated on success
-    validation: if status is success then .meta/manifest.json exists
+  - validation: status is not empty
+  - validation: if status is success then kb_path is returned
 cacheable: false
 ---
 
 # kb-generation Skill
 
-Core protocol for generating Knowledge Base documentation. This skill is used by `kb-engineer` to analyze projects and produce Obsidian-compatible documentation.
+Generates Obsidian-compatible KB docs from project source code.
 
-## Overview
-
-The generation process:
-1. Invokes `kb-identity` to derive project identity
-2. Analyzes project structure by reading files directly (no shell)
-3. Generates markdown documents with mermaid diagrams
-4. Builds `graph.json` with relationship data
-5. Updates manifest for incremental tracking
-
-## Generation Protocol
-
-### Step 1: Invoke kb-identity skill
+## Protocol Summary
 
 ```
-identity = kb-identity(project_root)
-
-if identity.status != "success":
-    return { status: identity.status, error: identity.error }
-
-project_name = identity.project_name
-kb_path = identity.kb_path
+1. kb-identity → project_name, kb_path
+2. Analyze project → modules, services, deps, edges
+3. Generate docs → README, architecture, modules/*, services/*, deps, graph.json
+4. Update meta → manifest.json, identity.json
+5. Update Home.md
 ```
 
-### Step 2: Determine KB path and mode behavior
+## Step 1: Identity
 
-```
-kb_projects_path = expand("~/.cursor/docs/knowledge-base/projects/")
-project_kb_path = kb_projects_path + project_name + "/"
+Invoke `kb-identity(project_root)` → Returns `project_name`, `kb_path`, `identity_hash`.
 
-if mode == "full":
-    # Generate everything from scratch
-    # Clear existing docs if any (except .meta/identity.json)
-    
-elif mode == "incremental":
-    # Read existing manifest
-    manifest = read_json(project_kb_path + ".meta/manifest.json")
-    # Compute current file hashes
-    # Only regenerate docs for changed files
-    
-elif mode == "refresh-stale":
-    # Read existing docs
-    # Check frontmatter for stale: true
-    # Regenerate only stale docs
-```
+## Step 2: Mode Behavior
 
-### Step 3: Analyze project structure
+| Mode | Behavior |
+|------|----------|
+| `full` | Clear existing docs (except `.meta/identity.json`), regenerate all |
+| `incremental` | Compare file hashes via manifest, regenerate only changed |
+| `refresh-stale` | Check frontmatter `stale: true`, regenerate those docs |
 
-Read files directly (NO SHELL COMMANDS):
+## Step 3: Analyze Project
 
-#### 3a. Read package manifests
+### Files to Read
 
-```
-# Detect project type and read appropriate manifest
-supported_manifests = [
-    "package.json",      # Node.js
-    "Cargo.toml",        # Rust
-    "pyproject.toml",    # Python (modern)
-    "setup.py",          # Python (legacy)
-    "go.mod",            # Go
-    "pom.xml",           # Java/Maven
-    "build.gradle",      # Java/Gradle
-    "Gemfile",           # Ruby
-    "composer.json",     # PHP
-    "pubspec.yaml",      # Dart/Flutter
-]
+| Category | Files |
+|----------|-------|
+| Manifests | `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json` |
+| Config | `tsconfig.json`, `.eslintrc`, `docker-compose.yml`, `Dockerfile` |
+| Entry points | `index.*`, `main.*`, `app.*`, `mod.rs`, `__init__.py` |
 
-for manifest in supported_manifests:
-    if exists(project_root + "/" + manifest):
-        content = read_file(project_root + "/" + manifest)
-        extract: name, version, dependencies, dev_dependencies, scripts
-```
+### Skip
 
-#### 3b. Map directory structure
+`node_modules/`, `vendor/`, `.git/`, `build/`, `dist/`, `target/`, `__pycache__/`, lock files, generated files, binaries.
 
-```
-# Identify module boundaries
-# Common patterns:
-#   - src/<module>/
-#   - packages/<module>/
-#   - lib/<module>/
-#   - apps/<service>/
-#   - services/<service>/
+### Extract
 
-modules = []
-services = []
+- **Modules**: Directories with index/entry files → name, path, exports, imports
+- **Services**: Directories with Dockerfile/main entry → name, port, protocol, endpoints
+- **Dependencies**: From manifest → name, version, type (prod/dev/peer)
+- **Edges**: Import statements → source, target, relation, confidence
 
-# Read directory structure
-for entry in list_directory(project_root):
-    if is_directory(entry):
-        # Check for module indicators
-        if has_index_file(entry) or has_mod_file(entry):
-            modules.append(analyze_module(entry))
-        
-        # Check for service indicators
-        if has_dockerfile(entry) or has_main_entry(entry):
-            services.append(analyze_service(entry))
-```
-
-#### 3c. Read entry points and exports
-
-```
-# For each module, read key files
-for module in modules:
-    entry_files = [
-        module.path + "/index.ts",
-        module.path + "/index.js",
-        module.path + "/mod.rs",
-        module.path + "/__init__.py",
-        module.path + "/main.go",
-    ]
-    
-    for file in entry_files:
-        if exists(file):
-            content = read_file(file)
-            extract: exports, imports, public_api
-```
-
-#### 3d. Build relationship graph
-
-```
-nodes = []
-edges = []
-
-# Add module nodes
-for module in modules:
-    nodes.append({
-        id: module.name,
-        label: module.name,
-        type: "module",
-        source_file: module.entry_point,
-        kb_doc: "modules/" + module.name + ".md"
-    })
-
-# Add service nodes
-for service in services:
-    nodes.append({
-        id: service.name,
-        label: service.name,
-        type: "service",
-        source_file: service.entry_point,
-        kb_doc: "services/" + service.name + ".md"
-    })
-
-# Add external dependency nodes
-for dep in external_dependencies:
-    nodes.append({
-        id: "ext:" + dep.name,
-        label: dep.name,
-        type: "external_dep"
-    })
-
-# Add edges
-for module in modules:
-    for import in module.imports:
-        edges.append({
-            source: module.name,
-            target: resolve_target(import),
-            relation: "imports",
-            confidence: "EXTRACTED",
-            source_location: import.file + ":" + import.line
-        })
-```
-
-### Step 4: Generate documents
+## Step 4: Generate Documents
 
 Use templates from `~/.cursor/docs/knowledge-base/templates/`.
 
-#### 4a. README.md (overview)
+**IMPORTANT:** The main project file is named `{project_name}.md` (NOT README.md) so it appears as the project name in Obsidian's graph.
 
-```
-template = read_file(templates_path + "project-readme.md")
-content = fill_template(template, {
-    project_name: project_name,
-    description: extracted_description,
-    tech_stack_rows: format_tech_stack(tech_stack),
-    module_links: format_module_links(modules),
-    service_links: format_service_links(services),
-    module_count: modules.length,
-    service_count: services.length,
-    dep_count: dependencies.length,
-    timestamp: now_iso8601(),
-    confidence: calculate_confidence()
-})
-write_file(project_kb_path + "README.md", content)
-```
+| Document | Template | Content |
+|----------|----------|---------|
+| `{project_name}.md` | `project-readme.md` | Overview, tech stack, module/service links, stats |
+| `architecture.md` | `architecture-doc.md` | System diagram, layers, boundaries |
+| `dependencies.md` | `dependencies-doc.md` | Dep table, graph, security notes |
+| `modules/_index.md` | `modules-index.md` | Module inventory, dependency matrix |
+| `modules/<name>.md` | `module-doc.md` | Purpose, API, deps, dependents |
+| `services/_index.md` | `services-index.md` | Service inventory, communication matrix |
+| `services/<name>.md` | `service-doc.md` | Purpose, endpoints, deployment |
+| `graph.json` | (schema) | Nodes + edges for programmatic queries |
 
-#### 4b. architecture.md
+### Template Variables
 
-```
-template = read_file(templates_path + "architecture-doc.md")
-content = fill_template(template, {
-    project_name: project_name,
-    overview: generate_architecture_overview(),
-    # Generate mermaid diagram nodes
-    internal_nodes: generate_mermaid_nodes(modules, services),
-    connections: generate_mermaid_edges(edges),
-    ...
-})
-write_file(project_kb_path + "architecture.md", content)
-```
+Fill templates with: `{{project_name}}`, `{{timestamp}}`, `{{confidence}}`, `{{module_nodes}}`, `{{service_nodes}}`, etc.
 
-#### 4c. modules/*.md
+## Step 5: Build graph.json
 
-```
-ensure_directory(project_kb_path + "modules/")
-
-# Generate index
-index_content = generate_module_index(modules)
-write_file(project_kb_path + "modules/_index.md", index_content)
-
-# Generate per-module docs
-for module in modules:
-    template = read_file(templates_path + "module-doc.md")
-    content = fill_template(template, {
-        module_name: module.name,
-        project_name: project_name,
-        purpose: module.description,
-        module_path: module.path,
-        entry_point: module.entry_point,
-        public_api: format_api(module.exports),
-        internal_dependencies: format_deps(module.internal_deps),
-        external_dependencies: format_deps(module.external_deps),
-        dependents: find_dependents(module, edges),
-        timestamp: now_iso8601(),
-        ...
-    })
-    write_file(project_kb_path + "modules/" + module.name + ".md", content)
-```
-
-#### 4d. services/*.md
-
-```
-ensure_directory(project_kb_path + "services/")
-
-# Generate index
-index_content = generate_service_index(services)
-write_file(project_kb_path + "services/_index.md", index_content)
-
-# Generate per-service docs
-for service in services:
-    template = read_file(templates_path + "service-doc.md")
-    content = fill_template(template, {
-        service_name: service.name,
-        project_name: project_name,
-        purpose: service.description,
-        port: service.port,
-        protocol: service.protocol,
-        api_endpoints: format_endpoints(service.endpoints),
-        # Generate mermaid sequence diagram
-        sequence_diagram_content: generate_sequence_diagram(service),
-        ...
-    })
-    write_file(project_kb_path + "services/" + service.name + ".md", content)
-```
-
-#### 4e. dependencies.md
-
-```
-content = generate_dependency_doc(dependencies, {
-    # Mermaid flowchart for dependency graph
-    mermaid_graph: generate_dependency_mermaid(dependencies)
-})
-write_file(project_kb_path + "dependencies.md", content)
-```
-
-#### 4f. graph.json
-
-```
-graph = {
-    version: 1,
-    project: project_name,
-    generated_at: now_iso8601(),
-    nodes: nodes,
-    edges: edges
+```json
+{
+  "version": 1,
+  "project": "<name>",
+  "generated_at": "<ISO8601>",
+  "nodes": [{ "id": "", "label": "", "type": "module|service|external_dep", "kb_doc": "" }],
+  "edges": [{ "source": "", "target": "", "relation": "imports|depends_on|calls", "confidence": "EXTRACTED|INFERRED" }]
 }
-
-# Validate against schema
-validate_json(graph, "_schema/graph.schema.json")
-
-write_file(project_kb_path + "graph.json", json_stringify(graph))
 ```
 
-### Step 5: Update manifest
+Validate against `_schema/graph.schema.json`.
 
-```
-ensure_directory(project_kb_path + ".meta/")
+## Step 6: Update Manifest
 
-manifest = {
-    version: 1,
-    project: project_name,
-    generated_at: now_iso8601(),
-    files: {}
+Write to `.meta/manifest.json`:
+
+```json
+{
+  "version": 1,
+  "project": "<name>",
+  "generated_at": "<ISO8601>",
+  "files": {
+    "<path>": { "sha256": "<hash>", "last_analyzed": "<ISO8601>", "contributed_to": ["README.md"] }
+  }
 }
-
-for file in analyzed_files:
-    manifest.files[file.path] = {
-        sha256: compute_sha256(file.content),
-        last_analyzed: now_iso8601(),
-        contributed_to: file.contributed_docs
-    }
-
-write_file(project_kb_path + ".meta/manifest.json", json_stringify(manifest))
 ```
 
-### Step 6: Update identity.json
+## Step 7: Update Home.md
+
+**MANDATORY** — Update `~/.cursor/docs/knowledge-base/Home.md` after every generation.
+
+1. If missing, create from `templates/home.md`
+2. Update project row in Projects table
+3. Refresh statistics
+4. Update recently updated list
+
+## Backlink Rules (Star Topology)
+
+All docs link **TO** `{project_name}.md` (hub). Hub links **OUT** to all children.
+
+**IMPORTANT:** Hub file is named `{project_name}.md` so it shows as the project name in Obsidian's graph.
+
+| Document | Must Link To |
+|----------|-------------|
+| All non-hub docs | `[[{project_name}\|{project_name}]]` (REQUIRED) |
+| `{project_name}.md` (hub) | All modules, services, architecture, deps, connected projects |
+| Module/Service | Hub + related siblings + cross-project deps |
+
+### Cross-Project Links
+
+| Type | Syntax |
+|------|--------|
+| Hub-to-hub | `[[../other-project/other-project\|other-project]]` |
+| Module-to-module | `[[../other-project/modules/api\|Other API]]` |
+
+## Incremental Algorithm
 
 ```
-identity_record = {
-    project_name: project_name,
-    identity_hash: identity.identity_hash,
-    full_identity: identity.full_identity,
-    remote_url: identity.remote_url,
-    derived_from: identity.derived_from,
-    is_worktree: identity.is_worktree,
-    main_repo_path: identity.main_repo_path,
-    derived_at: now_iso8601(),
-    needs_refresh: false
-}
-
-write_file(project_kb_path + ".meta/identity.json", json_stringify(identity_record))
+1. Read manifest.json
+2. For each source file:
+   - New → analyze, add to manifest
+   - Changed hash → analyze, mark contributed_to docs stale
+   - Deleted → remove from manifest, mark docs stale
+   - Unchanged → skip
+3. Regenerate stale docs
+4. Update manifest
 ```
-
-### Step 7: Update Home.md
-
-```
-home_path = expand("~/.cursor/docs/knowledge-base/Home.md")
-home_content = read_file(home_path)
-
-# Update or add project row in Projects table
-project_row = "| " + project_name + " | " + now_date() + " | " + modules.length + " | " + services.length + " | ✓ |"
-
-# Replace existing row or append new row
-home_content = update_project_table(home_content, project_name, project_row)
-
-write_file(home_path, home_content)
-```
-
-## File Scope Rules
-
-### ALWAYS Analyze
-
-- Package manifests: `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`
-- Config files: `tsconfig.json`, `.eslintrc`, `docker-compose.yml`, `Dockerfile`
-- Entry points: `index.*`, `main.*`, `app.*`, `mod.rs`, `__init__.py`
-- README files at any level
-
-### ANALYZE on First Pass (full mode)
-
-- All source files in detected languages
-- But: read only imports/exports/public API, not full function bodies
-- Focus on structure, not implementation details
-
-### SKIP
-
-- `node_modules/`, `vendor/`, `.git/`, `build/`, `dist/`, `target/`, `__pycache__/`
-- Generated files: `*.generated.*`, `*.g.dart`
-- Test files (note presence, but skip detailed analysis)
-- Binary files, images, fonts
-- Lock files: `package-lock.json`, `yarn.lock`, `Cargo.lock`, `poetry.lock`
-
-## Incremental Update Algorithm
-
-```
-1. Read existing manifest.json
-2. Walk project source directories (respect .gitignore patterns)
-3. For each file:
-   a. Compute SHA256 by reading file content
-   b. Compare against manifest:
-      - New file → add to analysis queue
-      - Changed hash → add to analysis queue + mark contributed_to docs as stale
-      - Deleted file → remove from manifest + mark contributed_to docs as stale
-      - Unchanged → skip
-
-4. For each doc to regenerate:
-   a. Re-analyze contributing files
-   b. Regenerate doc with updated content
-   c. Update frontmatter: generated_at, stale=false
-
-5. Update manifest with new hashes
-```
-
-## Staleness Detection
-
-When KB docs may be stale:
-- `manifest.json` file hash differs from current file hash
-- Frontmatter `stale: true`
-- `.meta/identity.json` has `needs_refresh: true`
-
-Response:
-- Set `needs_refresh: true` in identity.json
-- On next generation run (incremental or refresh-stale), regenerate affected docs
 
 ## Error Handling
 
 | Condition | Behavior |
 |-----------|----------|
 | kb-identity fails | Return error immediately |
-| Cannot read project file | Skip file, continue, note in generation-log |
-| Cannot parse manifest | Treat as corrupted, regenerate from scratch |
-| Template missing | Use default inline template |
-| Schema validation fails | Log warning, write anyway with warning in doc |
+| Cannot read file | Skip, continue, log |
+| Corrupted manifest | Regenerate from scratch |
+| Missing template | Use inline default |
+| Schema validation fails | Log warning, write anyway |
 
-## Output Example
+## Output
 
-```
+```json
 {
-    status: "success",
-    project_name: "myapp",
-    kb_path: "/Users/dev/.cursor/docs/knowledge-base/projects/myapp/",
-    documents_generated: 12,
-    documents_updated: 0,
-    documents_skipped: 0,
-    stats: {
-        modules: 5,
-        services: 2,
-        dependencies: 23,
-        edges: 47
-    }
+  "status": "success",
+  "project_name": "myapp",
+  "kb_path": "~/.cursor/docs/knowledge-base/projects/myapp/",
+  "documents_generated": 12,
+  "stats": { "modules": 5, "services": 2, "dependencies": 23, "edges": 47 }
 }
 ```

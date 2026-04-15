@@ -1,15 +1,21 @@
 ---
 title: "Module: {{module_name}}"
 type: module
-project: {{project_name}}
-tags: [{{project_name}}, module, {{module_name}}]
-generated_at: {{timestamp}}
+project: { { project_name } }
+tags:
+  - kb
+  - kb/project/{{project_name}}
+  - kb/project/{{project_name}}/module/{{module_name}}
+  - kb/type/module
+generated_at: { { timestamp } }
 generated_by: kb-engineer
-source_files: [{{source_files}}]
-confidence: {{confidence}}
+source_files: [{ { source_files } }]
+confidence: { { confidence } }
 stale: false
-aliases: [{{aliases}}]
+aliases: [{ { aliases } }]
 ---
+
+<!-- TAGS: Hierarchical for Obsidian graph grouping and AI querying -->
 
 # {{module_name}}
 
@@ -62,16 +68,47 @@ flowchart LR
 ## Key Files
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
+
 {{key_files_rows}}
 
 ## Configuration
 
 {{configuration}}
 
+## Cross-Project Dependencies
+
+> Module-to-module links to other projects (if this module uses external project modules).
+
+{{cross_project_module_links}}
+
+```mermaid
+flowchart LR
+    this["{{module_name}}"]
+
+    {{cross_project_module_nodes}}
+
+    {{cross_project_module_edges}}
+```
+
 ## Related
 
-- [[../README|Project Overview]]
+### Project Hub
+
+> **REQUIRED**: This link makes [[../{{project_name}}|{{project_name}}]] the center of the graph.
+
+- [[../{{project_name}}|{{project_name}}]]
+
+### This Project
+
 - [[../architecture|Architecture]]
+- [[../dependencies|Dependencies]]
 - [[_index|All Modules]]
+
+### Related Modules (Same Project)
+
 {{related_modules}}
+
+### Related Modules (Other Projects)
+
+{{cross_project_related}}
