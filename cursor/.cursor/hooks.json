@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "./hooks/cursor-zone-writes.sh",
+        "matcher": "Write|Edit|StrReplace|MultiEdit|Delete",
+        "failClosed": false,
+        "timeout": 5
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "./hooks/safe-shell.sh",
+        "failClosed": false,
+        "timeout": 5
+      }
+    ]
+  }
+}

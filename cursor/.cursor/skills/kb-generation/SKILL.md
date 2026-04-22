@@ -1,7 +1,7 @@
 ---
 name: kb-generation
 description: Core generation protocol for Knowledge Base documents. Analyzes project structure, canonicalizes datastores (shared at vault level vs project-owned), enforces atomic write guards against empty/duplicate files, generates Obsidian-compatible markdown with mermaid diagrams, builds relationship graphs with fine-grained cross-project edges (no hub-to-hub), and tracks manifests for incremental updates.
-version: 2
+version: 3
 input_schema:
   required:
     - name: project_root
@@ -63,11 +63,13 @@ Invoke `kb-identity(project_root)` → Returns `project_name`, `kb_path`, `ident
 
 ## Step 2: Mode Behavior
 
-| Mode            | Behavior                                                                                                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `full`          | Clear existing docs (except `.meta/identity.json`), regenerate all                                                                                                                                                                                            |
-| `incremental`   | Compare source + manifest file hashes AND detect generator drift (agent/skill/template/schema version changes), fill missing docs, regenerate drifted docs, refresh `.obsidian/graph.json` if the color contract changed. Idempotent when nothing is drifted. |
-| `refresh-stale` | Check frontmatter `stale: true`, regenerate those docs                                                                                                                                                                                                        |
+| Mode            | Behavior                                                                                                                                                                                                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `full`          | Clear existing docs (except `.meta/identity.json`), regenerate all. Step 7.6 reconciliation + Step 7.5 `.obsidian/graph.json` refresh always run.                                                                                                                                                                                                                    |
+| `incremental`   | Compare source + manifest file hashes AND detect generator drift (agent/skill/template/schema version changes), fill missing docs, regenerate drifted docs. **Step 7.6 per-project graph reconciliation and Step 7.5 `.obsidian/graph.json` refresh ALWAYS run, unconditionally.** Both are deterministic + idempotent — byte-identical output when nothing changed. |
+| `refresh-stale` | Check frontmatter `stale: true`, regenerate those docs. **Step 7.6 per-project graph reconciliation and Step 7.5 `.obsidian/graph.json` refresh ALWAYS run, unconditionally.**                                                                                                                                                                                       |
+
+**Graph invariant (every mode):** after a run completes, `projects/<name>/graph.json` is a perfect reflection of the actual `.md` files under `projects/<name>/` (plus relevant vault-level datastores), and `.obsidian/graph.json` carries the current authoritative `search` / `showTags` / `showAttachments` / `showOrphans` / `colorGroups` keys. No stale nodes, no missing nodes, no dangling edges. Running the same mode twice in a row produces byte-identical graph files.
 
 `incremental` runs Step 3.6 ("Detect generator drift") before Step 3 so it can fill gaps (missing required docs, missing per-entity docs, schema drift, template drift, skill drift, agent-version drift) in addition to responding to source-file changes.
 
@@ -382,7 +384,7 @@ Write to `.meta/manifest.json`:
   "generator": {
     "kb_engineer_version": "<semver or short hash>",
     "skill_versions": {
-      "kb-generation": 1,
+      "kb-generation": 3,
       "kb-query": 1,
       "kb-identity": 1
     },
@@ -423,15 +425,16 @@ Write to `.meta/manifest.json`:
 
 Home.md must have frontmatter tags `kb`, `kb/type/home`. It still carries the `kb/type/home` tag even though no color group references it — the tag remains useful for Obsidian's file-search and for tag-based queries outside the graph.
 
-## Step 7.5: Write/Merge Vault `.obsidian/graph.json`
+## Step 7.5: Write/Merge Vault `.obsidian/graph.json` (unconditional)
 
-**Location:** `~/.cursor/docs/knowledge-base/.obsidian/graph.json` — one per vault, not per project. Run on `full`, `incremental`, and `refresh-stale` modes.
+**Location:** `~/.cursor/docs/knowledge-base/.obsidian/graph.json` — one per vault, not per project. **Runs unconditionally on every mode (`full`, `incremental`, `refresh-stale`), regardless of whether the color contract or any doc changed.** The operation is idempotent: when the authoritative keys already equal the target values, the written bytes are identical to the existing file (or the file is left untouched if serialization hash matches).
 
 **Merge semantics (merge-by-key):**
 
 - If the file is absent → write the full block below.
 - If the file exists → overwrite only these authoritative keys: `search`, `showTags`, `showAttachments`, `showOrphans`, `colorGroups`. Preserve every other key the user may have added (e.g. `nodeSize`, `lineSize`, `scale`, `centerStrength`).
 - `colorGroups` is replaced wholesale (6 entries, Section D palette), never merged entry-by-entry — the 6-entry contract is authoritative.
+- Serialize with sorted top-level keys and 2-space indentation so byte-level equality holds across runs.
 
 **Full authoritative block:**
 
@@ -459,6 +462,125 @@ rgb integers encode as `(r << 16) | (g << 8) | b`, matching Obsidian's storage f
 Search filter `-path:templates -path:_schema -path:.meta -file:_index -file:Home` enforces the content-nodes-only principle (including hiding `Home.md`, which is a navigation scaffold, not a concept). Combined with `showAttachments: false` and `showOrphans: false`, the Obsidian graph shows only documents a human would click into.
 
 The previous `kb/type/home` color group is removed because the node it would color is hidden by the search filter — defining a color for an invisible node just creates contract drift.
+
+## Step 7.6: Graph Reconciliation (unconditional, every mode)
+
+**Goal:** after Step 7.6 runs, `projects/<name>/graph.json` is guaranteed to be a perfect reflection of the current filesystem state under `~/.cursor/docs/knowledge-base/projects/<name>/` plus any vault-level `datastores/<ds>.md` files the project consumes. No stale nodes, no missing nodes, no dangling edges. Running Step 7.6 twice in a row produces byte-identical output.
+
+Runs on `full`, `incremental`, and `refresh-stale` modes, always. Cannot be skipped.
+
+### Reconciliation algorithm
+
+```
+Step 7.6 — Graph Reconciliation (project-scoped, repeat per project touched by this run)
+
+1. Enumerate filesystem truth (what SHOULD be in the graph)
+   ├── 1a. Walk projects/<name>/ recursively, collecting every .md that:
+   │        - is NOT under .meta/
+   │        - is NOT an _index.md (indexes are navigation, not content nodes)
+   │        - is NOT Home.md (hidden from graph)
+   │        - passes the Step 3.8 / 3.9 minimum-content threshold
+   ├── 1b. For each collected file, parse frontmatter:
+   │        - id        ← stable ID derived from relative path under projects/<name>/
+   │        - type      ← map from `kb/type/<hub|service|module|datastore|arch|deps>` tag
+   │        - kb_doc    ← path relative to the KB vault root
+   │        - scope     ← for datastore type only: "shared" or "project"
+   │        - tags      ← full tag array (retain for schema validation)
+   ├── 1c. Walk vault-level datastores/*.md and include any datastore whose
+   │        Consuming Services section names a service under this project
+   │        (these are shared datastores this project consumes).
+   └── 1d. Result: the authoritative set N_truth of nodes for this project.
+
+2. Extract edges from current backlink state
+   ├── 2a. For every file in step 1, scan its body for [[target|label]] links
+   │        (markdown + wikilink form). Resolve target → canonical kb_doc path.
+   ├── 2b. Drop any link whose resolved target is:
+   │        - outside the KB vault, OR
+   │        - an index file, OR
+   │        - Home.md, OR
+   │        - a file that does not exist on disk after Step 7.4 writes completed.
+   ├── 2c. For the remaining links, emit an edge:
+   │        { source: <node id of file>, target: <node id of target>, relation }
+   │        Relation is read from the surrounding section heading when possible
+   │        ("Upstream Dependencies" → invokes; "Consuming Services" → consumed_by;
+   │         "Datastores" → uses; fallback "references").
+   ├── 2d. Merge edges extracted from structured sources (Step 3 inter-service
+   │        dependency rules) WITH backlink-derived edges. Deduplicate on
+   │        (source, target, relation). Structured sources win on relation type.
+   └── 2e. Result: the authoritative set E_truth of edges for this project.
+
+3. Diff against existing graph.json (if any)
+   ├── 3a. Load projects/<name>/graph.json if present; call its node set N_old,
+   │        edge set E_old, and any user-added top-level keys K_preserve.
+   ├── 3b. Compute:
+   │        - add_nodes    = N_truth  \ N_old  (match on id)
+   │        - drop_nodes   = N_old    \ N_truth
+   │        - change_nodes = { n ∈ N_truth ∩ N_old : content(n_new) ≠ content(n_old) }
+   │        - add_edges    = E_truth  \ E_old
+   │        - drop_edges   = E_old    \ E_truth
+   │        (content equality ignores volatile fields like generated_at.)
+   └── 3c. If all five sets are empty, the graph is already perfect — skip the
+          write entirely (guarantees no mtime churn when the run was a no-op).
+
+4. Deterministic serialization
+   ├── 4a. Build the new graph object:
+   │        {
+   │          "version": 1,
+   │          "project": "<name>",
+   │          "generated_at": <ISO-8601, only updated if step 3b reported any drift>,
+   │          "nodes": sort(N_truth, by id ASC),
+   │          "edges": sort(E_truth, by (source, target, relation) ASC),
+   │          ...K_preserve
+   │        }
+   ├── 4b. Serialize with:
+   │        - top-level keys in the order above (project metadata first),
+   │        - 2-space indentation,
+   │        - arrays one element per line,
+   │        - trailing newline,
+   │        - no trailing whitespace.
+   └── 4c. `generated_at` is updated ONLY when step 3b reported drift. When the
+          diff is empty, reuse the existing file's `generated_at` so repeat
+          no-op runs produce byte-identical output.
+
+5. Validate + atomic write
+   ├── 5a. Validate the new object against _schema/graph.schema.json.
+   │        Every datastore node MUST carry scope + kb_doc; every edge's
+   │        source and target MUST resolve to an id present in nodes[].
+   ├── 5b. Validation failure → ABORT the reconciliation for this project,
+   │        log a structured error (project, first missing/invalid field),
+   │        and leave the existing graph.json untouched. Do NOT write a
+   │        half-valid graph.
+   └── 5c. Write via the Step 3.9 atomic write pattern (buffer → threshold →
+          overwrite decision → write). Update the corresponding entry in
+          .meta/manifest.json.files with the new content hash.
+
+6. Cross-project shared-datastore index (if this run touched shared datastores)
+   ├── 6a. For every shared datastore promoted/demoted/added/removed in this
+   │        run, walk datastores/<ds>.md and re-extract its Consuming Services
+   │        section. Rebuild the per-datastore consumer list as [[../projects/
+   │        <proj>/services/<svc>|<proj>: <svc>]] entries.
+   ├── 6b. Apply the Step 4 deterministic serialization and Step 5 validation.
+   └── 6c. Write only if the list actually changed (compare to existing bytes).
+```
+
+### Guarantees
+
+- **Filesystem-truth is authoritative.** Every node in `graph.json` corresponds to a real `.md` on disk; every `.md` on disk (that passes the threshold and isn't an index / Home) corresponds to a node.
+- **No dangling edges.** Every edge's source and target resolve to a node present in the same file.
+- **Idempotent.** Identical inputs → byte-identical output. Repeat runs do not create mtime churn.
+- **Deterministic ordering.** Nodes sorted by `id`, edges sorted by `(source, target, relation)`.
+- **Atomic.** A run never leaves a partially-written `graph.json` on disk. Validation failure aborts the reconciliation for that project; the existing file is preserved unchanged.
+- **Composable with orphan sweep.** Step 3.8 (orphan/stub sweep) runs first and deletes stub files; Step 7.6 then reconciles against the cleaned filesystem. Step 7.6 is not a replacement for Step 3.8 — it complements it.
+
+### Failure modes and recovery
+
+| Condition                                                   | Behavior                                                                                                                            |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Existing `graph.json` is corrupted / unparseable            | Treat as absent. Build N_old = ∅, E_old = ∅. Log warning. Rebuild from scratch.                                                     |
+| `frontmatter` missing required `kb/type/*` tag              | Skip that file in N_truth. Log. The orphan sweep should have caught this.                                                           |
+| Two files resolve to the same node id                       | Report collision. Keep the file with the longer populated body (same rule as Step 3.8 dedup). Re-run the sweep to delete the loser. |
+| Schema validation fails on new graph object                 | ABORT. Existing `graph.json` stays. Log project + first offending field.                                                            |
+| Shared datastore consumer list references a missing project | Drop that consumer. Log.                                                                                                            |
 
 ## Backlink Rules (Star Topology + Shared Infrastructure)
 
@@ -508,7 +630,13 @@ All per-project docs link **TO** `{project_name}.md` (hub). The hub links **OUT*
 5. Regenerate stale docs through Step 3.9 atomic write guards (stubs skipped)
 6. Update manifest (files + manifests + generator + datastore_classifications)
 7. Write/merge .obsidian/graph.json (6-color palette, -file:Home filter)
+   — Step 7.5, UNCONDITIONAL every run, idempotent (byte-identical when no drift).
+8. Run Step 7.6 graph reconciliation for every project touched by this run,
+   rebuilding projects/<name>/graph.json from filesystem truth with
+   deterministic serialization. UNCONDITIONAL every run, idempotent.
 ```
+
+Steps 7 and 8 are the two halves of the "graph is perfect every run" guarantee: Step 7.5 owns vault-level Obsidian rendering settings; Step 7.6 owns per-project graph structure. Neither step can be skipped, and both produce byte-identical output when nothing changed.
 
 ## Error Handling
 

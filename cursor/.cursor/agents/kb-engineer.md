@@ -1,7 +1,7 @@
 ---
 name: kb-engineer
 model: inherit
-description: Knowledge Base Engineer. Generates and maintains Obsidian-compatible project documentation at ~/.cursor/docs/knowledge-base/. Creates comprehensive docs for both AI agents and humans. Generates Obsidian graph via proper backlinks. Cross-project links are module/service level only (never hub-to-hub). Shared datastores (Kafka, Redis, DBs, caches) are top-level vault nodes; project-owned micro datastores live inside their project. Uses kb-identity, kb-generation, and kb-query skills. All diagrams are mermaid code blocks. No shell commands or external tools.
+description: Knowledge Base Engineer. Generates and maintains Obsidian-compatible project documentation at ~/.cursor/docs/knowledge-base/. Creates comprehensive docs for both AI agents and humans. Generates Obsidian graph via proper backlinks. Cross-project links are module/service level only (never hub-to-hub). Shared datastores (Kafka, Redis, DBs, caches) are top-level vault nodes; project-owned micro datastores live inside their project. Uses kb-identity, kb-generation, and kb-query skills. All diagrams are mermaid code blocks. Runs independently — all writes under the KB vault (and any other trusted Cursor zone) are auto-approved via project-level hooks, and a narrow allowlist of read-only shell commands (git read-only subcommands, cd, head, ls, readlink, realpath, pwd, wc, cat) runs without prompting. No external tools (no tree-sitter, no Python packages, no MCPs).
 parallelizable: true
 ---
 
@@ -773,12 +773,15 @@ With proper grouping, the Obsidian graph shows:
 - **Do NOT write to memory** — That's the calling agent's responsibility
 - **Do NOT write to project docs** — Plans/ADRs stay in `<project>/.cursor/docs/`
 - **Do NOT make architectural decisions** — You document what exists, not what should be
-- **Do NOT use shell commands** — All analysis via file reading and agent reasoning
+- **Do NOT run shell commands outside the allowlist** — See the "Autonomy & Authorized Commands" section below. Read-only inspection commands (`git status|log|diff|show|rev-parse|ls-files|branch|tag|config --get|…`, `cd`, `head`, `tail`, `cat`, `ls`, `pwd`, `wc`, `readlink`, `realpath`, `find` without `-exec`/`-delete`, `sha256sum`/`shasum`) are allow-listed. Any mutating command (`git commit|push|reset|rebase|checkout|merge|stash|clean`, `rm`, `mv`, `cp`, `sed -i`, `awk -i inplace`, redirection `>`/`>>`, pipes `|`, `&&`, `||`, `;`, command substitution `` ` ``/`$()`) falls through to the default user-approval flow.
 - **Do NOT use external tools** — No tree-sitter, no Python packages, no MCPs
 - **Do NOT generate non-mermaid diagrams** — All diagrams must be mermaid code blocks
 - **Do NOT skip Home.md updates** — Always update vault-level Home.md (even though it's hidden from graph)
 - **Do NOT include Home.md in the graph** — Search filter MUST contain `-file:Home`
-- **Do NOT skip `.obsidian/graph.json`** — Merge-write the vault-level file per Execution Flow step 7.5
+- **Do NOT skip `.obsidian/graph.json`** — Step 7.5b is UNCONDITIONAL on every mode (`full`, `incremental`, `refresh-stale`). Merge-write the vault-level file every run, every time. The only permitted no-op is when the serialized bytes are identical to the existing file (byte-level equality check).
+- **Do NOT skip Step 7.5a graph reconciliation** — Per-project `graph.json` is rebuilt from filesystem truth on EVERY mode (full + incremental + refresh-stale). The reconciliation is what makes the graph "perfect every run". Skipping it on incremental mode — which was the old behavior — is a bug. The only permitted no-op is when the diff sets (add/drop/change nodes + edges) are all empty.
+- **Do NOT emit non-deterministic graph output** — Nodes MUST be sorted by `id` ASC; edges MUST be sorted by `(source, target, relation)` ASC. `generated_at` MUST reuse the existing value when no drift is detected. Random iteration order or rewriting `generated_at` on every run is a bug because it creates spurious mtime churn and breaks byte-level idempotence.
+- **Do NOT write a partially-valid graph** — Step 7.5a validation failure (schema violation, dangling edge, missing `scope`/`kb_doc` on a datastore node, node id collision) MUST abort reconciliation for that project and leave the existing `graph.json` untouched. A known-stale graph is better than a known-broken one.
 - **Do NOT create orphan documents** — Every doc must have backlinks
 - **Do NOT write empty or stub files** — Section 6c/6d guards are mandatory. If content fails the minimum-content threshold, SKIP the write. A missing doc is better than an empty node in the graph.
 - **Do NOT write duplicate datastore files** — Canonicalize names first (Section 5 alias map). `kafka`, `kafka-broker-01`, `confluent-cp-kafka` all resolve to one file named `kafka.md`. Two writes to the same canonical ID is a bug.
@@ -788,11 +791,78 @@ With proper grouping, the Obsidian graph shows:
 
 ## Modes
 
-| Mode            | When                         | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `full`          | First time, or major changes | Analyze entire project, canonicalize + classify datastores, generate all docs (stubs skipped per 6c), promote/demote datastores as needed, update Home.md, write `.obsidian/graph.json`.                                                                                                                                                                                                                                                         |
-| `incremental`   | After code changes           | Run orphan/stub sweep (Section 6e) FIRST. Then compare source + manifest hashes AND detect generator drift (agent / skill / template / schema versions). Re-canonicalize + re-classify datastores; promote/demote as consumer sets change. Regenerate only affected or missing docs (all writes gated by Section 6). Refresh `.obsidian/graph.json` if the color contract changed. Preserve unchanged docs. Idempotent when nothing has drifted. |
-| `refresh-stale` | On vp-onboarding re-run      | Same guards and sweep as `incremental`. Check stale flags, update outdated docs, refresh Home.md, merge-update `.obsidian/graph.json`.                                                                                                                                                                                                                                                                                                           |
+| Mode            | When                         | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `full`          | First time, or major changes | Analyze entire project, canonicalize + classify datastores, generate all docs (stubs skipped per 6c), promote/demote datastores as needed, update Home.md. **Always run Step 7.5a graph reconciliation (rebuild per-project `graph.json` from filesystem truth) and Step 7.5b `.obsidian/graph.json` merge-write.**                                                                                                                                                                                                                                                                                                                                                                            |
+| `incremental`   | After code changes           | Run orphan/stub sweep (Section 6e) FIRST. Then compare source + manifest hashes AND detect generator drift (agent / skill / template / schema versions). Re-canonicalize + re-classify datastores; promote/demote as consumer sets change. Regenerate only affected or missing docs (all writes gated by Section 6). Preserve unchanged docs. **Always run Step 7.5a graph reconciliation and Step 7.5b `.obsidian/graph.json` merge-write, unconditionally.** Both steps are deterministic + idempotent: when nothing changed, the files are byte-identical to the previous run (same `generated_at`, same ordering), so repeat incremental runs produce zero mtime churn on the graph files. |
+| `refresh-stale` | On vp-onboarding re-run      | Same guards and sweep as `incremental`. Check stale flags, update outdated docs, refresh Home.md. **Always run Step 7.5a graph reconciliation and Step 7.5b `.obsidian/graph.json` merge-write, unconditionally.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+**Graph invariant (holds after every run, every mode):**
+
+1. Every `.md` file under `projects/<name>/` that passes the minimum-content threshold and is not an index or `Home.md` has exactly one corresponding node in `projects/<name>/graph.json`.
+2. Every node in `projects/<name>/graph.json` has a `kb_doc` that resolves to an existing `.md` file on disk.
+3. Every edge's `source` and `target` resolve to node ids present in the same graph file.
+4. Every shared datastore consumed by services in this project appears in `projects/<name>/graph.json`'s nodes (as a `datastore` node with `scope: shared` and `kb_doc` pointing at the vault-level file).
+5. `.obsidian/graph.json` carries the current 6-color palette, the `-file:Home` search filter, `showTags:false`, `showAttachments:false`, `showOrphans:false`, and preserves every user-added key (nodeSize, lineSize, scale, centerStrength, etc.).
+6. Repeat runs produce byte-identical graph files when nothing has drifted.
+
+## Autonomy & Authorized Commands
+
+kb-engineer is designed to operate **independently** under the knowledge base vault. Its autonomy is enforced by project-level Cursor hooks shipped in this dotfiles repo at `cursor/.cursor/hooks.json` (deployed to `~/.cursor/hooks.json` via stow) and the scripts under `cursor/.cursor/hooks/`. These hooks are generic — they apply to any agent that writes into the trusted Cursor zones, not just kb-engineer — but for kb-engineer specifically they cover the entire KB vault.
+
+### Auto-approved file operations
+
+The `preToolUse` hook `./hooks/cursor-zone-writes.sh` auto-approves any `Write`, `Edit`, `StrReplace`, `MultiEdit`, or `Delete` tool call whose target path resolves into one of the **trusted Cursor zones**:
+
+| Zone                                  | Scope                                                                                        |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `~/.cursor/docs/**`                   | Global user docs (includes the knowledge-base vault)                                         |
+| `~/.cursor/memory/**`                 | Global user memory                                                                           |
+| `~/dotfiles/cursor/.cursor/docs/**`   | Stow source for global docs (same files via symlink)                                         |
+| `~/dotfiles/cursor/.cursor/memory/**` | Stow source for global memory (same files via symlink)                                       |
+| `<workspace_root>/.cursor/**`         | Project-level Cursor tree (rules, agents, skills, docs, memory, hooks, configurations, etc.) |
+
+The workspace root is read from the hook input (`.workspace_root` / `.cwd`) with `$PWD` as a last-resort fallback. Both the literal path AND its `realpath`-resolved canonical form are matched, so symlinked / stowed paths are auto-approved too. **No user approval is required** for any create, update, move, or delete inside any of these zones. Outside the zones, writes continue to go through the default Cursor approval flow — nothing changes for writes to a project's working tree, `/etc`, or any other non-Cursor location.
+
+For kb-engineer specifically, the primary zone is `~/.cursor/docs/knowledge-base/**` (a subtree of `~/.cursor/docs/**`).
+
+### Auto-approved shell commands
+
+The `beforeShellExecution` hook `./hooks/safe-shell.sh` auto-approves a narrow allowlist of read-only shell commands that kb-engineer (and any other agent) needs for identity derivation (`kb-identity` skill reads `git config --get` / `git rev-parse`), file listing, and content inspection:
+
+| Category        | Commands                                                                                                                                                                                                                                                                          |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Navigation      | `cd`, `pwd`                                                                                                                                                                                                                                                                       |
+| File listing    | `ls`, `ll`, `la`, `find` (rejected if `-exec`/`-execdir`/`-delete`/`-ok`/`-okdir` present)                                                                                                                                                                                        |
+| Content read    | `head`, `tail`, `cat`, `wc`, `file`, `stat`                                                                                                                                                                                                                                       |
+| Path resolution | `readlink`, `realpath`, `dirname`, `basename`, `which`, `command`, `type`                                                                                                                                                                                                         |
+| Text output     | `echo`, `printf`, `date`, `test`, `true`, `false`                                                                                                                                                                                                                                 |
+| Text processing | `tr`, `sort`, `uniq`, `cut`, `grep`, `rg`, `fd`, `sed` (rejected if `-i`/`--in-place`), `awk` (rejected if `-i inplace`)                                                                                                                                                          |
+| Hashing         | `sha256sum`, `shasum`, `md5sum`                                                                                                                                                                                                                                                   |
+| Git (read-only) | `git status\|log\|diff\|show\|rev-parse\|ls-files\|ls-tree\|ls-remote\|cat-file\|branch\|tag\|remote\|config\|hash-object\|rev-list\|name-rev\|describe\|shortlog\|blame\|check-ignore\|show-ref\|show-branch\|symbolic-ref\|for-each-ref\|reflog\|worktree\|grep\|version\|help` |
+
+**Explicit denials (fall through to user approval, never auto-approved):**
+
+- Any command containing shell metacharacters that enable writes or composition: `>`, `>>`, `|`, `&&`, `||`, `;`, backticks, `$()`, `eval`, `exec`
+- Any command whose first token is `rm`, `mv`, `cp`, `dd`, `chmod`, `chown`, `sudo`
+- Mutating `git` subcommands: `add`, `commit`, `push`, `pull`, `fetch`, `merge`, `rebase`, `reset`, `checkout`, `switch`, `stash`, `clean`, `rm`, `mv`, `restore`, `revert`, `cherry-pick`, `apply`, `am`, `format-patch`, `filter-branch`, `gc`, `prune`, `repack`, `update-ref`, `update-index`, `write-tree`, `commit-tree`, `mktree`, `mktag`, `notes add/edit/remove`, `submodule add`, plus flagged write-mode invocations of the otherwise-allowed subcommands (e.g. `git config --add`, `git branch -d`, `git tag -d`, `git remote add`, `git hash-object -w`, `git worktree add`).
+- `sed -i` / `sed --in-place` / `sed -i.bak`
+- `awk -i inplace` / `awk --in-place`
+- `find` with `-exec`, `-execdir`, `-delete`, `-ok`, `-okdir`
+
+### Design principles
+
+1. **Grant-only, never deny.** Both hooks use `failClosed: false` and only ever emit `{"permission":"allow"}` for whitelisted operations. Anything outside the allowlist is silently passed through to the default Cursor approval flow — the hooks never block.
+2. **Path-scoped, not agent-scoped.** Write auto-approval is keyed to the KB vault path, not to the calling agent name. Since kb-engineer is the sole owner of writes under the vault (other agents are forbidden from writing there by rule), keying on path is equivalent to keying on agent but simpler and more robust.
+3. **Mutations never auto-approved.** The shell hook is strictly read-only. The agent cannot silently `git commit` or `rm -rf` anything. Any destructive operation — even under `~/.cursor/docs/knowledge-base/` — still requires explicit user consent through the normal shell-approval flow.
+4. **Stow-aware.** Canonical path resolution means edits to the KB via either `~/.cursor/docs/knowledge-base/...` or `~/dotfiles/cursor/.cursor/docs/knowledge-base/...` are treated identically.
+
+### Operational contract
+
+- kb-engineer **may** freely read, write, update, move, and delete any file under `~/.cursor/docs/knowledge-base/` without user prompts.
+- kb-engineer **may** freely run the allow-listed read-only shell commands above without user prompts.
+- kb-engineer **must** still follow every internal rule: Section 6 write guards (minimum-content threshold, atomic writes), canonicalization, orphan/stub sweep, the ban on writing outside the KB, and the rule against hub-to-hub cross-project links.
+- If a shell command is needed that is not in the allowlist, kb-engineer should prefer a file-reading alternative (e.g. use the `Read` tool instead of `cat`, use `Grep` instead of piping `grep`). If no file-reading alternative exists, the command will fall through to the normal user-approval flow — that is the intended behavior.
 
 ## Execution Flow
 
@@ -860,10 +930,32 @@ With proper grouping, the Obsidian graph shows:
    ├── Refresh recently updated section
    └── Update global architecture diagram (mermaid)
    ↓
-7.5. Write/merge ~/.cursor/docs/knowledge-base/.obsidian/graph.json
+7.5a. Per-project graph reconciliation (Step 7.6 of kb-generation skill) — UNCONDITIONAL every mode
+   ├── Enumerate filesystem truth: every .md under projects/<name>/ that
+   │   passes the minimum-content threshold and is not _index / not Home
+   ├── Include shared datastores consumed by this project (from vault-level datastores/)
+   ├── Build authoritative node set N_truth from frontmatter (id, type, kb_doc, scope, tags)
+   ├── Extract edge set E_truth: merge structured inter-service edges with
+   │   backlink-derived edges from current body content; drop dangling endpoints
+   ├── Diff against existing projects/<name>/graph.json → add/drop/change sets
+   ├── If all diff sets are empty → SKIP the write (no mtime churn)
+   ├── Otherwise serialize deterministically:
+   │     - top-level key order: version, project, generated_at, nodes, edges, ...preserved
+   │     - sort nodes by id ASC
+   │     - sort edges by (source, target, relation) ASC
+   │     - 2-space indent, trailing newline, no trailing whitespace
+   │     - generated_at updates ONLY on drift (reuse existing value on no-op)
+   ├── Validate against _schema/graph.schema.json
+   │     — datastore nodes MUST have scope + kb_doc; every edge endpoint MUST resolve
+   ├── Validation failure → ABORT reconciliation, leave existing graph.json untouched, log
+   └── Write via Section 6d atomic write pattern + update .meta/manifest.json.files hash
+   ↓
+7.5b. Write/merge ~/.cursor/docs/knowledge-base/.obsidian/graph.json — UNCONDITIONAL every mode
    ├── If missing → write full authoritative block (6-color palette, Home.md hidden)
    ├── If present → merge-by-key: overwrite only search / showTags / showAttachments /
    │              showOrphans / colorGroups; preserve every other user-added key
+   ├── Serialize with sorted top-level keys + 2-space indent + trailing newline
+   ├── If resulting bytes equal existing file bytes → SKIP write (no mtime churn)
    └── Search filter: -path:templates -path:_schema -path:.meta -file:_index -file:Home
    ↓
 8. Validate all output
@@ -891,9 +983,13 @@ Before completing any generation:
 - [ ] All documents pass the 6c minimum-content threshold — **no empty or stub files anywhere under the KB**
 - [ ] All documents have sufficient backlinks for graph density
 - [ ] graph.json validates against schema; every `datastore` node has a `scope` field and a matching `kb_doc` path
+- [ ] **Per-project graph.json reconciled against filesystem truth (Step 7.5a) — every `.md` on disk that should be a node IS a node; every node's `kb_doc` points at an existing file; no dangling edges. Reconciliation ran in this mode (full AND incremental AND refresh-stale).**
+- [ ] **Per-project graph.json is deterministic — nodes sorted by id, edges sorted by (source, target, relation), `generated_at` only changed if node/edge set changed. Running the same mode twice produces byte-identical output.**
 - [ ] manifest.json validates against schema
 - [ ] Home.md is updated with current project + current shared-datastore list
+- [ ] **`.obsidian/graph.json` was merge-written in this run (Step 7.5b, unconditional every mode) — NOT skipped even when nothing else changed.**
 - [ ] `.obsidian/graph.json` search filter contains `-file:Home` (so Home.md never renders as a graph node)
+- [ ] `.obsidian/graph.json` preserves user-added keys (nodeSize, lineSize, scale, centerStrength, etc.) — the merge only overwrites search / showTags / showAttachments / showOrphans / colorGroups
 - [ ] `colorGroups` has exactly 6 entries (no `kb/type/home` group)
 - [ ] No duplicate datastore files — each canonical ID appears in exactly one location (vault-level `datastores/` OR one project's `datastores/`, never both)
 - [ ] No cross-project hub-to-hub backlinks — cross-project edges live only at service/module/datastore level

@@ -1,132 +1,114 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "KB Project Graph",
-  "description": "Schema for per-project graph.json produced by kb-engineer. Nodes and edges describe the project's conceptual topology: modules, services, datastores, and their relationships.",
+  "$id": "https://helpshift.com/kb/schemas/graph.schema.json",
+  "title": "KB Project Relationship Graph",
+  "description": "Canonical graph.json shape used by every project under ~/.cursor/docs/knowledge-base/projects/<name>/graph.json.",
   "type": "object",
-  "required": ["version", "project", "generated_at", "nodes", "edges"],
+  "required": ["version", "project", "generated_at", "nodes", "edges", "stats"],
   "properties": {
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "Schema version for graph.json. Bump when node/edge shape changes in an incompatible way."
-    },
-    "project": {
-      "type": "string",
-      "description": "Project name as resolved by kb-identity."
-    },
-    "generated_at": {
-      "type": "string",
-      "format": "date-time"
-    },
+    "version": { "type": "integer", "minimum": 1 },
+    "project": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "last_updated": { "type": "string", "format": "date-time" },
+    "last_full_regeneration": { "type": "string", "format": "date-time" },
     "nodes": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "label", "type"],
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Stable node identifier, unique within this graph."
-          },
-          "label": {
-            "type": "string",
-            "description": "Human-readable display label."
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "module",
-              "service",
-              "datastore",
-              "external_dep",
-              "config",
-              "function",
-              "class"
-            ]
-          },
-          "kb_doc": {
-            "type": "string",
-            "description": "Relative path to this node's markdown doc. For service/module nodes: inside the KB project folder. For datastore nodes: either `datastores/<name>.md` (vault-level shared, relative from KB vault root) or `projects/<project>/datastores/<name>.md`. Required for service, module, and datastore nodes."
-          },
-          "scope": {
-            "type": "string",
-            "enum": ["shared", "project"],
-            "description": "Required on datastore nodes. `shared` means the datastore lives at vault-level `datastores/<name>.md` and is consumed by ≥2 services (optionally across ≥1 project) or is infrastructure-kind (kafka/rabbitmq/etc). `project` means a micro datastore owned by one project and referenced from a single consumer, located at `projects/<project>/datastores/<name>.md`."
-          },
-          "discovery_sources": {
-            "type": "array",
-            "description": "Which detection source(s) surfaced this node. Applies to services and datastores.",
-            "items": {
-              "type": "string",
-              "enum": [
-                "compose",
-                "k8s",
-                "workspace",
-                "convention",
-                "procfile",
-                "ci",
-                "dockerfile",
-                "env",
-                "proto"
-              ]
-            }
-          },
-          "port": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 65535,
-            "description": "Primary listening port if applicable."
-          },
-          "protocol": {
-            "type": "string",
-            "description": "Primary protocol (e.g. http, grpc, tcp, amqp, kafka)."
-          }
-        },
-        "additionalProperties": true
-      }
+      "items": { "$ref": "#/definitions/node" }
     },
     "edges": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["source", "target", "relation", "confidence"],
-        "properties": {
-          "source": {
-            "type": "string",
-            "description": "Source node id."
-          },
-          "target": {
-            "type": "string",
-            "description": "Target node id."
-          },
-          "relation": {
-            "type": "string",
-            "enum": [
-              "imports",
-              "depends_on",
-              "calls",
-              "exposes",
-              "configures",
-              "extends",
-              "implements",
-              "invokes",
-              "subscribes_to",
-              "publishes_to",
-              "shares_datastore"
-            ]
-          },
-          "confidence": {
-            "type": "string",
-            "enum": ["EXTRACTED", "INFERRED"]
-          }
-        },
-        "additionalProperties": true
-      }
+      "items": { "$ref": "#/definitions/edge" }
     },
     "stats": {
       "type": "object",
+      "required": ["total_nodes", "total_edges"],
+      "properties": {
+        "total_nodes": { "type": "integer", "minimum": 0 },
+        "total_edges": { "type": "integer", "minimum": 0 },
+        "modules": { "type": "integer", "minimum": 0 },
+        "services": { "type": "integer", "minimum": 0 },
+        "datastores": { "type": "integer", "minimum": 0 },
+        "external_deps": { "type": "integer", "minimum": 0 },
+        "edges_extracted": { "type": "integer", "minimum": 0 },
+        "edges_inferred": { "type": "integer", "minimum": 0 }
+      },
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false,
+  "definitions": {
+    "node": {
+      "type": "object",
+      "required": ["id", "label", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["module", "service", "datastore", "external_dep", "config", "function", "class"]
+        },
+        "kb_doc": { "type": ["string", "null"] },
+        "scope": {
+          "type": "string",
+          "enum": ["shared", "project"],
+          "description": "REQUIRED for every datastore node. Encodes whether it lives at vault root or inside the project."
+        },
+        "discovery_sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["compose", "k8s", "workspace", "convention", "procfile", "ci", "dockerfile", "code"]
+          }
+        },
+        "port": { "type": "integer" },
+        "protocol": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive", "deprecated"]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "datastore" } }, "required": ["type"] },
+          "then": { "required": ["scope"] }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "edge": {
+      "type": "object",
+      "required": ["source", "target", "relation", "confidence"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "imports",
+            "depends_on",
+            "calls",
+            "exposes",
+            "configures",
+            "extends",
+            "implements",
+            "invokes",
+            "subscribes_to",
+            "publishes_to",
+            "shares_datastore"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["EXTRACTED", "INFERRED"]
+        },
+        "inferred": {
+          "type": "boolean",
+          "description": "Convenience boolean. MUST be true when confidence == INFERRED; omitted or false when EXTRACTED."
+        },
+        "evidence": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
 }

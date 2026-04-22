@@ -1,34 +1,52 @@
 ---
-description: "Low-friction AI edits under ~/.cursor/memory, ~/.cursor/docs, and project .cursor/; symlink/stow targets require review"
+description: "Unconditional auto-accept for writes under ~/.cursor/docs, ~/.cursor/memory, and <workspace>/.cursor (including stow/symlink sources). Enforced by project hooks."
 alwaysApply: false
 ---
+
 # Trusted Cursor edit zones (review policy)
 
-## Paths treated as low-friction (do not flag for review on path alone)
+## Auto-accepted zones (no user approval required)
 
-Agents may **create, update, move, or delete** files under these locations **without** treating the change as needing extra human review **solely because** of where the file lives:
+Any agent may **create, update, move, or delete** files under the paths below **without** user approval, regardless of whether the path is a symlink, a stow/dotfiles source, or a plain real directory. This policy is enforced programmatically by the `preToolUse` hook `~/.cursor/hooks/cursor-zone-writes.sh` (declared in `~/.cursor/hooks.json`), which matches on both the literal path AND the `realpath`-resolved canonical form.
 
-| Scope               | Path pattern                                                 |
-| ------------------- | ------------------------------------------------------------ |
-| Memory              | `$HOME/.cursor/memory/**`                                    |
-| User docs           | `$HOME/.cursor/docs/**`                                      |
-| Project Cursor tree | `<workspace>/.cursor/**` (rules, agents, skills, docs, etc.) |
+| Scope                           | Path pattern                                                            | Covers                                                              |
+| ------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Global user docs                | `$HOME/.cursor/docs/**`                                                 | Knowledge Base vault, docs-researcher caches, any other user docs   |
+| Global user memory              | `$HOME/.cursor/memory/**`                                               | Context memory store (any project, any module)                      |
+| Global stow source for docs     | `$HOME/dotfiles/cursor/.cursor/docs/**`                                 | Same files as `~/.cursor/docs/**`, reached via dotfiles source path |
+| Global stow source for memory   | `$HOME/dotfiles/cursor/.cursor/memory/**`                               | Same files as `~/.cursor/memory/**`, reached via dotfiles source    |
+| Workspace / project Cursor tree | `<workspace_root>/.cursor/**`                                           | Project rules, agents, skills, docs, memory, hooks, configurations  |
 
-Use normal judgment for secrets, destructive operations, and project rules; this policy only removes **path-based** “needs review” friction for the zones above.
+**Why this is safe:** the files under these zones are Cursor-agent artifacts by design — rules, agents, skills, memory, documentation, hook scripts, KB docs. They are not the working tree of the product being built; they are the configuration and memory that shape how Cursor itself behaves in this repo. Routine review-for-writes inside these zones is high-friction and low-value, so the policy is to auto-accept and rely on source control (`git status` / `git diff` / PR review) as the audit trail.
 
-## Exception: symlinks and stowed layouts (flag for review)
+## Out-of-scope (normal approval still applies)
 
-Before editing any path that falls under the table above, **resolve whether the path is “real” or indirect**:
+- Writes to a project's **working tree** (anything not under `<workspace>/.cursor/`)
+- Writes to the home directory outside of `~/.cursor/docs/` and `~/.cursor/memory/` (including `~/.cursor/agents/`, `~/.cursor/skills/`, `~/.cursor/rules/`, `~/.cursor/hooks/`, `~/.cursor/mcp.json`, etc. — these require explicit approval)
+- Shell commands outside the read-only allowlist in `~/.cursor/hooks/safe-shell.sh` (mutating `git` subcommands, `rm`, `mv`, `sed -i`, shell redirection `>`/`>>`, pipes, command substitution, etc. still prompt the user)
+- Destructive operations, secret handling, and anything explicitly covered by other always-applied rules (e.g. `hardcoded-credentials-block`, `data-and-storage-security`) — those rules still govern even inside the auto-accepted zones
 
-1. **Symlink at any relevant segment**
-   If the file or any parent directory in the chain is a symbolic link (e.g. `~/.cursor` itself, or a subpath), **treat the operation as flagged for review**: confirm with the user and follow DotMate/dotfiles guidance (edit sources in the repo, use `make` / Stow — do not edit only the symlink target in `$HOME` ad hoc).
+## Stow / dotfiles guidance (editing practice, not approval gate)
 
-2. **Stow / dotfiles-managed targets**
-   If the canonical resolved path lives under a dotfiles/stow source tree (typical: symlink from `$HOME` into a checked-out repo), **flag for review** the same way: prefer changing tracked sources and reinstalling/stowing rather than editing the deployed link target blindly.
+The auto-accept policy removes the approval friction for writes, but it does not change the **editing best practice** for stowed files. When edits land under paths like `$HOME/dotfiles/cursor/.cursor/**`:
 
-**Practical check (when unsure):** From a shell, `ls -ld <path>` / `readlink` / `realpath` (or equivalent) to see symlinks and canonical location before writing.
+- Prefer editing the tracked source in the dotfiles repo (that's what stow symlinks point at — both `~/.cursor/docs/foo` and `~/dotfiles/cursor/.cursor/docs/foo` are the same file).
+- Commit and push via the dotfiles repo's normal git workflow.
+- Re-run `make stow CONFIGS=cursor` only when adding brand-new files or changing the stow structure.
+
+Editing either path works; the hook approves both; the realpath matcher makes them indistinguishable to Cursor.
+
+## How the hooks fit in
+
+Two project-level hooks live in this dotfiles repo (deployed to `~/.cursor/hooks.json` and `~/.cursor/hooks/` via stow):
+
+- `cursor/.cursor/hooks/cursor-zone-writes.sh` — `preToolUse` hook for `Write|Edit|StrReplace|MultiEdit|Delete`. Auto-approves writes inside the zones above.
+- `cursor/.cursor/hooks/safe-shell.sh` — `beforeShellExecution` hook. Auto-approves a narrow allowlist of read-only shell commands (`git status|log|diff|...`, `cd`, `head`, `tail`, `cat`, `ls`, `pwd`, `wc`, `readlink`, `realpath`, `find` without `-exec`/`-delete`, `sha256sum`/`shasum`, `grep`/`rg`/`fd`, `sed`/`awk` without in-place flags).
+
+Both hooks are **grant-only** (`failClosed: false`) — they only ever emit `{"permission":"allow"}` for whitelisted operations, never `deny`. Anything outside the allowlist is silently passed through to the default Cursor approval flow.
 
 ## Summary
 
-- **Safe to proceed without path-based review:** ordinary files under `$HOME/.cursor/memory`, `$HOME/.cursor/docs`, and the workspace’s `.cursor/`, when those paths are **not** symlinked into a stow/dotfiles layout.
-- **Require review / correct workflow:** anything that is symlinked or resolves into stowed dotfiles sources.
+- **Auto-accepted, no user prompt:** writes under `$HOME/.cursor/docs/**`, `$HOME/.cursor/memory/**`, `<workspace>/.cursor/**`, and their stow sources in the dotfiles repo.
+- **Auto-accepted, no user prompt:** the narrow read-only shell allowlist in `safe-shell.sh`.
+- **Normal approval flow:** everything else (project working tree, other home-dir paths, mutating shell commands).

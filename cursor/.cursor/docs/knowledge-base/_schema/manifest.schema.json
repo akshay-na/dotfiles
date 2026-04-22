@@ -1,132 +1,92 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://helpshift.com/kb/schemas/manifest.schema.json",
   "title": "KB Project Manifest",
-  "description": "Schema for per-project .meta/manifest.json. Tracks source file hashes for incremental rebuilds, manifest file hashes for service re-discovery skipping, and generator version metadata for drift detection.",
+  "description": "Per-project .meta/manifest.json tracking source hashes, KB doc hashes, template/schema hashes, and generator metadata.",
   "type": "object",
-  "required": ["version", "project", "generated_at", "files"],
+  "required": ["project", "generated_at", "generator", "schema_versions", "sources", "kb_docs"],
   "properties": {
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "Schema version for manifest.json."
-    },
-    "project": {
-      "type": "string"
-    },
-    "generated_at": {
+    "project": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "last_updated": { "type": "string", "format": "date-time" },
+    "last_mode": {
       "type": "string",
-      "format": "date-time"
+      "enum": ["full", "incremental", "refresh-stale"]
     },
-    "files": {
-      "type": "object",
-      "description": "Map of source-file path (relative to project root) to hash + analysis metadata.",
-      "additionalProperties": {
-        "type": "object",
-        "required": ["sha256", "last_analyzed"],
-        "properties": {
-          "sha256": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{64}$"
-          },
-          "last_analyzed": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "contributed_to": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "KB docs this file contributed content to. Used to mark those docs stale on file change."
-          }
-        },
-        "additionalProperties": true
-      }
-    },
-    "manifests": {
-      "type": "object",
-      "description": "Optional: map of manifest-file path (compose, k8s, workspace, Procfile, CI) to hash. In incremental mode, if all entries are unchanged, Phase 1 service re-discovery is skipped.",
-      "additionalProperties": {
-        "type": "object",
-        "required": ["sha256", "last_analyzed"],
-        "properties": {
-          "sha256": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{64}$"
-          },
-          "last_analyzed": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": true
-      }
-    },
-    "datastore_classifications": {
-      "type": "object",
-      "description": "Optional: map of canonical datastore ID to its current classification. Used by incremental mode to detect promotions (project → shared) and demotions (shared → project) between runs, so file moves + backlink rewrites happen atomically.",
-      "additionalProperties": {
-        "type": "object",
-        "required": ["scope", "kb_doc"],
-        "properties": {
-          "scope": {
-            "type": "string",
-            "enum": ["shared", "project"]
-          },
-          "kb_doc": {
-            "type": "string",
-            "description": "Path (relative to KB vault root) where the datastore's doc is stored for this scope."
-          },
-          "owning_project": {
-            "type": "string",
-            "description": "Project owner (only when scope = project)."
-          },
-          "consumer_count": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Number of distinct services consuming this datastore. Crossing 1→2 can trigger promotion."
-          },
-          "consumer_projects": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Distinct project names that consume this datastore. Length ≥2 forces shared scope per classification rule 2."
-          }
-        },
-        "additionalProperties": true
-      }
-    },
+    "last_full_regeneration": { "type": "string", "format": "date-time" },
     "generator": {
       "type": "object",
-      "description": "Optional: generator metadata used by Step 3.6 drift detection. Bump any field here to force incremental gap-fill to regenerate affected docs.",
+      "required": ["kb_engineer_version"],
       "properties": {
-        "kb_engineer_version": {
-          "type": "string",
-          "description": "Semver or short hash of the kb-engineer agent that generated this KB."
-        },
+        "kb_engineer_version": { "type": "string" },
         "skill_versions": {
           "type": "object",
-          "additionalProperties": {
-            "type": "integer",
-            "minimum": 1
+          "patternProperties": {
+            "^kb-(identity|generation|query)$": { "type": "string" }
           },
-          "description": "Map of skill name to version integer (e.g. kb-generation, kb-query, kb-identity)."
-        },
-        "schema_versions": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "description": "Map of schema name to version integer (graph, frontmatter, manifest)."
-        },
-        "template_hashes": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{64}$"
-          },
-          "description": "Map of template filename to sha256 of its contents at generation time."
+          "additionalProperties": true
         }
       },
       "additionalProperties": true
+    },
+    "schema_versions": {
+      "type": "object",
+      "properties": {
+        "frontmatter": { "type": "string" },
+        "graph": { "type": "string" },
+        "manifest": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "template_hashes": {
+      "type": "object",
+      "description": "SHA-256 (hex) or 'inline-default'. Used for drift detection on incremental runs.",
+      "patternProperties": {
+        "^(module|service|datastore|consumer|project|architecture|dependencies|home)$": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "sources": {
+      "type": "array",
+      "description": "Tracked source files that contribute to one or more KB docs.",
+      "items": {
+        "type": "object",
+        "required": ["path", "hash", "contributes_to"],
+        "properties": {
+          "path": { "type": "string" },
+          "hash": { "type": "string" },
+          "size_bytes": { "type": "integer" },
+          "contributes_to": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "last_modified": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "kb_docs": {
+      "type": "array",
+      "description": "KB documents this project owns (relative to the project's KB folder).",
+      "items": {
+        "type": "object",
+        "required": ["path", "hash"],
+        "properties": {
+          "path": { "type": "string" },
+          "hash": { "type": "string" },
+          "size_bytes": { "type": "integer" },
+          "type": {
+            "type": "string",
+            "enum": ["hub", "architecture", "dependencies", "module", "service", "consumer", "datastore", "index"]
+          },
+          "generated_at": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
     }
   },
   "additionalProperties": true
