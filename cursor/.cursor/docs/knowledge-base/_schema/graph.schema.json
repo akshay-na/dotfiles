@@ -46,7 +46,12 @@
           },
           "kb_doc": {
             "type": "string",
-            "description": "Relative path to this node's markdown doc inside the KB project folder. Required for service, module, and datastore nodes."
+            "description": "Relative path to this node's markdown doc. For service/module nodes: inside the KB project folder. For datastore nodes: either `datastores/<name>.md` (vault-level shared, relative from KB vault root) or `projects/<project>/datastores/<name>.md`. Required for service, module, and datastore nodes."
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["shared", "project"],
+            "description": "Required on datastore nodes. `shared` means the datastore lives at vault-level `datastores/<name>.md` and is consumed by ≥2 services (optionally across ≥1 project) or is infrastructure-kind (kafka/rabbitmq/etc). `project` means a micro datastore owned by one project and referenced from a single consumer, located at `projects/<project>/datastores/<name>.md`."
           },
           "discovery_sources": {
             "type": "array",

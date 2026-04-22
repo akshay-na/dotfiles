@@ -60,6 +60,39 @@
         "additionalProperties": true
       }
     },
+    "datastore_classifications": {
+      "type": "object",
+      "description": "Optional: map of canonical datastore ID to its current classification. Used by incremental mode to detect promotions (project → shared) and demotions (shared → project) between runs, so file moves + backlink rewrites happen atomically.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["scope", "kb_doc"],
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": ["shared", "project"]
+          },
+          "kb_doc": {
+            "type": "string",
+            "description": "Path (relative to KB vault root) where the datastore's doc is stored for this scope."
+          },
+          "owning_project": {
+            "type": "string",
+            "description": "Project owner (only when scope = project)."
+          },
+          "consumer_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of distinct services consuming this datastore. Crossing 1→2 can trigger promotion."
+          },
+          "consumer_projects": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Distinct project names that consume this datastore. Length ≥2 forces shared scope per classification rule 2."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "generator": {
       "type": "object",
       "description": "Optional: generator metadata used by Step 3.6 drift detection. Bump any field here to force incremental gap-fill to regenerate affected docs.",
