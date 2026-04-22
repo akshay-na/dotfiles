@@ -27,18 +27,19 @@ When spawning subagents via Task tool, include role-appropriate prompt:
 
 ### Role-Specific Templates
 
-| Agent Type                                            | Level | Prompt Template                                                                                         |
-| ----------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------- |
-| **cto, vp-architecture, vp-engineering, vp-platform** | lite  | `Caveman: lite. Full sentences for trade-off analysis. Keep precision on risks/phases.`                 |
-| **ciso**                                              | lite  | `Caveman: lite. Full clarity for security risks, threats, mitigations. No abbreviations on vuln names.` |
-| **sre-lead**                                          | lite  | `Caveman: lite. Clear on alerts, SLOs, runbook steps. Abbreviate infra terms (k8s/pod/svc/ns).`         |
-| **senior-dev, staff-engineer**                        | ultra | `Caveman: ultra. DB/auth/config/req/res/fn/impl → abbrev. X→Y causality. Code unchanged.`               |
-| **docs-researcher**                                   | full  | `Caveman: full. Keep source citations intact. Summarize findings tersely.`                              |
-| **kb-engineer**                                       | full  | `Caveman: full. Structural docs need readable sentences. Mermaid/frontmatter unchanged.`                |
-| **tech-lead**                                         | full  | `Caveman: full. Keep phase names, checkpoints, agent assignments clear. Abbreviate paths.`              |
-| **dev-\*, sme-\***                                    | ultra | `Caveman: ultra. Max compression. Abbrev all common terms. Arrows for flow.`                            |
-| **qa-\*, reviewers-\***                               | full  | `Caveman: full. Feedback must be clear, actionable. Keep issue descriptions precise.`                   |
-| **vp-onboarding**                                     | full  | `Caveman: full. Keep agent/rule/skill names exact. Abbreviate paths.`                                   |
+| Agent Type                                            | Level | Prompt Template                                                                                                                                |
+| ----------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **cto, vp-architecture, vp-engineering, vp-platform** | lite  | `Caveman: lite. Full sentences for trade-off analysis. Keep precision on risks/phases.`                                                        |
+| **code-reviewer**                                     | lite  | `Caveman: lite. User-facing synthesizer. Final review must be clear and actionable — severity, file/line refs, fix suggestions unabbreviated.` |
+| **ciso**                                              | lite  | `Caveman: lite. Full clarity for security risks, threats, mitigations. No abbreviations on vuln names.`                                        |
+| **sre-lead**                                          | lite  | `Caveman: lite. Clear on alerts, SLOs, runbook steps. Abbreviate infra terms (k8s/pod/svc/ns).`                                                |
+| **senior-dev, staff-engineer**                        | ultra | `Caveman: ultra. DB/auth/config/req/res/fn/impl → abbrev. X→Y causality. Code unchanged.`                                                      |
+| **docs-researcher**                                   | full  | `Caveman: full. Keep source citations intact. Summarize findings tersely.`                                                                     |
+| **kb-engineer**                                       | full  | `Caveman: full. Structural docs need readable sentences. Mermaid/frontmatter unchanged.`                                                       |
+| **tech-lead**                                         | full  | `Caveman: full. Keep phase names, checkpoints, agent assignments clear. Abbreviate paths.`                                                     |
+| **dev-\*, sme-\***                                    | ultra | `Caveman: ultra. Max compression. Abbrev all common terms. Arrows for flow.`                                                                   |
+| **qa-\*, reviewer-\*, reviewers-\***                  | full  | `Caveman: full. Feedback must be clear, actionable. Keep issue descriptions precise. File/line refs and suggested fixes unabbreviated.`        |
+| **vp-onboarding**                                     | full  | `Caveman: full. Keep agent/rule/skill names exact. Abbreviate paths.`                                                                          |
 
 ### Generic Fallback
 

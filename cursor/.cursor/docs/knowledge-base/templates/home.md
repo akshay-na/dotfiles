@@ -1,159 +1,66 @@
 ---
-title: Knowledge Base
+title: Knowledge Base Home
 type: home
 tags:
   - kb
-  - kb/home
-  - kb/type/index
-generated_at: { { timestamp } }
+  - kb/type/home
+generated_at: {{timestamp}}
 generated_by: kb-engineer
+stale: false
 ---
 
-# Knowledge Base
+# Knowledge Base Home
 
-> Central documentation hub for all projects. Open this folder in Obsidian to visualize project relationships via the graph view.
+Central navigation hub for all project documentation in this Obsidian vault.
 
 ## Projects
 
-| Project | Description | Modules | Services | Last Updated | Status |
-| ------- | ----------- | ------- | -------- | ------------ | ------ |
-
-{{project_rows}}
-
-## Quick Navigation
-
-### By Project
-
-{{project_links}}
-
-### By Type
-
-- [[#Modules|All Modules]]
-- [[#Services|All Services]]
-- [[#Dependencies|All Dependencies]]
+| Project | Type | Modules | Services | Datastores | Last Updated |
+|---------|------|---------|----------|------------|--------------|
+{{projects_table}}
 
 ## Global Architecture
 
-> This diagram shows all projects and their cross-project dependencies.
-
 ```mermaid
-flowchart TD
-    {{project_nodes}}
-
-    subgraph shared["Shared Dependencies"]
-        {{shared_dep_nodes}}
-    end
-
-    {{cross_project_hub_edges}}
-    {{shared_dep_edges}}
-```
-
-> **Tip:** Use Obsidian's Graph View groups to color-code projects. See setup instructions below.
-
-## Cross-Project Dependencies
-
-> Hub-to-hub connections between projects.
-
-| Source Project | Depends On | Dependency Type |
-| -------------- | ---------- | --------------- |
-
-{{cross_project_deps_rows}}
-
-## Module-Level Cross-Links
-
-> Detailed module-to-module dependencies across projects.
-
-| Source Module | Target Module | Relationship |
-| ------------- | ------------- | ------------ |
-
-{{module_cross_links_rows}}
-
-## Modules
-
-| Module | Project | Type | Key Responsibilities |
-| ------ | ------- | ---- | -------------------- |
-
-{{all_modules_rows}}
-
-## Services
-
-| Service | Project | Protocol | Dependencies |
-| ------- | ------- | -------- | ------------ |
-
-{{all_services_rows}}
-
-## Dependencies
-
-### Most Used Dependencies
-
-| Dependency | Used By | Type |
-| ---------- | ------- | ---- |
-
-{{common_deps_rows}}
-
-### Dependency Graph
-
-```mermaid
-flowchart LR
-    subgraph Internal["Internal Projects"]
-        {{internal_project_nodes}}
-    end
-
-    subgraph External["External Dependencies"]
-        {{external_dep_nodes}}
-    end
-
-    {{dependency_edges}}
+{{global_architecture_mermaid}}
 ```
 
 ## Statistics
 
-| Metric                | Count              |
-| --------------------- | ------------------ |
-| Total Projects        | {{total_projects}} |
-| Total Modules         | {{total_modules}}  |
-| Total Services        | {{total_services}} |
-| External Dependencies | {{total_deps}}     |
-| Documentation Files   | {{total_docs}}     |
-
-## How to Use
-
-### For Humans
-
-1. **Open in Obsidian**: Open `~/.cursor/docs/knowledge-base/` as an Obsidian vault
-2. **Graph View**: Press `Ctrl/Cmd + G` to open the graph view and see project relationships
-3. **Search**: Use `Ctrl/Cmd + O` to quick-search any module, service, or concept
-4. **Backlinks**: Click any `[[link]]` to navigate; use the backlinks panel to see what references the current doc
-
-### For AI Agents
-
-1. **Query the KB**: Use the `kb-query` skill with a project name and query type
-2. **Token-efficient access**: Start with Level 0/1 queries, escalate only when needed
-3. **Check staleness**: Always check the `stale` flag in frontmatter before trusting content
-4. **Use graph.json**: For relationship queries, read `graph.json` instead of parsing markdown
-
-### Query Tiers (Token Budget)
-
-| Query Need                | Method                             | Token Cost |
-| ------------------------- | ---------------------------------- | ---------- |
-| "What projects exist?"    | Read Home.md                       | ~100       |
-| "What is project X?"      | Read projects/X/README.md          | ~200       |
-| "What modules in X?"      | Read projects/X/modules/\_index.md | ~150       |
-| "How does module Y work?" | Read projects/X/modules/Y.md       | ~500       |
-| "What depends on Y?"      | Query projects/X/graph.json        | ~300       |
-
-## Documentation Tiers
-
-| Tier               | Location                         | Content                                | Use When                |
-| ------------------ | -------------------------------- | -------------------------------------- | ----------------------- |
-| **Memory**         | `~/.cursor/memory/`              | Decisions, constraints, risks          | Capturing "why"         |
-| **Project Docs**   | `<project>/.cursor/docs/`        | Plans, ADRs, runbooks                  | Planning, operations    |
-| **Knowledge Base** | `~/.cursor/docs/knowledge-base/` | Structure, architecture, relationships | Understanding "what is" |
+| Metric | Value |
+|--------|-------|
+| Total projects | {{total_projects}} |
+| Total modules | {{total_modules}} |
+| Total services | {{total_services}} |
+| Total datastores | {{total_datastores}} |
+| Total dependencies | {{total_dependencies}} |
 
 ## Recently Updated
 
 {{recently_updated_list}}
 
----
+## Usage
 
-_Generated by `kb-engineer`. Last updated: {{timestamp}}_
+### For Humans
+
+Open any project hub to start exploring. Graph view (Ctrl/Cmd + G) renders the full vault with the 7-color palette.
+
+### For AI Agents
+
+Use the `kb-query` skill with token-efficient tiers:
+
+- Level 0-1 — project overview, service topology (~200 tokens)
+- Level 2 — specific module/service/datastore docs (~500 tokens)
+- Level 3 — full graph.json traversal (~1000+ tokens)
+
+## Color Palette
+
+| Document Type | Color | Tag |
+|---------------|-------|-----|
+| Project hubs  | Blue   | `kb/type/hub`       |
+| Services      | Yellow | `kb/type/service`   |
+| Modules       | Green  | `kb/type/module`    |
+| Datastores    | Red    | `kb/type/datastore` |
+| Architecture  | Orange | `kb/type/arch`      |
+| Dependencies  | Purple | `kb/type/deps`      |
+| Vault Home    | Cyan   | `kb/type/home`      |

@@ -1,116 +1,73 @@
 ---
 title: "Service: {{service_name}}"
 type: service
-project: { { project_name } }
+project: {{project_name}}
 tags:
   - kb
   - kb/project/{{project_name}}
   - kb/project/{{project_name}}/service/{{service_name}}
   - kb/type/service
-generated_at: { { timestamp } }
+generated_at: {{timestamp}}
 generated_by: kb-engineer
-source_files: [{ { source_files } }]
-confidence: { { confidence } }
+source_files: {{source_files}}
+discovery_sources: {{discovery_sources}}
+port: {{port}}
+protocol: {{protocol}}
+confidence: {{confidence}}
 stale: false
-aliases: [{ { aliases } }]
+aliases: {{aliases}}
 ---
 
-<!-- TAGS: Hierarchical for Obsidian graph grouping and AI querying -->
+# Service: {{service_name}}
 
-# {{service_name}}
+Back to [[{{project_name}}|{{project_name}}]].
 
 ## Purpose
 
 {{purpose}}
 
-## Configuration
+## Discovery
 
-- **Port**: {{port}}
-- **Protocol**: {{protocol}}
-- **Entry point**: `{{entry_point}}`
+| Field | Value |
+|-------|-------|
+| Discovery sources | {{discovery_sources_display}} |
+| Port | {{port_display}} |
+| Protocol | {{protocol_display}} |
+
+Source content is capped at ~400 tokens per service doc.
 
 ## API Endpoints
 
-{{api_endpoints}}
+| Method | Path | Purpose |
+|--------|------|---------|
+{{endpoints_table}}
 
-## Service Interactions
-
-```mermaid
-sequenceDiagram
-    {{sequence_diagram_content}}
-```
-
-## Dependencies
-
-### Services
-
-{{service_dependencies}}
-
-### Modules
-
-{{module_dependencies}}
-
-### External
-
-{{external_dependencies}}
-
-## Architecture
+## Sequence
 
 ```mermaid
-flowchart LR
-    {{architecture_nodes}}
+{{sequence_mermaid}}
 ```
 
-## Deployment
+## Upstream Dependencies
 
-{{deployment_info}}
+Services and datastores this one calls (max 5).
 
-## Health & Observability
+{{upstream_dependencies}}
 
-- **Health endpoint**: {{health_endpoint}}
-- **Metrics**: {{metrics}}
-- **Logs**: {{logging}}
+## Downstream Dependents
 
-## Configuration Files
+Services that call this one (max 5).
 
-| File | Purpose |
-| ---- | ------- |
+{{downstream_dependents}}
 
-{{config_files_rows}}
+## Configuration
 
-## Cross-Project Services
+{{configuration_notes}}
 
-> Service-to-service links to other projects (connected/dependent services).
+## Health Checks
 
-{{cross_project_service_links}}
-
-```mermaid
-flowchart LR
-    this["{{service_name}}"]
-
-    {{cross_project_service_nodes}}
-
-    {{cross_project_service_edges}}
-```
+{{health_checks}}
 
 ## Related
 
-### Project Hub
-
-> **REQUIRED**: This link makes [[../{{project_name}}|{{project_name}}]] the center of the graph.
-
-- [[../{{project_name}}|{{project_name}}]]
-
-### This Project
-
-- [[../architecture|Architecture]]
-- [[../dependencies|Dependencies]]
-- [[_index|All Services]]
-
-### Related Services (Same Project)
-
-{{related_services}}
-
-### Related Services (Other Projects)
-
-{{cross_project_related}}
+{{related_service_links}}

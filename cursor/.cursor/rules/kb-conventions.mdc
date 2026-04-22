@@ -9,6 +9,8 @@ alwaysApply: true
 
 The Knowledge Base lives at `~/.cursor/docs/knowledge-base/`. This is an Obsidian-compatible vault containing generated structural documentation for all projects.
 
+**KB-side only.** All KB write surface — including `.meta/manifest.json`, `.meta/identity.json`, `.meta/generation-log.json` — lives under `~/.cursor/docs/knowledge-base/projects/<name>/`. `kb-engineer` never writes anything into the target project's working tree. `git status` on a project after a KB generation run shows no KB-related file additions.
+
 ```
 ~/.cursor/docs/knowledge-base/
 ├── Home.md                          # Vault home page, project index
@@ -106,13 +108,15 @@ Obsidian renders mermaid natively. Diagrams are version-controlled as text.
 
 Use the `kb-query` skill with token-efficient tiers:
 
-| Query Need | Method | Token Cost |
-|------------|--------|------------|
-| "What is this project?" | Level 0 | ~50 |
-| "What does this project do?" | Level 1 | ~200 |
-| "What modules exist?" | Level 1 | ~150 |
-| "How does module X work?" | Level 2 | ~500 |
-| "What depends on module X?" | Level 3 | ~300 |
+| Query Need                                       | Method             | Token Cost |
+|--------------------------------------------------|--------------------|------------|
+| "What is this project?"                          | Level 0            | ~50        |
+| "What does this project do?"                     | Level 1            | ~200       |
+| "What modules exist?"                            | Level 1            | ~150       |
+| "What services exist and how do they talk?"      | `service-topology` | ~200       |
+| "How does module X work?"                        | Level 2            | ~500       |
+| "How does service X work?"                       | Level 2 (service)  | ~500       |
+| "What depends on module X?"                      | Level 3            | ~300       |
 
 ## Staleness Handling
 
@@ -120,3 +124,4 @@ Use the `kb-query` skill with token-efficient tiers:
 - `.meta/identity.json` has `needs_refresh` flag
 - `kb-query` skill warns when returning stale content
 - `vp-onboarding` triggers refresh on re-runs
+- **Generator drift** — on every `incremental` run, `kb-engineer` compares `.meta/manifest.json.generator` (agent / skill / template / schema versions + template hashes) against current runtime versions and fills gaps: missing required docs, missing per-entity docs, schema drift, template drift, skill drift, agent-version drift. Gap-fill is additive and idempotent.

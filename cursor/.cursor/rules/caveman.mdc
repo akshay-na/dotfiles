@@ -9,6 +9,7 @@ Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
 - **Main chat**: lite (professional, no filler, full sentences)
 - **Subagents**: ultra (max compression, abbreviations, arrows)
+- **User-facing synthesizers**: lite (same as main chat) — applies to agents that produce output rendered directly to the user, e.g. `code-reviewer`, `cto`. Their internal delegations to specialists still run ultra; only the final synthesized response to the user is lite.
 
 Rules:
 

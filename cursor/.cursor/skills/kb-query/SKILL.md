@@ -6,7 +6,7 @@ input_schema:
   required:
     - name: query_type
       type: string
-      description: Type of query - "overview", "module", "service", "dependency", "relationship", or "search"
+      description: Type of query - "overview", "module", "service", "service-topology", "dependency", "relationship", or "search"
   optional:
     - name: project_name
       type: string
@@ -43,7 +43,7 @@ output_schema:
       description: Error message if status is error
 pre_checks:
   - description: Query type must be valid
-    validation: query_type in ["overview", "module", "service", "dependency", "relationship", "search"]
+    validation: query_type in ["overview", "module", "service", "service-topology", "dependency", "relationship", "search"]
   - description: Project identifier must be provided
     validation: project_name or project_root is provided
   - description: Target required for targeted queries
@@ -220,6 +220,53 @@ if query_type == "service":
     }
 ```
 
+#### Service Topology Query
+
+```
+if query_type == "service-topology":
+    # Level 1 (~200 tokens): answer "what services exist and how do they talk?"
+    # without loading any per-service doc.
+    sources = []
+
+    # 1. Read the services/_index.md header (topology table + mermaid)
+    index_path = kb_path + "services/_index.md"
+    header = ""
+    if exists(index_path):
+        header = read_header(index_path, max_lines=40)  # topology table + mermaid block
+        sources.append(index_path)
+
+    # 2. Filter graph.json for edges where source or target is service/datastore
+    graph_path = kb_path + "graph.json"
+    if not exists(graph_path):
+        if header == "":
+            return { status: "not_found", error: "No services/_index.md or graph.json in KB" }
+    graph = read_json(graph_path)
+    sources.append(graph_path)
+
+    service_or_ds = { n.id for n in graph.nodes if n.type in ["service", "datastore"] }
+    topology_edges = [
+        { source: e.source, target: e.target, relation: e.relation, confidence: e.confidence }
+        for e in graph.edges
+        if e.source in service_or_ds or e.target in service_or_ds
+    ]
+    topology_nodes = [
+        { id: n.id, label: n.label, type: n.type, port: n.port, protocol: n.protocol }
+        for n in graph.nodes
+        if n.id in service_or_ds
+    ]
+
+    # 3. Format compact response: names/ports + edges only. No per-service doc content.
+    content = format_topology_response(header, topology_nodes, topology_edges, max_tokens or 200)
+
+    return {
+        status: "success",
+        content: content,
+        sources: sources
+    }
+```
+
+This query inherits the skill-level `cacheable: true` / 5-minute TTL. Cache key is `{project_name}:service-topology`.
+
 #### Dependency Query
 
 ```
@@ -321,21 +368,23 @@ if query_type == "search":
 | Tier | Token Budget | Use For |
 |------|-------------|---------|
 | Level 0 | ~50 | Just project name and type from index |
-| Level 1 | ~200 | README.md overview, index files |
-| Level 2 | ~500 | Specific module/service docs |
+| Level 1 | ~200 | `{project}.md` overview, index files, service-topology |
+| Level 2 | ~500 | Specific module/service/datastore docs |
 | Level 3 | ~1000+ | graph.json traversal, relationship queries |
 
 ### Choosing the right tier
 
-| Query Need | Recommended Tier | Method |
-|------------|-----------------|--------|
-| "What is this project?" | Level 0-1 | overview |
-| "What does this project do?" | Level 1 | overview |
-| "What modules exist?" | Level 1 | overview or search |
-| "How does module X work?" | Level 2 | module |
-| "What depends on module X?" | Level 3 | relationship |
-| "Show me the architecture" | Level 2 | overview + read architecture.md |
-| "What external deps does this use?" | Level 1 | dependency |
+| Query Need                                       | Recommended Tier | Method             |
+|--------------------------------------------------|------------------|--------------------|
+| "What is this project?"                          | Level 0-1        | overview           |
+| "What does this project do?"                     | Level 1          | overview           |
+| "What modules exist?"                            | Level 1          | overview or search |
+| "How does module X work?"                        | Level 2          | module             |
+| "What services exist and how do they talk?"      | Level 1          | service-topology   |
+| "How does service X work?"                       | Level 2          | service            |
+| "What depends on module X?"                      | Level 3          | relationship       |
+| "Show me the architecture"                       | Level 2          | overview + read architecture.md |
+| "What external deps does this use?"              | Level 1          | dependency         |
 
 ## Staleness Handling
 

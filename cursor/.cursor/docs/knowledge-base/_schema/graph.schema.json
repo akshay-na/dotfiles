@@ -1,23 +1,83 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KB Project Graph",
+  "description": "Schema for per-project graph.json produced by kb-engineer. Nodes and edges describe the project's conceptual topology: modules, services, datastores, and their relationships.",
   "type": "object",
   "required": ["version", "project", "generated_at", "nodes", "edges"],
   "properties": {
-    "version": { "const": 1 },
-    "project": { "type": "string" },
-    "generated_at": { "type": "string", "format": "date-time" },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version for graph.json. Bump when node/edge shape changes in an incompatible way."
+    },
+    "project": {
+      "type": "string",
+      "description": "Project name as resolved by kb-identity."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "nodes": {
       "type": "array",
       "items": {
         "type": "object",
         "required": ["id", "label", "type"],
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "type": { "enum": ["module", "service", "external_dep", "config", "function", "class"] },
-          "source_file": { "type": "string" },
-          "kb_doc": { "type": "string" }
-        }
+          "id": {
+            "type": "string",
+            "description": "Stable node identifier, unique within this graph."
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable display label."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "module",
+              "service",
+              "datastore",
+              "external_dep",
+              "config",
+              "function",
+              "class"
+            ]
+          },
+          "kb_doc": {
+            "type": "string",
+            "description": "Relative path to this node's markdown doc inside the KB project folder. Required for service, module, and datastore nodes."
+          },
+          "discovery_sources": {
+            "type": "array",
+            "description": "Which detection source(s) surfaced this node. Applies to services and datastores.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "compose",
+                "k8s",
+                "workspace",
+                "convention",
+                "procfile",
+                "ci",
+                "dockerfile",
+                "env",
+                "proto"
+              ]
+            }
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+            "description": "Primary listening port if applicable."
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Primary protocol (e.g. http, grpc, tcp, amqp, kafka)."
+          }
+        },
+        "additionalProperties": true
       }
     },
     "edges": {
@@ -26,13 +86,42 @@
         "type": "object",
         "required": ["source", "target", "relation", "confidence"],
         "properties": {
-          "source": { "type": "string" },
-          "target": { "type": "string" },
-          "relation": { "enum": ["imports", "depends_on", "exposes", "calls", "configures", "extends", "implements"] },
-          "confidence": { "enum": ["EXTRACTED", "INFERRED"] },
-          "source_location": { "type": "string" }
-        }
+          "source": {
+            "type": "string",
+            "description": "Source node id."
+          },
+          "target": {
+            "type": "string",
+            "description": "Target node id."
+          },
+          "relation": {
+            "type": "string",
+            "enum": [
+              "imports",
+              "depends_on",
+              "calls",
+              "exposes",
+              "configures",
+              "extends",
+              "implements",
+              "invokes",
+              "subscribes_to",
+              "publishes_to",
+              "shares_datastore"
+            ]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["EXTRACTED", "INFERRED"]
+          }
+        },
+        "additionalProperties": true
       }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": true
     }
-  }
+  },
+  "additionalProperties": true
 }

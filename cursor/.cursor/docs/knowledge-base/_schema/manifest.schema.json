@@ -1,22 +1,100 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KB Project Manifest",
+  "description": "Schema for per-project .meta/manifest.json. Tracks source file hashes for incremental rebuilds, manifest file hashes for service re-discovery skipping, and generator version metadata for drift detection.",
   "type": "object",
   "required": ["version", "project", "generated_at", "files"],
   "properties": {
-    "version": { "const": 1 },
-    "project": { "type": "string" },
-    "generated_at": { "type": "string", "format": "date-time" },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version for manifest.json."
+    },
+    "project": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "files": {
       "type": "object",
+      "description": "Map of source-file path (relative to project root) to hash + analysis metadata.",
       "additionalProperties": {
         "type": "object",
         "required": ["sha256", "last_analyzed"],
         "properties": {
-          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-          "last_analyzed": { "type": "string", "format": "date-time" },
-          "contributed_to": { "type": "array", "items": { "type": "string" } }
-        }
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "last_analyzed": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "contributed_to": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "KB docs this file contributed content to. Used to mark those docs stale on file change."
+          }
+        },
+        "additionalProperties": true
       }
+    },
+    "manifests": {
+      "type": "object",
+      "description": "Optional: map of manifest-file path (compose, k8s, workspace, Procfile, CI) to hash. In incremental mode, if all entries are unchanged, Phase 1 service re-discovery is skipped.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sha256", "last_analyzed"],
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "last_analyzed": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "generator": {
+      "type": "object",
+      "description": "Optional: generator metadata used by Step 3.6 drift detection. Bump any field here to force incremental gap-fill to regenerate affected docs.",
+      "properties": {
+        "kb_engineer_version": {
+          "type": "string",
+          "description": "Semver or short hash of the kb-engineer agent that generated this KB."
+        },
+        "skill_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "Map of skill name to version integer (e.g. kb-generation, kb-query, kb-identity)."
+        },
+        "schema_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "Map of schema name to version integer (graph, frontmatter, manifest)."
+        },
+        "template_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "description": "Map of template filename to sha256 of its contents at generation time."
+        }
+      },
+      "additionalProperties": true
     }
-  }
+  },
+  "additionalProperties": true
 }
