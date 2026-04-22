@@ -6,15 +6,16 @@ alwaysApply: true
 # Agent orchestration and escalation
 
 - **Start with `cto` in plan mode** when a task has multiple steps, non-trivial trade-offs, or touches architecture, security, performance, or observability.
+- **Start with `code-reviewer`** for any code review request — PR links, branches, diffs, "review my change", security/perf/style review. It is the single entry point for review just as `cto` is for planning: it triages the diff, delegates to org specialists and project `reviewer-*` agents in parallel, and synthesizes one unified review. Never invoke `vp-architecture`/`ciso`/`vp-engineering`/`sre-lead`/`staff-engineer`/`vp-platform` directly for review — go through `code-reviewer`.
 - **Use `senior-dev` as the default implementation agent** for any code or configuration change, unless the user explicitly requests a different agent or the work clearly requires a `cto`-driven multi-phase plan first.
 - **Call `senior-dev` directly** for genuinely small, localized tasks (single-file fixes, trivial config tweaks) where a full plan would be overkill, and as the primary executor for plan-driven work once the `cto` has produced an approved plan.
 - **Use `vp-onboarding`** to bootstrap or refresh project-local agents, rules, and skills in a repo's `.cursor/` directory; never modify org-level agents from project agents.
-- **Default modes:** `cto` and other org VPs run in plan mode; `senior-dev` and all project-level `tech-lead`, `dev-*`, `sme-*`, and `qa` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
+- **Default modes:** `cto` and other org VPs run in plan mode; `code-reviewer` runs in Agent (read-only review) mode; `senior-dev` and all project-level `tech-lead`, `dev-*`, `reviewer-*`, `sme-*`, and `qa` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
 
 - **Org vs project responsibilities**
-  - Org agents (`cto`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `senior-dev`) own cross-project strategy, plans, and high-level standards.
-  - Project agents (`tech-lead`, `dev-*`, `sme-*`, `qa`, `devops`) own implementation inside a specific repo, following org standards and project rules.
-  - Project agents escalate up to org agents via `cto` when decisions affect architecture, security posture, performance budgets, or shared tooling.
+  - Org agents (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `senior-dev`) own cross-project strategy, plans, reviews, and high-level standards.
+  - Project agents (`tech-lead`, `dev-*`, `reviewer-*`, `sme-*`, `qa`, `devops`) own implementation and project-scoped review inside a specific repo, following org standards and project rules.
+  - Project agents escalate up to org agents via `cto` (for plans) or `code-reviewer` (for reviews) when decisions affect architecture, security posture, performance budgets, or shared tooling.
 
 - **Memory:** All agents follow the always-apply `memory` rule and the `context-memory` skill for reads and writes.
 
@@ -22,15 +23,24 @@ alwaysApply: true
 
 - **Call-chain boundaries**
   - For multi-phase work: the user → `cto` (plan) → project `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
-  - `tech-lead` is the single entrypoint for project execution. The user should avoid invoking `dev-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve.
+  - For code review: the user → `code-reviewer` → org specialists (in parallel) + project `reviewer-*` (in parallel when present) → synthesized review. Org specialists are invoked from `code-reviewer` only for review; they are not invoked from project agents.
+  - `tech-lead` is the single entrypoint for project execution. The user should avoid invoking `dev-*`, `reviewer-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve. For review-only work, `code-reviewer` bypasses `tech-lead` and contacts the relevant project `reviewer-*` agents directly.
 
-- **When to escalate to specialists (via `cto`)**
+- **When to escalate to specialists (via `cto` for planning, via `code-reviewer` for review)**
   - `vp-architecture`: new services, significant refactors, data-model or boundary changes, cross-service contracts.
   - `ciso`: auth flows, secret management, input validation on public endpoints, CI/CD or container security.
   - `vp-engineering`: concurrency, retries, connection pools, queueing, performance regressions on hot paths.
   - `sre-lead`: logging, metrics, tracing, health checks, rollout/rollback strategy, SLO/SLA questions.
   - `staff-engineer`: large refactors, de-tangling complex modules, naming/structure changes with wide impact.
   - `vp-platform`: repeated patterns that suggest templates, CLIs, generators, or shared libraries.
+
+- **Code review entry point (`code-reviewer`)**
+  - The user gives a PR link, branch, or diff → invoke `code-reviewer`.
+  - `code-reviewer` creates an isolated git worktree (for PR links) under `~/.cursor/worktrees/<repo>/pr-<N>-<sha>/`, never disturbing the user's current branch.
+  - `code-reviewer` reads the diff, triages, and delegates in parallel to the relevant org specialists AND any project-level `reviewer-*` agents it finds in `.cursor/agents/`.
+  - `code-reviewer` synthesizes one unified review with severity-graded findings, style compliance against the repo's tools (and language-idiomatic fallbacks), and concrete optimization suggestions.
+  - The review is always persisted to `<workspace-root>/.cursor/docs/reviews/YYYY-MM-DD-<slug>.md` (follows `docs-and-decisions`).
+  - `code-reviewer` is **read-only** — it never modifies the codebase, pushes to remotes, or comments/approves on PRs unless the user explicitly asks.
 
 - **Plan and phase discipline**
   - In plan mode, `cto` groups work into numbered phases with explicit verification and rollback for each phase.
@@ -45,8 +55,10 @@ alwaysApply: true
 
 - **Division of labor during implementation**
   - `cto` and VPs: design the plan and define phases, risks, and verification.
+  - `code-reviewer`: owns review triage, specialist delegation, and review synthesis.
   - `senior-dev` / project `dev-*`: implement the plan with minimal diffs, matching existing patterns.
   - `tech-lead`: maps plan phases to project agents, tracks progress, and enforces checkpoints inside the repo.
+  - Project `reviewer-*`: review within their stated scope when invoked by `code-reviewer` (for cross-project reviews) or by `tech-lead` (for in-project Dev-Reviewer-QA loops).
   - Specialists (`ciso`, `sre-lead`, etc.): review or extend the plan/implementation only inside their domain.
 
 - **Golden rule**

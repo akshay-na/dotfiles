@@ -656,5 +656,160 @@ restart_gpg() {
   echo "✅ GPG agent restarted and startup TTY updated."
 }
 
+# -------------------------------------------------------------------------------
+# Function: set-current-worktree
+# Purpose: Set the current worktree symlink to the selected project and worktree.
+# Usage: set-current-worktree
+# -------------------------------------------------------------------------------
+set-current-worktree() {
+  local workspace_dir="$HOME/workspace"
+  local projects=()
+
+  # Collect projects from workspace
+  while IFS= read -r dir; do
+    projects+=("$(basename "$dir")")
+  done < <(
+    find "$workspace_dir" -maxdepth 1 -type d \
+      ! -name "." ! -name ".." ! -name "workspace" ! -name "playground"
+  )
+
+  [ ${#projects[@]} -eq 0 ] && {
+    echo "No projects found in $workspace_dir"
+    return 1
+  }
+
+  echo "Please choose a project:"
+  echo
+
+  local i=1
+  for proj in "${projects[@]}"; do
+    printf "%d) %s\n" "$i" "$proj"
+    i=$((i + 1))
+  done
+
+  echo
+  printf "Enter the number of the project: "
+  read -r project_choice
+
+  # Validate project selection
+  if [[ -z "$project_choice" || ! "$project_choice" =~ ^[0-9]+$ ]]; then
+    echo "Invalid selection. Please enter a valid number."
+    return 1
+  fi
+  if ((project_choice < 1 || project_choice > ${#projects[@]})); then
+    echo "Choice out of range. Please select a number from 1 to ${#projects[@]}."
+    return 1
+  fi
+
+  local selected_project="${projects[$project_choice]}"
+  if [[ -z "$selected_project" ]]; then
+    echo "No project selected. Please try again."
+    return 1
+  fi
+
+  local project_dir="$workspace_dir/$selected_project"
+  local worktrees=()
+
+  # Collect worktrees from selected project
+  while IFS= read -r dir; do
+    worktrees+=("$(basename "$dir")")
+  done < <(
+    find "$project_dir" -maxdepth 1 -type d \
+      ! -name "." ! -name ".." ! -name "$selected_project" ! -name "current" \
+      ! -name ".lsp" ! -name ".lsp-cache" ! -name ".lsp-settings" ! -name ".cursor" \
+      ! -name ".clj-kondo" ! -name "playground"
+  )
+
+  [ ${#worktrees[@]} -eq 0 ] && {
+    echo "No worktrees found in $selected_project"
+    return 1
+  }
+
+  echo
+  echo "Please choose a worktree for $selected_project:"
+  echo
+
+  local i=1
+  for wt in "${worktrees[@]}"; do
+    printf "%d) %s\n" "$i" "$wt"
+    i=$((i + 1))
+  done
+
+  echo
+  printf "Enter the number of the worktree: "
+  read -r worktree_choice
+
+  # Validate worktree selection
+  if [[ -z "$worktree_choice" || ! "$worktree_choice" =~ ^[0-9]+$ ]]; then
+    echo "Invalid selection. Please enter a valid number."
+    return 1
+  fi
+  if ((worktree_choice < 1 || worktree_choice > ${#worktrees[@]})); then
+    echo "Choice out of range. Please select a number from 1 to ${#worktrees[@]}."
+    return 1
+  fi
+
+  local selected_worktree="${worktrees[$worktree_choice]}"
+  if [[ -z "$selected_worktree" ]]; then
+    echo "No worktree selected. Please try again."
+    return 1
+  fi
+
+  echo
+  echo "Selected project: $selected_project"
+  echo "Selected worktree: $selected_worktree"
+  echo
+
+  ln -sfn "$project_dir/$selected_worktree" "$project_dir/current"
+  echo "✅ Current worktree set to $selected_worktree for $selected_project"
+}
+
+# -------------------------------------------------------------------------------
+# Function: show-current-worktrees
+# Purpose: Show the current worktree links for all projects.
+# Usage: show-current-worktrees
+# -------------------------------------------------------------------------------
+show-current-worktrees() {
+  local workspace_dir="$HOME/workspace"
+  local projects=()
+
+  # Collect projects from workspace
+  while IFS= read -r dir; do
+    projects+=("$(basename "$dir")")
+  done < <(
+    find "$workspace_dir" -maxdepth 1 -type d \
+      ! -name "." ! -name ".." ! -name "workspace" ! -name "playground"
+  )
+
+  [ ${#projects[@]} -eq 0 ] && {
+    echo "No projects found in $workspace_dir"
+    return 1
+  }
+
+  echo "Current worktree links:"
+  echo "======================"
+  echo
+
+  local max_proj_len=0
+  for proj in "${projects[@]}"; do
+    [ ${#proj} -gt $max_proj_len ] && max_proj_len=${#proj}
+  done
+
+  for proj in "${projects[@]}"; do
+    local project_dir="$workspace_dir/$proj"
+    local current_link="$project_dir/current"
+
+    if [[ -L "$current_link" ]]; then
+      local target=$(readlink "$current_link")
+      local target_name=$(basename "$target")
+      printf "%-${max_proj_len}s -> %s\n" "$proj" "$target_name"
+    elif [[ -e "$current_link" ]]; then
+      printf "%-${max_proj_len}s -> (not a symlink)\n" "$proj"
+    else
+      printf "%-${max_proj_len}s -> (not set)\n" "$proj"
+    fi
+  done
+}
+
 # Load custom local common configurations, if available
 [ -f $HOME/.functions_local ] && source $HOME/.functions_local

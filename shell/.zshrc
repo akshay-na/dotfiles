@@ -24,6 +24,7 @@ export YSU_MESSAGE_POSITION="after"                # Example custom env var
 export ZINIT_HOME="${XDG_DATA_HOME:-$HOME}/.zinit" # Zinit home directory
 export SSH_CONFIG_FILE="${HOME}/.ssh/config_local" # SSH config file
 export FUNCNEST=200                                # Increase function nesting limit to prevent recursion errors
+export SHOW_AWS_PROMPT=false                       # Don't show AWS prompt in zsh
 if [[ ! -f "$SSH_CONFIG_FILE" ]]; then
   export SSH_CONFIG_FILE="${HOME}/.ssh/config"
 fi
@@ -130,6 +131,18 @@ if [[ -o interactive ]]; then
   zinit wait lucid light-mode for \
     zdharma-continuum/fast-syntax-highlighting \
     OMZP::command-not-found
+
+  # Load the omz aws plugin when AWS is usable on this host. The plugin only
+  # needs shell files (it reads profiles from ~/.aws/config and
+  # ~/.aws/credentials), so gate on the `aws` CLI being on PATH OR the
+  # presence of an AWS config/credentials file. This avoids a missing `_asp`
+  # completion when `aws` is installed via a shim (mise/asdf/pipx/venv) that
+  # isn't yet active when this block runs.
+  if command -v aws >/dev/null 2>&1 ||
+    [[ -r "$HOME/.aws/config" ]] ||
+    [[ -r "$HOME/.aws/credentials" ]]; then
+    zinit wait lucid light-mode for OMZP::aws
+  fi
 
   # Load Oh My Zsh plugin snippets only when their corresponding commands exist
   typeset -a _zn_omzp_plugins=(
