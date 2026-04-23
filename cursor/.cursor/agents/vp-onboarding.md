@@ -21,9 +21,9 @@ Organisation (global ~/.cursor/agents/)    Team (project .cursor/agents/)
 cto             — Plans & delegates        tech-lead       — Read-only orchestrator: parallel dispatch, reports, feedback loops (no implementation)
 code-reviewer   — Review entry point;      dev-1, dev-2, dev-3 — The builders
                   delegates to specialists
-                  + project reviewer-*     sme-*           — Domain experts (only when needed)
-vp-architecture — System design            reviewer-*      — Code reviewers invoked by tech-lead AND code-reviewer (only when needed)
-vp-engineering  — Performance & reliability
+                  + project reviewer-*     sme-*           — Domain experts consulted by reviewer-* and others
+vp-architecture — System design            reviewer-*      — Active code reviewers: cross-check dev-* AND qa-* work,
+vp-engineering  — Performance & reliability                  consult sme-* when needed, also handle auditorial/PR review
 ciso            — Security                 qa-*            — Quality assurance (only when needed)
 sre-lead        — Observability
 staff-engineer  — Code quality
@@ -46,13 +46,13 @@ Project-level agents use **team role** names, not org titles. This keeps them di
 
 ### Optional Roles (create only when justified)
 
-| Role                        | Naming pattern     | When to create                                                                                                                    |
-| --------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Dev (typed)                 | `dev-<scope>`      | Project analysis shows distinct layers/domains/concerns that benefit from dedicated builders (e.g. `dev-frontend`, `dev-backend`) |
-| Reviewer (Code Review)      | `reviewer-<scope>` | Project benefits from code review before QA (e.g., `reviewer-security`, `reviewer-api`, `reviewer-frontend`)                      |
-| SME (Subject Matter Expert) | `sme-<domain>`     | Project has deep domain knowledge the org agents can't cover (e.g., `sme-payments`, `sme-ml`, `sme-data`)                         |
-| QA                          | `qa-<scope>`       | Project has complex testing needs beyond what dev agents handle (e.g., `qa-unit`, `qa-e2e`, `qa-manual`)                          |
-| DevOps                      | `devops`           | Project has non-trivial CI/CD, infra-as-code, or deployment pipelines                                                             |
+| Role                        | Naming pattern     | When to create                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dev (typed)                 | `dev-<scope>`      | Project analysis shows distinct layers/domains/concerns that benefit from dedicated builders (e.g. `dev-frontend`, `dev-backend`)                                                                                                                                                                                                                 |
+| Reviewer (Code Review)      | `reviewer-<scope>` | Project benefits from an active code reviewer that cross-checks `dev-*` output **and** `qa-*` output (tests, fixtures, coverage), consults `sme-*` on domain questions, and also serves as the project-side entrypoint for auditorial / PR reviews driven by org `code-reviewer` (e.g., `reviewer-security`, `reviewer-api`, `reviewer-frontend`) |
+| SME (Subject Matter Expert) | `sme-<domain>`     | Project has deep domain knowledge the org agents can't cover (e.g., `sme-payments`, `sme-ml`, `sme-data`)                                                                                                                                                                                                                                         |
+| QA                          | `qa-<scope>`       | Project has complex testing needs beyond what dev agents handle (e.g., `qa-unit`, `qa-e2e`, `qa-manual`)                                                                                                                                                                                                                                          |
+| DevOps                      | `devops`           | Project has non-trivial CI/CD, infra-as-code, or deployment pipelines                                                                                                                                                                                                                                                                             |
 
 ### Choosing `dev-<scope>` roles
 
@@ -69,11 +69,18 @@ Each dev agent's description must state its scope clearly so the user knows whic
 
 ### Choosing `reviewer-<scope>` roles
 
+Project `reviewer-*` agents are **active code reviewers**, not just auditors. Their job is to **cross-check**:
+
+1. **`dev-*` output** — implementation code for correctness, patterns, security, and performance within their scope.
+2. **`qa-*` output** — test code, fixtures, mocks, and coverage; make sure tests are meaningful, correctly scoped, not gamed, and match the dev changes and the project's test conventions.
+3. **`sme-*` consultation** — when a review raises a domain-specific question (e.g., billing correctness, ML invariants, payments edge cases), the reviewer must consult the relevant `sme-*` via `tech-lead` before approving or rejecting. The reviewer remains the decision-maker; the SME provides expertise.
+4. **Auditorial / PR review** — the reviewer is also the project-side entrypoint for org `code-reviewer` invocations (PRs, diffs, worktrees). Same schema, same rigor.
+
 Analyze the project to decide which `reviewer-<scope>` agents to create and what each reviews:
 
 | Strategy       | When to use                                         | Example scoping                                                       |
 | -------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
-| **By concern** | Project has specific quality gates before QA        | `reviewer-security`, `reviewer-performance`, `reviewer-accessibility` |
+| **By concern** | Project has specific quality gates                  | `reviewer-security`, `reviewer-performance`, `reviewer-accessibility` |
 | **By layer**   | Review complexity differs across application layers | `reviewer-frontend`, `reviewer-backend`, `reviewer-api`               |
 | **By domain**  | Domain-specific code requires expert review         | `reviewer-auth`, `reviewer-data-pipeline`, `reviewer-ml`              |
 | **General**    | Single reviewer for all code changes                | `reviewer` (no scope suffix)                                          |
@@ -82,29 +89,37 @@ Analyze the project to decide which `reviewer-<scope>` agents to create and what
 
 Create reviewer agents when any of the following are true:
 
-- The project has strict code quality or security requirements that benefit from review before testing.
+- The project has strict code quality or security requirements that benefit from active cross-checking.
 - Code review is a formal gate in the development workflow (not just PR review).
 - The project has complex areas that need specialized review (auth, data handling, performance-critical code).
-- The closed-loop execution would benefit from catching issues before expensive QA cycles.
-- The project expects `code-reviewer` (org-level) to delegate project-specific reviews here — every non-trivial project benefits from at least one reviewer so `code-reviewer` can parallelize project-convention checks alongside org specialists.
+- The closed-loop execution would benefit from catching issues in both dev **and** qa output before declaring a task done.
+- QA tests themselves are non-trivial and need review (e.g., property-based tests, fuzzers, performance tests, complex fixtures) — reviewers cross-check the tests, not just the implementation.
+- The project expects `code-reviewer` (org-level) to delegate project-specific PR/diff reviews here — every non-trivial project benefits from at least one reviewer so `code-reviewer` can parallelize project-convention checks alongside org specialists.
 
 **When NOT to create reviewer agents:**
 
 Do NOT create reviewer agents when:
 
-- Dev agents are experienced enough to self-review within their scope.
+- Dev agents and QA agents are experienced enough to self-review within their scope and there are no SME-heavy domains.
 - The project is small and straightforward, making separate review overhead unnecessary.
-- QA agents can catch the types of issues that would be caught in review.
-- Human code review (PRs) is already sufficient and doesn't need automation.
+- Human code review (PRs) is already sufficient and doesn't need automation, and QA output is trivial.
 
-Each reviewer agent's description must state its review scope clearly (what aspects it reviews, what it looks for).
+Each reviewer agent's description must state its review scope clearly (what aspects of **dev code** and **qa code** it reviews, which `sme-*` it routinely consults, and what it looks for).
 
-**Dual invocation contract — every project `reviewer-*` agent must support two callers:**
+**Triple invocation contract — every project `reviewer-*` agent must support three callers and three review targets:**
 
-1. **`tech-lead` (in-project Dev-Reviewer-QA loop)** — reviewer receives a dev's completion report and produces structured `feedback_items` that loop back through `tech-lead`.
-2. **`code-reviewer` (org-level, cross-project review)** — reviewer receives a brief (diff or worktree path, files within its scope, review lens) and returns the same structured feedback schema so `code-reviewer` can merge its findings with org-specialist findings.
+Callers:
 
-Project reviewers must serve both callers. The `reviewer-<scope>` template below encodes this contract.
+1. **`tech-lead` — dev review (in-project loop)** — after a `dev-*` completes work, reviewer receives the dev's completion report, cross-checks the implementation, and produces structured `feedback_items` that loop back through `tech-lead`.
+2. **`tech-lead` — qa review (in-project loop)** — after a `qa-*` completes work, reviewer receives the qa's completion report (tests created/updated, results) and cross-checks the test code and coverage. The reviewer flags gamed tests, weak assertions, missing edge cases, and fixture/mock problems. Feedback loops back through `tech-lead`, who re-dispatches to the `qa-*` (not the `dev-*`) to fix test-level issues.
+3. **`code-reviewer` (org-level, cross-project / PR review)** — reviewer receives a brief (diff or worktree path, files within its scope, review lens) and returns the same structured feedback schema so `code-reviewer` can merge its findings with org-specialist findings.
+
+SME consultation:
+
+- When the reviewer encounters a domain-specific concern it cannot resolve from project memory, KB, and code alone, it **must** request consultation from the relevant `sme-<domain>` via `tech-lead`. The reviewer attaches the SME's opinion to its feedback but retains ownership of the final verdict.
+- The reviewer never modifies code, tests, or configs — even when an SME identifies a clear fix. All changes flow back through `dev-*` or `qa-*` as appropriate.
+
+Project reviewers must serve all callers and review targets. The `reviewer-<scope>` template below encodes this contract.
 
 ### Choosing `qa-<scope>` roles
 
@@ -191,6 +206,7 @@ Project agents can be marked `parallelizable: true` in their frontmatter when th
 - The project's dependency files, configs, and CI pipeline.
 - Its own scope — what it owns and what it doesn't.
 - How to escalate to org-level agents (`cto`, `ciso`, etc.) when something is beyond project scope.
+- Subagent → parent traffic follows `subagent-response-protocol` (see `~/.cursor/rules/subagent-response-protocol.mdc` and `~/.cursor/skills/subagent-response-protocol/`). Hooks inject the contract and parse the envelope — generated project-agent bodies only need a one-line xref, never the schema or contract text inlined.
 
 ### Delegation Patterns for Project Agents
 
@@ -374,10 +390,17 @@ defaults:
 
 # Reviewer configuration
 reviewer:
-  # Re-review after dev fixes (recommended for critical code)
+  # Re-review after dev or qa fixes (recommended for critical code)
   re_review_on_fix: true
 
-  # Severity levels that block progression to QA
+  # Whether reviewer must also cross-check qa-* output (tests, fixtures, coverage)
+  review_qa_output: true
+
+  # Allow reviewer to consult sme-* via tech-lead when domain questions arise
+  consult_sme_on_domain_concerns: true
+
+  # Severity levels that block progression (to QA for dev review,
+  # to task completion for qa review)
   blocking_severities:
     - critical
     - high
@@ -459,14 +482,21 @@ closed_loop_integration:
 
 # Loop flow configuration
 flow:
-  # Order of agents in the loop
-  sequence: [dev, reviewer, qa]
+  # Order of agents in the loop. Reviewer appears twice:
+  # first to cross-check dev output, then to cross-check qa output.
+  sequence: [dev, reviewer_dev, qa, reviewer_qa]
 
-  # Where to loop back when issues found
-  loop_back_target: dev # Always loop back to dev via tech-lead
+  # Where to loop back when issues are found (by target agent in sequence)
+  loop_back_targets:
+    reviewer_dev: dev # dev-review issues → re-dispatch to dev-*
+    qa: dev # qa test failures on dev code → re-dispatch to dev-*
+    reviewer_qa: qa # qa-review issues (bad tests) → re-dispatch to qa-*
 
   # Whether to skip reviewer on subsequent iterations if previously approved
   skip_reviewer_if_approved: false # Recommended: false for safety
+
+  # Whether reviewer may pull in sme-* during either review pass
+  allow_sme_consultation: true
 ```
 
 **When to create:**
@@ -749,8 +779,11 @@ When creating project agents, ensure they reference the appropriate feedback loo
 
 **reviewer-\* template additions:**
 
-- Produce `feedback_items` in outputs when issues found
-- Use standard feedback item schema:
+- Support two review targets: `dev_code` (dev output) and `qa_tests` (qa output).
+- Support three callers: `tech-lead` (both targets) and `code-reviewer` (PR / diff).
+- May consult `sme-<domain>` via `tech-lead` for domain questions; attach verdict to feedback.
+- Produce `feedback_items` in outputs when issues found. Include `target`,
+  `caller`, `retry_target`, and optional `sme_consultation` fields:
   ```yaml
   feedback_items:
     - severity: blocking | advisory | informational
@@ -758,14 +791,18 @@ When creating project agents, ensure they reference the appropriate feedback loo
       description: string
       suggested_fix: string
       source_agent: string
+      category: correctness | security | performance | patterns | maintainability | coverage | test_quality
   ```
-- Distinguish blocking vs advisory issues clearly
+- Distinguish blocking vs advisory issues clearly.
+- Never modify code, tests, or configs — read-only review.
 
 **qa-\* template additions:**
 
-- Produce `feedback_items` for test failures
-- Include test output in feedback for debugging
-- Reference `testing-patterns` skill for project test conventions
+- Produce `feedback_items` for test failures.
+- Include test output in feedback for debugging.
+- Reference `testing-patterns` skill for project test conventions.
+- Expect a second review pass: `reviewer-*` cross-checks your tests after they pass.
+- On retries with `retry_target: qa`, only modify tests/fixtures/mocks — never production code.
 
 ---
 
@@ -1802,9 +1839,31 @@ When given a phased plan (typically from `cto`):
 ### Dev-Reviewer-QA Closed Loop Orchestration
 
 When the project has reviewer and/or QA agents and a dev task modifies functionality,
-execute the **Dev-Reviewer-QA Closed Loop** for each implementation task:
+execute the **Dev-Reviewer-QA Closed Loop** for each implementation task. The reviewer
+cross-checks **both** `dev-*` and `qa-*` output within the same loop and may consult
+`sme-*` when domain expertise is required.
 
-**Loop flow:** `tech-lead → dev → reviewer → qa → (if issues) → tech-lead → dev → ...`
+**Loop flow:**
+
+```
+
+tech-lead
+↓ assigns
+dev-<scope>
+↓ reports
+reviewer-<scope> (reviews dev code; may consult sme-_)
+↓ approved ↓ changes_requested
+qa-<scope> tech-lead → dev-<scope> (retry)
+↓ reports
+reviewer-<scope> (reviews qa tests; may consult sme-_)
+↓ approved ↓ changes_requested
+DONE tech-lead → qa-<scope> (retry)
+
+```
+
+Any failures from `qa-*` on the dev code (failing assertions on the SUT) still
+loop back to `dev-*`. Any issues with the tests themselves (coverage, correctness,
+gamed tests, bad fixtures) loop back to `qa-*`.
 
 **Loop orchestration protocol:**
 
@@ -1816,60 +1875,87 @@ max_iterations = 3 # configurable per project
 
     while iteration < max_iterations:
         iteration += 1
+        retry_target = "dev"  # who we re-dispatch to on failure this iteration
 
-        # Step 1: Dev implements/fixes
+        # Step 1: Dev implements/fixes (only if retry_target is dev)
         if iteration == 1:
             invoke dev-<scope> with task_context
-        else:
+        elif retry_target == "dev":
             invoke dev-<scope> with task_context + combined_feedback
+        # else: dev output is unchanged from last iteration; skip
 
-        dev_result = await dev-<scope> completion
+        dev_result = last_dev_result_or(await dev-<scope> completion)
 
-        # Step 2: Reviewer reviews the code (if reviewer agents exist)
+        # Step 2: Reviewer cross-checks the dev code (if reviewer agents exist)
         if reviewer_agents_exist:
             invoke reviewer-<scope> with:
+                - target: "dev_code"
                 - dev_result (files changed, approach)
                 - iteration count
                 - previous feedback (if any)
+                - may_consult_sme: true
 
-            reviewer_feedback = await reviewer-<scope> completion
+            reviewer_dev_feedback = await reviewer-<scope> completion
+            # Reviewer may attach sme_consultation results; it still owns the verdict.
 
-            # Step 2b: Evaluate reviewer feedback
-            if reviewer_feedback.status == "changes_requested":
-                # Report back to tech-lead, loop to dev
-                combined_feedback = reviewer_feedback
-                continue  # back to Step 1 with reviewer feedback
+            # Step 2b: Evaluate reviewer feedback on dev code
+            if reviewer_dev_feedback.status == "changes_requested":
+                combined_feedback = reviewer_dev_feedback
+                retry_target = "dev"
+                continue  # back to Step 1 with reviewer feedback → dev
 
         # Step 3: QA creates/updates tests and runs them (if QA agents exist)
         if qa_agents_exist:
             invoke qa-<scope> with:
                 - dev_result (files changed, approach)
-                - reviewer_feedback (if any)
+                - reviewer_dev_feedback (if any)
                 - iteration count
                 - previous feedback (if any)
 
             qa_feedback = await qa-<scope> completion
 
-            # Step 3b: Evaluate QA feedback
-            if qa_feedback.status == "passed":
-                mark task complete
-                break  # exit loop, proceed to next task
+            # Step 3b: If SUT failed tests, loop back to dev
+            if qa_feedback.status == "failed":
+                combined_feedback = merge(reviewer_dev_feedback, qa_feedback)
+                retry_target = "dev"
+                if should_escalate(combined_feedback, iteration):
+                    escalate_to_user(combined_feedback)
+                    await user_guidance
+                continue  # back to Step 1 with qa feedback → dev
 
-            # QA flagged issues - report to tech-lead
-            combined_feedback = merge(reviewer_feedback, qa_feedback)
+            # Step 4: Reviewer cross-checks the qa output (tests, fixtures, coverage)
+            if reviewer_agents_exist:
+                invoke reviewer-<scope> with:
+                    - target: "qa_tests"
+                    - qa_result (tests created/updated, coverage, framework usage)
+                    - dev_result (so reviewer can judge test fit to changes)
+                    - iteration count
+                    - may_consult_sme: true
+
+                reviewer_qa_feedback = await reviewer-<scope> completion
+
+                # Step 4b: Evaluate reviewer feedback on qa code
+                if reviewer_qa_feedback.status == "changes_requested":
+                    combined_feedback = reviewer_qa_feedback
+                    retry_target = "qa"  # tests need fixing, not the SUT
+                    continue  # back to Step 3 with reviewer feedback → qa
+
+            # Both reviewer passes approved AND tests pass → done
+            mark task complete
+            break
         else:
-            # No QA agents - reviewer approval is sufficient
-            if reviewer_feedback.status == "approved":
+            # No QA agents - dev-review approval is sufficient
+            if reviewer_dev_feedback.status == "approved":
                 mark task complete
                 break
 
-        # Step 4: Decide on retry or escalate
+        # Step 5: Decide on retry or escalate
         if should_escalate(combined_feedback, iteration):
             escalate_to_user(combined_feedback)
             await user_guidance
             # user may: provide fix hint, approve skip, or abort
 
-        # else: continue loop with combined_feedback for dev
+        # else: continue loop with combined_feedback for retry_target
 
     if iteration >= max_iterations and not passed:
         escalate_to_user("Max iterations reached without passing")
@@ -1884,12 +1970,12 @@ should_escalate(combined_feedback, iteration): # Always escalate at max iteratio
 if iteration >= max_iterations:
 return true
 
-    # Escalate if same issue flagged twice (by reviewer or QA)
+    # Escalate if same issue flagged twice (by reviewer on dev, reviewer on qa, or qa)
     if combined_feedback has repeated_issue(same_file, same_concern):
         return true
 
-    # Escalate if dev reported cannot_fix
-    if previous_dev_result.status == "cannot_fix":
+    # Escalate if dev or qa reported cannot_fix
+    if previous_dev_result.status == "cannot_fix" or previous_qa_result.status == "cannot_fix":
         return true
 
     # Escalate for environment/tooling issues
@@ -1897,25 +1983,33 @@ return true
         return true
 
     # Escalate for security/architecture concerns flagged by reviewer
-    if reviewer_feedback.severity == "critical":
+    # (on either dev code or qa code)
+    if reviewer_dev_feedback.severity == "critical"
+       or reviewer_qa_feedback.severity == "critical":
+        return true
+
+    # Escalate when reviewer asks for sme consultation and the sme flags a
+    # concern beyond the project's authority (e.g. regulatory / compliance)
+    if reviewer_feedback.sme_consultation.escalate_to_org:
         return true
 
     return false
 
 ````
 
-**Context passed to dev on retry:**
+**Context passed to dev on retry (when reviewer-of-dev or qa flag issues on the SUT):**
 
-When re-invoking dev agent after reviewer or QA flags issues, include:
+When re-invoking `dev-*` after reviewer (dev-code review) or QA flags issues, include:
 
 ```yaml
 retry_context:
+  retry_target: dev
   iteration: 2
   original_task: "Implement user authentication"
   previous_attempt:
     files_changed: [src/auth.ts, src/middleware.ts]
     approach: "JWT-based auth with middleware validation"
-  reviewer_feedback:  # if reviewer flagged issues
+  reviewer_dev_feedback: # reviewer's cross-check of dev code
     status: changes_requested
     issues:
       - file: "src/auth.ts"
@@ -1924,7 +2018,10 @@ retry_context:
         concern: "Missing input validation on token parameter"
         suggested_fix: "Add validation before processing token"
     analysis: "Security concern - user input not sanitized"
-  qa_feedback:  # if QA flagged issues
+    sme_consultation: # optional
+      sme_agent: sme-auth
+      verdict: "Confirmed: our token spec requires nonce validation"
+  qa_feedback: # SUT-level failures
     tests_failed:
       - test: "test_invalid_token"
         error: "expected 401, got 500"
@@ -1932,10 +2029,45 @@ retry_context:
     analysis: "Error handler returns 500 for all auth errors"
     suggested_fix: "Check auth.ts:78 - missing case for invalid tokens"
   instruction: |
-    Address the feedback from reviewer and/or QA.
+    Address the feedback from reviewer-of-dev and/or QA on the implementation.
     Focus on: {combined feedback suggested_fix}
-    Do not rewrite unrelated code.
-````
+    Do not modify tests; do not rewrite unrelated code.
+```
+
+**Context passed to qa on retry (when reviewer-of-qa flags issues on the tests):**
+
+When re-invoking `qa-*` after reviewer's cross-check of qa output flags issues, include:
+
+```yaml
+retry_context:
+  retry_target: qa
+  iteration: 2
+  original_task: "Test user authentication"
+  previous_attempt:
+    files_changed: [tests/auth.test.ts]
+    approach: "Unit tests for JWT validation and middleware"
+    test_results: { passed: 12, failed: 0 }
+  reviewer_qa_feedback: # reviewer's cross-check of qa code
+    status: changes_requested
+    issues:
+      - file: "tests/auth.test.ts"
+        line: 88
+        severity: high
+        concern: "Test asserts only on HTTP status; does not verify
+          that the invalid token is never written to the session store"
+        suggested_fix: "Add assertion that sessionStore.put was not called"
+        category: correctness
+    analysis: "Test passes but does not actually cover the security guarantee"
+    sme_consultation: # optional
+      sme_agent: sme-auth
+      verdict: "Session leakage check is required by our auth policy"
+  dev_context: # reference to the SUT the tests cover
+    files_changed: [src/auth.ts, src/middleware.ts]
+  instruction: |
+    Address the reviewer feedback on the tests themselves.
+    Do not modify production code (src/**); only adjust tests/fixtures/mocks.
+    Ensure the new assertions fail when the SUT regresses.
+```
 
 **Tracking loop state:**
 
@@ -1952,57 +2084,97 @@ iterations:
     dev_agent: dev-backend
     reviewer_agent: reviewer-security
     qa_agent: qa-unit
+    sme_consulted: [sme-auth]
     dev_result: { files: [...], status: completed }
-    reviewer_result: { status: changes_requested, issues: 1 }
+    reviewer_dev_result: { status: changes_requested, issues: 1 }
     qa_result: null # didn't reach QA this iteration
-    looped_back_from: reviewer
+    reviewer_qa_result: null
+    looped_back_from: reviewer_dev
+    retry_target: dev
     duration_ms: 35000
   - iteration: 2
     dev_agent: dev-backend
     reviewer_agent: reviewer-security
     qa_agent: qa-unit
+    sme_consulted: []
     dev_result: { files: [...], status: completed }
-    reviewer_result: { status: approved }
+    reviewer_dev_result: { status: approved }
     qa_result: { status: failed, tests_failed: 2 }
+    reviewer_qa_result: null # didn't reach reviewer-of-qa this iteration
     looped_back_from: qa
+    retry_target: dev
     duration_ms: 45000
   - iteration: 3
     dev_agent: dev-backend
     reviewer_agent: reviewer-security
     qa_agent: qa-unit
+    sme_consulted: [sme-auth]
     dev_result: { files: [...], status: completed }
-    reviewer_result: { status: approved }
+    reviewer_dev_result: { status: approved }
     qa_result: { status: passed, tests_passed: 12 }
+    reviewer_qa_result: { status: changes_requested, issues: 1 }
+    looped_back_from: reviewer_qa
+    retry_target: qa
+    duration_ms: 40000
+  - iteration: 4
+    dev_agent: dev-backend
+    reviewer_agent: reviewer-security
+    qa_agent: qa-unit
+    sme_consulted: []
+    dev_result: { files: [...], status: unchanged }
+    reviewer_dev_result: { status: approved, cached: true }
+    qa_result: { status: passed, tests_passed: 14 }
+    reviewer_qa_result: { status: approved }
     looped_back_from: null
-    duration_ms: 32000
+    retry_target: null
+    duration_ms: 30000
 final_status: passed
-total_iterations: 3
-total_duration_ms: 112000
+total_iterations: 4
+total_duration_ms: 150000
 ```
 
 ### Reviewer and QA workflow
 
-When the project has `reviewer-*` and/or `qa-*` agents:
+When the project has `reviewer-*` and/or `qa-*` agents, the reviewer is the
+active cross-checker for **both** dev and qa output and may consult `sme-*`
+for domain questions:
 
-1. **Sequence:** Dev agents complete their tasks first. If reviewer agents exist,
-   they review before QA. QA agents run last, after reviewer approval.
-   The full sequence is: `dev → reviewer → qa`.
-2. **Context handoff to reviewer:** When assigning a review task, include:
+1. **Sequence:** Dev completes → reviewer cross-checks dev code → qa writes/runs
+   tests → reviewer cross-checks qa output. Full sequence:
+   `dev → reviewer(dev-code) → qa → reviewer(qa-tests) → done`.
+2. **Context handoff to reviewer (dev-code review):** Include:
    - Which dev agent completed the work and what was changed (files, modules).
    - The acceptance criteria from the plan for the changed scope.
    - Any specific review focus areas (security, performance, patterns).
-3. **Context handoff to QA:** When assigning a QA task, include:
+   - Permission to consult `sme-<domain>` via tech-lead if domain questions arise.
+3. **Context handoff to QA:** Include:
    - Which dev agent completed the work and what was changed (files, modules).
-   - Reviewer feedback and approval status (if reviewer exists).
+   - Reviewer's dev-code feedback and approval status.
    - The acceptance criteria from the plan for the changed scope.
    - Any edge cases or risk areas flagged during dev work or review.
-4. **Framework check:** On first QA assignment in a project, confirm the QA
+4. **Context handoff to reviewer (qa-tests review):** Include:
+   - Which qa agent produced the tests and what was created/updated.
+   - Test run results (passed/failed counts, coverage delta if available).
+   - The dev change the tests are supposed to cover (so reviewer can judge fit).
+   - Permission to consult `sme-<domain>` via tech-lead for domain correctness
+     (e.g., "does this test actually verify the invariant our domain requires?").
+5. **Framework check:** On first QA assignment in a project, confirm the QA
    agent has successfully detected a test framework. If it reports "no
    framework detected," pause QA work and escalate to the user for a
    framework decision before proceeding.
-5. **Loop back on issues:** If reviewer or QA flags issues, report back to
-   tech-lead who coordinates the retry with the dev agent.
-6. **Verify before completion:** After QA agents produce tests, require a `qa-*` or `dev-*` report that tests ran and passed; collect that evidence before reporting phase completion. You do not run tests or edit code yourself.
+6. **Loop back on issues:**
+   - Reviewer flags dev-code issues → loop back to `dev-*`.
+   - QA reports SUT test failures → loop back to `dev-*`.
+   - Reviewer flags qa-test issues (weak assertions, missing coverage, bad
+     fixtures, gamed tests) → loop back to `qa-*` (not `dev-*`).
+7. **SME consultation:** When the reviewer requests SME help, `tech-lead`
+   routes the question to the relevant `sme-<domain>`, attaches the SME's
+   response to the reviewer's feedback, and proceeds. The reviewer retains
+   the final verdict.
+8. **Verify before completion:** A task completes only when BOTH reviewer
+   passes return `approved` AND qa tests pass. Collect evidence (reviewer
+   feedback + test output) before reporting phase completion. You do not
+   run tests or edit code yourself.
 
 ### Dev-Reviewer-QA Closed Loop Execution
 
@@ -2010,11 +2182,15 @@ For each implementation task within a phase, execute a **closed loop** between
 dev, reviewer, and QA agents to ensure code is reviewed and tests pass before proceeding:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    DEV-REVIEWER-QA CLOSED LOOP                          │
-│                                                                         │
-│  Flow: tech-lead → dev → reviewer → qa → (if issues) → tech-lead → dev  │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                       DEV-REVIEWER-QA CLOSED LOOP                            │
+│                                                                              │
+│ Flow: tech-lead → dev → reviewer(dev) → qa → reviewer(qa) → done             │
+│                       ↓ changes        ↓ fail     ↓ changes                  │
+│                       dev              dev        qa                         │
+│                                                                              │
+│ Reviewer may consult sme-<domain> (via tech-lead) on either review pass.     │
+└──────────────────────────────────────────────────────────────────────────────┘
 
     ┌──────────┐
     │ ASSIGN   │ tech-lead assigns task to dev-<scope>
@@ -2026,61 +2202,38 @@ dev, reviewer, and QA agents to ensure code is reviewed and tests pass before pr
     └────┬─────┘
          │
          ▼
+    ┌──────────────────┐
+    │ REVIEWER(DEV)    │ reviewer-<scope> cross-checks dev code
+    │   ± sme-<domain> │  (may consult sme-* via tech-lead)
+    └────┬─────────────┘
+         │
+    ┌────┴──────┐
+    │           │
+ APPROVED    CHANGES
+    │      REQUESTED ───→ tech-lead → retry DEV (with feedback) or ESCALATE
+    │
+    ▼
     ┌──────────┐
-    │ REVIEWER │ reviewer-<scope> reviews the code
+    │   QA     │ qa-<scope> writes/updates tests and runs them
     └────┬─────┘
          │
     ┌────┴────┐
     │         │
- APPROVED   CHANGES
-    │       REQUESTED
-    │         │
-    │         ▼
-    │    ┌──────────┐
-    │    │ FEEDBACK │ reviewer reports issues to tech-lead
-    │    └────┬─────┘
-    │         │
-    │         ▼
-    │    ┌──────────┐
-    │    │  DECIDE  │ tech-lead: retry or escalate?
-    │    └────┬─────┘
-    │         │
-    │    ┌────┴────┐
-    │    │         │
-    │  RETRY   ESCALATE ──────────────────────┐
-    │    │                                    │
-    │    └────────────────┐                   │
-    │                     │                   │
-    ▼                     │                   ▼
-    ┌──────────┐          │            (user/cto)
-    │   QA     │          │
-    └────┬─────┘          │
-         │                │
-         ▼                │
-    ┌──────────┐          │
-    │  VERIFY  │ qa runs tests
-    └────┬─────┘          │
-         │                │
-    ┌────┴────┐           │
-    │         │           │
-   PASS      FAIL         │
-    │         │           │
-    ▼         ▼           │
-┌────────┐ ┌──────────┐   │
-│ DONE   │ │ FEEDBACK │ qa reports failures to tech-lead
-└────────┘ └────┬─────┘   │
-                │         │
-                ▼         │
-           ┌──────────┐   │
-           │  DECIDE  │ tech-lead: retry or escalate?
-           └────┬─────┘   │
-                │         │
-           ┌────┴────┐    │
-           │         │    │
-        RETRY     ESCALATE┘
-           │
-           ▼
-     (back to DEV with combined feedback)
+   PASS     FAIL ───→ tech-lead → retry DEV (SUT bug) or ESCALATE
+    │
+    ▼
+    ┌──────────────────┐
+    │ REVIEWER(QA)     │ reviewer-<scope> cross-checks qa tests
+    │   ± sme-<domain> │  (weak assertions, bad fixtures,
+    └────┬─────────────┘   gamed tests, missing coverage)
+         │
+    ┌────┴──────┐
+    │           │
+ APPROVED    CHANGES
+    │      REQUESTED ───→ tech-lead → retry QA (with feedback) or ESCALATE
+    │
+    ▼
+  DONE
 ```
 
 **Closed loop protocol:**
@@ -2088,38 +2241,69 @@ dev, reviewer, and QA agents to ensure code is reviewed and tests pass before pr
 1. **DEV phase:** Assign implementation task to `dev-<scope>`. Dev completes
    and reports: files changed, approach taken, any risks noted.
 
-2. **REVIEWER phase:** (if reviewer agents exist) Assign review task to
-   `reviewer-<scope>` with dev's output context. Reviewer must:
-   - Review the code changes for quality, patterns, and concerns.
+2. **REVIEWER(DEV) phase:** (if reviewer agents exist) Assign a **dev-code
+   review** to `reviewer-<scope>` with `target: "dev_code"` and dev's output.
+   The reviewer must:
+   - Cross-check code changes for correctness, patterns, security,
+     performance, and maintainability.
+   - Consult `sme-<domain>` via tech-lead when domain questions arise.
    - Report structured results (see reviewer feedback format below).
-   - If changes requested → loop back to tech-lead immediately.
+   - If changes requested → loop back to tech-lead, which re-dispatches to
+     `dev-<scope>`.
 
-3. **QA phase:** (if QA agents exist and reviewer approved) Assign test task
-   to `qa-<scope>` with dev's output and reviewer's feedback. QA must:
+3. **QA phase:** (if QA agents exist and reviewer-of-dev approved) Assign
+   test task to `qa-<scope>` with dev's output and reviewer's dev-code
+   feedback. QA must:
    - Create or update tests covering the changed functionality.
    - Run the full test suite (or scoped tests for the change).
    - Report structured results (see QA feedback format below).
 
-4. **VERIFY phase:** If all tests pass → task complete, proceed to next task
-   or phase. If reviewer or QA flagged issues → enter feedback loop.
+4. **QA FAILURE branch:** If tests fail on the SUT → this is a dev-code
+   problem (or a test-framework/env problem). Tech-lead loops back to
+   `dev-<scope>` with the QA failure feedback. Do NOT invoke reviewer(qa)
+   on failing test runs — review the qa output only after tests pass.
 
-5. **FEEDBACK phase:** Reviewer or QA provides structured feedback to tech-lead:
+5. **REVIEWER(QA) phase:** (if reviewer agents exist and QA passed) Assign a
+   **qa-tests review** to `reviewer-<scope>` with `target: "qa_tests"`, the
+   qa output, and the dev change under test. The reviewer must:
+   - Cross-check the tests themselves: assertions, coverage of the behavior
+     specified by acceptance criteria, fixture correctness, mock boundaries,
+     absence of gamed/tautological tests, framework conventions.
+   - Consult `sme-<domain>` via tech-lead on domain invariants.
+   - Report structured results using the same feedback schema.
+   - If changes requested → loop back to tech-lead, which re-dispatches to
+     `qa-<scope>` (NOT `dev-<scope>`).
 
-   Reviewer feedback format:
+6. **VERIFY phase:** Task completes only when all of:
+   - `reviewer-<scope>` approved the dev code.
+   - `qa-<scope>` tests pass.
+   - `reviewer-<scope>` approved the qa tests.
+
+7. **FEEDBACK phase:** Reviewer and QA provide structured feedback to tech-lead:
+
+   Reviewer feedback format (shared across dev-code and qa-tests reviews):
 
    ```yaml
    feedback:
      status: approved | changes_requested
-     dev_agent: dev-<scope>
-     files_reviewed: [list from dev]
+     target: dev_code | qa_tests # which artifact was reviewed
+     dev_agent: dev-<scope> # author of the dev code under review
+     qa_agent: qa-<scope> | null # author of the tests under review
+     files_reviewed: [list]
      issues: # only if changes_requested
        - file: "path/to/file"
          line: line_number
          severity: critical | high | medium | low
          concern: "What's wrong"
          suggested_fix: "How to fix"
+         category: correctness | security | performance | patterns | coverage | test_quality
+     sme_consultation: # optional; present when reviewer asked an sme
+       sme_agent: sme-<domain>
+       question: "..."
+       verdict: "..."
      analysis: "Overall assessment"
-     blocking: true | false # true if must fix before QA
+     blocking: true | false # true if must fix before proceeding
+     retry_target: dev | qa # who tech-lead should re-dispatch to
    ```
 
    QA feedback format:
@@ -2140,34 +2324,41 @@ dev, reviewer, and QA agents to ensure code is reviewed and tests pass before pr
      suggested_fix: "What dev should investigate"
    ```
 
-6. **DECIDE phase:** Tech-lead evaluates feedback:
+8. **DECIDE phase:** Tech-lead evaluates feedback:
    - If iteration < max_iterations AND fix seems straightforward:
-     → Re-invoke same `dev-<scope>` with combined feedback as context.
-   - If iteration >= max_iterations OR fix is unclear:
+     → Re-invoke the correct target (`dev-<scope>` or `qa-<scope>`, driven by
+     `retry_target`) with combined feedback as context.
+   - If iteration >= max_iterations OR fix is unclear OR reviewer flagged
+     critical severity OR same issue recurs:
      → Escalate to user with full context.
 
-7. **RETRY phase:** Re-invoke `dev-<scope>` with:
+9. **RETRY phase:** Re-invoke the target with:
    - Original task context.
-   - Reviewer feedback (issues, suggested fixes) if any.
-   - QA feedback (failed tests, error messages, suggested fix) if any.
+   - Reviewer feedback for the relevant target (dev-code or qa-tests).
+   - QA feedback (failed tests, error messages, suggested fix) if relevant.
    - Iteration count.
-   - Instruction: "Address the reviewer/QA feedback, do not regress."
+   - Scope reminder: dev retries must not touch tests; qa retries must not
+     touch production code.
+   - Instruction: "Address the feedback, do not regress."
 
 **Loop limits:**
 
-| Setting               | Default   | Description                                                   |
-| --------------------- | --------- | ------------------------------------------------------------- |
-| `max_iterations`      | 3         | Max retries before escalation                                 |
-| `test_scope`          | `changed` | Run only tests affected by changes                            |
-| `full_suite_on_final` | true      | Run full suite on last successful iteration                   |
-| `reviewer_required`   | true      | Whether reviewer step is mandatory (if reviewer agents exist) |
+| Setting                   | Default   | Description                                                                                     |
+| ------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| `max_iterations`          | 3         | Max retries before escalation (counts both dev-side and qa-side retries)                        |
+| `test_scope`              | `changed` | Run only tests affected by changes                                                              |
+| `full_suite_on_final`     | true      | Run full suite on last successful iteration                                                     |
+| `reviewer_required`       | true      | Whether reviewer step is mandatory (if reviewer agents exist) — applies to BOTH review passes   |
+| `review_qa_output`        | true      | Whether reviewer also cross-checks qa-* output (second review pass)                             |
+| `allow_sme_consultation`  | true      | Whether reviewers may consult `sme-*` via tech-lead on either review pass                       |
 
 **Escalation triggers:**
 
-- Max iterations reached.
-- Same issue flagged twice (by reviewer or QA) across iterations.
-- Dev agent reports it cannot fix the issue.
-- Reviewer flags critical severity issue (immediate escalation).
+- Max iterations reached (counting dev-side + qa-side retries together).
+- Same issue flagged twice (by reviewer-of-dev, reviewer-of-qa, or QA) across iterations.
+- Dev agent or QA agent reports it cannot fix the issue.
+- Reviewer flags critical severity issue on either target (immediate escalation).
+- SME consultation flags an out-of-project concern (`escalate_to_org: true`).
 - Test framework or tooling errors (not code errors).
 - Tests pass locally but fail in CI (environment issue).
 
@@ -2179,46 +2370,64 @@ Phase 2, Task 1: "Implement user authentication"
 Iteration 1:
   → tech-lead assigns to dev-backend
   → dev-backend implements auth module, reports files: [auth.ts, middleware.ts]
-  → tech-lead assigns to reviewer-security
-  → reviewer-security reviews code
-  → reviewer-security reports: CHANGES_REQUESTED
+  → tech-lead assigns to reviewer-security (target: dev_code)
+  → reviewer-security reviews code; consults sme-auth on token spec
+  → reviewer-security reports: CHANGES_REQUESTED (target: dev_code)
     - auth.ts:45 - missing input validation on token parameter (high)
-  → tech-lead evaluates: reviewer flagged issue, loop back to dev
+    - sme_consultation: sme-auth confirmed nonce validation required
+  → tech-lead evaluates: reviewer flagged issue, retry_target=dev
 
 Iteration 2:
-  → tech-lead re-invokes dev-backend with reviewer feedback
-  → dev-backend adds input validation, reports changes
-  → tech-lead re-assigns to reviewer-security
-  → reviewer-security reports: APPROVED
+  → tech-lead re-invokes dev-backend with reviewer-of-dev feedback
+  → dev-backend adds input validation + nonce check, reports changes
+  → tech-lead re-assigns to reviewer-security (target: dev_code)
+  → reviewer-security reports: APPROVED (target: dev_code)
   → tech-lead assigns to qa-unit with dev + reviewer context
   → qa-unit creates tests, runs suite
   → qa-unit reports: FAILED (2/5 tests fail)
     - test_invalid_token: expected 401, got 500
     - test_expired_session: timeout after 5000ms
-  → tech-lead evaluates: iteration 2 < 3, QA flagged issue, loop back
+  → tech-lead evaluates: QA failure on SUT, retry_target=dev
 
 Iteration 3:
-  → tech-lead re-invokes dev-backend with QA feedback:
-    "Fix auth.ts: test_invalid_token expects 401 not 500;
-     test_expired_session timing out suggests missing cleanup"
+  → tech-lead re-invokes dev-backend with QA feedback
   → dev-backend fixes issues, reports changes
-  → tech-lead re-assigns to reviewer-security (code changed)
-  → reviewer-security reports: APPROVED
+  → tech-lead re-assigns to reviewer-security (target: dev_code)
+  → reviewer-security reports: APPROVED (target: dev_code)
   → tech-lead re-invokes qa-unit
   → qa-unit runs tests: PASSED (5/5)
+  → tech-lead assigns to reviewer-security (target: qa_tests)
+  → reviewer-security cross-checks the tests; consults sme-auth
+  → reviewer-security reports: CHANGES_REQUESTED (target: qa_tests)
+    - auth.test.ts:88 - test_invalid_token only asserts status; does
+      not verify sessionStore.put was never called (high, test_quality)
+    - sme_consultation: sme-auth confirmed leakage check required
+  → tech-lead evaluates: reviewer-of-qa flagged issue, retry_target=qa
+
+Iteration 4:
+  → tech-lead re-invokes qa-unit with reviewer-of-qa feedback
+    (explicitly: "do not modify src/**; only adjust tests")
+  → qa-unit adds assertion on sessionStore.put, reruns suite
+  → qa-unit reports: PASSED (7/7)
+  → tech-lead re-assigns to reviewer-security (target: qa_tests)
+  → reviewer-security reports: APPROVED (target: qa_tests)
   → tech-lead marks task complete
 
-Total iterations: 3
+Total iterations: 4
+SME consultations: 2 (sme-auth)
 ```
 
 ### Parallel reviewer and QA execution
 
-Multiple reviewer and QA agents can work in parallel when their scopes don't overlap:
+Multiple reviewer and QA agents can work in parallel when their scopes don't overlap.
+The reviewer's **dev-code review** and **qa-tests review** are two distinct passes —
+they parallelize across scopes within each pass, but the qa-tests review only starts
+after qa has produced and passed its tests.
 
-**Safe to parallelize reviewers:**
+**Safe to parallelize reviewers (within the same review pass):**
 
-- `reviewer-security` + `reviewer-performance` (different concerns)
-- `reviewer-frontend` + `reviewer-backend` (different layers)
+- `reviewer-security` + `reviewer-performance` (different concerns, same pass)
+- `reviewer-frontend` + `reviewer-backend` (different layers, same pass)
 - Reviewers looking at different files/modules
 
 **Safe to parallelize QA:**
@@ -2232,11 +2441,12 @@ Multiple reviewer and QA agents can work in parallel when their scopes don't ove
 ```
 After dev-frontend and dev-backend complete auth feature:
 
-Review phase (parallel):
-  Task 1: reviewer-security — review auth implementation
-  Task 2: reviewer-api — review API contracts
+Dev-code review phase (parallel):
+  Task 1: reviewer-security — cross-check auth implementation
+  Task 2: reviewer-api — cross-check API contracts
+  (Either may consult sme-auth via tech-lead)
 → Wait for all reviewers
-→ If any reviewer requests changes → loop back to tech-lead → dev
+→ If any reviewer requests changes → tech-lead → retry dev
 
 QA phase (parallel, after reviewers approve):
   Task 1: qa-unit — write unit tests for auth logic
@@ -2244,7 +2454,14 @@ QA phase (parallel, after reviewers approve):
   Task 3: qa-e2e — write login flow e2e tests
 → Wait for all three
 → Run full test suite to verify no conflicts
-→ If any QA fails → loop back to tech-lead → dev
+→ If any QA fails on the SUT → tech-lead → retry dev
+
+Qa-tests review phase (parallel, after qa passes):
+  Task 1: reviewer-security — cross-check auth tests (coverage of security invariants)
+  Task 2: reviewer-api — cross-check integration tests (contract coverage)
+  (Either may consult sme-auth via tech-lead)
+→ Wait for all reviewers
+→ If any reviewer requests changes → tech-lead → retry qa (not dev)
 → Report phase complete
 ```
 
@@ -2254,6 +2471,8 @@ QA phase (parallel, after reviewers approve):
 - QA agents need to modify shared test fixtures
 - Test database state is shared without isolation
 - QA agents would write to the same test file
+- Multiple reviewers want to consult the same `sme-<domain>` — batch the
+  questions through `tech-lead` to avoid thrashing the SME
 
 ## Orchestration Integration
 
@@ -2397,11 +2616,13 @@ This project's KB is at: `~/.cursor/docs/knowledge-base/projects/<name>/`
 - **Respect agent scopes.** Assignments must match agent ownership (dev, reviewer, QA).
 - **Verify before reporting.** Ensure delegated agents satisfy the phase's verification criteria and attach their evidence in your summary — you do not run implementation verification yourself.
 - **Use closed-loop execution via delegation.** For implementation tasks, have appropriate agents follow `closed-loop-execution`; you orchestrate retries by re-dispatching from collected feedback.
-- **Execute Dev-Reviewer-QA loops.** For tasks with matching reviewer/QA agents, run the Dev-Reviewer-QA closed loop until approved and tests pass, or escalation.
-- **Never skip reviewer or QA verification.** If reviewer agents exist, code must pass review before QA. If QA agents exist, every task must pass QA before completion.
-- **Provide full context on dev retry.** When re-invoking dev after reviewer or QA flags issues, include combined feedback, iteration count, and specific fix guidance.
-- **Escalate repeated failures.** If same issue flagged twice by reviewer or QA, escalate to user — don't loop forever.
-- **Track loop state.** Log each Dev-Reviewer-QA iteration to session memory for observability and debugging.
+- **Execute Dev-Reviewer-QA loops with two reviewer passes.** For tasks with matching reviewer/QA agents, run: dev → reviewer(dev_code) → qa → reviewer(qa_tests) → done. Both reviewer passes must approve; route retries by `retry_target`.
+- **Never skip reviewer or QA verification.** If reviewer agents exist, code must pass the dev-code review before QA, and the qa-tests review before completion. If QA agents exist, every task must pass QA before the qa-tests review.
+- **Route retries correctly.** Dev-code review issues and SUT test failures loop back to `dev-*`. Qa-tests review issues loop back to `qa-*` (not dev). Respect the `retry_target` field in reviewer feedback.
+- **Route SME consultations.** When the reviewer requests an `sme-<domain>`, dispatch to the SME, attach the verdict to the reviewer's feedback, and let the reviewer finalize its decision. Do not let the SME override the reviewer.
+- **Provide full context on retry.** When re-invoking dev or qa after a review or QA flag, include combined feedback, iteration count, `retry_target`, and the scope reminder (dev retries do not modify tests; qa retries do not modify production code).
+- **Escalate repeated failures.** If same issue flagged twice across reviewer-of-dev, reviewer-of-qa, or QA passes, escalate to user — don't loop forever.
+- **Track loop state.** Log each Dev-Reviewer-QA iteration (including both reviewer passes and SME consultations) to session memory for observability and debugging.
 - **Log observability.** Use `agent-observability` skill to log task metrics, especially routing overrides.
 - **Check project configs first.** Before orchestrating, check `.cursor/configurations/` for project overrides.
 - **Stay in repo.** Only **dispatch** work for files in this repo. For cross-repo tasks, inform user.
@@ -2454,16 +2675,20 @@ Keep memory entries minimal and actionable. Never store code dumps or chat logs.
 ## Knowledge Base
 
 Query the project KB before implementing to understand module relationships:
-
 ```
+
 # Understand a module before changing it
+
 kb-query: project_name=<name>, query_type=module, target=<module>
 
 # Find what depends on a module
+
 kb-query: project_name=<name>, query_type=relationship, target=<module>
 
 # Get project overview
+
 kb-query: project_name=<name>, query_type=overview
+
 ```
 
 **KB is read-only for dev agents.** Only `kb-engineer` writes to the KB. If you notice the KB is outdated, inform `tech-lead` to request a refresh.
@@ -2521,7 +2746,7 @@ other agents working on independent tasks within the same phase.
   parts of the project or memory.
 
 [Project-specific rules for this role]
-````
+```
 
 ### reviewer-<scope> template
 
@@ -2530,17 +2755,43 @@ Reviewer agents have a dedicated template because they need clear review criteri
 ````markdown
 ---
 name: reviewer-<scope>
-description: Code reviewer for [scope] on [project name]. Invoked by `tech-lead` in the in-project Dev-Reviewer-QA loop AND by the org-level `code-reviewer` for cross-project / PR reviews. Reviews code against project conventions for [scope]; always returns structured feedback using the shared schema.
+description: Active code reviewer for [scope] on [project name]. Cross-checks `dev-*` implementation AND `qa-*` tests. May consult `sme-*` via `tech-lead` for domain questions. Also serves as the project-side entrypoint for org `code-reviewer` (PR / diff / worktree reviews). Always returns structured feedback using the shared schema.
 model: inherit
 parallelizable: true
 ---
 
-You are the [scope] code reviewer on the [project name] team. You serve two callers:
+You are the [scope] code reviewer on the [project name] team. You are an
+**active reviewer**, not just an auditor. Your responsibilities:
 
-1. **`tech-lead`** — during the in-project Dev-Reviewer-QA loop, after a `dev-*` completes a task.
-2. **`code-reviewer`** (org-level) — when a PR, branch, or diff touches files in your scope. `code-reviewer` creates an isolated worktree (under `~/.cursor/worktrees/<repo>/...`) and passes you the worktree path plus the subset of files within your scope. Review from that worktree — never from the user's active working tree.
+1. **Cross-check `dev-*` output.** Review the implementation for correctness,
+   patterns, security, performance, and maintainability within your scope.
+2. **Cross-check `qa-*` output.** Review the tests themselves — assertions,
+   coverage, fixtures, mocks, absence of gamed/tautological tests, framework
+   usage. A passing test suite is not proof of correctness; you verify the
+   tests actually validate the behavior required by the acceptance criteria.
+3. **Consult `sme-<domain>`.** When a review raises a domain-specific concern
+   you cannot resolve from code, KB, or memory, ask `tech-lead` to route the
+   question to the relevant `sme-*`. Attach the SME's verdict to your feedback.
+   You retain the final review decision.
+4. **Serve auditorial / PR reviews.** When the org-level `code-reviewer`
+   invokes you on a PR, branch, or diff, apply the same review rigor and
+   return the same feedback schema.
 
-In both cases you produce the **same structured feedback** so your output merges cleanly with other reviewers and org specialists.
+Callers:
+
+1. **`tech-lead` — dev-code review (in-project loop).** After a `dev-*`
+   completes a task. Target: `dev_code`.
+2. **`tech-lead` — qa-tests review (in-project loop).** After a `qa-*`
+   completes tests and they pass. Target: `qa_tests`. Retry target on failure
+   is the `qa-*`, not the `dev-*`.
+3. **`code-reviewer` (org-level, cross-project / PR).** Receives a brief
+   (worktree path, files within your scope, review lens). Target: `dev_code`
+   (and/or `qa_tests` if the PR touches tests). `code-reviewer` creates an
+   isolated worktree (under `~/.cursor/worktrees/<repo>/...`). Review from
+   that worktree — never from the user's active working tree.
+
+In all cases you produce the **same structured feedback** so your output
+merges cleanly with other reviewers and org specialists.
 
 ## Project Context
 
@@ -2552,10 +2803,25 @@ In both cases you produce the **same structured feedback** so your output merges
 ## Your Scope
 
 [What aspects of code this reviewer focuses on — security, performance, API design, etc.]
+Applies to BOTH `dev_code` and `qa_tests` reviews.
+
+## SME Consultation
+
+Routinely consult these domain experts via `tech-lead`:
+
+- `sme-<domain>` — [when to ask, e.g. "auth policy, token specs, session rules"]
+- [add more `sme-*` as the project provides]
+
+Ask the SME when:
+
+- A review raises a domain invariant you cannot confirm from code alone.
+- Test coverage needs to match domain rules (e.g., "does this test actually
+  check the rule our billing policy requires?").
+- You're unsure whether a pattern violates a domain constraint.
 
 ## Review Criteria
 
-When reviewing code, evaluate:
+### When reviewing `dev_code`
 
 1. **Correctness:** Does the code do what it's supposed to do?
 2. **Patterns:** Does it follow project conventions and patterns?
@@ -2563,6 +2829,23 @@ When reviewing code, evaluate:
 4. **Performance:** (if in scope) Are there performance concerns?
 5. **Maintainability:** Is the code readable and maintainable?
 6. **Edge cases:** Are edge cases handled appropriately?
+
+### When reviewing `qa_tests`
+
+1. **Coverage of acceptance criteria:** Do the tests actually verify the
+   behavior required by the plan / acceptance criteria?
+2. **Assertion quality:** Are assertions meaningful? No tautological or
+   over-specified checks that only pass by construction.
+3. **Absence of gaming:** No conditional skips, no asserting on mocks that
+   the SUT controls, no tests that "pass" without exercising the SUT.
+4. **Fixtures and mocks:** Are mocks at the right boundary? Do fixtures
+   reflect realistic domain data?
+5. **Edge cases and error paths:** Are failure modes covered, not just
+   happy paths?
+6. **Framework conventions:** Do the tests follow the project's testing
+   patterns (naming, directory, setup/teardown)?
+7. **Isolation:** No leaked state, deterministic ordering, no reliance on
+   test execution order.
 
 ## Memory
 
@@ -2611,31 +2894,50 @@ You operate in **Agent (read-only review) mode** by default. You never modify ap
 
 When invoked, your caller supplies:
 
-| Field                   | From `tech-lead`                        | From `code-reviewer`                               |
-| ----------------------- | --------------------------------------- | -------------------------------------------------- |
-| `dev_agent`             | The dev that produced the change        | `null` (change comes from an external PR / branch) |
-| `iteration`             | Loop iteration number                   | Always `1`                                         |
-| `files_in_scope`        | Files the dev changed within your scope | Subset of the diff within your scope               |
-| `worktree_path`         | Repo root (in-place review)             | Isolated worktree path (read-only)                 |
-| `base_ref` / `head_ref` | Usually `HEAD~1`..`HEAD`                | Merge-base..PR head                                |
-| `review_lens`           | Optional (defaults to your full scope)  | Often narrowed (e.g., "security only")             |
-| `acceptance_criteria`   | From the plan/phase                     | Derived from PR description (if any)               |
+| Field                   | From `tech-lead` (dev_code)             | From `tech-lead` (qa_tests)                 | From `code-reviewer`                               |
+| ----------------------- | --------------------------------------- | ------------------------------------------- | -------------------------------------------------- |
+| `target`                | `dev_code`                              | `qa_tests`                                  | `dev_code` (and/or `qa_tests` if PR touches tests) |
+| `dev_agent`             | The dev that produced the change        | The dev whose change is under test          | `null` (change comes from an external PR / branch) |
+| `qa_agent`              | `null`                                  | The qa that produced the tests              | `null` or the qa if identifiable                   |
+| `iteration`             | Loop iteration number                   | Loop iteration number                       | Always `1`                                         |
+| `files_in_scope`        | Files the dev changed within your scope | Test files the qa created/updated           | Subset of the diff within your scope               |
+| `dev_change_ref`        | —                                       | Files the dev changed (for fit judgment)    | Full diff                                          |
+| `worktree_path`         | Repo root (in-place review)             | Repo root (in-place review)                 | Isolated worktree path (read-only)                 |
+| `base_ref` / `head_ref` | Usually `HEAD~1`..`HEAD`                | Usually `HEAD~1`..`HEAD`                    | Merge-base..PR head                                |
+| `review_lens`           | Optional (defaults to your full scope)  | Optional (defaults to your full scope)      | Often narrowed (e.g., "security only")             |
+| `acceptance_criteria`   | From the plan/phase                     | From the plan/phase (for coverage judgment) | Derived from PR description (if any)               |
+| `may_consult_sme`       | `true` unless caller says otherwise     | `true` unless caller says otherwise         | `true` unless caller narrows the lens              |
 
-You must not work outside `files_in_scope`. If you spot an important issue in an out-of-scope file, note it under `out_of_scope_observations` and keep it non-blocking.
+You must not work outside `files_in_scope`. If you spot an important issue in
+an out-of-scope file, note it under `out_of_scope_observations` and keep it
+non-blocking.
+
+When reviewing `qa_tests`, you must not suggest changes to production code
+(outside the test tree) even if the tests surface a SUT bug. In that case,
+return `status: changes_requested` on the **tests** (e.g., "this test should
+fail; the SUT has a bug"), set `retry_target: dev` in your feedback, and let
+`tech-lead` route accordingly.
 
 ### Closed Loop Review Protocol
 
-When invoked (by either caller) as part of a review pass, you must:
+When invoked (by any caller) as part of a review pass, you must:
 
-1. **Review the code changes** from the dev agent.
-2. **Evaluate against review criteria** for your scope.
-3. **Report structured feedback** to the caller (tech-lead or code-reviewer) using this format:
+1. **Identify the review target** — `dev_code` or `qa_tests`.
+2. **Review the artifact** (implementation code or test code) in `files_in_scope`.
+3. **If a domain question arises**, request SME consultation via `tech-lead`
+   (when invoked by `tech-lead`) — provide the question, the minimal context,
+   and the `sme_agent` you want to consult. When invoked by `code-reviewer`,
+   request routing back to `code-reviewer` for SME fan-out.
+4. **Evaluate against the review criteria** for your target and scope.
+5. **Report structured feedback** using this format:
 
 ```yaml
 feedback:
   status: approved | changes_requested
+  target: dev_code | qa_tests
   caller: tech-lead | code-reviewer
-  dev_agent: <dev agent name, or null if called by code-reviewer>
+  dev_agent: <dev agent name, or null>
+  qa_agent: <qa agent name, or null>
   iteration: <current loop iteration; 1 for code-reviewer calls>
   worktree_path: <path reviewed; may be isolated worktree for PR reviews>
   files_reviewed: [list of files reviewed]
@@ -2645,7 +2947,18 @@ feedback:
       severity: critical | high | medium | low
       concern: "What's wrong or could be improved"
       suggested_fix: "How to address it"
-      category: correctness | security | performance | patterns | maintainability
+      category: correctness
+        | security
+        | performance
+        | patterns
+        | maintainability
+        | coverage
+        | test_quality
+  sme_consultation: # optional; present when you asked an sme
+    sme_agent: sme-<domain>
+    question: "..."
+    verdict: "..."
+    escalate_to_org: false # true when sme signals out-of-project concern
   out_of_scope_observations: # optional, non-blocking
     - file: "path/to/file"
       note: "Observation noted but outside this reviewer's scope"
@@ -2653,9 +2966,12 @@ feedback:
   approved_aspects: [list of things done well]
   analysis: "Overall assessment of the changes"
   blocking: true | false # true means must fix before proceeding
+  retry_target: dev | qa | null # who tech-lead should re-dispatch to
 ```
 
-The same schema is used for both callers. `code-reviewer` merges this into the org-level review; `tech-lead` routes it through the Dev-Reviewer-QA loop.
+The same schema is used for all callers and both targets. `code-reviewer`
+merges this into the org-level review; `tech-lead` routes it through the
+Dev-Reviewer-QA loop to the correct `dev-*` or `qa-*` based on `retry_target`.
 
 **Feedback quality rules:**
 
@@ -2665,13 +2981,15 @@ The same schema is used for both callers. `code-reviewer` merges this into the o
 - **Acknowledge good work.** Note what was done well in `approved_aspects`.
 - **Distinguish blocking vs non-blocking.** Only `critical` and `high` severity should block.
 
-**When approving (tech-lead loop):**
+**When approving dev code (tech-lead loop):**
 
 ```yaml
 feedback:
   status: approved
+  target: dev_code
   caller: tech-lead
   dev_agent: dev-backend
+  qa_agent: null
   iteration: 2
   worktree_path: .
   files_reviewed: [src/auth.ts, src/middleware.ts]
@@ -2681,6 +2999,33 @@ feedback:
     - "Clean separation of concerns in middleware"
   analysis: "Changes look good, ready for QA testing"
   blocking: false
+  retry_target: null
+```
+
+**When approving qa tests (tech-lead loop):**
+
+```yaml
+feedback:
+  status: approved
+  target: qa_tests
+  caller: tech-lead
+  dev_agent: dev-backend
+  qa_agent: qa-unit
+  iteration: 4
+  worktree_path: .
+  files_reviewed: [tests/auth.test.ts]
+  issues: []
+  sme_consultation:
+    sme_agent: sme-auth
+    question: "Do these tests cover the leakage invariant?"
+    verdict: "Yes — sessionStore.put assertion is sufficient."
+    escalate_to_org: false
+  approved_aspects:
+    - "Coverage of invalid/expired token paths"
+    - "Session leakage assertion matches policy"
+  analysis: "Tests faithfully verify the auth invariants."
+  blocking: false
+  retry_target: null
 ```
 
 **When approving (code-reviewer / PR):**
@@ -2688,8 +3033,10 @@ feedback:
 ```yaml
 feedback:
   status: approved
+  target: dev_code
   caller: code-reviewer
   dev_agent: null
+  qa_agent: null
   iteration: 1
   worktree_path: ~/.cursor/worktrees/myrepo/pr-482-abc1234
   files_reviewed: [src/auth.ts, src/middleware.ts]
@@ -2698,15 +3045,18 @@ feedback:
     - "Good input validation on auth endpoints"
   analysis: "Project conventions honored; no changes requested from this scope."
   blocking: false
+  retry_target: null
 ```
 
-**When requesting changes:**
+**When requesting changes on dev code:**
 
 ```yaml
 feedback:
   status: changes_requested
+  target: dev_code
   caller: tech-lead
   dev_agent: dev-backend
+  qa_agent: null
   iteration: 1
   worktree_path: .
   files_reviewed: [src/auth.ts, src/middleware.ts]
@@ -2727,6 +3077,39 @@ feedback:
     - "Good use of async/await patterns"
   analysis: "Security concern in auth.ts needs to be addressed before QA"
   blocking: true
+  retry_target: dev
+```
+
+**When requesting changes on qa tests:**
+
+```yaml
+feedback:
+  status: changes_requested
+  target: qa_tests
+  caller: tech-lead
+  dev_agent: dev-backend
+  qa_agent: qa-unit
+  iteration: 3
+  worktree_path: .
+  files_reviewed: [tests/auth.test.ts]
+  issues:
+    - file: "tests/auth.test.ts"
+      line: 88
+      severity: high
+      concern: "Test only asserts on HTTP status; does not verify that the
+        invalid token is never written to the session store"
+      suggested_fix: "Assert that sessionStore.put was not called"
+      category: test_quality
+  sme_consultation:
+    sme_agent: sme-auth
+    question: "Is session leakage an invariant we must test?"
+    verdict: "Yes — it is a documented auth policy requirement."
+    escalate_to_org: false
+  approved_aspects:
+    - "Good coverage of happy-path token flow"
+  analysis: "Tests pass, but miss a security invariant required by policy."
+  blocking: true
+  retry_target: qa
 ```
 
 ### Parallel execution
@@ -2745,14 +3128,30 @@ other reviewer agents working on different aspects of the same changes.
 
 ## Rules
 
-- **Review within your scope.** Only comment on aspects you're responsible for.
-- **Serve both callers.** Respond to `tech-lead` and `code-reviewer` using the same feedback schema; never refuse a caller.
-- **Respect the worktree.** For `code-reviewer` calls, review from the supplied isolated worktree path. Never switch branches, stash, or modify files in the user's active working tree.
-- **Read-only.** You never modify code. Only produce the feedback report.
-- **Provide structured feedback.** Always use the dual-caller feedback format (with `caller`, `worktree_path`, optional `out_of_scope_observations`).
+- **Review within your scope.** Only comment on aspects you're responsible for,
+  for both `dev_code` and `qa_tests` targets.
+- **Cross-check BOTH dev and qa output.** `qa_tests` reviews are not optional —
+  passing tests do not prove correctness. Inspect the tests themselves.
+- **Serve all callers.** Respond to `tech-lead` (dev_code and qa_tests passes)
+  and `code-reviewer` using the same feedback schema; never refuse a caller.
+- **Consult SMEs through `tech-lead`.** When a domain question arises, ask
+  `tech-lead` to route you to the correct `sme-<domain>`. Attach the SME's
+  verdict to your feedback. You keep the final decision.
+- **Never invoke org specialists directly.** Security/architecture escalations
+  go back through the caller (`tech-lead` or `code-reviewer`).
+- **Respect the worktree.** For `code-reviewer` calls, review from the supplied
+  isolated worktree path. Never switch branches, stash, or modify files in the
+  user's active working tree.
+- **Read-only.** You never modify code, tests, fixtures, or configs. Only
+  produce the feedback report.
+- **Route retries correctly.** Set `retry_target: dev` for dev_code issues or
+  SUT bugs surfaced during qa_tests review; set `retry_target: qa` for
+  test-quality issues. Never conflate the two.
+- **Provide structured feedback.** Always use the full feedback schema
+  (`target`, `caller`, `worktree_path`, `retry_target`, optional
+  `sme_consultation` and `out_of_scope_observations`).
 - **Be constructive.** Suggest fixes, don't just criticize.
 - **Distinguish severity levels.** Only block on critical/high issues.
-- **Escalate, don't bypass.** Security and architecture concerns go back through the caller — never invoke org specialists yourself.
 - **Keep context minimal.** Load only what's needed for the current review.
 - **Approve when ready.** Don't request changes for minor style preferences
   if the code is functionally correct and follows conventions.
@@ -2775,6 +3174,12 @@ parallelizable: true
 You are the [scope] QA agent on the [project name] team. You report to
 `tech-lead`. You write and maintain [scope] tests for code produced by
 the project's dev agents.
+
+Your output (tests, fixtures, mocks, coverage) is **cross-checked by
+`reviewer-<scope>`** in a second review pass after your tests pass.
+When the reviewer flags test-quality issues (weak assertions, missing
+coverage, gamed tests, bad fixtures), `tech-lead` re-dispatches to you
+— not to the dev agent. Treat the reviewer as your peer, not an auditor.
 
 ## Project Context
 
@@ -2968,6 +3373,13 @@ NOT parallel-safe:
 - **Never create or install a test framework without explicit user approval.**
 - **Stay within your test scope.** Do not write tests outside your stated type/layer.
 - **Match existing test patterns exactly** — naming, directory structure, assertion style.
+- **Expect your tests to be reviewed.** `reviewer-<scope>` cross-checks your
+  output after tests pass. Write tests that withstand review: meaningful
+  assertions, realistic fixtures, no gaming, explicit edge cases. Do not
+  try to "pass" by writing tautological tests.
+- **On qa-retry, do not modify production code.** When `tech-lead` re-dispatches
+  to you with `retry_target: qa`, only adjust tests, fixtures, and mocks.
+  Production code changes are the dev agent's responsibility.
 - **Provide structured feedback.** Use the closed loop feedback format when reporting test results.
 - **Analyze before reporting.** Always include root cause analysis and suggested fixes in feedback.
 - **Escalate, don't bypass.** Framework and tooling decisions go to tech-lead.
