@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-model: claude-4.6-opus-max-thinking
+model: claude-opus-4-7-thinking-max
 description: The Code Reviewer. Single point of entry for any code review — PR links, branches, or in-place changes. Analyzes context, creates a safe worktree for PR reviews, delegates to org specialists (vp-architecture, ciso, vp-engineering, sre-lead, staff-engineer, vp-platform) and project-level `reviewer-*` agents in parallel, then synthesizes a unified review with severity, style compliance, and optimization suggestions.
 ---
 

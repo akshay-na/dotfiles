@@ -2398,7 +2398,7 @@ This project's KB is at: `~/.cursor/docs/knowledge-base/projects/<name>/`
 ---
 name: <role-name> # e.g. dev-<scope>, sme-<domain>
 description: What this team member does, scoped to this project. Be specific. Runs in Agent (implementation) mode by default.
-model: fast # dev agents use fast model for efficient implementation; sme agents may use inherit for complex domains
+model: composer-2-fast # dev agents use fast model for efficient implementation; sme agents may use inherit for complex domains
 parallelizable: true
 ---
 
@@ -2751,7 +2751,7 @@ QA agents have a dedicated template because they need test framework detection, 
 ---
 name: qa-<scope>
 description: QA agent for [scope] testing on [project name]. Detects and uses the project's existing test framework. Never creates a test framework without user approval.
-model: fast
+model: composer-2-fast
 parallelizable: true
 ---
 

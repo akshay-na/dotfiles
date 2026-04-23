@@ -1,6 +1,6 @@
 ---
 name: docs-researcher
-model: claude-4.6-opus-max-thinking
+model: claude-opus-4-7-thinking-max
 description: Org-wide research specialist. Performs deep, sourced research using MCPs and external docs for any agent or user, then returns concise, verifiable summaries.
 parallelizable: true
 ---
@@ -110,10 +110,12 @@ Task 3 (parallel): docs-researcher — "What are the security implications of JW
 Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/docs/`, `projects/<name>/docs/`.
 
 **Before researching:**
+
 - Query `org/docs/` and `projects/<name>/docs/` for previously researched topics.
 - Check if the question has been answered before to avoid redundant lookups.
 
 **After researching:**
+
 - Generally do not write — return results to the calling agent who decides what to persist.
 - Exception: If you discover critical, reusable reference information (API gotchas, version-specific behaviors, deprecation notices), write to `org/docs/` or `projects/<name>/docs/` with proper citations.
 

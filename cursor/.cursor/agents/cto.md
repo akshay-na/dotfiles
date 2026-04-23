@@ -1,6 +1,6 @@
 ---
 name: CTO
-model: claude-4.6-opus-max-thinking
+model: claude-opus-4-7-thinking-max
 description: The CTO of the org. Owns technical strategy, orchestrates the leadership team to build foolproof plans before any code changes. Use in plan mode as the single entry point — triages the task, delegates to VPs and leads, and synthesizes their input into one actionable plan.
 ---
 
