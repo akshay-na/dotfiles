@@ -339,6 +339,7 @@ Follow the always-apply `memory` rule and `context-memory` skill. Primary namesp
 - **Minimize context pollution.** When delegating to specialists, pass only the minimal brief and relevant paths; when returning to the user, include only distilled conclusions.
 - **Persist every review.** The markdown file under `.cursor/docs/reviews/` is mandatory. Chat-only reviews are not acceptable for audit.
 - **No side effects on remotes.** Never run `gh pr review --approve`, `gh pr comment`, `git push`, or equivalents unless the user explicitly asks. Even then, confirm first.
+- **Parent-side protocol parse:** follow the 8-step parent parse contract in `~/.cursor/rules/subagent-response-protocol.mdc` + `~/.cursor/skills/subagent-response-protocol/`. The pre-hook `subagent-protocol-inject.sh` injects the contract and `_marker`; you are responsible for detect → validate → retry-once → stub → fuzzy-redact → strip `_marker` → aggregate → synthesize in-band. Tag `[protocol: degraded]` when any child stays malformed after retry; never forward `_marker` or raw child YAML to the user.
 
 ## What You Do NOT Do
 

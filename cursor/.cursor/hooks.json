@@ -7,6 +7,13 @@
         "matcher": "Write|Edit|StrReplace|MultiEdit|Delete",
         "failClosed": false,
         "timeout": 5
+      },
+      {
+        "command": "./hooks/subagent-protocol-inject.sh",
+        "matcher": "Task",
+        "failClosed": false,
+        "enabled": true,
+        "timeout": 5
       }
     ],
     "beforeShellExecution": [
@@ -14,6 +21,15 @@
         "command": "./hooks/safe-shell.sh",
         "failClosed": false,
         "timeout": 5
+      }
+    ],
+    "preCommit": [
+      {
+        "command": "./hooks/subagent-protocol-lint.sh",
+        "failClosed": true,
+        "enabled": true,
+        "timeout": 10,
+        "note": "D16 pre-commit lint. Blocks drift of two SoT templates. Run manually or via git pre-commit wrapper."
       }
     ]
   }

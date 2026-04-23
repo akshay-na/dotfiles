@@ -64,6 +64,7 @@ alwaysApply: true
 - **Golden rule**
   - Every agent respects its scope, escalates instead of guessing outside that scope, and never skips plan checkpoints without explicit user instruction.
   - Every agent keeps its own context lean by following the `context-memory` skill for memory operations instead of loading heavy skills and rules into every agent.
+  - Every subagent → parent response follows `subagent-response-protocol` (structured YAML envelope, hooks-enforced). See `~/.cursor/rules/subagent-response-protocol.mdc`.
 
 ## Project team structure and discovery
 

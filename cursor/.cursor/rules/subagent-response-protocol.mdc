@@ -1,0 +1,141 @@
+---
+description: "Subagent → parent traffic MUST be a fenced YAML envelope per template. Strict caveman-ultra for compressed fields."
+alwaysApply: true
+---
+
+# Subagent Response Protocol
+
+This rule applies **only** when you are running as a subagent under a parent
+agent (detect the `<system_reminder>You are running as a subagent ...` marker
+supplied by the `Task` tool, or the parent-injected contract block at the top
+of your prompt). It does **not** apply to main-chat turns or to user-facing
+synthesis turns in `cto` / `code-reviewer`.
+
+## Sources of truth
+
+- Schema template: `~/.cursor/templates/subagent-response.yml.tmpl`
+- Contract block: `~/.cursor/templates/subagent-contract-block.md`
+- Skill: `~/.cursor/skills/subagent-response-protocol/SKILL.md`
+- Inject hook: `~/.cursor/hooks/subagent-protocol-inject.sh` (parent-side pre-hook; injects contract + `_marker`)
+- Lint hook: `~/.cursor/hooks/subagent-protocol-lint.sh` (pre-commit drift check)
+- Runbook: `~/.cursor/docs/runbooks/subagent-protocol.md`
+- Dashboard: `~/.cursor/docs/dashboards/subagent-protocol.md`
+
+Never inline the schema or the contract text into agent bodies, rules, or
+skills. The pre-commit lint blocks drift on distinctive phrases.
+
+## Envelope invariants
+
+- A single fenced ```yaml block is the ONLY output visible to the parent.
+- The block MUST be the last non-whitespace content of your response (D6).
+- Only the envelope. Any text outside the fence fails the validator. If you
+  produce tool-call output earlier in the turn, finish with the fenced
+  envelope as the final content.
+- `schema_version` must be the integer one. Any other value is treated as
+  malformed by the parent validator (D13).
+- `_marker` must equal the UUID injected by the parent pre-hook. Copy it
+  verbatim. Any other value fails the marker check.
+- `reported_by` is an ordered array of agent IDs from origin to root (D12),
+  never a string.
+- Total envelope ≤ 8 KB (D9). `findings[]` ≤ 20. `artifacts[]` ≤ 50 (D20);
+  overflow spills to `~/.cursor/memory/projects/<name>/explore-dumps/<task-id>.md`
+  with a single ref entry.
+
+## Compression classes (§5.2 of the plan)
+
+- **Verbatim** (never compressed): `schema_version`, `_marker`, `status`,
+  `agent`, `artifacts[]`, `findings[].file`, `findings[].line`,
+  `findings[].fix`, `errors[]`, `token_stats.*`, `memory_writes[]`,
+  `reported_by[]`.
+- **Caveman-ultra** (mandatory): `summary`, non-security `findings[].note`,
+  `next_actions[]`, `open_questions[]`.
+- **Security-autoclarity** (forced normal clarity regardless of default level):
+  triggered by any of:
+  - `category` matches regex
+    `authn|authz|auth|token|secret|cred|cve|injection|xss|sqli|nosqli|`
+    `cmdi|ssti|ldap|ssrf|rce|xxe|deser(ialization)?|path[-_]?traversal|`
+    `pii|privacy|csrf|idor|crypto|privesc|sandbox[-_]?escape|`
+    `access[-_]?control|supply[-_]?chain` (D1), OR
+  - `severity >= high` (D2), OR
+  - `status ∈ {blocked, error}` on a security-adjacent agent (`ciso`).
+    Keep negations literal (`NOT exploitable`, `no session leak`); never
+    abbreviate to `!exploitable`.
+
+## Forbidden in compressed fields (D5, D7, D11)
+
+- Raw secret values. Use `<REDACTED:TYPE>` or `<REF:artifacts[i]#L42>`.
+- Triple backticks inside string values.
+- HTML tags that can execute (`<script>`, `<iframe>`, `<img on*>`, `<svg on*>`,
+  `<style>`, `<object>`, `<embed>`, `<link>`, `<math>`).
+- YAML document separators (`---`) inside multiline scalars.
+- `javascript:` / `data:` URL schemes in any notation.
+- Content copied verbatim from untrusted tool output (`WebFetch`, `Shell`,
+  MCP). Put it in `artifacts[]` as a file reference.
+
+## Parent-side parse contract
+
+Parent agents (`cto`, `code-reviewer`, `tech-lead`, any orchestrator) that
+consume a subagent's `Task` result MUST perform these steps **in order** before
+synthesizing or forwarding child output. This is rule-driven (no runtime
+validator hook); follow it in your own reasoning.
+
+1. Detect the LAST fenced yaml block in the child response; assert nothing
+   non-whitespace follows.
+2. Validate: YAML parses; top-level mapping; `schema_version` equals the
+   integer one; `_marker` matches the value the inject hook set for this
+   session; required keys present (`status`, `agent`, `summary`,
+   `next_actions`); `status` in enum; size caps; structural limits.
+3. One reformat-only retry on malformed: re-invoke the subagent with a short
+   directive instructing it to wrap its prior answer in the protocol envelope
+   without redoing work or issuing new tool calls. Use the canonical retry
+   phrase from `templates/subagent-contract-block.md`; do not paraphrase it
+   here (the pre-commit lint blocks inlined duplicates).
+4. Stub envelope on persistent malformed:
+   `{status: malformed, summary: <first 200 chars of raw>, degraded_reason: "malformed"}`.
+5. Post-compression fuzzy redaction: scan every string value against the
+   expanded secret pattern library (AWS, Slack, Anthropic `sk-ant-`, OpenAI,
+   Stripe, GitHub, GitLab, npm, Figma, Twilio, SendGrid, Google, JWT, URL
+   userinfo, Bearer headers, private keys) and a Shannon-entropy ≥ 4.0
+   heuristic with a UUID v4 and hex-40 SHA allowlist. On match: treat the raw
+   response as potentially leaked, rewrite the envelope to `status: malformed`,
+   `degraded_reason: "suspected_secret_in_output"`, and record the incident in
+   the runbook.
+6. Strip `_marker` from every copy used for logging, memory writes, or
+   user-facing synthesis (D8).
+7. Aggregate: flatten the child's `findings[]` into your own envelope with the
+   child's id prepended to `reported_by`. Preserve the verbatim `fix`, `file`,
+   `line`, and `errors[]` fields exactly.
+8. Synthesize user-facing output as `caveman: lite` prose per the `caveman`
+   rule. Never forward `_marker` or raw child YAML to the user.
+
+## Enforcement posture
+
+Parents MUST hard-block downstream flows that depend on structured findings
+(e.g. writing review artifacts under `.cursor/docs/reviews/`, committing a CTO
+plan) when a child envelope remains malformed after the one reformat retry.
+There is no carve-out for free-form prose from subagents: the only acceptance
+path is a protocol-compliant envelope. If the parent must proceed with a
+degraded child for scoping/triage reasons, tag the user-facing synthesis with
+`[protocol: degraded]` and surface the malformed stub explicitly.
+
+## Main-chat exemption (user-facing only)
+
+- Main-chat (user-facing) turns do NOT follow this protocol. `caveman: lite`
+  prose per the `caveman` rule applies instead.
+- Synthesis turns in `cto` / `code-reviewer` that render output directly to
+  the user are exempt. Those agents strip the envelope, remove `_marker`, and
+  write `caveman: lite` prose.
+
+## Rule-version drift protection
+
+The inject hook caches this rule's mtime at session start. If the mtime
+changes mid-session, the hook warns once and holds the cached version for the
+remainder of the session (R14, D19). Rule-, template-, and hook-edits should
+land in a single commit and stow-apply to avoid mixed-version aggregation.
+
+## Note on validation tooling
+
+An earlier iteration shipped a `subagent-protocol-validate.sh`/`.py` runtime
+hook that automated steps 1-8 above. It was removed to drop the python
+dependency. Parents now execute the parse contract in-band via this rule; the
+inject hook and pre-commit lint remain.

@@ -1,0 +1,45 @@
+# subagent-response.yml.tmpl — Source of Truth for Subagent Response Protocol
+#
+# schema_version: 1
+# pattern_lib: 64e4046994a5bb1b6e3a9b275e2441e406903412  # D28: validator first-ship HEAD; bump on pattern-lib updates
+# runbook: ~/.cursor/docs/runbooks/subagent-protocol.md
+# dashboard: ~/.cursor/docs/dashboards/subagent-protocol.md
+#
+# Required keys: schema_version, _marker, status, agent, summary, next_actions
+# Optional keys: artifacts, findings, errors, token_stats, open_questions,
+#                memory_writes, degraded_reason, reported_by
+#
+# Status enum: ok | warn | blocked | error | malformed
+# Size caps: summary <=120c, findings[].note <=200c (400c for security-autoclarity),
+#            findings[] <=20, artifacts[] <=50, total envelope <=8192 bytes
+# Parser MUST scan for the LAST fenced yaml block and assert nothing non-whitespace
+# follows the closing fence (D6). schema_version other than 1 => malformed (D13).
+# reported_by is an ordered array ["origin", ..., "root"] (D12).
+---
+schema_version: 1
+_marker: "<session-uuid-injected-by-parent-hook>"
+status: ok                 # ok | warn | blocked | error | malformed
+agent: "<agent-id>"
+summary: "<caveman-ultra, <=120 chars, no raw secrets>"
+artifacts:                 # verbatim paths; <=50 entries (D20)
+  - "<path>"
+findings:                  # severity-graded; <=20 entries
+  - severity: high         # low | med | high | critical
+    category: "<slug>"     # see protocol rule 5.2 for security-autoclarity triggers
+    file: "<verbatim path>"
+    line: 42
+    note: "<caveman-ultra unless security-autoclarity forces normal>"
+    fix: "<verbatim suggested fix, code/paths unchanged>"
+    reported_by: ["<origin>", "<intermediate>", "<root>"]
+next_actions:              # caveman-ultra strings
+  - "<caveman>"
+errors:                    # verbatim error strings
+  - "<verbatim>"
+token_stats:               # advisory only; parent-measured is authoritative (D21)
+  out_words_est: 0
+  tool_calls: 0
+open_questions:            # caveman-ultra
+  - "<caveman>"
+memory_writes:             # namespaces touched
+  - "projects/<name>/<ns>/"
+degraded_reason: ""        # non-empty only when status=malformed or suspected secret

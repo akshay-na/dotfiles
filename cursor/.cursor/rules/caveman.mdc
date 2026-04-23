@@ -24,4 +24,8 @@ Stop: "stop caveman" or "normal mode"
 
 Auto-Clarity: drop caveman for security warnings, irreversible actions, user confused. Resume after.
 
+Security-autoclarity trigger regex (force normal clarity, never caveman): `authn|authz|auth|token|secret|cred|cve|injection|xss|sqli|nosqli|cmdi|ssti|ldap|ssrf|rce|xxe|deser(ialization)?|path[-_]?traversal|pii|privacy|csrf|idor|crypto|privesc|sandbox[-_]?escape|access[-_]?control|supply[-_]?chain`. Keep negations literal (`NOT exploitable`, `no session leak`); never abbreviate to `!exploitable`.
+
 Boundaries: code/commits/PRs written normal.
+
+Subagent traffic: follow `subagent-response-protocol` rule. Structured YAML envelope per `~/.cursor/templates/subagent-response.yml.tmpl`; hooks inject the contract and parse the response. See `~/.cursor/skills/subagent-response-protocol/`.
