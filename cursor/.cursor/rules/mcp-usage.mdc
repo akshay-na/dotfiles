@@ -29,6 +29,12 @@ alwaysApply: true
   - Use for: up-to-date library/framework documentation and code examples when implementing or updating features.
   - Cross-check: use it to confirm APIs and behavior instead of guessing or hallucinating.
 
+- **`plugin-atlassian-atlassian`**
+  - **Write tools** (`createJiraIssue`, `editJiraIssue`, `transitionJiraIssue`, `addCommentToJiraIssue`, `addWorklogToJiraIssue`, `createIssueLink`, `createConfluencePage`, `updateConfluencePage`, `createConfluenceFooterComment`, `createConfluenceInlineComment`) are **OFF-LIMITS to every agent except `atlassian-pm`**. The user invokes `atlassian-pm` explicitly; no agent auto-triggers a write.
+  - **Reads via `atlassian-pm` in `mode=read-only-context`** are permitted for any global org agent in the allow-list (see `agent-orchestration.mdc`). Direct invocation of `plugin-atlassian-atlassian` read tools (`getJiraIssue`, `searchJiraIssuesUsingJql`, `getConfluencePage`, `searchConfluenceUsingCql`, etc.) by other agents is **discouraged** — prefer `atlassian-pm` so audit, preflight, and circuit-breaker policies apply uniformly. A direct read by another agent must be justified inline (one sentence) and is rate-limited by the agent itself.
+  - **Never shell out to `curl`, `gh`, `wget`, `git push`** against `*.atlassian.net` or `bitbucket.org`. If the MCP doesn't have the operation, it is out of scope (e.g., Bitbucket writes have no MCP support today; `atlassian-pm` hard-fails on those).
+  - **Deprecated plugin skills (route through `atlassian-pm`):** `spec-to-backlog`, `triage-issue`, `capture-tasks-from-meeting-notes`, `generate-status-report`. Other agents must NOT invoke these plugin skills directly; they recommend `atlassian-pm` to the user. The plugin skill files at `~/.cursor/plugins/cache/cursor-public/atlassian/.../skills/<name>/SKILL.md` are upstream-managed and not edited; this is rule-level deprecation. The plugin skills remain available for direct user invocation if the user prefers, but the org policy is that agent-mediated Atlassian work routes through `atlassian-pm`.
+
 - **Safety and privacy**
   - Strip or mask: user secrets, tokens, and sensitive identifiers from prompts before sending to any MCP server.
   - Align with `ciso` guidance: when in doubt about data sensitivity, escalate to `ciso` rather than guessing.
