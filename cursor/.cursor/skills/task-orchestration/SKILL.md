@@ -52,7 +52,7 @@ output_schema:
       description: Subtasks if task spans multiple repos
     - name: tech_lead_bootstrapped
       type: boolean
-      description: Whether vp-onboarding was invoked to create tech-lead
+      description: Whether vp-onboarding was invoked to bootstrap project team agents (when absent and execution required); legacy field name unchanged
 pre_checks:
   - description: Task description is provided
     validation: task_description is not empty
@@ -77,7 +77,7 @@ Automated task classification, agent selection, and state tracking for the org-l
 This skill provides the core orchestration protocol for routing tasks to appropriate agents and pipelines. It handles:
 
 1. **Multi-repo workspace detection** (identify which repo a task belongs to)
-2. **Tech-lead availability check** (bootstrap via vp-onboarding if missing)
+2. **Team availability check** (lazy `vp-onboarding` only when project team missing **and** task requires execution)
 3. Pipeline override detection (explicit user directives)
 4. Task classification (signal matching against routing table)
 5. Agent routing (selecting appropriate agents based on task type)
@@ -159,15 +159,18 @@ original_task:
 subtasks:
   - task_id: task-abc123-auth-backend
     repo: backend-repo
-    tech_lead: backend-repo/.cursor/agents/tech-lead.md
+    team_path: backend-repo/.cursor/agents/
     description: "Update auth logic in backend"
     files: [backend-repo/src/auth.ts]
-  
+
   - task_id: task-abc124-auth-frontend
     repo: frontend-repo
-    tech_lead: frontend-repo/.cursor/agents/tech-lead.md
+    team_path: frontend-repo/.cursor/agents/
     description: "Update auth logic in frontend"
     files: [frontend-repo/src/AuthContext.tsx]
+
+# tech-lead resolves the project team per target_repo at dispatch time;
+# subtasks no longer pin a per-repo tech-lead path.
 
 # Parent task tracks both
 parent_task:
@@ -177,50 +180,45 @@ parent_task:
   completed_subtasks: []
 ```
 
-## Tech-Lead Availability Check
+## Team Availability Check
 
-Before routing to a repo's tech-lead, verify the agent exists. If missing, bootstrap via vp-onboarding.
+Lazy / on-demand: do **not** call `vp-onboarding` preemptively on every routing decision. Evaluate project **team presence** (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops` under `{repo_root_path}/.cursor/agents/`). Invoke `vp-onboarding` **only if** no matching project team artifacts exist **and** the classified task requires execution in-repo (implement, refactor, pipeline stages that mutate the repo).
 
 ### Availability Protocol
 
 ```
-Input: repo_root_path
-Output: tech_lead_available, action_taken
+Input: repo_root_path, requires_execution_in_repo (boolean)
+Output: team_sufficient_or_bootstrapped, action_taken
 
-1. Check for tech-lead:
-   - Path: {repo_root_path}/.cursor/agents/tech-lead.md
-   - If exists → tech_lead_available = true
+1. Enumerate agents directory:
+   - Path glob: {repo_root_path}/.cursor/agents/
+   - Matches: dev-*.md, reviewer-*.md, sme-*.md, qa-*.md, devops*.md
 
-2. If tech-lead missing:
-   - Log: "tech-lead not found for {repo_name}"
-   - Action: Invoke vp-onboarding agent
-     - Target: {repo_root_path}
-     - Purpose: Bootstrap project-level agents
-     - Wait: Block until onboarding completes
-   
-3. Re-check after onboarding:
-   - If tech-lead now exists → tech_lead_available = true
-   - If still missing → ERROR: "Failed to bootstrap tech-lead"
+2. If ≥1 matching file exists → team_sufficient_or_bootstrapped = true ; stop
 
-4. Return availability status
+3. If none exist AND requires_execution_in_repo is false → allow planning/routing-only; may log informational "no project team"; stop
+
+4. If none exist AND requires_execution_in_repo is true → invoke vp-onboarding (blocking) to bootstrap typed project agents ; re-list directory ; if still empty → fallback per routing table / log decision_type:fallback ; return
+
+5. Return status (never treat org-tier tech-lead file under ~/.cursor/agents as repo team presence)
 ```
 
 ### Onboarding Invocation
 
 ```yaml
-# When tech-lead is missing, invoke vp-onboarding
+# When project team is missing AND execution is required — not by default every task
 vp_onboarding_invocation:
   agent: vp-onboarding
   target_repo: {repo_root_path}
   mode: bootstrap
   wait_for_completion: true
   on_success:
-    - Re-read {repo}/.cursor/agents/ to discover new agents
+    - Re-read {repo}/.cursor/agents/ to discover new agents (dev/reviewer/sme/qa/devops patterns)
     - Update agent registry for this repo
-    - Proceed with original task routing
+    - Proceed with original task routing / dispatch
   on_failure:
-    - Mark task as blocked
-    - Report: "Cannot execute task - project agents not available"
+    - Mark task as blocked or escalate with decision trail
+    - Report: "Cannot execute task — project agents not bootstrapped"
     - Suggest: "Run vp-onboarding manually on {repo_name}"
 ```
 
@@ -229,21 +227,31 @@ vp_onboarding_invocation:
 ```
 For any task targeting a specific repo:
 
-1. Project-level executor (preferred):
-   - {repo}/.cursor/agents/tech-lead.md
-   - Owns: Project knowledge, coordinates dev/sme/qa agents
+1. Execution orchestration:
+   - Org-tier tech-lead (single entrypoint) resolves project team via {repo}/.cursor/agents/ at dispatch time
+   - Repo subtasks pin team_path (<repo>/.cursor/agents/), not tech-lead file paths
 
-2. If tech-lead missing:
-   - Trigger: vp-onboarding to create tech-lead
-   - Wait for completion before proceeding
+2. Project team bootstrap (lazy): only step 4 in Availability Protocol triggers vp-onboarding
 
-3. Org-level agents (via CTO delegation):
+3. Org-level agents (via CTO / delegation):
    - For architectural review: vp-architecture
    - For security review: ciso
    - For performance review: vp-engineering
    - For documentation: docs-researcher
-   - These never execute directly in repo — they advise tech-lead
+   - These advise; they do not replace tech-lead execution orchestration inside the repo
 ```
+
+### Multi-folder workspace handling
+
+Cross-reference: **`cursor/.cursor/skills/team-discovery/SKILL.md`** (org skill package). Workflow: **`discover`** → **`classify`** → **`dispatch`**. Resolve multi-root or ambiguous folder layouts into target partitions **before** spawning subtasks.**Invariant (`on_ambiguous: ask_user`)** — if classification cannot prove disjoint ownership, pause for user clarification; never silently assign overlapping folder roots to concurrent work.
+
+### Intra-role horizontal fan-out
+
+- Skill: **`cursor/.cursor/skills/parallel-dispatch/SKILL.md`** — Level 3 covers horizontal dispatch within one role.
+- Input: **`fanout_hint`** from **`team-discovery` dispatch output**.
+- **`partition_basis`:** `path-prefix` | `module` | `service` | `single`.
+- **`instance_id` naming:** `<role>#<n>` (e.g. `dev-frontend#2`).
+- Handoff after parallel completes: **`cursor/.cursor/skills/dev-reviewer-qa-loop/SKILL.md`** consumes the **merged diff**; overlaps drive rollback telemetry (see `agent-observability` orchestration logs).
 
 ## Pipeline Override Detection
 

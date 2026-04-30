@@ -7,19 +7,21 @@ alwaysApply: true
 
 - **Start with `cto` in plan mode** when a task has multiple steps, non-trivial trade-offs, or touches architecture, security, performance, or observability.
 - **Start with `code-reviewer`** for any code review request — PR links, branches, diffs, "review my change", security/perf/style review. It is the single entry point for review just as `cto` is for planning: it triages the diff, delegates to org specialists and project `reviewer-*` agents in parallel, and synthesizes one unified review. Never invoke `vp-architecture`/`ciso`/`vp-engineering`/`sre-lead`/`staff-engineer`/`vp-platform` directly for review — go through `code-reviewer`.
-- **Use `senior-dev` as the default implementation agent** for any code or configuration change, unless the user explicitly requests a different agent or the work clearly requires a `cto`-driven multi-phase plan first.
-- **Call `senior-dev` directly** for genuinely small, localized tasks (single-file fixes, trivial config tweaks) where a full plan would be overkill, and as the primary executor for plan-driven work once the `cto` has produced an approved plan.
+- **Invoker-wins precedence (R10):**
+  - **`senior-dev`**: for direct, single-shot implementation when **no** orchestration is required — work is small/localized, there is **no** `cto` plan, **no** project team under `.cursor/agents/`, **single** workspace root, and the user did not request cross-root or phased orchestration.
+  - **`tech-lead`**: when **any** orchestration signal is true: (a) `cto` plan with a phase graph, (b) project team present in `.cursor/agents/`, (c) task spans **≥ 2** workspace roots, (d) **explicit user request** to use `tech-lead` or to orchestrate across folders/phases.
+  - **Invoker wins**: if the user names an agent, honor that agent. If the user describes work without naming an agent → choose `tech-lead` when **any** of the four signals above holds; otherwise `senior-dev`.
 - **Use `vp-onboarding`** to bootstrap or refresh project-local agents, rules, and skills in a repo's `.cursor/` directory; never modify org-level agents from project agents.
-- **Default modes:** `cto` and other org VPs run in plan mode; `code-reviewer` runs in Agent (read-only review) mode; `senior-dev` and all project-level `tech-lead`, `dev-*`, `reviewer-*`, `sme-*`, and `qa` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
+- **Default modes:** `cto` and other org VPs run in plan mode; `code-reviewer` runs in Agent (read-only review) mode; `senior-dev` runs in Agent (implementation) mode by default; `tech-lead` runs in Agent mode (it executes approved plans, it does not author them). All project-level `dev-*`, `reviewer-*`, `sme-*`, `qa-*`, and `devops` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
 
 - **Org vs project responsibilities**
-  - Org agents (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `senior-dev`, `atlassian-pm`) own cross-project strategy, plans, reviews, and high-level standards.
-  - Project agents (`tech-lead`, `dev-*`, `reviewer-*`, `sme-*`, `qa`, `devops`) own implementation and project-scoped review inside a specific repo, following org standards and project rules.
+  - Org agents (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `senior-dev`, `tech-lead`, `atlassian-pm`) own cross-project strategy, plans, reviews, and high-level standards. Org-tier execution orchestration is defined in [`tech-lead`](../agents/tech-lead.md).
+  - Project agents (`dev-*`, `reviewer-*`, `sme-*`, `qa`, `devops`) own implementation and project-scoped review inside a specific repo, following org standards and project rules.
   - Project agents escalate up to org agents via `cto` (for plans) or `code-reviewer` (for reviews) when decisions affect architecture, security posture, performance budgets, or shared tooling.
 
 - **Atlassian operations** (Jira / Confluence / Bitbucket) are owned by `atlassian-pm` globally. There is **no** project-level `pm-*`, `jira-*`, `confluence-*`, or `atlassian-*` agent. **No agent except `atlassian-pm` may call `plugin-atlassian-atlassian` write tools** (`createJiraIssue`, `editJiraIssue`, `transitionJiraIssue`, `addCommentToJiraIssue`, `addWorklogToJiraIssue`, `createIssueLink`, `createConfluencePage`, `updateConfluencePage`, `createConfluenceFooterComment`, `createConfluenceInlineComment`).
   - **Atlassian entry point (`atlassian-pm`) — WRITES:** the user explicitly requests Jira / Confluence / Bitbucket activity → invoke `atlassian-pm`. Never auto-trigger for writes. Every write is gated by draft-then-approve with a 5-minute approval expiry.
-  - **Atlassian entry point (`atlassian-pm`) — READS:** any global org agent in the allow-list (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `vp-onboarding`, `kb-engineer`, `senior-dev`, `docs-researcher`) MAY invoke `atlassian-pm` via the Task tool with `mode=read-only-context` for planning / design / review context lookups. The broker preflights plugin + auth and returns `{ status: 'skipped', reason: ... }` on miss; callers MUST treat this as a silent no-op (no user-facing error). **Project-level agents** (`tech-lead`, `dev-*`, `sme-*`, `qa-*`, `devops`, `reviewer-*`) are **NOT** in the allow-list and MUST always route through explicit user invocation. The deny-list is enforced before the allow-list. **Writes are still hard-gated to user invocation only** — `read-only-context` cannot escalate to a write session; the mode parameter cannot be flipped mid-session.
+  - **Atlassian entry point (`atlassian-pm`) — READS:** any global org agent in the allow-list (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `vp-onboarding`, `kb-engineer`, `senior-dev`, `docs-researcher`) MAY invoke `atlassian-pm` via the Task tool with `mode=read-only-context` for planning / design / review context lookups. The allow-list is exhaustive; deny-by-default applies to any agent not listed. The broker preflights plugin + auth and returns `{ status: 'skipped', reason: ... }` on miss; callers MUST treat this as a silent no-op (no user-facing error). **Project-level agents** (`dev-*`, `sme-*`, `qa-*`, `devops`, `reviewer-*`) are **NOT** in the allow-list and MUST always route through explicit user invocation. The deny-list is enforced before the allow-list. **Writes are still hard-gated to user invocation only** — `read-only-context` cannot escalate to a write session; the mode parameter cannot be flipped mid-session.
   - **Deprecated plugin skills (route through `atlassian-pm`):** `spec-to-backlog`, `triage-issue`, `capture-tasks-from-meeting-notes`, `generate-status-report`. Other agents must NOT invoke these plugin skills directly; they recommend `atlassian-pm` to the user. The plugin skill files at `~/.cursor/plugins/cache/cursor-public/atlassian/.../skills/<name>/SKILL.md` are upstream-managed and not edited; this is rule-level deprecation. The plugin skills remain available for direct user invocation if the user prefers, but the org policy is that agent-mediated Atlassian work routes through `atlassian-pm`.
 
 - **Memory:** All agents follow the always-apply `memory` rule and the `context-memory` skill for reads and writes.
@@ -27,9 +29,9 @@ alwaysApply: true
 - **Docs research:** All agents delegate documentation and web research to `docs-researcher`. See the `docs-researcher` rule.
 
 - **Call-chain boundaries**
-  - For multi-phase work: the user → `cto` (plan) → project `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
+  - For multi-phase work: the user → `cto` (plan) → `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
   - For code review: the user → `code-reviewer` → org specialists (in parallel) + project `reviewer-*` (in parallel when present) → synthesized review. Org specialists are invoked from `code-reviewer` only for review; they are not invoked from project agents.
-  - `tech-lead` is the single entrypoint for project execution. The user should avoid invoking `dev-*`, `reviewer-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve. For review-only work, `code-reviewer` bypasses `tech-lead` and contacts the relevant project `reviewer-*` agents directly.
+  - `tech-lead` is the single entrypoint for plan execution and multi-root orchestration. The user should avoid invoking `dev-*`, `reviewer-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve. For review-only work, `code-reviewer` bypasses `tech-lead` and contacts the relevant project `reviewer-*` agents directly.
 
 - **When to escalate to specialists (via `cto` for planning, via `code-reviewer` for review)**
   - `vp-architecture`: new services, significant refactors, data-model or boundary changes, cross-service contracts.
@@ -49,20 +51,20 @@ alwaysApply: true
 
 - **Plan and phase discipline**
   - In plan mode, `cto` groups work into numbered phases with explicit verification and rollback for each phase.
-  - Implementation agents (usually `senior-dev` or project `tech-lead`/`dev-*`) must:
+  - Implementation agents (usually `senior-dev` directly, or `tech-lead` plus its project team) must:
     - Follow phases in order.
     - Run the specified verification for each phase before claiming it complete.
     - Stop and wait for explicit user approval at every checkpoint before moving to the next phase.
 
 - **User approval semantics**
   - "Explicit user approval" at a checkpoint means the user uses the approval wording in the plan (for example replying with **"proceed"** as instructed) or an equally clear statement that the next phase may begin.
-  - Silence, unrelated conversation, side questions, or generic praise must **never** be treated as approval to move to the next phase by `senior-dev`, `tech-lead`, `dev-*`, `sme-*`, or `qa` agents.
+  - Silence, unrelated conversation, side questions, or generic praise must **never** be treated as approval to move to the next phase by `senior-dev`, `dev-*`, `sme-*`, or `qa` agents. Org-tier `tech-lead` likewise must not infer approval from silence or generic praise at group checkpoints.
 
 - **Division of labor during implementation**
   - `cto` and VPs: design the plan and define phases, risks, and verification.
   - `code-reviewer`: owns review triage, specialist delegation, and review synthesis.
   - `senior-dev` / project `dev-*`: implement the plan with minimal diffs, matching existing patterns.
-  - `tech-lead`: maps plan phases to project agents, tracks progress, and enforces checkpoints inside the repo.
+  - `tech-lead`: maps plan phases to project agents (per workspace folder), tracks progress, and enforces checkpoints across roots.
   - Project `reviewer-*`: review within their stated scope when invoked by `code-reviewer` (for cross-project reviews) or by `tech-lead` (for in-project Dev-Reviewer-QA loops).
   - Specialists (`ciso`, `sre-lead`, etc.): review or extend the plan/implementation only inside their domain.
 
@@ -71,18 +73,23 @@ alwaysApply: true
   - Every agent keeps its own context lean by following the `context-memory` skill for memory operations instead of loading heavy skills and rules into every agent.
   - Every subagent → parent response follows `subagent-response-protocol` (structured YAML envelope, hooks-enforced). See `~/.cursor/rules/subagent-response-protocol.mdc`.
 
-## Project team structure and discovery
+## Workspace-folder team conventions
 
-- Projects use typed team member names created by `vp-onboarding`:
-  - `tech-lead` as the single execution entrypoint.
+- Workspace folders use typed team member names created by `vp-onboarding`:
   - `dev-<scope>` for developer roles (e.g. `dev-frontend`, `dev-backend`, `dev-infra`).
   - `sme-<domain>` for subject-matter experts.
   - `qa-<scope>` for quality-focused roles (e.g. `qa-unit`, `qa-e2e`).
   - `devops` for CI/CD and infra when warranted.
-- `tech-lead` must always **discover the current team** before delegating work (both sequentially and in parallel) by:
-  - Listing `.cursor/agents/` files that match team patterns (`dev-*`, `sme-*`, `qa-*`, `devops`).
-  - Reading each agent's stated scope and building an internal `| Agent | Scope |` table for assignment.
-  - Re-running discovery at the start of each phase or when onboarding changes the team.
+- See [`team-discovery` skill](../skills/team-discovery/SKILL.md) for the per-folder discovery and assignment algorithm org-tier `tech-lead` runs at every dispatch.
 - All project agents must keep context minimal:
   - Load only the files, rules, and skills needed for the current task.
   - Access memory via the `context-memory` skill and delegate docs lookups to `docs-researcher` instead of loading large histories or whole documentation sets.
+
+## Org-tier orchestrator standards
+
+- **Memory namespaces:** org roles use `org/<role>/` under `~/.cursor/memory/` (see always-apply `memory` rule); project-scoped work uses `project.<name>/` per the `context-memory` skill.
+- **Plans and runbooks:** authoritative plan and execution docs live under `<workspace>/.cursor/docs/plans/` and `<workspace>/.cursor/docs/runbooks/` (see `docs-and-decisions` rule).
+- **Observability:** orchestrators emit metrics and decision logs per [`agent-observability` skill](../skills/agent-observability/SKILL.md).
+- **Subagent parsing:** parent agents that consume `Task` results follow the parent-side parse contract in `subagent-response-protocol` (`~/.cursor/rules/subagent-response-protocol.mdc`).
+- **Mode defaults:** `cto` — plan mode; `tech-lead` — Agent (implementation/orchestration) mode; `code-reviewer` — Agent (read-only review).
+- **Toolkit:** compose [`task-orchestration`](../skills/task-orchestration/SKILL.md), [`closed-loop-execution`](../skills/closed-loop-execution/SKILL.md), [`cross-stage-feedback`](../skills/cross-stage-feedback/SKILL.md), [`team-discovery`](../skills/team-discovery/SKILL.md), [`dev-reviewer-qa-loop`](../skills/dev-reviewer-qa-loop/SKILL.md), and [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md) as reusable building blocks.

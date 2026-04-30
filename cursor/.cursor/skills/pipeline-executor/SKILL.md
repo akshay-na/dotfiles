@@ -159,9 +159,7 @@ validation_rules:
     - First stage can only use initial_inputs
   
   mode_restrictions:
-    - Org agents (cto, vp-*, ciso, staff-engineer, sre-lead) should use mode: plan
-    - tech-lead uses mode: agent for implementation
-    - Exception: cto can use mode: agent for orchestration
+    - Org agents (cto, vp-*, ciso, staff-engineer, sre-lead) typically use mode: plan; `tech-lead` (org-tier execution orchestrator) and `code-reviewer` use mode: agent. `cto` may use mode: agent for orchestration.
   
   retry_config:
     - max_attempts: 1-10
@@ -326,7 +324,7 @@ agent_mode:
     - Write files
     - Execute shell commands
     - Modify memory
-    - Spawn subagents (tech-lead only)
+    - Spawn project agents (dev-*/reviewer-*/sme-*/qa-*/devops) within target_repo per-task (tech-lead only)
 ```
 
 ## Inter-Stage Data Passing

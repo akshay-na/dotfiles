@@ -119,7 +119,7 @@ created_at: ISO-8601
 task_id: string
 decision_id: string
 agent: string
-decision_type: routing | strategy | escalation | override
+decision_type: routing | strategy | escalation | override | dispatch | specialist_escalation | folder_resolution | fallback | cleanup_audit | intra_role_fanout | loop_disabled | loop_partial
 decision: string
 rationale: string
 alternatives_considered: string[]
@@ -137,6 +137,71 @@ Full decision description and reasoning.
 | `strategy` | Retry or recovery strategy selection |
 | `escalation` | Escalation to human or senior agent |
 | `override` | Deviation from routing table recommendation |
+| `dispatch` | L1 → L2 phase fan-out (which agents run per phase) |
+| `specialist_escalation` | L2 → L3 auto-escalation when specialist thresholds hit |
+| `folder_resolution` | Multi-folder workspace split (which folders / subtasks) |
+| `fallback` | No project team matched → fallback executor (e.g. senior-dev) |
+| `cleanup_audit` | vp-onboarding legacy-delete / cleanup outcome |
+| `intra_role_fanout` | L3 → L4 N-instance horizontal fan-out within one role |
+| `loop_disabled` | Plan-level opt-out of default implementation review loop |
+| `loop_partial` | Implementation loop degraded: missing `reviewer-*` or `qa-*` |
+
+The eight orchestration-extended types (`dispatch` … `loop_partial`) MUST include **`rationale`** and **`alternatives_considered`** on every logged entry. **`intra_role_fanout`** entries SHOULD also carry `instance_count`, `partition_basis`, and `disjoint_groups` where applicable.
+
+**Brief examples (orchestration types):**
+
+```yaml
+# dispatch — rationale + alternatives_considered required
+decision_type: dispatch
+decision: "Fan out implementation phase to dev-backend + dev-frontend"
+rationale: "Isolated backends and SPA; pipelines allow parallel tracks"
+alternatives_considered: ["single senior-dev sequential", "phased serial by area"]
+
+# specialist_escalation
+decision_type: specialist_escalation
+decision: "Escalate to vp-architecture after L2 complexity threshold"
+rationale: "Cross-service boundary change detected in diff scope"
+alternatives_considered: ["staff-engineer", "narrow scope and continue with tech-lead"]
+
+# folder_resolution
+decision_type: folder_resolution
+decision: "Split workspace into two folder-root subtasks after discover/classify"
+rationale: "Paths map cleanly to disjoint repo roots without overlap"
+alternatives_considered: ["single task serial", "ask_user for ambiguity"]
+
+# fallback
+decision_type: fallback
+decision: "Route to senior-dev; no dev-*/reviewer-*/qa-*/sme-*/devops in target repo"
+rationale: "Task requires execution; project team absent"
+alternatives_considered: ["vp-onboarding bootstrap", "block task until team exists"]
+
+# cleanup_audit
+decision_type: cleanup_audit
+decision: "vp-onboarding cleanup removed legacy stubs; audited paths"
+rationale: "Post-migration orphan agent files conflicting with routing"
+alternatives_considered: ["manual delete list", "deferred cleanup"]
+
+# intra_role_fanout (+ instance fields)
+decision_type: intra_role_fanout
+decision: "Spawn dev-frontend#1/#2/#3 via path-prefix partitions"
+rationale: "Parallel UI work with disjoint path ownership"
+alternatives_considered: ["single dev-frontend", "serial by folder"]
+instance_count: 3
+partition_basis: path-prefix
+disjoint_groups: ["src/views/a/**", "src/views/b/**", "src/views/c/**"]
+
+# loop_disabled — plan-level opt-out; rationale repeats plan visibility
+decision_type: loop_disabled
+decision: "Default dev-reviewer-qa-loop not applied for this plan"
+rationale: "Hotfix; user-approved single-pass implementation"
+alternatives_considered: ["loop ON with minimal reviewer"]
+
+# loop_partial
+decision_type: loop_partial
+decision: "Loop entered with qa-* missing"
+rationale: "reviewer-backend present; no qa-unit in repo"
+alternatives_considered: ["invoke vp-onboarding for qa-unit", "proceed with reviewer-only"]
+```
 
 ## Capture Points
 
@@ -152,6 +217,21 @@ Agents must write metrics at these events:
 | Dead letter | full error context, strategies attempted | When retries exhausted |
 | Pipeline complete | total duration, total retries, final outcome | After all stages done |
 | Override made | what was overridden, why, alternatives | When agent overrides routing |
+| Specialist escalated | `parent_agent`, `escalation_trigger`, `dispatch_level=L3` | After auto-escalation fires |
+| Intra-role fan-out spawned | `parent_agent`, `instance_id`, `partition_basis`, `dispatch_level=L4` | Per-instance dispatch |
+| Serial dispatch | `target_agent`, `parallelism_decision=serial+blocker:<reason>` | When parallelize-by-default is overridden |
+
+### Orchestration structured log line
+
+Emit one structured log entry (KV/JSON-equivalent or single-line parser-friendly form) whenever orchestration dispatches work. Minimum fields:
+
+```
+task_id=<id> parent_agent=<agent> dispatch_level=<L1|L2|L3|L4> folder_root=<path|-> target_agent=<agent> instance_id=<role#n|-> partition_basis=<path-prefix|module|service|single|-> iteration_n=<n|-> retry_target=<agent|-> escalation_trigger=<text|-> parallelism_decision=<parallel|serial+blocker:<reason>>
+```
+
+- **`dispatch_level`:** `L1` orchestrator/root → `L2` phase agents → `L3` specialists → **`L4` intra-role instance** (one row per instance when fanning horizontally within a role).
+- **`partition_basis`** records how instances were partitioned (`path-prefix`, `module`, `service`, `single`).
+- **`parallelism_decision`** captures whether sibling dispatches ran in parallel or were forced serial with a blocker reason.
 
 ### Capture Point Examples
 
@@ -313,6 +393,32 @@ Aggregate across sessions for trend analysis:
 - Most common task type: {type} ({count})
 - Most used pipeline: {pipeline} ({count})
 - Most active agent: {agent} ({invocations})
+
+### Orchestrator Health
+- Dispatches (L1→L2/L3/L4 counted): X
+- Fallbacks (no team → senior-dev or equivalent): Y
+- `fallback_rate`: Z%
+- `cascades_detected` ( unintended re-dispatch chains ): N
+- `multi_folder_tasks`: M
+- `cleanups_total` / `cleanups_failed` (vp-onboarding audits): CT / CF
+
+#### SLO compliance
+
+| SLO | Target | Actual | Met? |
+|-----|--------|--------|------|
+| Example: dispatch success rate | ≥ 98% | {actual} | ✓ / ✗ |
+| Example: rollback rate after fan-out merge | ≤ 5% | {actual} | ✓ / ✗ |
+| _(add org-defined SLO rows)_ | | | |
+
+#### Onboarding Gaps
+- Folders / repos where `fallback_rate > 30%`: {list} — suggests **`vp-onboarding`** refresh for project agents under `<repo>/.cursor/agents/`.
+
+#### Parallelism Efficiency
+- Avg instances per impl phase (L4-inclusive): X
+- Fan-out hit-rate: % phases that attempted fan-out → % fan-outs succeeding post-merge → % rolled back due to overlap
+- Top-3 serial blockers by frequency (from `parallelism_decision=serial+blocker:*`): {ranked list}
+- % impl phases using default **ON** Dev-Reviewer-QA loop: P%
+- `loop_disabled` count: N; top rationales: {bullet list}
 
 ### Failure Patterns
 | Pattern | This Week | Last Week | Trend |
