@@ -1,0 +1,17 @@
+# Example content frontmatter (see kb/_meta/frontmatter.schema.md)
+slug: example-slug
+title: Example title
+type: brief
+channels: [blog]
+status: draft
+publish_date: null
+canonical_url: null
+content_hash: null
+topics: []
+voice: default
+brief_ref: null
+draft_refs: []
+repurposed_into: []
+generated_by: cco
+qa_passed_by: []
+aliases: []
