@@ -87,7 +87,14 @@ stow_dotfiles() {
     stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
   done
   chmod +x ~/.local/bin/*
-  cp -rf $DOTFILES_DIR/cursor/.cursor/agents $HOME/.cursor 2>/dev/null
+  # Stow now links `cursor/.cursor/agents` (see .stowrc). Only copy if agents not already present.
+  if [[ ! -e "$HOME/.cursor/agents" ]]; then
+    cp -rf "$DOTFILES_DIR/cursor/.cursor/agents" "$HOME/.cursor" 2>/dev/null || true
+  fi
+  # Stow now links `gemini/.gemini/agents` (see .stowrc). Only copy if agents not already present.
+  if [[ ! -e "$HOME/.gemini/agents" ]]; then
+    cp -rf "$DOTFILES_DIR/gemini/.gemini/agents" "$HOME/.gemini" 2>/dev/null || true
+  fi
 }
 
 # Remove symlinks created by stow
