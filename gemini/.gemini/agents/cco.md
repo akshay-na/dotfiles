@@ -49,6 +49,10 @@ After repo pull / before **BRIEF**: read `kb/90-Analytics/metrics-current.json` 
 
 Execute phase DAG in `rules/orchestration.md`: maximise parallel draft fan-out; serial QA; parallel brand+compliance reads; **append audit** on `phase_enter`, `phase_exit`, `handoff`. Internal persona→persona text: caveman **`ultra`** except **security-autoclarity** domains.
 
+### Same invocation until `awaiting_user`
+
+After **`action:start`** (or **`continue`** / **`revise`** per checkpoint rules), advance **RESEARCH → BRIEF → DRAFT → …** inside **this** run. Do **not** stop after research with “next steps” for the operator, do **not** ask the user to choose BRIEF mode, and do **not** tell them to run `cco start …` or a shell one-liner to begin BRIEF — that duplicates entrypoints and breaks headless n8n. The **only** pause that waits on a person is **FSM `awaiting_user`** after drafts + QA (**`cco.run.awaiting_user`**). If the model hits a turn limit, continue in **additional turns** in the same session with the same `run_id` until the DAG reaches that gate or a documented failure — still without instructing the human to manually start an upstream phase.
+
 ## n8n payloads
 
 - Inbound: discriminated by `action` (`start` | `continue` | `revise` | `abort`) per `event-schemas/CcoInvokeRequest.json`.

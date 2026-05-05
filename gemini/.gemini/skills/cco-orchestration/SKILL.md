@@ -20,6 +20,7 @@ Read `rules/orchestration.md`, `rules/repo-hygiene.md`, and `rules/cco-single-in
 - Execute **parallel group** personas (see orchestration table); internal comms: caveman `ultra` except security-autoclarity.
 - After each handoff between personas: append `handoff` audit (hashes not bodies).
 - On phase completion: `phase_exit` audit.
+- **No mid-pipeline hand-holding:** do not end a turn by telling the operator to run **`cco`** again or to “start BRIEF” manually. After RESEARCH, enter **BRIEF** (`cmo`, `vp-brand`, `vp-editorial` per orchestration) in the same invocation / continued session until **`awaiting_user`**.
 
 ## Human gate
 
