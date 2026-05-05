@@ -241,9 +241,7 @@ if [[ -o interactive ]]; then
   setopt pushd_silent      # Don't print the directory stack after pushd/popd
 
   # Miscellaneous options (interactive only)
-  setopt check_jobs  # Warn about running or stopped jobs when exiting the shell
-  setopt correct     # Correct commands as they are typed
-  setopt correct_all # Correct all arguments
+  setopt check_jobs # Warn about running or stopped jobs when exiting the shell
 
   # ---------------------------------------------------------------
   # Completion Styling and Options
