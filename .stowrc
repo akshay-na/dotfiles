@@ -9,3 +9,4 @@
 --ignore='DotMate.sh'
 --ignore='.stowrc'
 --ignore='agents'
+# Keep README files stowable for package-level onboarding docs.
