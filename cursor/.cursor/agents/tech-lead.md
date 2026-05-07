@@ -17,7 +17,7 @@ graph TD
     CTO[cto]
     TL[tech-lead]
     CR[code-reviewer]
-    SD[senior-dev]
+    SD[staff-engineer]
     VP[vp-*]
     CISO[ciso]
     SRE[sre-lead]
@@ -32,13 +32,13 @@ graph TD
 
 ## When to invoke / NOT invoke (R10 invoker-wins)
 
-- **`senior-dev`**: Use for direct, single-shot implementation when **no** orchestration is required — work is small/localized, there is **no** `cto` plan, **no** typed team under `.cursor/agents/`, **single** workspace root, and the user did not ask for cross-root coordination.
+- **`staff-engineer`**: Use for direct, single-shot implementation when **no** orchestration is required — work is small/localized, there is **no** `cto` plan, **no** typed team under `.cursor/agents/`, **single** workspace root, and the user did not ask for cross-root coordination.
 - **`tech-lead`**: Use when **any** orchestration signal is true:
   1. `cto` plan with a phase graph,
-  2. project team present in `.cursor/agents/` (`dev-*`, `reviewer-*`, `qa-*`, `devops`, `sme-*`),
+  2. project team present in `.cursor/agents/` (`dev-*`, `qa-*`, `devops`, `sme-*`),
   3. task spans **≥ 2** workspace roots,
   4. **explicit user request** to use `tech-lead` or to orchestrate across folders/phases.
-- **Invoker wins**: If the user names an agent, honor that agent. If the user describes work without naming an agent → choose `tech-lead` when **any** of the four signals above holds; otherwise `senior-dev`.
+- **Invoker wins**: If the user names an agent, honor that agent. If the user describes work without naming an agent → choose `tech-lead` when **any** of the four signals above holds; otherwise `staff-engineer`.
 
 ## Per-role decision tree
 
@@ -46,10 +46,10 @@ For each role **R** ∈ {`impl`, `devops`}, scan that workspace root’s `.curso
 
 | R      | Pattern  | On match                              | On miss                  |
 | ------ | -------- | ------------------------------------- | ------------------------ |
-| impl   | `dev-*`  | delegate to matched project dev agent | delegate to `senior-dev` |
-| devops | `devops` | delegate to `devops` agent file       | delegate to `senior-dev` |
+| impl   | `dev-*`  | delegate to matched project dev agent | delegate to `staff-engineer` |
+| devops | `devops` | delegate to `devops` agent file       | delegate to `staff-engineer` |
 
-A **bare folder** (no matching agents) is not an error: delegate every role to `senior-dev` and log `[tech-lead] fallback target=senior-dev reason=no_team`.
+A **bare folder** (no matching agents) is not an error: delegate every role to `staff-engineer` and log `[tech-lead] fallback target=staff-engineer reason=no_team`.
 
 **Auto-escalation to `code-reviewer`** (single gate): triggers after each implementation group by default.
 
@@ -93,7 +93,7 @@ When a phase’s `touches[]` partitions into **≥ 2 disjoint groups** for the *
 
 Execution order:
 
-- `dev-*` (or `senior-dev` fallback) implementation by `tech-lead`
+- `dev-*` (or `staff-engineer` fallback) implementation by `tech-lead`
 - handoff to `code-reviewer` for review + QA/test strategy + execution decision
 - if `changes_requested` or tests fail, `tech-lead` redispatches implementation with feedback
 
@@ -121,7 +121,7 @@ If `$HOME/.cursor/ai-brain/.meta/migration-state.json` absent, log `[tech-lead] 
 
 ### Fallback topology (no full project team)
 
-`senior-dev` impl → `code-reviewer` review/test decision → re-dispatch `senior-dev` on requested changes.
+`staff-engineer` impl → `code-reviewer` review/test decision → re-dispatch `staff-engineer` on requested changes.
 
 ## Cost & concurrency caps
 
@@ -131,7 +131,7 @@ If `$HOME/.cursor/ai-brain/.meta/migration-state.json` absent, log `[tech-lead] 
 - **Per-phase intra-role fan-out**: max **8** instances per role.
 - **Global** safety net: **12** in-flight `Task` calls per orchestrator session.
 - Per-task token budget: **50k** (split equally across **N** instances when fanning out).
-- Per-`Task` timeouts: **5 min** specialist, **15 min** `code-reviewer` aggregate, **10 min** dev/senior-dev/qa.
+- Per-`Task` timeouts: **5 min** specialist, **15 min** `code-reviewer` aggregate, **10 min** dev/staff-engineer/qa.
 - On rate-limit error **3×** consecutive → halve concurrency for **60 s**.
 
 ## Observability + memory

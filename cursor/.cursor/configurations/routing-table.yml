@@ -17,14 +17,14 @@ workspace:
 
   # Isolation rules
   isolation:
-    - Each repo may have its own project agents (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`); `tech-lead` is org-tier and serves all repos.
+    - Each repo may have its own project agents (`dev-*`, `sme-*`, `qa-*`, `devops`); `tech-lead` is org-tier and serves all repos.
     - Never mix agents from different repos in same task
     - If task spans multiple repos, split into separate tasks per repo
 
   # Agent resolution per repo
   agent_resolution:
     executor: tech-lead # Primary executor (project-level)
-    fallback: vp-onboarding # Bootstrap project team (dev-*/reviewer-*/qa-*/devops/sme-*) when project agents are absent and the task requires execution. tech-lead always exists at the org tier.
+    fallback: vp-onboarding # Bootstrap project team (dev-*/qa-*/devops/sme-*) when project agents are absent and the task requires execution. tech-lead always exists at the org tier.
     org_agents:
       [
         cto,
@@ -36,7 +36,7 @@ workspace:
         staff-engineer,
         vp-research,
       ]
-    last_resort: senior-dev
+    last_resort: staff-engineer
 
 classification:
   # tech-lead is org-tier post-2026-04-30; resolves to ~/.cursor/agents/tech-lead.md.

@@ -13,11 +13,6 @@ templates:
     path: ~/.cursor/templates/onboarding/agents/sme-agent.md.tmpl
     owner: vp-onboarding
 
-  - template_id: onboarding/agents/reviewer-agent
-    template_version: 2026.05.07
-    path: ~/.cursor/templates/onboarding/agents/reviewer-agent.md.tmpl
-    owner: vp-onboarding
-
   - template_id: onboarding/agents/qa-agent
     template_version: 2026.05.07
     path: ~/.cursor/templates/onboarding/agents/qa-agent.md.tmpl

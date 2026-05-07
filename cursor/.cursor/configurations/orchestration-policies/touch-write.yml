@@ -8,12 +8,11 @@ kb_write_roles:
     - vp-onboarding
     - atlassian-pm
     - vp-research
-    - senior-dev
+    - staff-engineer
   denied_patterns:
     - dev-*
     - sme-*
     - qa-*
-    - reviewer-*
     - devops
 quotas:
   per_touch_byte_cap: 4096
@@ -24,7 +23,7 @@ quotas:
     vp-onboarding: 4
     atlassian-pm: 6
     vp-research: 5
-    senior-dev: 6
+    staff-engineer: 6
 noise_filters:
   skip_globs:
     - "**/node_modules/**"
