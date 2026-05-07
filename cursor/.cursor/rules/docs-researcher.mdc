@@ -8,6 +8,7 @@ alwaysApply: true
 - **Single docs broker**
   - The org-level `docs-researcher` agent is the single, global broker for documentation and web research.
   - Only `docs-researcher` should call documentation MCPs directly (e.g. Context7 documentation lookup, HTTP fetch/WebFetch for docs, `rovo` for Confluence/Jira docs).
+  - `cro` MUST ground factual challenges through `docs-researcher` (invoked by the CTO parent); `cro` never calls documentation MCPs directly.
 
 - **Delegation pattern**
   - All other agents (including ad-hoc/debug assistants) must delegate research/fetch tasks to `docs-researcher` instead of calling documentation MCPs themselves.

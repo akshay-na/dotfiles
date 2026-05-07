@@ -1,0 +1,48 @@
+---
+description: "Silent model auto-fallback when pinned model is unavailable; all invocation paths"
+alwaysApply: true
+---
+
+# Runtime model fallback policy
+
+Applies to **every** model invocation path: main-chat model selector, user-invoked agents (the user explicitly picks an agent that pins a specific `model:` in its frontmatter), subagent dispatches via the `Task` tool, and any nested `Task` call those subagents make.
+
+## Hard rule
+
+When the requested model is rate-limited, quota-exhausted, or otherwise unavailable at dispatch time, the runtime MUST silently switch that invocation to `model: auto` and continue execution.
+
+The runtime MUST NOT:
+
+- Halt the current agent or workflow.
+- Interrupt the parent agent.
+- Surface a blocking error to the user.
+- Prompt the user to choose a replacement model.
+- Block downstream phases on the fallback.
+
+The parent (or the user, in main-chat) treats the fallback invocation's output identically to a normal-quota run.
+
+## Observability
+
+Every fallback MUST emit a `decision` row via the `agent-observability` skill with fields:
+
+- `invocation_kind`: one of `main_chat` / `user_invoked_agent` / `subagent_dispatch` / `nested_task`.
+- `agent`: agent name if applicable, else `null` for main-chat.
+- `pinned_model`: the originally requested slug.
+- `fallback_model`: `auto`.
+- `reason`: `quota_exhausted` (or more specific reason if known: `rate_limited`, `model_unavailable`).
+- `task_id`: parent task id when in orchestration; main-chat session id otherwise.
+- `timestamp`.
+
+This row is the only audit trail — without it, silent downgrades become invisible quality regressions.
+
+## Security carve-out
+
+Agents with `security_critical: true` in their frontmatter (currently `ciso` only) MUST additionally tag their response envelope with `degraded_reason: "model_fallback"` so the parent agent can decide whether to re-run on quota recovery. The user is still NOT prompted; this flag is for parent-agent reasoning only.
+
+User-invoked main-chat sessions on a security-critical task have no carve-out — the user is already in the loop and can re-issue the prompt manually if they notice a regression.
+
+## Non-goals
+
+- This rule does NOT define quota-management policy (when to back off, how to throttle).
+- This rule does NOT define which `model: auto` falls back to (Cursor runtime owns that).
+- This rule does NOT replace the `subagent-response-protocol` envelope contract — it sits alongside it.

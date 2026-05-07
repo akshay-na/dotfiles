@@ -1,6 +1,6 @@
 ---
 name: tech-lead
-model: inherit
+model: composer-2-fast
 version: 2026.05.07
 description: "Org-tier execution orchestrator. Discovers project implementers per workspace folder; always routes review/QA decisions through `code-reviewer`. Single entrypoint for plan execution and multi-root orchestration."
 ---
@@ -44,10 +44,10 @@ graph TD
 
 For each role **R** ∈ {`impl`, `devops`}, scan that workspace root’s `.cursor/agents/`:
 
-| R | Pattern | On match | On miss |
-|---|---------|----------|---------|
-| impl | `dev-*` | delegate to matched project dev agent | delegate to `senior-dev` |
-| devops | `devops` | delegate to `devops` agent file | delegate to `senior-dev` |
+| R      | Pattern  | On match                              | On miss                  |
+| ------ | -------- | ------------------------------------- | ------------------------ |
+| impl   | `dev-*`  | delegate to matched project dev agent | delegate to `senior-dev` |
+| devops | `devops` | delegate to `devops` agent file       | delegate to `senior-dev` |
 
 A **bare folder** (no matching agents) is not an error: delegate every role to `senior-dev` and log `[tech-lead] fallback target=senior-dev reason=no_team`.
 
@@ -92,6 +92,7 @@ When a phase’s `touches[]` partitions into **≥ 2 disjoint groups** for the *
 **Mandatory** for all implementation runs.
 
 Execution order:
+
 - `dev-*` (or `senior-dev` fallback) implementation by `tech-lead`
 - handoff to `code-reviewer` for review + QA/test strategy + execution decision
 - if `changes_requested` or tests fail, `tech-lead` redispatches implementation with feedback

@@ -1,6 +1,6 @@
 ---
 name: vp-onboarding
-model: inherit
+model: composer-2-fast
 version: 2026.05.07
 description: The VP of Onboarding. **Single point of entry for onboarding any new project.** Re-entrant — run on any project at any time. Bootstraps integrated `ai-brain` project nodes, team, rules, skills. KB grows via touch-write (`cto`, `tech-lead`, `code-reviewer`, `vp-onboarding`, `atlassian-pm`, `docs-researcher`, `senior-dev`). Optional `--migrate-brain`. Generates project team (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`), rules, skills under `.cursor/`; typed content under `~/.cursor/ai-brain/projects/<name>/`.
 parallelizable: false
@@ -45,8 +45,8 @@ Project-level agents use **team role** names, not org titles. This keeps them di
 
 Required Roles below are project-tier only. `tech-lead` is org-tier and not generated per-project.
 
-| Role      | Name        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Role | Name | Purpose |
+| ---- | ---- | ------- |
 
 ### Optional Roles (create only when justified)
 
@@ -159,13 +159,13 @@ Each QA agent's description must state its test scope clearly (what test types i
 
 Choose the appropriate model for each agent based on cognitive requirements:
 
-| Agent type         | Recommended model | Reason                                                                      |
-| ------------------ | ----------------- | --------------------------------------------------------------------------- |
-| `dev-<scope>`      | `fast`            | Implementation work follows explicit instructions                           |
-| `reviewer-<scope>` | `inherit`         | Code review requires deeper reasoning to catch subtle issues                |
-| `sme-<domain>`     | `inherit`         | Domain expertise may need more reasoning; use `fast` for simple domains     |
-| `qa-<scope>`       | `fast`            | Test writing follows patterns and conventions                               |
-| `devops`           | `inherit`         | CI/CD work varies; some tasks need more reasoning                           |
+| Agent type         | Recommended model | Reason                                                                  |
+| ------------------ | ----------------- | ----------------------------------------------------------------------- |
+| `dev-<scope>`      | `inherit`         | Implementation work follows explicit instructions                       |
+| `reviewer-<scope>` | `auto`            | Code review requires deeper reasoning to catch subtle issues            |
+| `sme-<domain>`     | `composer-2-fast` | Domain expertise may need more reasoning; use `fast` for simple domains |
+| `qa-<scope>`       | `fast`            | Test writing follows patterns and conventions                           |
+| `devops`           | `inherit`         | CI/CD work varies; some tasks need more reasoning                       |
 
 **Available models:**
 
@@ -190,13 +190,13 @@ Project agents can be marked `parallelizable: true` in their frontmatter when th
 
 **When to add `parallelizable: true`:**
 
-| Agent type         | Parallelizable?    | Reason                                                                                         |
-| ------------------ | ------------------ | ---------------------------------------------------------------------------------------------- |
-| `dev-<scope>`      | Yes (within scope) | Can work on independent files/modules in parallel                                              |
-| `reviewer-<scope>` | Yes                | Code review for different scopes can parallelize                                               |
-| `sme-<domain>`     | Yes                | Domain review is independent                                                                   |
-| `qa-<scope>`       | Yes                | Test writing for different scopes can parallelize                                              |
-| `devops`           | Partial            | Some CI/CD work can parallel, deployments usually serial                                       |
+| Agent type         | Parallelizable?    | Reason                                                   |
+| ------------------ | ------------------ | -------------------------------------------------------- |
+| `dev-<scope>`      | Yes (within scope) | Can work on independent files/modules in parallel        |
+| `reviewer-<scope>` | Yes                | Code review for different scopes can parallelize         |
+| `sme-<domain>`     | Yes                | Domain review is independent                             |
+| `qa-<scope>`       | Yes                | Test writing for different scopes can parallelize        |
+| `devops`           | Partial            | Some CI/CD work can parallel, deployments usually serial |
 
 **For callers (org execution orchestrator):** You only orchestrate. **All** repo-changing work is done **only** by dispatching to project agents — never use editor/patch/write tools on the codebase yourself. When assigning work to multiple `dev-*`, `reviewer-*`, or `qa-*` agents within the same phase, check their `parallelizable` flag. If true, invoke them in parallel using `run_in_background: true` or parallel Task tool calls, **collect** their outputs, **merge** feedback when loops apply, and **re-dispatch** to the right agents until the phase passes or you escalate.
 
@@ -993,17 +993,17 @@ escalation:
 
 #### Orchestration Files Summary
 
-| File                                                  | System               | Purpose                                          |
-| ----------------------------------------------------- | -------------------- | ------------------------------------------------ |
-| `.cursor/configurations/pipelines/*.yml`              | Pipeline Executor    | Project workflows                                |
-| `.cursor/configurations/routing-overrides.yml`        | Task Orchestration   | Routing customization                            |
-| `.cursor/configurations/failure-patterns.yml`         | Closed-Loop          | Project error handling                           |
-| `.cursor/configurations/dev-reviewer-qa-loop.yml`     | Dev-Reviewer-QA Loop | Review and QA verification settings              |
-| `.cursor/configurations/verification-gates-local.yml` | Verification Gates   | Project-specific quality gates                   |
+| File                                                  | System               | Purpose                                               |
+| ----------------------------------------------------- | -------------------- | ----------------------------------------------------- |
+| `.cursor/configurations/pipelines/*.yml`              | Pipeline Executor    | Project workflows                                     |
+| `.cursor/configurations/routing-overrides.yml`        | Task Orchestration   | Routing customization                                 |
+| `.cursor/configurations/failure-patterns.yml`         | Closed-Loop          | Project error handling                                |
+| `.cursor/configurations/dev-reviewer-qa-loop.yml`     | Dev-Reviewer-QA Loop | Review and QA verification settings                   |
+| `.cursor/configurations/verification-gates-local.yml` | Verification Gates   | Project-specific quality gates                        |
 | `.cursor/configurations/dev-reviewer-qa-loop.yml`     | Feedback + Loop      | Iteration caps, regression scope, review/test cadence |
-| `.cursor/rules/*.mdc` (with enforcement)              | Rule Enforcement     | Programmatic validation                          |
-| `.cursor/skills/*/SKILL.md` (with schemas)            | Skill Validation     | I/O contracts                                    |
-| `~/.cursor/ai-brain/projects/<name>/metrics/`           | Observability        | Task tracking                                    |
+| `.cursor/rules/*.mdc` (with enforcement)              | Rule Enforcement     | Programmatic validation                               |
+| `.cursor/skills/*/SKILL.md` (with schemas)            | Skill Validation     | I/O contracts                                         |
+| `~/.cursor/ai-brain/projects/<name>/metrics/`         | Observability        | Task tracking                                         |
 
 ### 3. Team Skills (as needed)
 
@@ -1292,7 +1292,7 @@ else: 2c-minimal
 
 **2c-warm.** Removed in strict-minimal architecture.
 
-**2d. Verify.** Not skipped → minimal set always; warm mode → full checklist from prior spec (hub, architecture, deps, modules/_index, graph, manifest, Home). Services/datastores dirs only if detected.
+**2d. Verify.** Not skipped → minimal set always; warm mode → full checklist from prior spec (hub, architecture, deps, modules/\_index, graph, manifest, Home). Services/datastores dirs only if detected.
 
 **2e. Report** mode: `minimal-scaffold | warm-full | skipped`.
 
@@ -1326,7 +1326,6 @@ Before ANY Step 3 work, VERIFY:
 
 This step generates project-level agents, rules, skills, and orchestration configs. It consists of four phases: Inventory, Plan, Execute, and Verify.
 
-
 #### Run-once initialization (agent startup)
 
 Outside any per-workspace folder loop: at the **start** of this agent run, idempotently ensure org orchestration seed files exist (skip if already present):
@@ -1335,6 +1334,7 @@ Outside any per-workspace folder loop: at the **start** of this agent run, idemp
 
    ```markdown
    # Orchestration SLOs (vp-onboarding seed)
+
    dispatch_latency_p95 < 30s; cascade_rate < 5% monthly; fallback_rate < 15%; cleanup_failure_rate = 0
    ```
 
@@ -1342,6 +1342,7 @@ Outside any per-workspace folder loop: at the **start** of this agent run, idemp
 
    ```markdown
    # Agent demotion pattern (vp-onboarding seed)
+
    Principle: org-tier promotion fits roles that coordinate **multiple workspace roots** and shared org routing. **Demotion** revisit when scope shrinks below **two** workspace roots **and** project `dev-*` / `sme-*` / `reviewer-*` teams are stable without a global orchestration hub — prefer moving residual responsibility into project-tier roles and documenting in an ADR.
    ```
 
@@ -1435,14 +1436,14 @@ If org orchestration doesn't exist → skip orchestration bootstrapping.
 
 Based on the analysis and run mode, build a plan. For every artifact, assign an **action**:
 
-| Action | Meaning |
-| ---------- | ------------------------------------------------------------------------------------------------------ |
-| **create** | Does not exist yet. Will be created. |
-| **update** | Exists but is stale, incomplete, or inconsistent with current project state. Will be updated. |
-| **keep** | Exists and is accurate. No changes needed. |
-| **remove** | Exists but is no longer relevant (e.g., an SME for a domain that was removed). Flag for user decision. |
-| **add-external** | External skill from official/community source. Will be fetched and added to project. |
-| **skip-external** | External skill found but not recommended (security concerns, conflicts, or not relevant). |
+| Action            | Meaning                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| **create**        | Does not exist yet. Will be created.                                                                   |
+| **update**        | Exists but is stale, incomplete, or inconsistent with current project state. Will be updated.          |
+| **keep**          | Exists and is accurate. No changes needed.                                                             |
+| **remove**        | Exists but is no longer relevant (e.g., an SME for a domain that was removed). Flag for user decision. |
+| **add-external**  | External skill from official/community source. Will be fetched and added to project.                   |
+| **skip-external** | External skill found but not recommended (security concerns, conflicts, or not relevant).              |
 
 **Planning steps:**
 
@@ -1535,7 +1536,6 @@ Approve this plan, or suggest changes.
 
 After user approval, execute according to the action assigned to each artifact:
 
-
 #### Legacy `tech-lead.md` cleanup (idempotent; **mandatory before other Step 3 work** when legacy file exists)
 
 For each open workspace folder `F`:
@@ -1544,7 +1544,6 @@ For each open workspace folder `F`:
 - **Project name:** resolve `<name>` via the `kb-identity` skill (worktree-stable, git-remote-based; folder-name fallback) **before** marker check.
 - If `~/.cursor/ai-brain/projects/<name>/.tech-lead-cleaned.md` **exists** → skip (idempotent; already archived).
 - Else perform the following **in order** (never silent-skip on error):
-
   1. **Informational diff:** show diff between the legacy file and the canonical org template at `~/.cursor/agents/tech-lead.md` (for human context only). Optionally feed summary into `~/.cursor/ai-brain/projects/<name>/retrospections/` as a compact onboarding note (future runs).
   2. **Fingerprint:** compute **sha256** of `<F>/.cursor/agents/tech-lead.md`.
   3. **Backup:** write verbatim legacy body to `~/.cursor/ai-brain/projects/<name>/legacy/tech-lead-YYYY-MM-DD.md` (create directories as needed). The file MUST begin with a YAML frontmatter block documenting at minimum: `archived_at`, `origin_path` (absolute or workspace-relative path to the removed file), `sha256`, `vp_onboarding_run_id`, `reason: legacy_promotion_to_org_tier`. After the frontmatter, include a body section **How to restore** listing `git revert <promotion-commit>` and short guidance on extracting project-specific customizations into project-tier `dev-*` / `sme-*` roles.
@@ -1624,6 +1623,7 @@ After execution:
 9. If this was a bootstrap or fill-gaps run, suggest the user test each new team member with a small task from their scope.
 10. If this was a refresh run, summarize all changes made so the user can verify accuracy.
 11. **Final summary.** Report:
+
     ```
     Memory: X entries (Y constraints, Z decisions, W principles)
     Knowledge Base: X modules, Y services, Z datastores, N dependencies, M inter-service edges
@@ -1631,12 +1631,12 @@ After execution:
     External Skills: X added (Y official, Z community)
     ```
 
-
 12. If a legacy `<F>/.cursor/agents/tech-lead.md` was removed, confirm the backup exists at `~/.cursor/ai-brain/projects/<name>/legacy/tech-lead-YYYY-MM-DD.md`, the marker file exists at `~/.cursor/ai-brain/projects/<name>/.tech-lead-cleaned.md`, and the audit entry was appended to `~/.cursor/ai-brain/org/global/orchestration/cleanup-log.md`.
 
 ## Team Member File Formats
 
 ### tech-lead template (REMOVED 2026-04-30)
+
 `tech-lead` is org-tier and lives at `~/.cursor/agents/tech-lead.md` (sourced from
 `cursor/.cursor/agents/tech-lead.md`). vp-onboarding NO LONGER generates a project tech-lead.
 See `~/.cursor/docs/decisions/2026-04-30-tech-lead-org-promotion.md` for the ADR
@@ -1907,19 +1907,19 @@ You operate in **Agent (read-only review) mode** by default. You never modify ap
 
 When invoked, your caller supplies:
 
-| Field                   | From `org execution orchestrator` (dev_code)             | From `org execution orchestrator` (qa_tests)                 | From `code-reviewer`                               |
-| ----------------------- | --------------------------------------- | ------------------------------------------- | -------------------------------------------------- |
-| `target`                | `dev_code`                              | `qa_tests`                                  | `dev_code` (and/or `qa_tests` if PR touches tests) |
-| `dev_agent`             | The dev that produced the change        | The dev whose change is under test          | `null` (change comes from an external PR / branch) |
-| `qa_agent`              | `null`                                  | The qa that produced the tests              | `null` or the qa if identifiable                   |
-| `iteration`             | Loop iteration number                   | Loop iteration number                       | Always `1`                                         |
-| `files_in_scope`        | Files the dev changed within your scope | Test files the qa created/updated           | Subset of the diff within your scope               |
-| `dev_change_ref`        | —                                       | Files the dev changed (for fit judgment)    | Full diff                                          |
-| `worktree_path`         | Repo root (in-place review)             | Repo root (in-place review)                 | Isolated worktree path (read-only)                 |
-| `base_ref` / `head_ref` | Usually `HEAD~1`..`HEAD`                | Usually `HEAD~1`..`HEAD`                    | Merge-base..PR head                                |
-| `review_lens`           | Optional (defaults to your full scope)  | Optional (defaults to your full scope)      | Often narrowed (e.g., "security only")             |
-| `acceptance_criteria`   | From the plan/phase                     | From the plan/phase (for coverage judgment) | Derived from PR description (if any)               |
-| `may_consult_sme`       | `true` unless caller says otherwise     | `true` unless caller says otherwise         | `true` unless caller narrows the lens              |
+| Field                   | From `org execution orchestrator` (dev_code) | From `org execution orchestrator` (qa_tests) | From `code-reviewer`                               |
+| ----------------------- | -------------------------------------------- | -------------------------------------------- | -------------------------------------------------- |
+| `target`                | `dev_code`                                   | `qa_tests`                                   | `dev_code` (and/or `qa_tests` if PR touches tests) |
+| `dev_agent`             | The dev that produced the change             | The dev whose change is under test           | `null` (change comes from an external PR / branch) |
+| `qa_agent`              | `null`                                       | The qa that produced the tests               | `null` or the qa if identifiable                   |
+| `iteration`             | Loop iteration number                        | Loop iteration number                        | Always `1`                                         |
+| `files_in_scope`        | Files the dev changed within your scope      | Test files the qa created/updated            | Subset of the diff within your scope               |
+| `dev_change_ref`        | —                                            | Files the dev changed (for fit judgment)     | Full diff                                          |
+| `worktree_path`         | Repo root (in-place review)                  | Repo root (in-place review)                  | Isolated worktree path (read-only)                 |
+| `base_ref` / `head_ref` | Usually `HEAD~1`..`HEAD`                     | Usually `HEAD~1`..`HEAD`                     | Merge-base..PR head                                |
+| `review_lens`           | Optional (defaults to your full scope)       | Optional (defaults to your full scope)       | Often narrowed (e.g., "security only")             |
+| `acceptance_criteria`   | From the plan/phase                          | From the plan/phase (for coverage judgment)  | Derived from PR description (if any)               |
+| `may_consult_sme`       | `true` unless caller says otherwise          | `true` unless caller says otherwise          | `true` unless caller narrows the lens              |
 
 You must not work outside `files_in_scope`. If you spot an important issue in
 an out-of-scope file, note it under `out_of_scope_observations` and keep it

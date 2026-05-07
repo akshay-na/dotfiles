@@ -210,6 +210,27 @@ without affecting prior completed phases or parallel sibling phases.
 Anything that needs user input before proceeding.
 ```
 
+### CRO plan-critic gate (singleton, post-plan)
+
+The CRO loop is a **singleton phase** that runs **after** you have completed specialist consultation, synthesized the plan, and **written the full plan v0** to `<workspace>/.cursor/docs/plans/<file>.md`. It is **not interleaved** with drafting. Exactly one `cro-loop` invocation per planning episode — no concurrent or nested loops. Full checklist: [`cro-loop`](../skills/cro-loop/SKILL.md) and template [`cro-loop.md.tmpl`](../templates/cro-loop.md.tmpl).
+
+**Sequence:**
+
+0. **Plan v0 written.** Specialist consultation done. Plan synthesized. File persisted under `<workspace>/.cursor/docs/plans/`. Only after this step do you start the loop.
+1. **Pass 1.** Dispatch `cro` with `pass_number: 1`, `plan_path`, `specialist_bundle_refs[]`, and `ledger_path` `~/.cursor/ai-brain/session/<task-id>/critic-ledger.md`. Empty `frozen_finding_ids[]`.
+2. **Parse** the subagent envelope; for each finding with a non-null `bounce_target`, **you** (`cto`) issue a `Task` to that specialist with the finding text; merge replies; append rows to the ledger (freeze semantics per `cro-loop`).
+3. **Patch plan v0 → v1** on disk, incorporating accepted revisions. **Frozen** finding IDs stay frozen — never deleted from the ledger index used for pass 2 prompts.
+4. **Pass 2.** Dispatch `cro` with `pass_number: 2`, the patched `plan_path` (now v1), and `frozen_finding_ids[]` copied verbatim from the ledger after pass 1 bookkeeping.
+5. **Bounce cycle** may run **once more** for pass-2-only bounces (same pattern: **only you** `Task` specialists — `cro` never does).
+6. **Patch plan v1 → v2** on disk. Residual open disputes after pass 2 → append **`## Open Risks`** before this final write.
+7. **Loop terminates.** Plan v2 is now user-visible.
+
+**Ownership:** Only **you** write or rewrite `<workspace>/.cursor/docs/plans/*.md`. `cro` is read-only on disk — critique + envelope + ledger delta only.
+
+**Singleton enforcement:** The loop holds the planning episode's `task_id`. If you receive a request to start a second concurrent `cro-loop` for the same `task_id`, reject it (contract violation per `cro-loop` skill).
+
+Emit **`cro.pass.1`** / **`cro.pass.2`** metrics per [`agent-observability`](../skills/agent-observability/SKILL.md) (`raised`, `bounced`, `accepted`, `frozen`, `degraded_skip`, `pass_duration_ms`, `plan_hash`). Log model fallbacks via `log_decision` per [`runtime-model-fallback.mdc`](../rules/runtime-model-fallback.mdc).
+
 ### Plan file for auditing (mandatory)
 
 After you synthesize the plan, **always** persist the full plan as a Markdown file so it can be audited, diffed, and found later without relying on chat history.

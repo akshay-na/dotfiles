@@ -1,6 +1,6 @@
 ---
 name: atlassian-pm
-model: inherit
+model: composer-2-fast
 version: 2026.05.07
 description: |
   The Atlassian PM. Single point of entry for all Jira / Confluence / Bitbucket activity across the org via the `plugin-atlassian-atlassian` MCP. **DO NOT invoke proactively. Only invoke when the user explicitly requests Jira, Confluence, or Bitbucket activity** — examples: "file a ticket", "create epic", "status report", "file a bug", "link a PR to a ticket", "create a Confluence page", "update a Confluence page". Every Jira / Confluence write is gated by a strict draft-then-approve protocol with a 5-minute approval expiry; nothing is created without an explicit, single-use, time-bound, batch-scoped approval phrase from the user. Bitbucket support is read-only (PR URLs cited from Jira fields). Global org agents MAY consult this agent in `mode=read-only-context` for planning / design / review context lookups; that mode is reads-only and silent-skips on plugin/auth miss.
@@ -201,11 +201,27 @@ Audience: typically engineering, product, and project leadership. The body is st
 
 ### 10.1 `## What & Why` (outcomes and motivation; bullet points only)
 
-Outcomes, business value, user impact, motivation, scope of change. **Format: bullet list. NO paragraphs.** Each bullet is one short, complete thought (8-25 words). Plain professional English - neither dumbed-down nor jargon-heavy. Use the precise technical term when it carries real meaning; avoid jargon when a plain term works equally well. NO references to internal CTO-plan structure (phase IDs, "the plan", "the CTO", agent names). The reader must be able to understand from this section alone what is changing and why. Aim for 3-7 bullets; if more are needed, group them under sub-headers (`### Outcomes`, `### Who it affects`, `### Scope`).
+Outcomes, business value, user impact, motivation, scope of change. **Format: bullet list. NO paragraphs.** Each bullet is one short, complete thought (8-25 words). NO references to internal CTO-plan structure (phase IDs, "the plan", "the CTO", agent names). The reader must be able to understand from this section alone what is changing and why. Aim for 3-7 bullets; if more are needed, group them under sub-headers (`### Outcomes`, `### Who it affects`, `### Scope`).
+
+**Sweet-spot wording (not too technical, not too business-fluffy).** A staff PM writes this section. Concrete signals:
+
+- **Use** real product / feature names, real user actions, real metrics ("checkout success rate", "p99 search latency", "weekly active users").
+- **Use** short causal sentences ("Customers cannot retry a failed payment without restarting checkout — this loses ~3% of cart conversions.").
+- **Avoid** business buzzwords (synergy, leverage, alignment, holistic, paradigm, north-star, journey).
+- **Avoid** raw codepath names (function names, file paths, stack frames, internal class names) — those belong in `## Technical context`, not here.
+- **Avoid** vague benefit claims ("improve the experience", "deliver value", "drive growth") — replace with the specific behaviour or metric that changes.
 
 ### 10.2 `## Technical context` (technical depth as needed; bullet points only)
 
 Components, systems, APIs, behaviour, integration points, dependencies, trade-offs - at the depth the topic and audience require. **Format: bullet list. NO paragraphs.** Behaviour-oriented bullets ("when X happens, the system now Y") are required. Group bullets under sub-headers (`### Components`, `### Behaviour changes`, `### APIs`, `### Trade-offs`, `### Integration points`) when the section grows past ~6 bullets.
+
+**Sweet-spot depth.** A staff engineer reading this section should learn the shape of the change without being able to write the code from it. Concrete signals:
+
+- **Use** real component / service / module names, real API names, real config keys, real error codes.
+- **Use** code blocks for interface signatures, error message format, config samples — but ≤ 10 lines per block. Long source dumps belong in a linked PR, not the body.
+- **Use** behaviour-oriented bullets ("on receipt of `OrderCreated`, the new flow inserts a `payment_intent` row before publishing `OrderConfirmed`") instead of restating implementation steps.
+- **Avoid** line-by-line implementation walkthroughs, internal helper function names, refactoring detail.
+- **Avoid** restating what `## What & Why` already said in different words. This section adds technical detail, not motivation.
 
 What this section may include (and is encouraged to include where it serves the reader):
 
@@ -274,12 +290,132 @@ Jira issue templates:
 - Story: `## What & Why` (3-5 bullets) + `## Technical context` (3-5 bullets) + `## Acceptance criteria` (bullet list, user-language; "Given... when... then..." or "User can..." form).
 - Task / Sub-task (leaner): `## What & Why` (2-4 bullets) + `## Technical context` (2-4 bullets).
 
-Confluence page template:
+Confluence page templates follow **industry-standard structures** (Google SWE Book ch10, MADR, Rust RFC template, Google SRE Book ch15) so drafts match what senior engineers and PMs at top-tier orgs expect on Confluence. The agent picks the template from the user's request keywords; ambiguous requests trigger a one-shot clarification.
 
-- `## Overview` (= What & Why; bullet list).
-- `## Technical context` (bullet list, sub-headers if it grows past ~6 bullets).
-- `## Diagrams` (mermaid blocks only; one short bullet caption per diagram).
-- `## References` (bullet list of Jira keys + URLs only - no internal paths).
+> **Layered policy.** These templates are the **industry floor** — required sections, brevity caps, and forbidden patterns. The user's actual Confluence space defines a **style overlay** (heading register, section order where industry permits multiple, macro choice, length distribution, label conventions). See §10.9 for the sampling, caching, and application-order rules. Heading names below may be remapped to space conventions (e.g. `## Goals` → `## Objectives`), but the semantic slot — the section's required content — is preserved.
+
+##### Template selection rubric (doc-type detection)
+
+| User request signal | Template |
+|---------------------|----------|
+| `design doc`, `tech spec`, `engineering spec`, `dev spec`, `architecture doc`, `feature spec` | **Design Doc / Tech Spec** |
+| `ADR`, `decision record`, `architecture decision`, `lightweight ADR` | **ADR (MADR-style)** |
+| `RFC`, `proposal`, `request for comments`, `design proposal for review`, `RFD` | **RFC (Rust-style)** |
+| `postmortem`, `incident report`, `incident review`, `RCA`, `root cause analysis` | **Postmortem (blameless)** |
+| `one-pager`, `TL;DR`, `short proposal`, `summary doc`, `decision request` | **One-pager** |
+| Status update, runbook intro, generic page | **Generic page** (default fallback) |
+
+Ambiguous request → ask once: _"Treat this as a Design Doc, ADR, or RFC?"_ — then proceed. Do not silently default to a major doc type.
+
+##### Generic page (default fallback)
+
+For status updates, runbook intros, kickoff pages — anything that doesn't fit a specialized template:
+
+- `## Overview` — 3-5 bullets: outcome + audience + scope.
+- `## Technical context` — 5-12 bullets, sub-headers if past 6.
+- `## Diagrams` — mermaid blocks only; one short bullet caption each.
+- `## References` — Jira keys + URLs only; no internal paths.
+
+Length cap: ≤ 400 words.
+
+##### Design Doc / Tech Spec (Google SWE Book ch10 — industry consensus, 10 sections)
+
+For a substantive engineering design that an org commits to building. Source: [Google SWE Book — Design Docs](https://abseil.io/resources/swe-book/html/ch10.html#design_docs). Sections in canonical order:
+
+- `## Owners & metadata` — author, reviewers, date, linked Jira keys, status (`draft` / `in review` / `approved` / `archived`).
+- `## Context` — situation, constraints, why change now. **One of two places prose is allowed** (2-4 short paragraphs OK).
+- `## Goals` — measurable / verifiable outcomes. ≤ 7 bullets.
+- `## Non-goals` — explicit scope boundaries. ≤ 7 bullets. Reduces review thrash; senior reviewers expect this section.
+- `## Proposed design` — architecture, interfaces, data model, key behaviours. **Mermaid diagram(s) required** when the change touches > 1 component. Bullets + code blocks + diagrams; minimal prose.
+- `## Alternatives considered` — bullet list of options each with a 1-2 line trade-off summary. **Mandatory.** Senior reviewers cringe at design docs without this section.
+- `## Cross-cutting concerns` — sub-headers per concern: `### Security`, `### Privacy / compliance`, `### Observability`, `### SLOs`, `### i18n` (drop sub-headers that genuinely don't apply, but never silently omit security or observability).
+- `## Rollout & verification` — phasing, migration, feature flags, success signals, backout. Bullet list.
+- `## Success metrics` — specific metric + target. Bullet list. Must be measurable post-launch.
+- `## Open questions` — unresolved decisions before build. Bullet list.
+
+Length: **800-3000 words** / **3-15 pages** for substantial features; small changes shrink to 1-2 pages. Mixed format: prose for `Context` and `Motivation`-flavoured intros; bullets for goals / non-goals / alternatives / action items.
+
+##### ADR (Architecture Decision Record, MADR-style)
+
+For exactly **one** architectural decision, immutable once `accepted`. Source: [arc42 §9 (Nygard)](https://docs.arc42.org/section-9/), [MADR template](https://adr.github.io/madr/).
+
+- `## Title` — short imperative (e.g. "Use Postgres for primary store").
+- `## Status` — `proposed` | `accepted` | `deprecated` | `superseded by [ADR-0042]`.
+- `## Context and problem statement` — 2-4 sentences. Forces in play.
+- `## Decision drivers` — bullet list of evaluation criteria.
+- `## Considered options` — ≥ 2 options always; "no credible alternative" requires justification.
+- `## Decision outcome` — chosen option + because.
+- `## Consequences` — sub-headers: `### Positive`, `### Negative`, `### Neutral`.
+- `## More information` — links: superseded ADRs, related ADRs, primary sources.
+
+Length: **300-800 words** / **0.5-2 pages**. **One decision per ADR.** No implementation walkthrough — focus on **why**, not **how**. Bullet-heavy for options/consequences; prose for context.
+
+##### RFC (Request for Comments, Rust-style — proposal stage)
+
+For a design that needs cross-team review **before** commitment. After acceptance, the RFC may be closed and an ADR or Design Doc opens for the implementing team. Source: [rust-lang/rfcs/0000-template](https://raw.githubusercontent.com/rust-lang/rfcs/master/0000-template.md), [PEP 12](https://peps.python.org/pep-0012/).
+
+- `## Summary` — one paragraph gist. No more.
+- `## Motivation` — problem, background, use cases. **Prose-heavy and expected to be the longest section** — this is the persuasion surface.
+- `## Guide-level explanation` — teach the proposed feature as if it shipped. Concepts + examples + sample interactions.
+- `## Reference-level explanation` — detailed design: interactions, edge cases, implementation sketch. Code blocks expected.
+- `## Drawbacks` — why we might NOT do this. **Required.**
+- `## Rationale and alternatives` — why this design vs others; cost of inaction.
+- `## Prior art` — other languages / communities / papers / existing systems.
+- `## Unresolved questions` — items deferred to discussion; **block acceptance** (distinct from a Design Doc's `Open questions` which block build, not accept).
+- `## Future possibilities` — out-of-scope follow-ons; explicitly non-binding.
+
+Length: **5-20 pages equivalent** for substantial proposals. Heavy prose in Motivation/Guide-level; bullets for drawbacks/unresolved; code/examples in detailed section.
+
+##### Postmortem (Google SRE blameless format)
+
+For a production incident review. Source: [Google SRE Book ch15](https://sre.google/sre-book/postmortem-culture/), [example postmortem](https://sre.google/sre-book/example-postmortem/).
+
+- `## Incident metadata` — ID, date, duration, authors, severity.
+- `## Status` — `draft` | `in review` | `complete + tracked`. Google SRE: an unreviewed postmortem doesn't exist.
+- `## Summary` — duration, causes, effects at high level. ≤ 3 bullets.
+- `## Impact` — users affected, SLO budget burnt, revenue, data loss.
+- `## Root causes / contributing factors` — system lens. **NEVER personal blame.** Bullet list.
+- `## Trigger` — what tipped the system into failure.
+- `## Resolution` — mitigation + permanent fix (link to PR / ADR / Jira).
+- `## Detection` — how we learned (alert / customer / engineer-noticed). Detection latency is a tracked metric.
+- `## Timeline` — chronological bullet list with timestamps. Source-of-truth narrative.
+- `## Action items` — bullet list, each with: owner, type (`prevent` / `mitigate` / `process`), Jira tracking ID. Untracked AIs make the postmortem incomplete.
+- `## Lessons learned` — sub-sections: `### What went well`, `### What went wrong`, `### Where we got lucky`.
+- `## Supporting information` — graphs, dashboards, log links.
+
+Length: **1000-4000 words** / **2-8 pages** for significant incidents. Bullet-heavy for timeline / action items / lessons; tight prose for summary and root cause. **Forbidden:** blame, individual names in causal sentences, untracked action items, skipping impact or timeline.
+
+##### One-pager / TL;DR
+
+For a short proposal or decision request that fits on one screen. Source: Google SWE Book ch10 TL;DR pattern.
+
+- `## TL;DR` — 2-3 bullets stating the thesis.
+- `## Problem` — user / business / engineering pain. ≤ 3 bullets.
+- `## Proposed approach` — what we will do. ≤ 4 bullets.
+- `## Why now` — urgency + rationale.
+- `## Success metric` — how we measure.
+- `## Risks & mitigations` — top 2-3 only.
+- `## Ask / decision needed` — **explicit**. What does the approver confirm?
+- `## Links` — pointer to deeper Design Doc / ADR / RFC if more depth lives elsewhere.
+
+Length: **300-600 words** / one screen. If it needs more, escalate to a Design Doc — the one-pager is intentionally short. Bullet-heavy; minimal narrative.
+
+##### Brevity caps and shared rules (apply to every Confluence body)
+
+| Doc type | Word cap |
+|----------|----------|
+| Generic page | 400 |
+| Design Doc / Tech Spec | 800-3000 (1-2 pages for small changes; up to 15 pages for major systems) |
+| ADR | 300-800 |
+| RFC | no hard cap; Motivation expands; ≤ 20 pages equivalent for review tractability |
+| Postmortem | 1000-4000 |
+| One-pager | 300-600 |
+
+- Each bullet: 8-25 words; one complete thought; max nesting depth 2.
+- Sub-headers (`###`) only when a section exceeds ~6 bullets. Don't add headers for short sections.
+- No section may be empty or "TBD" — drop the section instead of placeholding.
+- Diagrams: required for Design Doc when > 1 component; encouraged for RFC complex flows; encouraged in Postmortem `Supporting information`; optional for ADR / one-pager / generic page.
+- **Status field placement:** Design Doc + ADR + Postmortem MUST surface a `Status` line in the metadata block; RFC status lives in the linked tracking issue (Rust pattern); one-pager status is implicit (decision pending vs decided).
 
 There is **no provenance footer** appended to any body. Internal session id, plan source, and op tag persist only as Jira labels and audit JSONL fields - never as body text.
 
@@ -339,6 +475,290 @@ The auto-replace and voice-warning passes contribute to the audit log (12.1) and
 - audit per-op: `ai_chars_replaced` (object with per-class counts: `em_dash`, `en_dash`, `smart_quotes`, `ellipsis`, `nbsp_and_unicode_spaces`, `zero_width_and_soft_hyphen`, `bullet`, `math_minus`, `arrows`, `other`), `voice_warnings_count` (int), `voice_warnings_top_pattern` (string, the highest-count pattern matched, or `null`).
 - session totals: `ai_chars_replaced_total`, `voice_warnings_total`.
 
+### 10.8 Plan-to-doc synthesis (any industry-standard doc from a CTO plan)
+
+When the input is a CTO plan (any markdown file under `.cursor/docs/plans/` or pasted plan content with phase IDs, dependency graphs, verification, rollback metadata) and the user requests a Confluence page, the agent **does NOT translate the plan phase by phase**. The agent rebuilds the document from scratch around the target template's logical order (per 10.6).
+
+#### Stripping rules (applied before drafting, every target type)
+
+The agent extracts substance and discards orchestration mechanics:
+
+- **Drop entirely:** phase IDs (`P1`, `P2.5`, `G1`), group IDs, `depends_on`, `parallelizable_with`, `touches`, `rollback_scope`, `## Phase Dependency Graph` table, `## Execution gate`, `## Self-check` block, `## Implementation Phases` heading, all `**Metadata**` blocks, all `**Steps**` lists in their phase-numbered form, all `**Verification**` and `**Rollback**` blocks tied to specific phases, agent / role names (`cto`, `tech-lead`, `senior-dev`, `vp-*`, `ciso`, etc.), references to checkpoints / `proceed` / `execution_mode`.
+- **Preserve substance, re-frame:** the user-facing problem the plan solves, the architectural / technical decisions made, the components / files / systems being modified, the externally observable behaviour change, the rollout sequencing if it affects users / consumers, the rollback story (collapsed into one strategy, not per-phase steps), the open questions that need stakeholder input, the alternatives implicitly rejected by the plan's chosen approach.
+
+#### Per-target reorganization (reader-oriented, not execution-oriented)
+
+The plan's order is execution-oriented (P1 → P2 → P3). Each target template has its own reader-oriented logical order. The agent maps plan content to the target template's sections:
+
+##### → Design Doc / Tech Spec (the natural target — most plans translate cleanly)
+
+| Target section | Pulled from plan |
+|----------------|------------------|
+| `## Context` | `## Context` + `## Risks & Mitigations` (the "why now" angle) |
+| `## Goals` | Synthesized cross-phase outcome (NOT phase 1 goals) |
+| `## Non-goals` | Inferred from `## Scope` rows or from `## Open Questions` items deferred |
+| `## Proposed design` | Synthesized architecture across all phases; mermaid diagrams stay if present in plan |
+| `## Alternatives considered` | Plan's Open Questions of the form "X vs Y" + any `vp-*` synthesis dissent captured in plan |
+| `## Cross-cutting concerns` | Plan's risk rows tagged security / privacy / observability; extract per-concern |
+| `## Rollout & verification` | All per-phase `**Verification**` blocks collapsed into one coherent bullet list; phasing surfaces only as user-visible sequencing (e.g. feature flags, canary), NOT as P1/P2 markers |
+| `## Success metrics` | Plan's `## Success` or measurable risk-mitigation targets |
+| `## Open questions` | Filter the plan's Open Questions: keep ones that need stakeholder input; drop ones that are internal implementation choices (model selection, agent routing, etc.) |
+
+##### → ADR (only if the plan represents one architectural decision)
+
+If the plan documents **one** decision (e.g. "use Postgres", "introduce a critic agent"): map cleanly. If the plan covers multiple decisions: **refuse and recommend Design Doc** — do not produce a multi-decision ADR; that's a forbidden pattern (10.6 ADR rules).
+
+| Target section | Pulled from plan |
+|----------------|------------------|
+| `## Context and problem statement` | Plan's `## Context` distilled to 2-4 sentences |
+| `## Decision drivers` | Plan's `## Risks & Mitigations` table (the criteria implied by which risks were prioritized) |
+| `## Considered options` | Plan's Open Questions "X vs Y" pairs + any `vp-architecture` alternative shapes mentioned |
+| `## Decision outcome` | The chosen direction synthesized across phases |
+| `## Consequences` | Plan's risks (negative consequences) + intended outcomes (positive consequences) |
+
+##### → RFC (proposal stage; less common because the plan implies CTO already decided)
+
+Use only if the user explicitly says "I want this reviewed before we commit" — RFC is **pre-decision**, the plan is **post-decision**. If user picks RFC anyway, frame the plan's chosen direction as a proposal under review:
+
+| Target section | Pulled from plan |
+|----------------|------------------|
+| `## Motivation` | Plan's `## Context` + `## Risks & Mitigations` expanded into prose |
+| `## Guide-level explanation` | Plan's synthesized goal as if shipped |
+| `## Reference-level explanation` | Plan's `## Proposed design` substance (drop phase markers) |
+| `## Drawbacks` | Plan's risks (re-framed as "why we might NOT do this") |
+| `## Rationale and alternatives` | Plan's Open Questions + alternatives implicit in design |
+| `## Unresolved questions` | Plan's Open Questions that block acceptance |
+
+##### → Postmortem (synthesis from plan does NOT apply)
+
+Postmortems are written from incident timelines, not from CTO plans. If the user asks for a postmortem from a plan, refuse and ask for the incident source-of-truth (alerts, logs, timeline).
+
+##### → One-pager (radical compression; for executive sign-off)
+
+| Target section | Pulled from plan |
+|----------------|------------------|
+| `## TL;DR` | 2-3 bullets — synthesized goal + biggest risk + scope |
+| `## Problem` | Plan's Context distilled to ≤ 3 bullets |
+| `## Proposed approach` | One-line per phase, collapsed; ≤ 4 bullets |
+| `## Why now` | Plan's "why now" rationale from Context |
+| `## Risks & mitigations` | Top 2-3 risk rows only |
+| `## Ask / decision needed` | The execution gate decision the plan asks for, in business terms (not "phase-by-phase vs all-phases-approved") |
+
+#### Compression invariant
+
+The doc is **shorter** than the plan in word count, except RFC where Motivation may expand. If the plan has 5 phases each with 4 verification bullets, a Design Doc gets ONE `## Rollout & verification` section with ≤ 8 bullets total. If a section would have only 1 bullet, fold it into a sibling section.
+
+#### Pre-draft confirmation (rendered before any body draft)
+
+```
+Plan-to-doc synthesis preview:
+  Source plan        : <path or hash>
+  Detected target    : Design Doc / Tech Spec  (from user request "make a dev spec")
+  Phases dropped     : P1, P2, P3, P4, P5  (5 dropped)
+  Sections produced  : Context, Goals, Non-goals, Proposed design,
+                       Alternatives considered, Cross-cutting concerns,
+                       Rollout & verification, Success metrics, Open questions
+  Components surfaced: <flat list extracted from touches[]>
+  Open questions     : 1 carried forward (filtered from 3 in plan; 2 dropped as internal)
+  Alternatives found : 2 (Sonnet vs Opus model choice; Shape A vs Shape B loop)
+  Estimated word cnt : 1850 / 3000
+Reply `proceed` to render the full draft, or `change target to <doc-type>` to switch.
+```
+
+If the user says `change target to ADR` etc., re-run synthesis with the new target's reorganization rules.
+
+#### Audit fields (added to per-op JSONL per 12.1)
+
+- `synthesis_kind` — enum: `dev_spec_from_plan` | `adr_from_plan` | `rfc_from_plan` | `one_pager_from_plan` | `postmortem_refused_no_plan_source` | `none`.
+- `source_plan_path` — absolute path to the source plan, or `null`.
+- `target_doc_type` — enum: `design_doc` | `adr` | `rfc` | `postmortem` | `one_pager` | `generic_page`.
+- `phases_dropped_count` — int.
+- `sections_produced` — array of section names matching the target template.
+- `alternatives_surfaced_count` — int (Design Doc / ADR / RFC mandate this; postmortem N/A; one-pager optional).
+- `synthesis_word_count` — final body word count (post-scrubber).
+
+#### Forbidden in the synthesized body (in addition to 10.3)
+
+- The phrase "the plan" or any reference to a planning artifact. The doc stands alone.
+- Per-phase commentary ("In phase 2, we will...") — phases are an internal scheduling concern, not a doc concept.
+- Verification commands tied to a phase (`rg ...` from `**Verification:**` blocks) — those belong in a runbook, not a Design Doc / ADR / RFC.
+- Multi-decision ADRs synthesized from a multi-phase plan — refuse the operation; recommend Design Doc.
+- Postmortems synthesized from a plan — refuse; ask for incident source-of-truth.
+
+### 10.9 Space-style conformance (match the user's existing Confluence pages)
+
+Industry-standard templates (10.6) and plan-to-doc synthesis (10.8) define the **floor** — the minimum sections, brevity caps, and forbidden patterns every draft must respect. The user's actual Confluence space defines the **style overlay** on top: heading register ("Goals" vs "Objectives" vs "What we want"), section ordering when industry permits multiple orders, length distribution, bullet vs prose ratio per section, macro choices (info / status / expand / panel), label conventions, page-tree placement.
+
+The agent learns the user's space style by sampling existing pages and applies the detected style to new drafts, while NEVER violating the industry-floor rules.
+
+#### Sampling protocol (first time per space, then refresh on TTL or user request)
+
+Trigger conditions:
+
+- First page write in a `space_key` AND no `space-style-<space_key>.md` cache present.
+- Cache present but `sampled_at` is older than the TTL (14 days default).
+- User explicit phrase: `refresh space style for <space_key>` or `re-sample space`.
+
+What to fetch — up to **15 pages** from the same `space_key`, prioritized:
+
+1. Pages under the same parent as the target (highest signal).
+2. Pages sharing a label with the target (medium signal).
+3. Pages with the highest `version.number` × `recency` score (actively maintained).
+
+Use `searchConfluenceUsingCql` + `getConfluencePage` via the existing read-only-context broker. **Body fetch is for structural detection only** — bodies are NOT persisted to org-global memory (per 12.7); only the structural fingerprint below is cached.
+
+Rate budget: ≤ 15 `getConfluencePage` calls per sampling pass, ≤ 60s total. On budget exhaustion: cache partial detection with `degraded: true` and the actual `sample_size`.
+
+#### Structural fingerprint (what gets detected, what gets cached)
+
+The agent extracts and persists a **structural fingerprint** per space — names and frequencies, never body content:
+
+- **Heading taxonomy** — which `## X` headings recur, with frequency (e.g. `## Overview` appears in 12/15 sampled pages).
+- **Heading register** — formal vs casual lexicon ("Objectives" vs "Goals" vs "What we want"). Pick most frequent.
+- **Section order** — when industry permits multiple orders (e.g. Design Doc `Goals` before or after `Context`), match the modal order in the space.
+- **Length distribution** — median + p90 word count per detected doc shape.
+- **Bullet vs prose ratio** — per section, fraction of bullet lines vs prose paragraphs.
+- **Diagram norms** — mermaid macro present? draw.io? embedded image-only? table-based?
+- **Macro inventory** — which Confluence macros appear (info, note, warning, status, expand, panel, code, jira-issue).
+- **Status-field convention** — where status lives (page property, info macro at top, table in metadata block, status macro inline).
+- **Label conventions** — top-10 labels by frequency.
+- **Page-tree placement** — parent-page name patterns ("Engineering / Design Docs / 2026" vs "Specs / Q2"). Used to suggest default `parent_id` next time.
+
+#### Cache file
+
+Path: `~/.cursor/memory/projects/<name>/atlassian/conventions/space-style-<space_key>.md`.
+
+Schema (YAML frontmatter + structured body):
+
+```yaml
+---
+space_key: ENG
+sampled_at: 2026-05-07T12:30:00Z
+sample_size: 15
+degraded: false
+ttl_days: 14
+---
+
+## Heading taxonomy
+
+| Heading       | Frequency | Used in        |
+|---------------|-----------|----------------|
+| ## Overview   | 12/15     | all-doc-types  |
+| ## Why        | 8/15      | rfcs, one-pagers |
+| ## Objectives | 8/15      | design-docs    |
+| ## Decision   | 6/15      | adrs           |
+
+## Heading register
+
+- Goals lexicon: `Objectives` (8/15) preferred over `Goals` (4/15) or `What we want` (3/15).
+- Decision lexicon: `Decision` (6/8 ADR-shaped) preferred over `Resolution` (2/8).
+- Status lexicon: `Draft / Reviewed / Published` (rendered in info macro).
+
+## Length distribution
+
+- design-doc-shaped median: 1240 words; p90: 2800.
+- adr-shaped median: 520 words.
+
+## Bullet vs prose ratio
+
+- design-doc Context: 30% bullet, 70% prose.
+- design-doc Goals/Objectives: 95% bullet.
+- design-doc Proposed design: 60% bullet + 40% prose-with-code.
+
+## Diagram norms
+
+- mermaid macro: detected (8/15 pages use mermaid fences).
+- draw.io macro: not detected.
+- screenshots: 4/15 (acceptable but rare).
+
+## Macro inventory
+
+- info: 9/15. note: 4/15. expand: 2/15. code: 11/15. status: 5/15.
+
+## Status-field convention
+
+- info macro at top with "Status: Draft" line: 9/15 design-docs.
+- page properties macro: 2/15.
+
+## Label conventions
+
+- top labels: design-doc (12), q2-2026 (8), platform (6), rfc (4).
+
+## Page-tree placement
+
+- design-doc parent path: Engineering / Design Docs / 2026.
+- adr parent path: Engineering / ADRs.
+- one-pager parent path: Engineering / Proposals.
+```
+
+#### TTL and refresh
+
+- Default TTL: **14 days** from `sampled_at`. After expiry the agent re-samples lazily on the next page write to that space.
+- User explicit refresh: `refresh space style for <space_key>`.
+- Forced re-sample: if `sample_size < 5` or the page tree shape changed (parent-id of last write doesn't match cached `parent_path`).
+
+#### Application order (industry-floor → space-style → per-draft)
+
+When rendering a draft the agent applies these layers **in order**, each constrained by the layer above:
+
+1. **Industry-floor rules (non-negotiable):**
+   - Required sections per doc type (e.g. Design Doc MUST have `Alternatives considered`).
+   - Brevity caps from 10.6.
+   - Forbidden patterns from 10.3 / 10.7 / 10.8.
+   - Voice rules from 10.7.
+2. **Space-style overlay (negotiable surface):**
+   - Heading text remap (e.g. `## Goals` → `## Objectives` if the space prefers the latter; the *semantic slot* is preserved, only the label changes).
+   - Section reorder where industry permits multiple orders.
+   - Bullet vs prose ratio targeted per section (within industry caps).
+   - Macro choice (mermaid macro vs raw fence; info macro for Status field; expand macro for long appendices).
+   - Label suggestions (top-N from the cache).
+   - Default `parent_id` suggestion for the page tree.
+3. **Per-draft user overrides (highest precedence):**
+   - Explicit phrases like `use Goals not Objectives for this draft`, `parent_id <id>`, `add label X`.
+   - Apply only to the current op; do NOT mutate the cache (cache changes go through `refresh space style`).
+
+#### Industry-required-but-missing sections
+
+If the space lacks an industry-required section across all sampled pages of that doc shape (e.g. no `## Alternatives considered` ever appears in any sampled Design Doc), the agent **still adds** the section per industry-floor rule. It surfaces the deviation in the synthesis preview so the user understands why their draft has a section their existing pages don't:
+
+```
+Space-style conformance preview:
+  Space             : ENG (sampled 15 pages, 2 days ago)
+  Heading remaps    : Goals -> Objectives (space prefers, 8/15)
+                      Context -> Why (space prefers, 8/15)
+  Sections added    : Alternatives considered (industry-required; not detected in space)
+                      Cross-cutting concerns (industry-required; not detected)
+  Macros applied    : info macro for Status field (matches 9/15)
+                      mermaid fence (matches 8/15)
+  Suggested parent  : Engineering / Design Docs / 2026  (matches 9/15 design-docs)
+  Suggested labels  : design-doc, q2-2026, platform     (top-3 in space)
+Reply `proceed` to render with these conformance choices,
+or `revert <field>` to use industry default for any field.
+```
+
+#### Privacy / safety
+
+- **Body content is never persisted** to the conventions cache — only the structural fingerprint (heading names, frequencies, bullet ratios, macro presence, label names). Per 12.7 denylist.
+- Sampling uses `searchConfluenceUsingCql` + `getConfluencePage` — both read-only and rate-limited via the existing 5-min circuit breaker (per 9.0).
+- If the read-only-context broker preflight fails for the space, sampling is skipped silently; agent falls back to industry-floor only and notes `space_style: not_sampled` in the synthesis preview. No user-facing error.
+
+#### Forbidden in space-style application
+
+- Never override an industry-required section's *presence* with a space-style "preference to omit". Surface as deviation note, but add the section.
+- Never override the brevity caps in 10.6 because the space tolerates longer pages — caps are the floor.
+- Never override 10.3 / 10.7 forbidden patterns because the space contains agent-plumbing leaks (pre-existing leaks in the user's own pages do not legitimize new ones).
+- Never persist body content to the conventions cache.
+
+#### Audit fields (added to per-op JSONL per 12.1)
+
+- `space_style_sampled` — bool (true only on the sampling op).
+- `space_style_cache_hit` — bool.
+- `space_style_cache_age_days` — int, or `null` if not sampled.
+- `space_style_overrides_applied` — array of `{from: <industry_heading>, to: <space_heading>}` remappings.
+- `industry_required_sections_added` — array of section names added because the space's sampled pages lack them.
+- `space_style_degraded` — bool (true on partial sampling — broker miss, budget exhaustion, sample_size < 5).
+- `space_style_sample_size` — int (actual pages successfully sampled).
+
 ## Bitbucket scope (read-mostly, honest)
 
 | Operation                                                                                                                                                                                          | Status                                                                                                                                                                                                                                         |
@@ -374,13 +794,14 @@ The auto-replace and voice-warning passes contribute to the audit log (12.1) and
   - `include_body` — bool, defaults `false` — `true` only when caller explicitly opted in to body content.
   - `circuit_breaker_hit` — bool, `true` when the preflight cache short-circuited this op.
   - `query_type` — enum: `get_issue` | `search_jql` | `get_page` | `search_cql` | `discover_hierarchy` | `lookup_account` | `get_transitions` | `get_remote_links` | `null`.
+- **Per-op fields added by Step 10.8 (plan-to-doc synthesis, multi-target):** `synthesis_kind` (enum: `dev_spec_from_plan` | `adr_from_plan` | `rfc_from_plan` | `one_pager_from_plan` | `postmortem_refused_no_plan_source` | `none`), `source_plan_path` (string or `null`), `target_doc_type` (enum: `design_doc` | `adr` | `rfc` | `postmortem` | `one_pager` | `generic_page`), `phases_dropped_count` (int), `sections_produced` (array of section names matching the target template), `alternatives_surfaced_count` (int — mandatory > 0 for design_doc / adr / rfc), `synthesis_word_count` (int — final post-scrubber body word count).
 
 ### 12.2 Session summary
 
 `~/.cursor/memory/org/global/atlassian/sessions/<YYYY>/<YYYY-MM-DD>/<sid>.summary.md` with YAML frontmatter:
 
 - `sid`, `started_at`, `ended_at`, `plan_path`.
-- `counters` object: `writes_attempt`, `writes_ok`, `writes_4xx`, `writes_5xx`, `blocked_validation`, `drafts_rejected_user`, `jira_created`, `jira_edited`, `jira_transitioned`, `jira_linked`, `conf_created`, `conf_updated`, `conf_commented`, `preflight_fail`, `secret_redactions`, **`content_scrubs`**, **`content_overrides`**, **`ai_chars_replaced_total`**, **`voice_warnings_total`**, **`read_only_invocations`**, **`read_only_skips_plugin_unavailable`**, **`read_only_skips_auth_lost`**, **`read_only_skips_not_logged_in`**, **`read_only_rejects_caller_not_allowed`**, **`read_only_with_body`**, **`read_only_write_attempts_blocked`**, **`circuit_breaker_hits`**.
+- `counters` object: `writes_attempt`, `writes_ok`, `writes_4xx`, `writes_5xx`, `blocked_validation`, `drafts_rejected_user`, `jira_created`, `jira_edited`, `jira_transitioned`, `jira_linked`, `conf_created`, `conf_updated`, `conf_commented`, `preflight_fail`, `secret_redactions`, **`content_scrubs`**, **`content_overrides`**, **`ai_chars_replaced_total`**, **`voice_warnings_total`**, **`read_only_invocations`**, **`read_only_skips_plugin_unavailable`**, **`read_only_skips_auth_lost`**, **`read_only_skips_not_logged_in`**, **`read_only_rejects_caller_not_allowed`**, **`read_only_with_body`**, **`read_only_write_attempts_blocked`**, **`circuit_breaker_hits`**, **`syntheses_dev_spec_from_plan`**, **`syntheses_adr_from_plan`**, **`syntheses_rfc_from_plan`**, **`syntheses_one_pager_from_plan`**, **`syntheses_postmortem_refused`**, **`docs_emitted_design_doc`**, **`docs_emitted_adr`**, **`docs_emitted_rfc`**, **`docs_emitted_postmortem`**, **`docs_emitted_one_pager`**, **`docs_emitted_generic_page`**.
 - `created_keys[]`, `created_page_ids[]`, `transitioned[]`, `links[]`, `comments[]`.
 - `hierarchy_snapshot`, `errors[]`, `residual_targets`, `rollback_targets`.
 
