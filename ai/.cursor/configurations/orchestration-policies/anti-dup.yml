@@ -1,0 +1,10 @@
+# Runtime copy may symlink to ~/ai-brain/org/global/orchestration/policies/anti-dup.yaml
+schema_version: 1
+enabled: true
+grace_cycles_remaining: 2
+rules:
+  max_parent_dispatch_bytes: 4096
+  max_child_envelope_bytes: 8192
+  max_user_synthesis_bytes: 16384
+  ref_token_regex: '^<REF:[^>#]+#sha256:[0-9a-f]{64}#size:[0-9]+>$'
+  inline_blob_soft_fail_bytes: 1024

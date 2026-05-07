@@ -1,0 +1,34 @@
+# CRO loop checklist (singleton, post-plan)
+
+**Ledger:** `~/ai-brain/session/<task-id>/critic-ledger.md`
+**Skill:** `cro-loop` | **Agent:** `cro` | **Instances:** 1 per planning episode
+
+## Pre-conditions
+
+- [ ] Specialist consultation complete; specialist envelopes merged.
+- [ ] Plan v0 fully synthesized AND written to `<workspace>/.cursor/docs/plans/<file>.md`.
+- [ ] No other `cro-loop` instance live for this `task_id` (singleton invariant).
+- [ ] Ledger file initialized with schema version header.
+
+## Pass 1
+
+- [ ] Inputs: `plan_path` (v0), `specialist_bundle_refs[]`, `pass_number: 1`, `ledger_path`, `frozen_finding_ids: []`
+- [ ] Dispatch `cro`; parse envelope; append ledger delta (Pass 1 table)
+- [ ] For each finding with `bounce_target`: CTO `Task` specialist → merge → append ledger (`resolved_in_plan_section` / freeze)
+- [ ] Patch plan v0 → v1 on disk (CTO only); emit `cro.pass.1` metric
+
+## Pass 2
+
+- [ ] Inputs: `plan_path` (v1) + `frozen_finding_ids[]` from ledger, `pass_number: 2`
+- [ ] Dispatch `cro`; envelope MUST NOT duplicate frozen IDs in new findings body
+- [ ] Repeat bounce/apply cycle once for new pass-2 bounces only
+- [ ] Residual open items → `## Open Risks` in final plan file
+- [ ] Patch plan v1 → v2 on disk (CTO only); emit `cro.pass.2` metric
+
+## Termination
+
+- [ ] Loop releases the `task_id`; plan v2 is user-visible.
+
+## Caps
+
+1 loop / episode | 420s loop | ≤3 vp-research | ≤2 atlassian-pm reads | ≤2 bounces/pass | 2 passes max

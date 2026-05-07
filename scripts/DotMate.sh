@@ -85,16 +85,12 @@ stow_dotfiles() {
   echo_with_color "$GREEN" "Stowing dotfiles..."
   for dir in "$DOTFILES_DIR"/*/; do
     stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+    if [ $dir == "ai" ]; then
+      cp -rf "$DOTFILES_DIR/$dir/.cursor/agents" "$HOME/.cursor" 2>/dev/null || true
+      cp -rf "$DOTFILES_DIR/$dir/.gemini/agents" "$HOME/.gemini" 2>/dev/null || true
+    fi
   done
   chmod +x ~/.local/bin/*
-  # Stow now links `cursor/.cursor/agents` (see .stowrc). Only copy if agents not already present.
-  if [[ ! -e "$HOME/.cursor/agents" ]]; then
-    cp -rf "$DOTFILES_DIR/cursor/.cursor/agents" "$HOME/.cursor" 2>/dev/null || true
-  fi
-  # Stow now links `gemini/.gemini/agents` (see .stowrc). Only copy if agents not already present.
-  if [[ ! -e "$HOME/.gemini/agents" ]]; then
-    cp -rf "$DOTFILES_DIR/gemini/.gemini/agents" "$HOME/.gemini" 2>/dev/null || true
-  fi
 }
 
 # Remove symlinks created by stow
@@ -123,7 +119,17 @@ stow_multiple_dotfiles() {
 
   for tool in "$@"; do
     echo_with_color "$GREEN" "Stowing $tool..."
-    stow --no-folding --override=$tool -d "$DOTFILES_DIR" -t "$HOME" "$tool"
+    stow --no-folding --override=$tool -D -d "$DOTFILES_DIR" -t "$HOME" "$tool"
+
+    # AI agents need to be copied to the home directory. Symlinks are not supported.
+    case "$tool" in
+    cursor | cursor-*)
+      cp -rf "$DOTFILES_DIR/$tool/.cursor/agents" "$HOME/.cursor" 2>/dev/null || true
+      ;;
+    gemini | gemini-*)
+      cp -rf "$DOTFILES_DIR/$tool/.gemini/agents" "$HOME/.gemini" 2>/dev/null || true
+      ;;
+    esac
   done
 }
 
