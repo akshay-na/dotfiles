@@ -27,8 +27,10 @@ alwaysApply: true
 
 ## Writer Policy
 
-- Entrypoint agents (`cto`, `tech-lead`, `code-reviewer`, `vp-onboarding`, `atlassian-pm`, `docs-researcher`, `senior-dev`) may perform bounded touch-writes.
-- Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read-only for KB writes.
+- C-suite agents (`cto`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`) and `tech-lead` may perform bounded touch-writes to memory and KB.
+- Excluded from KB/memory writes for dedup control: `code-reviewer`, `senior-dev`, `cro`.
+- All other agents are read/query only for brain (`~/.cursor/ai-brain/`) and must not write memory or KB.
+- Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
 
 ## Retention and Growth
 

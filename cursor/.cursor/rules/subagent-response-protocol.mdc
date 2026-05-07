@@ -14,7 +14,7 @@ synthesis turns in `cto` / `code-reviewer`.
 ## Sources of truth
 
 - Schema template: `~/.cursor/templates/subagent-response.yml.tmpl`
-- Contract block: `~/.cursor/templates/subagent-contract-block.md`
+- Contract block: `~/.cursor/contracts/subagent-contract-block.md`
 - Skill: `~/.cursor/skills/subagent-response-protocol/SKILL.md`
 - Inject hook: `~/.cursor/hooks/subagent-protocol-inject.sh` (parent-side pre-hook; injects contract + `_marker`)
 - Lint hook: `~/.cursor/hooks/subagent-protocol-lint.sh` (pre-commit drift check)
@@ -89,7 +89,7 @@ validator hook); follow it in your own reasoning.
 3. One reformat-only retry on malformed: re-invoke the subagent with a short
    directive instructing it to wrap its prior answer in the protocol envelope
    without redoing work or issuing new tool calls. Use the canonical retry
-   phrase from `templates/subagent-contract-block.md`; do not paraphrase it
+   phrase from `contracts/subagent-contract-block.md`; do not paraphrase it
    here (the pre-commit lint blocks inlined duplicates).
 4. Stub envelope on persistent malformed:
    `{status: malformed, summary: <first 200 chars of raw>, degraded_reason: "malformed"}`.

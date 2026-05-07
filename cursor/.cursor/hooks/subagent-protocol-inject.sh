@@ -20,7 +20,7 @@ set -uo pipefail
 SELF="${BASH_SOURCE[0]}"
 SELF_REAL="$(realpath -q "$SELF" 2>/dev/null || printf '%s' "$SELF")"
 CURSOR_DIR="$(dirname "$(dirname "$SELF_REAL")")"
-TEMPLATE="$CURSOR_DIR/templates/subagent-contract-block.md"
+TEMPLATE="$CURSOR_DIR/contracts/subagent-contract-block.md"
 RULE_FILE="$CURSOR_DIR/rules/subagent-response-protocol.mdc"
 
 # --- tooling sanity ---------------------------------------------------------

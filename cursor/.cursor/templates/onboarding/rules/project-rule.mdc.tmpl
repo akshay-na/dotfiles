@@ -1,0 +1,17 @@
+---
+description: "What this rule covers"
+globs: "**/*.ts,**/*.tsx" # File patterns (specific, not **/*)
+alwaysApply: false # Prefer false with targeted globs
+priority: 500 # 0-1000, project rules: 400-600
+enforcement: advisory # strict | advisory | informational
+pre_action: false # Validate before agent writes
+post_action: true # Validate after agent writes
+override_by: [] # Rules that can override this one
+tags: [<project>, <category>] # For filtering
+template_id: onboarding/rules/project-rule
+template_version: 2026.05.07
+---
+
+# Rule Title
+
+- Add scoped, enforceable guidance here.

@@ -16,7 +16,7 @@ response body. Envelope MUST be the last non-whitespace content (D6).
 ## Sources of truth (do NOT inline elsewhere)
 
 - **Schema:** `~/.cursor/templates/subagent-response.yml.tmpl`
-- **Contract:** `~/.cursor/templates/subagent-contract-block.md` (parent-injected)
+- **Contract:** `~/.cursor/contracts/subagent-contract-block.md` (parent-injected)
 - **Rule:** `~/.cursor/rules/subagent-response-protocol.mdc` (`alwaysApply: true`)
 - **Hooks:** `~/.cursor/hooks/subagent-protocol-{inject,lint}.sh` (inject = pre-hook contract injection; lint = pre-commit drift check)
 - **Runbook:** `~/.cursor/docs/runbooks/subagent-protocol.md`

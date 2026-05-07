@@ -1,0 +1,25 @@
+---
+template_id: onboarding/docs/external-skill-intake
+template_version: 2026.05.07
+---
+
+# External Skill Intake Checklist
+
+Use when a skill is marked `add-external` in onboarding plan.
+
+## Intake Steps
+
+1. Fetch via `docs-researcher`.
+2. Verify source trust (official vendor or verified maintainer).
+3. Copy to `.cursor/skills/<skill-name>/SKILL.md`.
+4. If MCP config required, add to `.cursor/mcp.json` (create if needed).
+5. Write memory `decision` entry documenting what was added and why.
+6. If fetch fails, log warning and continue (non-blocking).
+
+## Verification
+
+- Skill file exists at `.cursor/skills/<skill-name>/SKILL.md`.
+- If required, `.cursor/mcp.json` includes server configuration.
+- Skill frontmatter has `name` and `description`.
+- Trigger terms/usage instructions are present.
+- Plan/report includes the final action: `added` or `skipped`.

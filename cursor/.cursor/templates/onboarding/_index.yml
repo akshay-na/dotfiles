@@ -1,0 +1,64 @@
+version: 1
+registry_id: onboarding-template-registry
+registry_version: 2026.05.07
+
+templates:
+  - template_id: onboarding/agents/dev-agent
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/agents/dev-agent.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/agents/sme-agent
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/agents/sme-agent.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/agents/reviewer-agent
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/agents/reviewer-agent.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/agents/qa-agent
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/agents/qa-agent.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/rules/project-rule
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/rules/project-rule.mdc.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/skills/project-skill-frontmatter
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/skills/project-skill-frontmatter.yml.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/configuration/failure-patterns
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/configuration/failure-patterns.yml.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/docs/external-skill-intake
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/docs/external-skill-intake.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/docs/memory-step-checklist
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/docs/memory-step-checklist.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/docs/kb-step-checklist
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/docs/kb-step-checklist.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/checklists/execution-order
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/checklists/execution-order.md.tmpl
+    owner: vp-onboarding
+
+  - template_id: onboarding/docs/version-drift-contract
+    template_version: 2026.05.07
+    path: ~/.cursor/templates/onboarding/docs/version-drift-contract.md.tmpl
+    owner: vp-onboarding

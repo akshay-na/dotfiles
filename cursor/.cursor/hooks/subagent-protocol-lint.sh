@@ -3,7 +3,7 @@
 #
 # Pre-commit lint (D16). Rejects drift of the two SoT templates:
 #   - `templates/subagent-response.yml.tmpl`      — the authoritative schema
-#   - `templates/subagent-contract-block.md`      — the authoritative contract
+#   - `contracts/subagent-contract-block.md`      — the authoritative contract
 #
 # Blocks any commit (or returns non-zero on manual run) when distinctive
 # contract/schema phrases appear OUTSIDE the SoT template files, inside:
@@ -30,7 +30,7 @@ REPO_ROOT="$(cd "$CURSOR_DIR/.." && pwd)"
 
 # Exempt paths (absolute + repo-relative forms both accepted on match)
 EXEMPT_SCHEMA="cursor/.cursor/templates/subagent-response.yml.tmpl"
-EXEMPT_CONTRACT="cursor/.cursor/templates/subagent-contract-block.md"
+EXEMPT_CONTRACT="cursor/.cursor/contracts/subagent-contract-block.md"
 
 # The distinctive strings we are guarding. ERE patterns.
 # Using bounded word boundaries so we don't trip on `schema_versions` (plural)
@@ -129,7 +129,7 @@ for f in "${targets[@]}"; do
 done
 
 if [ "$violations" -gt 0 ]; then
-  printf '\nsubagent-protocol-lint: %d violation(s). See ~/.cursor/templates/subagent-response.yml.tmpl and ~/.cursor/templates/subagent-contract-block.md for canonical text.\n' "$violations" >&2
+  printf '\nsubagent-protocol-lint: %d violation(s). See ~/.cursor/templates/subagent-response.yml.tmpl and ~/.cursor/contracts/subagent-contract-block.md for canonical text.\n' "$violations" >&2
   exit 1
 fi
 

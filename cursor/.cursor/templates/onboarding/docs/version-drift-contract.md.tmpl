@@ -1,0 +1,22 @@
+---
+template_id: onboarding/docs/version-drift-contract
+template_version: 2026.05.07
+---
+
+# Version Drift Contract
+
+Generated artifacts created from onboarding templates must include:
+
+- `generated_from_template_id`
+- `generated_from_template_version`
+- `generated_at` (ISO8601 UTC)
+
+## Drift Rules
+
+- Missing `generated_from_template_id` or `generated_from_template_version` => stale => update.
+- `generated_from_template_version` older than source template `template_version` => stale => update.
+- `generated_from_template_id` mismatch for expected artifact type => stale => update.
+
+## Source of Truth
+
+- Template registry: `~/.cursor/templates/onboarding/_index.yml`

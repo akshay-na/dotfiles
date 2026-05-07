@@ -550,6 +550,8 @@ The doc is **shorter** than the plan in word count, except RFC where Motivation 
 
 #### Pre-draft confirmation (rendered before any body draft)
 
+The synthesis preview is **merged** with the space-style conformance preview from §10.9 so the user sees both in one block:
+
 ```
 Plan-to-doc synthesis preview:
   Source plan        : <path or hash>
@@ -562,10 +564,21 @@ Plan-to-doc synthesis preview:
   Open questions     : 1 carried forward (filtered from 3 in plan; 2 dropped as internal)
   Alternatives found : 2 (Sonnet vs Opus model choice; Shape A vs Shape B loop)
   Estimated word cnt : 1850 / 3000
-Reply `proceed` to render the full draft, or `change target to <doc-type>` to switch.
+
+Space-style conformance (per §10.9):
+  Space             : ENG (sampled 15 pages, 2 days ago)
+  Heading remaps    : Goals -> Objectives, Context -> Why
+  Sections added    : Alternatives considered (industry-required; not detected in space)
+  Macros applied    : info macro for Status (matches 9/15), mermaid fence (matches 8/15)
+  Suggested parent  : Engineering / Design Docs / 2026
+  Suggested labels  : design-doc, q2-2026, platform
+
+Reply `proceed` to render with these synthesis + conformance choices,
+`change target to <doc-type>` to switch synthesis target,
+or `revert <field>` to use industry default for any conformance field.
 ```
 
-If the user says `change target to ADR` etc., re-run synthesis with the new target's reorganization rules.
+If the user says `change target to ADR` etc., re-run synthesis with the new target's reorganization rules. The space-style overlay re-applies to the new target.
 
 #### Audit fields (added to per-op JSONL per 12.1)
 
@@ -795,13 +808,14 @@ or `revert <field>` to use industry default for any field.
   - `circuit_breaker_hit` — bool, `true` when the preflight cache short-circuited this op.
   - `query_type` — enum: `get_issue` | `search_jql` | `get_page` | `search_cql` | `discover_hierarchy` | `lookup_account` | `get_transitions` | `get_remote_links` | `null`.
 - **Per-op fields added by Step 10.8 (plan-to-doc synthesis, multi-target):** `synthesis_kind` (enum: `dev_spec_from_plan` | `adr_from_plan` | `rfc_from_plan` | `one_pager_from_plan` | `postmortem_refused_no_plan_source` | `none`), `source_plan_path` (string or `null`), `target_doc_type` (enum: `design_doc` | `adr` | `rfc` | `postmortem` | `one_pager` | `generic_page`), `phases_dropped_count` (int), `sections_produced` (array of section names matching the target template), `alternatives_surfaced_count` (int — mandatory > 0 for design_doc / adr / rfc), `synthesis_word_count` (int — final post-scrubber body word count).
+- **Per-op fields added by Step 10.9 (space-style conformance):** `space_style_sampled` (bool — true only on the sampling op itself), `space_style_cache_hit` (bool), `space_style_cache_age_days` (int or `null`), `space_style_overrides_applied` (array of `{from, to}` heading remaps), `industry_required_sections_added` (array of section names added because the space lacks them), `space_style_degraded` (bool — true on partial sampling), `space_style_sample_size` (int — pages successfully sampled).
 
 ### 12.2 Session summary
 
 `~/.cursor/memory/org/global/atlassian/sessions/<YYYY>/<YYYY-MM-DD>/<sid>.summary.md` with YAML frontmatter:
 
 - `sid`, `started_at`, `ended_at`, `plan_path`.
-- `counters` object: `writes_attempt`, `writes_ok`, `writes_4xx`, `writes_5xx`, `blocked_validation`, `drafts_rejected_user`, `jira_created`, `jira_edited`, `jira_transitioned`, `jira_linked`, `conf_created`, `conf_updated`, `conf_commented`, `preflight_fail`, `secret_redactions`, **`content_scrubs`**, **`content_overrides`**, **`ai_chars_replaced_total`**, **`voice_warnings_total`**, **`read_only_invocations`**, **`read_only_skips_plugin_unavailable`**, **`read_only_skips_auth_lost`**, **`read_only_skips_not_logged_in`**, **`read_only_rejects_caller_not_allowed`**, **`read_only_with_body`**, **`read_only_write_attempts_blocked`**, **`circuit_breaker_hits`**, **`syntheses_dev_spec_from_plan`**, **`syntheses_adr_from_plan`**, **`syntheses_rfc_from_plan`**, **`syntheses_one_pager_from_plan`**, **`syntheses_postmortem_refused`**, **`docs_emitted_design_doc`**, **`docs_emitted_adr`**, **`docs_emitted_rfc`**, **`docs_emitted_postmortem`**, **`docs_emitted_one_pager`**, **`docs_emitted_generic_page`**.
+- `counters` object: `writes_attempt`, `writes_ok`, `writes_4xx`, `writes_5xx`, `blocked_validation`, `drafts_rejected_user`, `jira_created`, `jira_edited`, `jira_transitioned`, `jira_linked`, `conf_created`, `conf_updated`, `conf_commented`, `preflight_fail`, `secret_redactions`, **`content_scrubs`**, **`content_overrides`**, **`ai_chars_replaced_total`**, **`voice_warnings_total`**, **`read_only_invocations`**, **`read_only_skips_plugin_unavailable`**, **`read_only_skips_auth_lost`**, **`read_only_skips_not_logged_in`**, **`read_only_rejects_caller_not_allowed`**, **`read_only_with_body`**, **`read_only_write_attempts_blocked`**, **`circuit_breaker_hits`**, **`syntheses_dev_spec_from_plan`**, **`syntheses_adr_from_plan`**, **`syntheses_rfc_from_plan`**, **`syntheses_one_pager_from_plan`**, **`syntheses_postmortem_refused`**, **`docs_emitted_design_doc`**, **`docs_emitted_adr`**, **`docs_emitted_rfc`**, **`docs_emitted_postmortem`**, **`docs_emitted_one_pager`**, **`docs_emitted_generic_page`**, **`space_style_samples`**, **`space_style_cache_hits`**, **`space_style_cache_misses`**, **`space_style_overrides_total`**, **`industry_required_sections_added_total`**, **`space_style_degraded_count`**.
 - `created_keys[]`, `created_page_ids[]`, `transitioned[]`, `links[]`, `comments[]`.
 - `hierarchy_snapshot`, `errors[]`, `residual_targets`, `rollback_targets`.
 
@@ -826,6 +840,7 @@ Keys, IDs, URLs, titles, action verbs, status, timestamps, op tag, `draft_hash`,
 The following are NEVER written to `~/.cursor/memory/org/global/atlassian/...` or `~/.cursor/memory/projects/<name>/atlassian/conventions/`. They MAY appear in the project-local draft / scratch tree per 12.8 - that tree is the **only** place body content lives. Raw secrets are the sole exception: they are redacted before any disk write, anywhere.
 
 - Ticket descriptions, comment bodies, page bodies, attachments.
+- **Sampled page bodies from §10.9 space-style detection** — only the structural fingerprint (heading names, frequencies, bullet ratios, macro presence, label names) is persisted to `conventions/space-style-<space_key>.md`. Body text is fetched in-memory for detection and discarded.
 - account_ids beyond traceability.
 - JQL/CQL with PII.
 - approval phrase body.
