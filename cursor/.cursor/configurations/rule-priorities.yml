@@ -48,7 +48,7 @@ rule_defaults:
     post_action: true
     tags: [memory, context]
 
-  docs-researcher:
+  vp-research:
     priority: 650
     enforcement: strict
     pre_action: false

@@ -136,7 +136,7 @@ CRITICAL: Never mix agents between repositories in the same task.
    - ~/.cursor/agents/ciso.md
    - ~/.cursor/agents/sre-lead.md
    - ~/.cursor/agents/staff-engineer.md
-   - ~/.cursor/agents/docs-researcher.md
+   - ~/.cursor/agents/vp-research.md
 
 3. When task spans multiple repos:
    - Create separate task entries for each repo
@@ -237,7 +237,7 @@ For any task targeting a specific repo:
    - For architectural review: vp-architecture
    - For security review: ciso
    - For performance review: vp-engineering
-   - For documentation: docs-researcher
+   - For documentation: vp-research
    - These advise; they do not replace tech-lead execution orchestration inside the repo
 ```
 

@@ -34,7 +34,7 @@ workspace:
         ciso,
         sre-lead,
         staff-engineer,
-        docs-researcher,
+        vp-research,
       ]
     last_resort: senior-dev
 
@@ -144,7 +144,7 @@ classification:
       signals:
         ["document", "README", "explain", "clarify", "API docs", "comment"]
       default_pipeline: null
-      default_agents: [docs-researcher, tech-lead]
+      default_agents: [vp-research, tech-lead]
       complexity: low
       requires_plan: false
 

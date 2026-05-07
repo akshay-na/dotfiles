@@ -43,14 +43,14 @@ Table columns:
 | `category` | e.g. coherence, architecture, security, perf |
 | `bounce_target` | Specialist id or `-` if none |
 | `status` | `open` \| `frozen_accepted` \| `frozen_open_risk` \| `degraded` |
-| `evidence_ref` | `docs-researcher` ref, memory ref, or `-` if degraded |
+| `evidence_ref` | `vp-research` ref, memory ref, or `-` if degraded |
 | `resolved_in_plan_section` | Heading anchor or `-` |
 
 ## Decision rubric
 
 - **Domain gap / wrong specialist coverage** → `bounce_target` set; CTO `Task`s specialist; **never** lateral `Task` from `cro`.
 - **Coherence, missing phase, DAG smell** → resolve with internal reasoning. Factual claims require a research broker:
-  - External libs / APIs / specs / standards → **`docs-researcher`** (primary).
+  - External libs / APIs / specs / standards → **`vp-research`** (primary).
   - Existing Jira / Confluence / prior decisions referenced in the plan → **`atlassian-pm`** in `mode=read-only-context` (CRO is on the read allow-list; writes remain off-limits).
   - Both unavailable → `status: degraded`, no unsubstantiated challenge.
 
@@ -60,12 +60,12 @@ Table columns:
 |-------|-------|
 | Loop instances | **1** per planning episode (singleton) |
 | Loop wall | 420s |
-| `docs-researcher` | ≤ 3 calls / loop |
+| `vp-research` | ≤ 3 calls / loop |
 | `atlassian-pm` (read-only-context) | ≤ 2 calls / loop |
 | Bounces | ≤ 2 / pass (CTO-side) |
 | Passes | 2 max |
 
-On `docs-researcher` skip: mark finding `degraded`, continue. On envelope malformed: CTO one reformat retry → protocol stub.
+On `vp-research` skip: mark finding `degraded`, continue. On envelope malformed: CTO one reformat retry → protocol stub.
 
 ## Observability
 

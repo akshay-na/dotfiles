@@ -43,7 +43,7 @@ flowchart LR
   staff[staff-engineer] -. "mode=read-only-context" .-> pm
   vpplat[vp-platform] -. "mode=read-only-context" .-> pm
   vponb[vp-onboarding] -. "mode=read-only-context" .-> pm
-  dr[docs-researcher] -. "mode=read-only-context" .-> pm
+  dr[vp-research] -. "mode=read-only-context" .-> pm
   sd[senior-dev] -. "mode=read-only-context" .-> pm
   pm -- "MCP only (plugin-atlassian-atlassian)" --> atlassian[(Jira / Confluence / Bitbucket)]
 ```
@@ -63,7 +63,7 @@ No other agent (org or project) may invoke `atlassian-pm` for any write tool: `c
 Global org agents MAY invoke `atlassian-pm` via the Task tool with parameter `mode=read-only-context` to fetch Jira / Confluence context for design decisions, planning, review, or research — subject to **all** of the following constraints:
 
 - **Plugin + auth preflight.** Before any read, the broker calls `getAccessibleAtlassianResources` + `atlassianUserInfo`. On any failure (plugin not installed, plugin not logged in, network error, 401, 403, missing tools), the broker returns `{ status: "skipped", reason: "plugin_unavailable" | "auth_lost" | "not_logged_in" | "network_error" | "tools_missing" }` immediately. The caller MUST treat this as a no-op and continue without the context — never as an error to surface to the user.
-  - **Allowed caller agents (allow-list, exact match):** `cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `vp-onboarding`, `senior-dev`, `docs-researcher`. Any other caller is rejected with `{ status: "rejected", reason: "caller_not_allowed" }`. The allow-list is exhaustive; any agent not listed (including the org-tier `tech-lead`) is rejected with `{ status: 'rejected', reason: 'caller_not_allowed' }`. Rationale: `tech-lead` is execution-time-only; required Atlassian context is already pulled by `cto` (or a specialist) at plan time.
+  - **Allowed caller agents (allow-list, exact match):** `cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `vp-onboarding`, `senior-dev`, `vp-research`. Any other caller is rejected with `{ status: "rejected", reason: "caller_not_allowed" }`. The allow-list is exhaustive; any agent not listed (including the org-tier `tech-lead`) is rejected with `{ status: 'rejected', reason: 'caller_not_allowed' }`. Rationale: `tech-lead` is execution-time-only; required Atlassian context is already pulled by `cto` (or a specialist) at plan time.
 - **Disallowed callers (deny-list, exact match prefix or pattern):** project-level agents — `dev-*`, `sme-*`, `qa-*`, `devops`, `reviewer-*`. These always route through explicit user invocation. The deny-list is enforced before the allow-list.
 - **Allowed query types:** `get_issue:<KEY>`, `search_jql:<JQL>`, `get_page:<ID>`, `search_cql:<CQL>`, `discover_hierarchy:<KEY>`, `lookup_account:<query>`, `get_transitions:<KEY>`, `get_remote_links:<KEY>`. No other query types accepted.
 - **All write tools blocked unconditionally.** The mode parameter cannot be flipped mid-session. If the user types `approve` / `proceed` / `submit redacted` / any other approval phrase to a `read-only-context` session, the broker hard-fails with the verbatim message: _"Read-only-context mode is set for this session. Re-invoke me without `mode=read-only-context` for write operations."_ The session ends and a fresh, user-initiated session is required for writes.
@@ -242,7 +242,7 @@ Forbidden patterns (always scrubbed; deterministic glossary substitution per 10.
 
 - **Plan / phase IDs** — `\bP\d+[a-z]?\b` (e.g., `P1a`, `P2.5`, `P3`), `\bG\d+(\.\d+)?\b` (e.g., `G1`, `G2.5`), `phase \d+`, `step \d+(\.\d+)*`. CTO-plan internal markers; meaningless to a ticket reader.
 - **Internal CTO-plan section markers** — verbatim strings like `**Steps:**`, `**Acceptance:**`, `**Verification:**`, `**Rollback:**`, `**Metadata:**`, `depends_on:`, `parallelizable_with:`, `touches:`, `rollback_scope:`. These leak the plan-template structure.
-- **Internal agent / role names** — `cto`, `code-reviewer`, `atlassian-pm`, `senior-dev`, `vp-platform`, `vp-architecture`, `vp-engineering`, `vp-onboarding`, `tech-lead`, `staff-engineer`, `sre-lead`, `ciso`, `docs-researcher`, plus the project-tier patterns `dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`. The agent never names itself or its peers in the body.
+- **Internal agent / role names** — `cto`, `code-reviewer`, `atlassian-pm`, `senior-dev`, `vp-platform`, `vp-architecture`, `vp-engineering`, `vp-onboarding`, `tech-lead`, `staff-engineer`, `sre-lead`, `ciso`, `vp-research`, plus the project-tier patterns `dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`. The agent never names itself or its peers in the body.
 - **Cursor / dotfiles paths** — anything starting with `~/.cursor/`, `~/.dotfiles/`, `dotfiles/`, or matching internal subtrees `~/.cursor/agents/...`, `~/.cursor/skills/...`, `~/.cursor/rules/...`, `~/.cursor/memory/...`, `~/.cursor/docs/...`, `~/.cursor/hooks/...`, `~/.cursor/templates/...`. Internal infrastructure; never relevant to a ticket.
 
 These four classes are the entire forbidden list. The agent's own provenance footer was deleted (former 10.7) and is also never emitted.

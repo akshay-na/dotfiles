@@ -6,8 +6,8 @@ alwaysApply: true
 # MCP and external tools usage
 
 - **General principles**
-  - **Docs broker:** See the `docs-researcher` rule. Only `docs-researcher` calls documentation/fetch MCPs directly.
-  - **HTTP/web restriction:** Only `docs-researcher` may call HTTP/web retrieval tools (fetch/WebFetch/WebSearch or equivalent). All other agents must delegate.
+  - **Docs broker:** See the `vp-research` rule. Only `vp-research` calls documentation/fetch MCPs directly.
+  - **HTTP/web restriction:** Only `vp-research` may call HTTP/web retrieval tools (fetch/WebFetch/WebSearch or equivalent). All other agents must delegate.
   - Prefer local reasoning and repo context first; use MCP servers when you need external knowledge, structured memory, or remote APIs.
   - Never send secrets, tokens, or private credentials to MCP servers.
   - When in doubt, state which MCP you are using and why.
@@ -18,7 +18,7 @@ alwaysApply: true
   - Expectation: summarize its conclusions instead of pasting raw transcripts.
 
 - **`fetch`**
-  - Access control: `docs-researcher` only (other agents delegate).
+  - Access control: `vp-research` only (other agents delegate).
   - Use for: retrieving external HTTP content (docs, APIs, specs) when you need exact wording or examples.
   - Prefer: official documentation, standards, and well-known sources.
   - Summarize: extract only the relevant pieces into the conversation; do not paste entire pages unless necessary.
@@ -28,7 +28,7 @@ alwaysApply: true
   - Do not overuse: most logic can use relative time without calling this server.
 
 - **`context7`**
-  - Access control: `docs-researcher` only (other agents delegate).
+  - Access control: `vp-research` only (other agents delegate).
   - Use for: up-to-date library/framework documentation and code examples when implementing or updating features.
   - Cross-check: use it to confirm APIs and behavior instead of guessing or hallucinating.
 

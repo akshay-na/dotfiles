@@ -11,7 +11,7 @@ Any agent may **create, update, move, or delete** files under the paths below **
 
 | Scope                           | Path pattern                                                            | Covers                                                              |
 | ------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Global user docs                | `$HOME/.cursor/docs/**`                                                 | Knowledge Base vault, docs-researcher caches, any other user docs   |
+| Global user docs                | `$HOME/.cursor/docs/**`                                                 | Knowledge Base vault, vp-research caches, any other user docs        |
 | Global user memory              | `$HOME/.cursor/memory/**`                                               | Context memory store (any project, any module)                      |
 | Global stow source for docs     | `$HOME/dotfiles/cursor/.cursor/docs/**`                                 | Same files as `~/.cursor/docs/**`, reached via dotfiles source path |
 | Global stow source for memory   | `$HOME/dotfiles/cursor/.cursor/memory/**`                               | Same files as `~/.cursor/memory/**`, reached via dotfiles source    |

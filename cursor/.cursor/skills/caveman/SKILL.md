@@ -34,7 +34,7 @@ When spawning subagents via Task tool, include role-appropriate prompt:
 | **ciso**                                              | lite  | `Caveman: lite. Full clarity for security risks, threats, mitigations. No abbreviations on vuln names.`                                        |
 | **sre-lead**                                          | lite  | `Caveman: lite. Clear on alerts, SLOs, runbook steps. Abbreviate infra terms (k8s/pod/svc/ns).`                                                |
 | **senior-dev, staff-engineer**                        | ultra | `Caveman: ultra. DB/auth/config/req/res/fn/impl → abbrev. X→Y causality. Code unchanged.`                                                      |
-| **docs-researcher**                                   | full  | `Caveman: full. Keep source citations intact. Summarize findings tersely.`                                                                     |
+| **vp-research**                                       | full  | `Caveman: full. Keep source citations intact. Summarize findings tersely.`                                                                     |
 | **tech-lead**                                         | full  | `Caveman: full. Keep phase names, checkpoints, agent assignments clear. Abbreviate paths.`                                                     |
 | **dev-\*, sme-\***                                    | ultra | `Caveman: ultra. Max compression. Abbrev all common terms. Arrows for flow.`                                                                   |
 | **qa-\*, reviewer-\*, reviewers-\***                  | full  | `Caveman: full. Feedback must be clear, actionable. Keep issue descriptions precise. File/line refs and suggested fixes unabbreviated.`        |

@@ -83,7 +83,7 @@ fanout_hint:
     - Access memory directly via `brain-memory-kb` (`mode: memory`) following `brain-conventions`.
     - Query namespaces: `project.<name>`, `project.<name>.<domain>`, `org.global`.
   - For external documentation:
-    - Ask `docs-researcher` rather than calling docs MCPs directly.
+    - Ask `vp-research` rather than calling docs MCPs directly.
 - **Keep delegation tight**
   - `tech-lead` passes each agent:
     - Only the relevant plan fragment.

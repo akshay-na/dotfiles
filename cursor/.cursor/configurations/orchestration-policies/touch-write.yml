@@ -7,7 +7,7 @@ kb_write_roles:
     - code-reviewer
     - vp-onboarding
     - atlassian-pm
-    - docs-researcher
+    - vp-research
     - senior-dev
   denied_patterns:
     - dev-*
@@ -23,7 +23,7 @@ quotas:
     code-reviewer: 5
     vp-onboarding: 4
     atlassian-pm: 6
-    docs-researcher: 5
+    vp-research: 5
     senior-dev: 6
 noise_filters:
   skip_globs:

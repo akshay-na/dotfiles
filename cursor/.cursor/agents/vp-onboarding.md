@@ -217,11 +217,11 @@ Project agents can be marked `parallelizable: true` in their frontmatter when th
 | Architectural decisions        | `vp-architecture` | `cto`                                                                                                  |
 | Security review (planning)     | `ciso`            | `cto`                                                                                                  |
 | Performance/reliability        | `vp-engineering`  | `cto`                                                                                                  |
-| Documentation lookup           | `docs-researcher` | Direct (single docs broker)                                                                            |
+| Documentation lookup           | `vp-research`     | Direct (single docs broker)                                                                            |
 | Code quality review (planning) | `staff-engineer`  | `cto`                                                                                                  |
 | Code review of a PR / diff     | `code-reviewer`   | Direct (single review entry point) — it fans out to org specialists + project `reviewer-*` in parallel |
 
-**docs-researcher:** Project agents must delegate all documentation lookups (framework docs, API references, external specs) to `docs-researcher` instead of using doc MCPs directly. This keeps context lean.
+**vp-research:** Project agents must delegate all documentation lookups (framework docs, API references, external specs) to `vp-research` instead of using doc MCPs directly. This keeps context lean.
 
 **Memory operations:** Project agents access memory directly via `brain-memory-kb` (`mode: memory`) — no delegation needed.
 
@@ -1008,7 +1008,7 @@ every conversation. Follow these constraints:
 - **Prefer `alwaysApply: false`** with targeted `globs` or a precise
   `description`. Reserve `alwaysApply: true` only for universal do's-and-don'ts.
 - **Never restate org always-apply rules.** The org-level rules (memory,
-  agent-orchestration, error-handling-and-security, docs-researcher,
+  agent-orchestration, error-handling-and-security, vp-research,
   mcp-usage, mode-auto-selection, base) are already loaded in every
   conversation. Cross-reference them ("See the org error-handling rule")
   instead of duplicating their content.
@@ -1181,7 +1181,7 @@ If org orchestration doesn't exist → skip orchestration bootstrapping.
    | Messaging      | Kafka, RabbitMQ, SQS, Pub/Sub                              |
    | Monitoring     | Datadog, Prometheus, Grafana, Sentry                       |
 
-2. **Search for official skills.** For each detected technology, use `docs-researcher` to search:
+2. **Search for official skills.** For each detected technology, use `vp-research` to search:
    - Official vendor Cursor skills (e.g., `cursor.directory`, GitHub `cursor-skills` repos)
    - Verified community skills with high adoption
    - MCP servers that provide tool access for the technology
@@ -1369,7 +1369,7 @@ For each open workspace folder `F`:
 8. **Add-external** — fetch and add external skills:
 
    Use checklist template: `~/.cursor/templates/onboarding/docs/external-skill-intake.md.tmpl`.
-   - For each skill marked `add-external`, use `docs-researcher` to fetch the skill content
+   - For each skill marked `add-external`, use `vp-research` to fetch the skill content
    - Verify the skill source is trusted (official vendor, verified maintainer)
    - Copy the skill to `.cursor/skills/<skill-name>/SKILL.md`
    - If the skill requires MCP configuration, add to `.cursor/mcp.json` (create if needed)

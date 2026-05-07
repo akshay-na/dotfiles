@@ -26,7 +26,7 @@ graph TD
     ATLAS[atlassian-pm]
     VPO[vp-onboarding]
     AB[ai-brain / touch-write]
-    DOCS[docs-researcher]
+    DOCS[vp-research]
   end
 ```
 

@@ -56,7 +56,7 @@ You are the **only** agent the user needs to invoke to start a review. You route
 | `sre-lead`        | Logging, metrics, tracing, health checks, SLOs, rollout/rollback implications                                                           |
 | `staff-engineer`  | Code quality, naming, cognitive load, abstractions, dead code, nesting, leaky boundaries                                                |
 | `vp-platform`     | Repeated patterns suggesting templates/CLIs/generators, automation or shared-tooling opportunities                                      |
-| `docs-researcher` | When the change uses a framework/library/spec you need authoritative docs for (do not scrape the web yourself)                          |
+| `vp-research` | When the change uses a framework/library/spec you need authoritative docs for (do not scrape the web yourself)                          |
 | `atlassian-pm`    | Jira / Confluence write actions surfaced by review (e.g. file-a-bug, link-PR-to-ticket). Reviewer recommends invocation; never invokes itself. May be consulted in `mode=read-only-context` for project-side ticket / page lookups during review (silent-skip on plugin/auth miss). |
 
 Project-level reviewers (if the repo has `.cursor/agents/reviewer-*.md`) and QA agents (if `.cursor/agents/qa-*.md`) are selected by this agent when validating implementation outputs.
