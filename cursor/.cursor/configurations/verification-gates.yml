@@ -442,3 +442,23 @@ swarm_orchestration:
   anti_dup:
     policy_file: configurations/orchestration-policies/anti-dup.yml
     audit_sink: ~/.cursor/ai-brain/org/global/orchestration/dispatch-audit.md
+  subagent_audit:
+    enabled: true
+    fail_closed_for_entrypoints: true
+    entrypoint_agents: [cto, tech-lead, code-reviewer]
+    required_event_types: [dispatch, started, completed, failed, timeout, retry, fallback]
+    required_fields:
+      - trace_id
+      - task_id
+      - dispatch_id
+      - agent_run_id
+      - parent_agent
+      - target_agent
+      - dispatch_level
+      - pipeline
+      - stage_id
+      - workspace_root
+      - event_type
+      - event_outcome
+      - attempt
+    audit_ledger: ~/.cursor/ai-brain/org/global/orchestration/subagent-audit-log.jsonl

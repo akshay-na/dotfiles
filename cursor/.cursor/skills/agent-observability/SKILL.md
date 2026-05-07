@@ -50,8 +50,57 @@ Instruments agent operations with per-task metrics, decision audit trails, token
 |-----------|-------------|
 | `log_metric` | Record a task metric entry |
 | `log_decision` | Record a decision audit entry |
+| `log_subagent_audit` | Record subagent lifecycle audit entry (dispatch/run/complete/fail) |
 | `generate_report` | Generate session, weekly, or agent performance report |
 | `query_metrics` | Query metrics with filters |
+
+## Subagent Audit Entry Schema (Swarm)
+
+Use this schema for robust end-to-end swarm auditing:
+
+```yaml
+---
+entity_name: org.global.orchestration.audit.{trace_id}.{dispatch_id}
+namespace: org.global.orchestration
+category: audit
+status: accepted
+tags: [observability, swarm, subagent-audit, {parent_agent}, {target_agent}]
+created_at: ISO-8601
+trace_id: string
+task_id: string
+parent_task_id: string | null
+dispatch_id: string
+agent_run_id: string
+parent_agent: string
+target_agent: string
+dispatch_level: L1 | L2 | L3 | L4
+pipeline: string
+stage_id: string
+workspace_root: string
+event_type: dispatch | started | heartbeat | completed | failed | timeout | retry | fallback | protocol_malformed | protocol_secret_redaction
+event_outcome: success | failed | blocked | degraded
+attempt: number
+duration_ms: number | null
+token_estimate:
+  input: number
+  output: number
+parallelism_decision: parallel | serial+blocker:<reason>
+error_code: string | null
+error_summary: string | null
+artifact_ref: string | null
+---
+
+Compact lifecycle event payload for swarm/subagent auditing.
+```
+
+### Required fields (fail-closed for entrypoint orchestrators)
+
+For `cto`, `tech-lead`, and `code-reviewer`, the following fields are mandatory on every `log_subagent_audit` entry:
+
+- `trace_id`, `task_id`, `dispatch_id`, `agent_run_id`
+- `parent_agent`, `target_agent`, `dispatch_level`
+- `pipeline`, `stage_id`, `workspace_root`
+- `event_type`, `event_outcome`, `attempt`
 
 ## Per-Task Metric Entry Schema
 
@@ -217,6 +266,10 @@ Agents must write metrics at these events:
 | Specialist escalated | `parent_agent`, `escalation_trigger`, `dispatch_level=L3` | After auto-escalation fires |
 | Intra-role fan-out spawned | `parent_agent`, `instance_id`, `partition_basis`, `dispatch_level=L4` | Per-instance dispatch |
 | Serial dispatch | `target_agent`, `parallelism_decision=serial+blocker:<reason>` | When parallelize-by-default is overridden |
+| Subagent dispatch | `trace_id`, `dispatch_id`, `parent_agent`, `target_agent`, `event_type=dispatch` | Immediately before subagent invocation |
+| Subagent started/completed | `agent_run_id`, `event_type`, `event_outcome`, `duration_ms` | At lifecycle transitions |
+| Subagent timeout/retry | `event_type=timeout_or_retry`, `attempt`, `error_code` | On timeout/retry handling |
+| Protocol degraded path | `event_type=protocol_malformed_or_secret_redaction`, `event_outcome=degraded` | When parse contract enforcement degrades |
 
 ### Orchestration structured log line
 

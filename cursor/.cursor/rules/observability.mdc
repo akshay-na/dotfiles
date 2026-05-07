@@ -33,6 +33,11 @@ alwaysApply: false
   - Decision audit trails are mandatory for routing overrides (when deviating from routing table).
   - Session reports can be generated on request by reading all `metric` entries from `session.current/`.
   - Promote metrics to `projects/{name}/metrics/` for cross-session trend analysis.
+  - Swarm/subagent orchestration must emit lifecycle audit entries for every dispatch, completion, timeout, retry, and fallback path.
+  - Required correlation IDs for orchestration audit: `trace_id`, `task_id`, `parent_task_id` (if any), `dispatch_id`, and `agent_run_id`.
+  - Required actor fields: `parent_agent`, `target_agent`, `dispatch_level`, `workspace_root`, `pipeline`, and `stage_id`.
+  - Missing required swarm audit fields in orchestration entrypoint agents (`cto`, `tech-lead`, `code-reviewer`) is a fail-closed policy violation.
+  - Child protocol failures (subagent malformed envelope, suspected secret output) must be logged as explicit audit incidents.
 
 - **Feedback loop observability**
   - Pre-execution validation runs must produce pass/fail metrics via `agent-observability`. Track gates run, violations found, and errors caught before write.
@@ -42,3 +47,7 @@ alwaysApply: false
   - Dead letter aggregation summaries must reference similar prior failures when available. Include error signatures and smart suggestions.
   - Pattern learning candidates discovered from dead letters must be logged and surfaced for periodic review per the `pattern_learning` protocol in `failure-patterns.yml`.
 
+- **Swarm audit retention**
+  - Persist orchestration audit stream under `~/.cursor/ai-brain/org/global/orchestration/`.
+  - Maintain append-only event ledger for subagent lifecycle events and a compact index for query/report generation.
+  - Do not store full raw tool output in audit entries; store references (`artifact_ref`) to bounded files when needed.

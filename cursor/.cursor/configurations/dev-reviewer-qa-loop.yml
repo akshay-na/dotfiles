@@ -42,6 +42,25 @@ feedback_routing:
   review_to_test: queue
   test_to_critic: queue
   critic_to_execute: escalate_on_blocked_only
+audit:
+  required: true
+  sink: ~/.cursor/ai-brain/org/global/orchestration/subagent-audit-log.jsonl
+  required_events:
+    - dispatch
+    - started
+    - completed
+    - failed
+    - retry
+    - fallback
+  required_fields:
+    - trace_id
+    - task_id
+    - dispatch_id
+    - agent_run_id
+    - parent_agent
+    - target_agent
+    - event_type
+    - event_outcome
 signals:
   hard_fail:
     - schema_mismatch
