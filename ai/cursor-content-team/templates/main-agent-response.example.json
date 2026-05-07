@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "contract": "main-agent-response-v1",
+  "agent": "cco",
+  "json_output": true,
+  "status": "ok",
+  "summary": "Plan v2 ready. Phases cover intake, drafts, git push. Hand off to content-lead.",
+  "next_actions": [
+    "content-lead run automation with approved_plan_path",
+    "verify push_after_commit on n8n payload"
+  ],
+  "plan_path": "<project>/.cursor/docs/plans/2026-05-08-topic-slug.md",
+  "approved_plan_path": "<project>/.cursor/docs/plans/2026-05-08-topic-slug.md",
+  "execution_mode": "automation",
+  "artifacts": [],
+  "task_id": "n8n-run-001",
+  "workspace_root": "/abs/path/to/content-repo"
+}

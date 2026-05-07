@@ -1,0 +1,96 @@
+---
+description: "Unified ai-brain conventions: memory (RAM-like) + KB (HDD-like) in one integrated vault."
+alwaysApply: true
+---
+
+# Brain Conventions
+
+## Canonical Root
+
+- Root: `~/.cursor/ai-brain/` (preferred when Cursor migration applied) or `~/ai-brain/` per legacy layout — follow local `README` / migration state in your environment.
+- Integrated namespace (no top-level KB/memory split).
+- Tracked skeleton: `_schema/`, `_templates/`, `README.md`, `.gitignore`.
+- Local runtime content: `projects/`, `org/`, `session/`, `.meta/`, `Home.md`, `.obsidian/graph.json`.
+
+## Operating Model
+
+- **Memory lane (RAM-like):** short-lived orchestration context and quick recall.
+- **Knowledge lane (HDD-like):** durable, canonical structural and decision knowledge.
+- **Promotion path:** memory -> KB when reused/stable/high-signal.
+
+## Query and Token Discipline
+
+- Lookup-first, body-later.
+- Escalate query depth only when needed.
+- Prefer compact summaries and reference pointers.
+- Avoid duplicate payload transfer between subagents and orchestrators.
+
+## Writer Policy
+
+- C-suite agents (`cto`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`) and `tech-lead` may perform bounded touch-writes to memory and KB. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
+- Excluded from KB/memory writes for dedup control: `code-reviewer`, `senior-dev`, `cro`.
+- All other agents are read/query only for brain (`~/ai-brain/`) and must not write memory or KB.
+- Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
+
+### Vault skeleton (tracked stow — no agent writes)
+
+**Hard rule:** no agent writes to the **ai-brain skeleton** shipped from dotfiles. Canonical source tree (edit only by humans / dotfiles maintainers, not automation):
+
+- `dotfiles/ai/ai-brain/_schema/**`
+- `dotfiles/ai/ai-brain/_templates/**`
+- `dotfiles/ai/ai-brain/README.md`, `dotfiles/ai/ai-brain/.gitignore`
+
+After stow, equivalent runtime paths include `~/ai-brain/_schema/**`, `~/ai-brain/_templates/**`, and the root `README.md` / `.gitignore` there; if `~/.cursor/ai-brain/` mirrors or symlinks the same skeleton, treat those paths the same — **no agent patches** to the skeleton content.
+
+**Read-only for every agent** (including `cco`, `content-lead`, C-suite org roles, editorial specialists, subagents): do **not** create, delete, move, or patch skeleton paths during planning, corpus work, CCO plans, or KB/memory automation. **Query and cite** when needed; store durable content under `projects/`, `org/`, `session/`, etc.
+
+**Exception:** the **human** explicitly requests dotfiles / schema-template maintenance, or a normal reviewed git change to `dotfiles/ai/ai-brain/`. Agents must **not** self-initiate skeleton edits.
+
+## Private vault context (PII vs secrets)
+
+**Assumption:** **`~/ai-brain`** and the **content corpus** (`<project>`) are **private** or **local-only** — not world-readable.
+
+- **PII allowed** when it helps the workflow: **name**, **address**, **email**, **phone**, public **handles** tied to the operator, employer / **role**, and similar fields the user **explicitly** shares or approves (e.g. signatures, bylines).
+- **Strictly forbidden:** **passwords**, **passphrases**, **API keys**, **tokens** (OAuth, access, refresh, session), **private keys**, **cookies**, **MFA seeds**, **payment** / full **bank** identifiers, **secret** env or config dumps. Use **`<REDACTED>`** or “**secrets manager**” — never raw values.
+- **Do not** push brain or corpus PII into **public** surfaces or untrusted integrations without human review.
+- Prefer reading **`org/global/operator-profile/`** before inferring stable prefs.
+
+## Operator profile
+
+- **Path:** **`~/ai-brain/org/global/operator-profile/`** (same brain root as **Canonical Root** above).
+- **Layout:** **`_templates/operator-profile.md`** — agents **read** template, **write** only under **`operator-profile/`**.
+- **Who may write:** org roles with brain **touch-write** per **Writer Policy** (`cco` / `content-lead` coordinated updates when plans call for it; same bounded discipline as other `org/` writes).
+- **Prompt analysis:** maintain **`prompt-signals.md`** / **`predicted-needs.md`** from **high-signal** prompts; tag **`inferred`** + date; **no** secrets; refresh conservatively.
+
+## Agent `git commit` (no GPG sign)
+
+The human may have **`commit.gpgsign=true`** globally. **All commits created by agents or automation in this pack** must **not** invoke GPG. Use **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`**. Applies to the **content corpus** repo (`content-git-workflow`), **`~/ai-brain`** when synced below, and any other agent-driven commit.
+
+## Commit message format (`~/.gitmessage` + Conventional Commits)
+
+Use **`$HOME/.gitmessage`** (DotMate: `dotfiles/git/.gitmessage` when stowed). Prefer **`git commit --no-gpg-sign -t "$HOME/.gitmessage"`** or **`--file`** per [**`content-git-workflow`**](../skills/content-git-workflow/SKILL.md).
+
+1. **Subject:** **`type[(optional-scope)]: imperative summary`** — Conventional Commits (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`, …). **≤ ~72 characters** total; **no trailing period**; imperative mood.
+2. **Content corpus lifecycle `type` (this pack / vault repos):** when the commit is **mainly** about atoms at a **stage**, prefer **`draft`**, **`staging`**, or **`published`** as **`type`** (parallel to `draft/` / `staging/` / `published/` paths), e.g. `draft: add LinkedIn hook cf-2026-0001`, `staging: tighten CTA after review`, `published: promote cf-2026-0003`. Optional **`(scope)`** may hold channel or `cf-*`, e.g. `draft(linkedin): …`. Use standard types (`chore`, `fix`, `docs`, …) for **repo-only** work (indexes, `_meta`, tooling) that is not stage-dominant.
+3. **Body: concise** — match template sections; **at most 2–3** bullets if needed; **`Context:`** / **`Impact:`** **one short line each** by default; avoid essays (detail belongs in PR or plan docs).
+4. **`Notes:`** — include **AI block** when **`content-git-workflow`** / automation requires (`AI-authored`, `Generated-by`, `Task-ID`, `Workflow`); keep other notes **brief**.
+
+## `~/ai-brain` as a git repository (optional)
+
+**Two intentional layouts:** (a) **`~/ai-brain`** is a **git clone** (personal / sync to GitHub); (b) **no** `.git` under `~/ai-brain` — vault **local-only** (office laptop). **Do not** `git init` brain on local-only machines. If your only git root for the vault is **`~/.cursor/ai-brain`**, substitute that path for **`$HOME/ai-brain`** in **`-C`** below.
+
+1. **Detect:** `git -C "$HOME/ai-brain" rev-parse --git-dir` succeeds and work tree is **`$HOME/ai-brain`**. If **not**, **skip** pull / commit / push for brain — do nothing.
+
+2. **If** it **is** a repo and there are **staged-worthy changes** (allowed paths only; **never** skeleton paths):
+   - **`git -C "$HOME/ai-brain" pull --rebase`** first. On conflict: **stop**, surface error, human resolves.
+   - **`git add`** (path-scoped).
+   - **`git commit --no-gpg-sign`** (message per **Commit message format** above).
+   - **`git push`** (no **`--force`** to default branch without break-glass).
+
+3. Clean tree after pull → **no** commit/push.
+
+## Retention and Growth
+
+- Do not auto-delete memory.
+- Keep memory bounded via dedupe/supersede/archive and compact entries.
+- Promote stable decisions/constraints/risks/principles into durable KB nodes.

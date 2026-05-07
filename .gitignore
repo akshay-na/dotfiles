@@ -4,3 +4,5 @@
 not a tty
 **/.lsp
 **/.clj-kondo
+
+!ai/**/*

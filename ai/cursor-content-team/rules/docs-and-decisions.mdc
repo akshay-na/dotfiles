@@ -1,0 +1,123 @@
+---
+description: "Where and how agents write docs, plans, decision records (ADRs), and runbooks in .cursor/docs/. Applies when creating or referencing project documentation."
+alwaysApply: false
+---
+
+# Documentation and decision records
+
+## Where project artifacts live (normative)
+
+**Plans, runbooks, ADRs, design notes, reviews, and other project-scoped docs** produced by **`cco`**, **`content-lead`**, **`editorial-cro`** (critique only—no plan file writes), and project agents belong under **`<project>/.cursor/docs/`** (e.g. `plans/`, `decisions/`, `runbooks/`, `reviews/` as needed). **`~/.cursor/docs`** is for **global / org** material (stowed pack references, personal KB, caches)—**not** the default place for a client or content corpus project’s plans and runbooks. Resolve **`<project>`** the same way as for **`cco`** (corpus git root, `workspace_root`, or user-confirmed folder)—see **CCO plans** below.
+
+## Three-Tier Documentation Model
+
+The org uses three complementary documentation systems:
+
+| Tier               | Location                      | Content                                   | Ownership                                              |
+| ------------------ | ----------------------------- | ----------------------------------------- | ------------------------------------------------------ |
+| **Brain memory**   | `~/ai-brain/`                 | Decisions, constraints, risks, principles | Any agent via `brain-memory-kb` skill (`mode: memory`) |
+| **Project Docs**   | `<project>/.cursor/docs/`     | Plans, ADRs, runbooks, reviews           | Agents write, optionally git-tracked                   |
+| **Knowledge Base** | `~/ai-brain/projects/<name>/` | Integrated structural + cognitive docs    | Single-entry agents (touch-write)                      |
+
+### When to use which tier
+
+**Memory** — Use for conclusions and knowledge that persists across sessions:
+
+- "We decided to use JWT for auth because..."
+- "The API rate limit is 100 req/min"
+- "Never use library X due to CVE..."
+
+**Project Docs** — Use for detailed write-ups that benefit from version control:
+
+- Implementation plans and design docs
+- ADR-style decision records with full context
+- Operational runbooks and procedures
+
+**Knowledge Base** — Built incrementally by entrypoint agents (touch-write):
+
+- Project architecture and structure
+- Module and service documentation
+- Dependency graphs and relationships
+
+### Querying the Knowledge Base
+
+To understand a project's structure, use the `brain-memory-kb` skill in `kb-query` mode:
+
+```
+brain-memory-kb(mode=kb-query): project_name=myapp, query_type=overview     # What is this project?
+brain-memory-kb(mode=kb-query): project_name=myapp, query_type=module, target=auth  # How does auth work?
+brain-memory-kb(mode=kb-query): project_name=myapp, query_type=relationship, target=auth  # What uses auth?
+```
+
+Project-level agents should not perform broad KB writes; they remain read-only via `brain-memory-kb` (`mode: kb-query`).
+
+---
+
+## Project-local docs
+
+All **project-maintained** Cursor docs (plans, runbooks, decisions, optional reviews) live under **`<project>/.cursor/docs/`** so they stay with the repo and can be git-tracked. The **org pack** tree at **`~/.cursor/docs/`** (after stow) holds **pack maintenance** specs only—not a substitute for a project’s own `.cursor/docs/`.
+
+### CCO plans (content org)
+
+**`cco`** writes plans only under **`<project>/.cursor/docs/plans/`**, where **`<project>`** is the **git root of the content work repository** (corpus: drafts, topics, briefs — the repo the brief or n8n `workspace_root` names). **Do not** place CCO plans under **`~/.cursor`** when that path is only the stowed global Cursor config, nor under org-pack **source** folders in the workspace unless the brief is explicitly about editing the pack. Multi-root workspace: resolve `<project>` explicitly (payload or user) before the first plan write.
+
+```
+<project>/.cursor/
+├── agents/
+├── rules/
+├── skills/
+└── docs/
+    ├── plans/       # Implementation plans, design docs
+    ├── decisions/   # ADR-style decision records
+    ├── runbooks/    # Operational procedures, how-tos
+    └── reviews/     # Project-scoped review write-ups (optional)
+```
+
+## Writing docs
+
+Before writing:
+
+1. Create target directory if needed: `mkdir -p .cursor/docs/{plans,decisions,runbooks,reviews}`
+2. Use date-stamped filenames: `YYYY-MM-DD-descriptive-name.md`
+
+| Directory    | Purpose                           | Examples                         |
+| ------------ | --------------------------------- | -------------------------------- |
+| `plans/`     | Implementation plans, design docs | `2026-04-03-auth-redesign.md`    |
+| `decisions/` | ADR-style decision records        | `2026-04-03-chose-postgres.md`   |
+| `runbooks/`  | Operational procedures, how-tos   | `2026-04-03-deploy-procedure.md` |
+| `reviews/`   | Project-scoped review artifacts     | `2026-05-08-pipeline-audit.md`   |
+
+## When a full plan is required
+
+- Significant architectural changes, new services, or large refactors
+- Security-sensitive features, performance-critical paths, or major observability changes
+- Cross-team or cross-project work that affects multiple codebases
+- Use plan mode (`cto` + leadership) for multi-step or high-risk work
+
+## Decision records
+
+For important architectural or process decisions, record:
+
+- The decision and its rationale
+- Alternatives considered and why they were rejected
+- Implications and follow-up actions
+
+Link these decisions from memory entries (`org.global` or `project.<name>`) instead of duplicating full text.
+
+## Memory integration
+
+- **Memory** (`~/.cursor/memory/`): Cross-session knowledge, decisions, constraints — persists across worktrees and sessions
+- **Docs** (`.cursor/docs/`): Detailed plans and runbooks — lives with the project, optionally git-tracked
+
+Use memory for quick lookups and knowledge persistence. Use docs for detailed write-ups that benefit from version control or sharing.
+
+## Keeping docs current
+
+- When a decision changes, create a new decision record and link it via supersession from the old one
+- Avoid silently drifting away from documented behavior; update docs or record a new decision when reality changes
+
+## Agent expectations
+
+- All agents write to **`<project>/.cursor/docs/`** in the **content or code project** they are working on — for **`cco`**, `<project>` is the **corpus repo**, never the dotfiles org-pack folder unless that is the stated scope.
+- Check existing docs before proposing new patterns
+- Cross-reference memory entries with doc paths when relevant

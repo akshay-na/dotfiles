@@ -102,17 +102,16 @@ This skips tool installation and only creates symlinks for your dotfiles.
 
 ### Core Operations
 
-| Command                              | Description                                     |
-| ------------------------------------ | ----------------------------------------------- |
-| `make install`                       | Complete setup: install tools + create symlinks |
-| `make stow`                          | Create symlinks for all configurations          |
-| `make stow CONFIGS="git nvim shell"` | Create symlinks for specific tools only         |
-| `make unstow`                        | Remove all symlinks                             |
-| `make unstow CONFIGS="git nvim"`     | Remove symlinks for specific tools              |
-| `make backup`                        | Backup existing configurations                  |
-| `make update`                        | Check for updates and reapply configurations    |
-| `make clean`                         | Clean up broken symlinks                        |
-| `make help`                          | Show all available commands                     |
+- `make install` — Complete setup: install tools + create symlinks
+- `make stow` — Create symlinks for all configurations
+- `make stow CONFIGS="git nvim shell"` — Create symlinks for specific tools only
+- `make stow-with-target TOOL_PATH="ai/cursor-tech-team" TARGET_NAME=".cursor"` — Stow one dotfiles folder path to a custom target folder
+- `make unstow` — Remove all symlinks
+- `make unstow CONFIGS="git nvim"` — Remove symlinks for specific tools
+- `make backup` — Backup existing configurations
+- `make update` — Check for updates and reapply configurations
+- `make clean` — Clean up broken symlinks
+- `make help` — Show all available commands
 
 ### Selective Configuration
 
@@ -127,6 +126,12 @@ make stow CONFIGS="shell alacritty wezterm"
 
 # Set up development tools
 make stow CONFIGS="mise node python"
+
+# Stow a specific folder path to a custom target
+make stow-with-target TOOL_PATH="ai/cursor-tech-team" TARGET_NAME=".cursor"
+
+# TARGET_NAME is optional (defaults to basename of TOOL_PATH)
+make stow-with-target TOOL_PATH="git"
 ```
 
 ---
@@ -152,6 +157,8 @@ make stow CONFIGS="mise node python"
 - **Common Configuration** (`.commonrc`):
   - Shared environment variables, paths, and tool initializations
   - Homebrew, editor detection, and tool setup
+  - Dotfiles update checks are skipped over SSH sessions
+  - Interactive dotfiles update checks are **off** by default; set `DOTFILES_ENABLE_UPDATE=true` to enable them on shell startup
   - Cross-platform compatibility (macOS/Linux)
 - **Aliases** (`.aliases`):
   - Comprehensive collection of useful command shortcuts

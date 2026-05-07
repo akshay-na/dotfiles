@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "content-org://contracts/schemas/n8n-automation-request.schema.json",
+  "title": "n8n / HTTP automation payload → content org",
+  "description": "Typical JSON body for headless runs (e.g. n8n HTTP Request). workspace_root is the content corpus git root.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["workspace_root", "brief", "task_id"],
+  "properties": {
+    "workspace_root": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute path to content repo; plans go to {workspace_root}/.cursor/docs/plans/"
+    },
+    "brief": { "type": "string" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "idempotency_key": { "type": "string" },
+    "execution_mode": {
+      "type": "string",
+      "enum": ["automation", "interactive"],
+      "default": "automation"
+    },
+    "correction_brief": { "type": "string" },
+    "target_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "git_branch": { "type": "string" },
+    "git_remote": { "type": "string" },
+    "pull_before": { "type": "boolean", "default": true },
+    "push_after_commit": { "type": "boolean", "default": true },
+    "commit_template_path": {
+      "type": "string",
+      "default": "~/.gitmessage"
+    },
+    "create_branch": { "type": "string" },
+    "_marker": {
+      "type": "string",
+      "description": "Optional; pass through to subagent envelope for correlation."
+    },
+    "json_output": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true (default), main org agents emit final reply as JSON per main-agent-response.schema.json. Set false for plain prose."
+    }
+  }
+}

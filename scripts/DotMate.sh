@@ -83,17 +83,16 @@ install() {
 # Create symlinks for dotfiles using stow
 stow_dotfiles() {
   echo_with_color "$GREEN" "Stowing dotfiles..."
+  EXCLUDED_DIRS=("ai")
   for dir in "$DOTFILES_DIR"/*/; do
-    stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
-    if [ $dir == "ai" ]; then
-      cp -rf "$DOTFILES_DIR/$dir/.cursor/agents" "$HOME/.cursor" 2>/dev/null || true
-      cp -rf "$DOTFILES_DIR/$dir/.gemini/agents" "$HOME/.gemini" 2>/dev/null || true
+    if [[ ! " ${EXCLUDED_DIRS[@]} " =~ " $(basename "$dir") " ]]; then
+      stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
     fi
   done
   chmod +x ~/.local/bin/*
 }
 
-# Remove symlinks created by stow
+# Remove symlinks created by stow, including ai directory
 unstow_dotfiles() {
   echo_with_color "$RED" "Unstowing dotfiles..."
   for dir in "$DOTFILES_DIR"/*/; do
@@ -118,19 +117,77 @@ stow_multiple_dotfiles() {
   fi
 
   for tool in "$@"; do
+    if [ "$tool" = "ai-brain" ]; then
+      echo_with_color "$RED" "ai-brain is not stowed via CONFIGS. Use: $0 stow_with_target ai/<cursor|gemini-pack> <target>"
+      exit 1
+    fi
     echo_with_color "$GREEN" "Stowing $tool..."
-    stow --no-folding --override=$tool -D -d "$DOTFILES_DIR" -t "$HOME" "$tool"
-
-    # AI agents need to be copied to the home directory. Symlinks are not supported.
-    case "$tool" in
-    cursor | cursor-*)
-      cp -rf "$DOTFILES_DIR/$tool/.cursor/agents" "$HOME/.cursor" 2>/dev/null || true
-      ;;
-    gemini | gemini-*)
-      cp -rf "$DOTFILES_DIR/$tool/.gemini/agents" "$HOME/.gemini" 2>/dev/null || true
-      ;;
-    esac
+    stow --no-folding --override=$tool -d "$DOTFILES_DIR" -t "$HOME" "$tool"
   done
+}
+
+# Stow a specific folder path to a target folder name under $HOME
+# Usage: stow_with_target <folder_path_from_dotfiles> [target_folder_name]
+stow_with_target() {
+  if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    echo_with_color "$RED" "Usage: $0 stow_with_target <folder_path> [target_folder_name]"
+    exit 1
+  fi
+
+  local folder_path="$1"
+  local target_folder_name="${2:-$(basename "$folder_path")}"
+  local package_dir
+  local package_name
+
+  package_dir="$(dirname "$folder_path")"
+  package_name="$(basename "$folder_path")"
+
+  if [ ! -d "$DOTFILES_DIR/$folder_path" ]; then
+    echo_with_color "$RED" "Folder not found: $DOTFILES_DIR/$folder_path"
+    exit 1
+  fi
+
+  local stow_target="$HOME/$target_folder_name"
+
+  # Switching cursor/gemini teams: remove every sibling package from the same target
+  # first, or stow errors ("existing target is stowed to a different package").
+  if [ "$package_dir" = "ai" ]; then
+    unstow_sibling_packages() {
+      local prefix="$1"
+      local target="$2"
+      echo_with_color "$YELLOW" "Unstowing previous ${prefix}-* packages from $target..."
+      for sibling in "$DOTFILES_DIR/ai"/"${prefix}"-*; do
+        [ -d "$sibling" ] || continue
+        stow -D -d "$DOTFILES_DIR/ai" -t "$target" "$(basename "$sibling")" || true
+      done
+    }
+
+    case "$package_name" in
+    cursor-*) unstow_sibling_packages "cursor" "$stow_target" ;;
+    gemini-*) unstow_sibling_packages "gemini" "$stow_target" ;;
+    esac
+  fi
+
+  echo_with_color "$GREEN" "Stowing $folder_path -> $stow_target"
+  stow --no-folding --override="$package_name" -R -d "$DOTFILES_DIR/$package_dir" -t "$stow_target" "$package_name"
+
+  # AI agents: copy (not symlink). ai-brain skeleton is stowed only here — not via make stow CONFIGS (ai/ excluded).
+  copy_agents_for_app() {
+    local app_name="$1"
+    local target_dir="$HOME/.$app_name"
+    stow --no-folding --override="ai-brain" -d "$DOTFILES_DIR/ai" -t "$HOME/ai-brain" "ai-brain"
+    rm -rf "$target_dir/agents"
+    cp -rf "$DOTFILES_DIR/$folder_path/agents" "$target_dir" 2>/dev/null || true
+  }
+
+  case "$package_name" in
+  cursor | cursor-*)
+    copy_agents_for_app "cursor"
+    ;;
+  gemini | gemini-*)
+    copy_agents_for_app "gemini"
+    ;;
+  esac
 }
 
 # Remove symlinks for specific dotfiles (support multiple arguments)
@@ -168,6 +225,10 @@ stow)
     stow_dotfiles
   fi
   ;;
+stow_with_target | stow-with-target)
+  shift
+  stow_with_target "$@"
+  ;;
 unstow)
   shift
   if [ "$#" -gt 0 ]; then
@@ -181,7 +242,7 @@ clean)
   clean_symlinks
   ;;
 *)
-  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|unstow|clean}"
+  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean}"
   exit 1
   ;;
 esac

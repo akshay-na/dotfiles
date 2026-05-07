@@ -25,6 +25,7 @@ export HISTSIZE=10000                                                # Shell his
 export PODMAN_SYSTEMD_UNIT="enabled"                                 # Enable systemd unit for podman
 export PODMAN_USERNS=keep-id                                         # Keep user namespaces for podman
 export GPG_TTY=$(tty)                                                # Set GPG TTY for GPG agent
+export DOTFILES_ENABLE_UPDATE=true                                   # Enable dotfiles update checks
 
 # Create logs directory if it doesn't exist
 if [ ! -d "$HOME/logs" ]; then
@@ -110,10 +111,15 @@ fi
 if [[ -t 0 ]] && {
   [[ -n "$ZSH_VERSION" ]] && [[ -o interactive ]] ||
     [[ -n "$BASH_VERSION" ]] && [[ $- == *i* ]] ||
+    [[ "$DOTFILES_ENABLE_UPDATE" == "true" ]] &&
+    [[ -z "$SSH_CONNECTION" ]] &&
+    [[ -z "$SSH_TTY" ]] &&
     [[ -n "$PS1" ]]
 }; then
   # Network connectivity check for background operations
   PING_RESULT=false
+  DOTFILES_ENABLE_UPDATE="${DOTFILES_ENABLE_UPDATE:-false}"
+
   if ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1; then
     PING_RESULT=true
     {
@@ -123,14 +129,16 @@ if [[ -t 0 ]] && {
     disown
   fi
 
-  # Dotfiles Repository Update Check (interactive only)
-  if [ -d "$DOTFILES_DIR" ]; then
-    if [ "$PING_RESULT" = true ]; then
+  # Dotfiles Repository Update Check (interactive only, opt-in)
+  # Default: off. Set DOTFILES_ENABLE_UPDATE=true to run update checks on shell startup.
+  if [[ "$PING_RESULT" == "true" ]]; then
+    if [ -d "$DOTFILES_DIR" ]; then
+      # Only check for update if NOT connected over SSH (i.e. not on a remote server)
       check_dotfiles_update
+    else
+      # Clone dotfiles repository if not available
+      git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
     fi
-  else
-    # Clone dotfiles repository if not available
-    git clone https://github.com/akshay-na/dotfiles "$DOTFILES_DIR"
   fi
 else
   PATH="$PATH:$HOME/.local/share/mise/shims" # Load mise shims

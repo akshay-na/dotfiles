@@ -657,11 +657,11 @@ restart_gpg() {
 }
 
 # -------------------------------------------------------------------------------
-# Function: set-current-worktree
+# Function: set_current_worktree
 # Purpose: Set the current worktree symlink to the selected project and worktree.
-# Usage: set-current-worktree
+# Usage: set_current_worktree
 # -------------------------------------------------------------------------------
-set-current-worktree() {
+set_current_worktree() {
   local workspace_dir="$HOME/workspace"
   local projects=()
 
@@ -765,11 +765,11 @@ set-current-worktree() {
 }
 
 # -------------------------------------------------------------------------------
-# Function: show-current-worktrees
+# Function: show_current_worktrees
 # Purpose: Show the current worktree links for all projects.
-# Usage: show-current-worktrees
+# Usage: show_current_worktrees
 # -------------------------------------------------------------------------------
-show-current-worktrees() {
+show_current_worktrees() {
   local workspace_dir="$HOME/workspace"
   local projects=()
 
@@ -809,6 +809,178 @@ show-current-worktrees() {
       printf "%-${max_proj_len}s -> (not set)\n" "$proj"
     fi
   done
+}
+
+# -------------------------------------------------------------------------------
+# Function: switch_ai_team
+# Purpose: Select tool + team under dotfiles/ai and stow to target folder.
+# Usage: switch_ai_team
+# -------------------------------------------------------------------------------
+switch_ai_team() {
+  local BOLD='\033[1m' CYAN='\033[0;36m' GREEN='\033[0;32m' YELLOW='\033[1;33m' RED='\033[0;31m' DIM='\033[2m' NC='\033[0m'
+  local dotfiles_dir="${DOTFILES_DIR:-$HOME/dotfiles}"
+  local ai_dir="$dotfiles_dir/ai"
+  local tool selected_tool selected_team active_team selected_path
+  local tools=() teams=() team_paths=()
+  local tool_choice team_choice
+  local dir_path team dir_bn ref ref_real
+  local has_cursor=false
+  local has_gemini=false
+  local -a cursor_refs=()
+  local -a gemini_refs=()
+  local gemini_pkg_found=0
+
+  [[ -d "$ai_dir" ]] || {
+    echo -e "${RED}Error:${NC} AI directory not found at '${CYAN}$ai_dir${NC}'."
+    return 1
+  }
+
+  for dir_path in "$ai_dir"/*; do
+    [[ -d "$dir_path" ]] || continue
+    dir_bn="${dir_path##*/}"
+    [[ "$dir_bn" == "ai-brain" ]] && continue
+    case "$dir_bn" in
+    cursor-*) has_cursor=true ;;
+    gemini-* | .gemini) has_gemini=true ;;
+    esac
+  done
+  $has_cursor && tools+=("cursor")
+  $has_gemini && tools+=("gemini")
+
+  [[ ${#tools[@]} -gt 0 ]] || {
+    echo -e "${RED}Error:${NC} No tool teams found under '${CYAN}$ai_dir${NC}'."
+    return 1
+  }
+
+  echo
+  echo -e "${BOLD}${CYAN}AI Team Switcher${NC}"
+  echo -e "${DIM}Source:${NC} ${CYAN}$ai_dir${NC}"
+  echo
+  echo -e "${YELLOW}Available tools:${NC}"
+  echo
+  local i=1
+  for tool in "${tools[@]}"; do
+    printf "%b%2d)%b %b%s%b\n" "$DIM" "$i" "$NC" "$BOLD" "$tool" "$NC"
+    i=$((i + 1))
+  done
+  echo
+  printf "%bEnter tool number:%b " "$BOLD" "$NC"
+  read -r tool_choice
+  if [[ -z "$tool_choice" || ! "$tool_choice" =~ ^[0-9]+$ ]]; then
+    echo -e "${RED}Invalid selection.${NC} Enter a valid number."
+    return 1
+  fi
+  if ((tool_choice < 1 || tool_choice > ${#tools[@]})); then
+    echo -e "${RED}Out of range.${NC} Pick ${DIM}1${NC}–${DIM}${#tools[@]}${NC}."
+    return 1
+  fi
+  selected_tool="${tools[$tool_choice]}"
+
+  case "$selected_tool" in
+  cursor)
+    cursor_refs=(
+      "$HOME/.cursor/hooks.json"
+      "$HOME/.cursor/rules/agent-orchestration.mdc"
+    )
+    for ref in "${cursor_refs[@]}"; do
+      ref_real="$(realpath "$ref" 2>/dev/null || true)"
+      if [[ "$ref_real" == *"/dotfiles/ai/"* ]]; then
+        active_team="${ref_real#*/dotfiles/ai/}"
+        active_team="${active_team%%/*}"
+        break
+      fi
+    done
+    ;;
+  gemini)
+    # ~/.gemini is the stow target (directory), not a symlink — resolve via stowed files.
+    gemini_refs=(
+      "$HOME/.gemini/GEMINI.md"
+      "$HOME/.gemini/CONVENTIONS.md"
+    )
+    for ref in "${gemini_refs[@]}"; do
+      [[ -e "$ref" ]] || continue
+      ref_real="$(realpath "$ref" 2>/dev/null || true)"
+      if [[ "$ref_real" == *"/dotfiles/ai/"* ]]; then
+        active_team="${ref_real#*/dotfiles/ai/}"
+        active_team="${active_team%%/*}"
+        break
+      fi
+    done
+    ;;
+  esac
+
+  if [[ "$selected_tool" == "gemini" ]]; then
+    gemini_pkg_found=0
+    for dir_path in "$ai_dir"/gemini-*; do
+      [[ -d "$dir_path" ]] || continue
+      gemini_pkg_found=1
+      team="${dir_path##*/}"
+      [[ "$team" == "$active_team" ]] && teams+=("$team [ACTIVE]") || teams+=("$team")
+      team_paths+=("ai/$team")
+    done
+    if ((gemini_pkg_found == 0)) && [[ -d "$ai_dir/.gemini" ]]; then
+      [[ ".gemini" == "$active_team" ]] && teams+=(".gemini [ACTIVE]") || teams+=(".gemini")
+      team_paths+=("ai/.gemini")
+    fi
+  else
+    for dir_path in "$ai_dir"/"${selected_tool}"-*; do
+      [[ -d "$dir_path" ]] || continue
+      team="${dir_path##*/}"
+      [[ "$team" == "ai-brain" ]] && continue
+      [[ "$team" == "$active_team" ]] && teams+=("$team [ACTIVE]") || teams+=("$team")
+      team_paths+=("ai/$team")
+    done
+  fi
+  [[ ${#teams[@]} -gt 0 ]] || {
+    echo -e "${RED}Error:${NC} No teams found for tool '${CYAN}$selected_tool${NC}'."
+    return 1
+  }
+
+  echo
+  echo -e "${YELLOW}Available teams for${NC} ${BOLD}${CYAN}$selected_tool${NC}${YELLOW}:${NC}"
+  echo
+  i=1
+  for team in "${teams[@]}"; do
+    if [[ "$team" == *" [ACTIVE]" ]]; then
+      printf "%b%2d)%b %b%s%b %b[ACTIVE]%b\n" "$DIM" "$i" "$NC" "$BOLD" "${team% \[ACTIVE\]}" "$NC" "$GREEN" "$NC"
+    else
+      printf "%b%2d)%b %b%s%b\n" "$DIM" "$i" "$NC" "$BOLD" "$team" "$NC"
+    fi
+    i=$((i + 1))
+  done
+  echo
+  printf "%bEnter team number:%b " "$BOLD" "$NC"
+  read -r team_choice
+  if [[ -z "$team_choice" || ! "$team_choice" =~ ^[0-9]+$ ]]; then
+    echo -e "${RED}Invalid selection.${NC} Enter a valid number."
+    return 1
+  fi
+  if ((team_choice < 1 || team_choice > ${#teams[@]})); then
+    echo -e "${RED}Out of range.${NC} Pick ${DIM}1${NC}–${DIM}${#teams[@]}${NC}."
+    return 1
+  fi
+  selected_team="${teams[$team_choice]}"
+  selected_team="${selected_team% \[ACTIVE\]}"
+
+  local idx=$team_choice
+  selected_path="${team_paths[$idx]}"
+  [[ -n "$selected_path" ]] || selected_path="ai/$selected_team"
+
+  echo
+  echo -e "${YELLOW}Applying selection…${NC}"
+  echo -e "  ${DIM}Tool${NC}   ${BOLD}${CYAN}$selected_tool${NC}"
+  echo -e "  ${DIM}Team${NC}   ${BOLD}$selected_team${NC}"
+  echo -e "  ${DIM}Target${NC} ${CYAN}~/${NC}${BOLD}.$selected_tool${NC}"
+  echo
+  if (cd "$dotfiles_dir" && make stow-with-target TOOL_PATH="$selected_path" TARGET_NAME=".$selected_tool"); then
+    echo
+    echo -e "${GREEN}Done:${NC} switched ${CYAN}$selected_tool${NC} → ${BOLD}$selected_team${NC}."
+    echo -e "${YELLOW}Reload the Cursor IDE to load the new agents/rules.${NC} command-palette -> Reload Window"
+  else
+    echo
+    echo -e "${RED}Failed:${NC} could not switch ${CYAN}$selected_tool${NC} to ${BOLD}$selected_team${NC}."
+    return 1
+  fi
 }
 
 # Load custom local common configurations, if available

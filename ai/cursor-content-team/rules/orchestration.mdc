@@ -1,0 +1,22 @@
+---
+description: n8n + automation payloads, execution_mode, correction loop fields for content org.
+alwaysApply: true
+---
+
+# Content orchestration (n8n)
+
+## Payload (typical JSON fields)
+
+- `workspace_root`, `brief`, `task_id`, `idempotency_key` — **`workspace_root`** must be the **content corpus** git root; **`cco`** writes plans under `{workspace_root}/.cursor/docs/plans/` only (not under dotfiles org-pack paths).
+- `execution_mode`: `automation` | `interactive`  
+- `correction_brief`, `target_paths[]` (correction runs)  
+- Git: `git_branch`, `git_remote`, `pull_before` (default true), `push_after_commit` (default true for automation), `commit_template_path` (default `$HOME/.gitmessage`), `create_branch` (optional)  
+- **SSH** remote assumed working — no token setup in agents.
+
+## Flow
+
+Automation: sync → **`cco`** (plan) → **`content-lead`** (generate + **commit/push**). Human reviews on GitHub after push. Correction: narrow `target_paths[]` + **`correction_brief`**, repeat git tail.
+
+## Human gate
+
+Publishing / CMS remains **after** human approval; agents stop at pushed drafts.

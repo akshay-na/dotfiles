@@ -50,6 +50,8 @@ help:
 	@echo "  install     - Install necessary tools and set up environment"
 	@echo "  stow        - Create symlinks for dotfiles using stow. Use CONFIGS to specify specific tools."
 	@echo "                Example: make stow CONFIGS=\"git ssh nvim\""
+	@echo "  stow-with-target - Stow one folder path to a custom target under HOME."
+	@echo "                     Example: make stow-with-target TOOL_PATH=\"ai/cursor-tech-team\" TARGET_NAME=\".cursor\""
 	@echo "  unstow      - Remove symlinks created by stow. Use CONFIGS to specify specific tools."
 	@echo "                Example: make unstow CONFIGS=\"git ssh nvim\""
 	@echo "  clean       - Clean up broken symlinks in the home directory"
@@ -72,6 +74,10 @@ install: prep ## Install tools and set up environment
 .PHONY: stow prep
 stow: prep ## Create symlinks for specified dotfiles
 	@$(SCRIPT) stow $(CONFIGS)
+
+.PHONY: stow-with-target
+stow-with-target: prep ## Stow one folder path to target folder name
+	@$(SCRIPT) stow_with_target $(TOOL_PATH) $(TARGET_NAME)
 
 .PHONY: unstow
 unstow: prep ## Remove symlinks for specified dotfiles

@@ -1,4 +1,5 @@
-<type>: <short summary of the change>
+# Subject: Conventional Commits — e.g. feat(api): add handler  or  docs: clarify install  (≤~72 chars, imperative, no period)
+<type>: <short imperative summary>
 
 - <First key change or addition>
 - <Second key change or addition>

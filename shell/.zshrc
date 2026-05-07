@@ -256,9 +256,9 @@ if [[ -o interactive ]]; then
   # Custom Functions (Interactive Only)
   # ---------------------------------------------------------------
   # VSCode directory jumping alias (function defined in .functions)
-  if typeset -f _vscode_z >/dev/null; then
-    alias vz='_vscode_z'
-    compdef _vscode_z vz
+  if typeset -f _vscode_zoxide >/dev/null; then
+    alias vscode_zoxide_pick='_vscode_zoxide'
+    compdef _vscode_zoxide vscode_zoxide_pick
   fi
 
   if [ -z "$TMUX" ] && [ -z "$TMUX_AUTOSTART" ] && command -v tmux >/dev/null; then
