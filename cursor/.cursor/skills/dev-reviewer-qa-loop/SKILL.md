@@ -63,6 +63,12 @@ DONE tech-lead → qa-<scope> (retry)
 Failures from `qa-*` against the system under test (SUT) still loop back to `dev-*`.
 Issues within tests themselves (coverage, correctness, gamed fixtures) loop back to `qa-*`.
 
+## Dispatch preference (latency-aware)
+
+- Dispatch `reviewer-*` in foreground by default for fast decision-gate feedback.
+- Dispatch `qa-*` in background when tests are independent and long-running.
+- Keep ordering contract intact: reviewer outcome can gate/short-circuit QA retries; QA still feeds findings back through orchestrator.
+
 ## Loop Protocol
 
 ```
@@ -309,7 +315,7 @@ total_duration_ms: 120000
 
 ## Default Invocation
 
-Loop is **default ON** for any implementation phase when the active workspace folder contains **both** `reviewer-*` and `qa-*` agent files under `.cursor/agents/`. Opt-out is **plan-level only** via top-level `loop_disabled: true` (hotfix escape); **do not** toggle per phase ad hoc.
+Loop is **mandatory** for implementation phases. No explicit user opt-in is required. `tech-lead` hands implementation outputs to `code-reviewer`, which owns review+QA/test execution decisions.
 
 Operating modes:
 

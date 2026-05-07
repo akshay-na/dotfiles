@@ -21,17 +21,21 @@ alwaysApply: true
 
 - **Atlassian operations** (Jira / Confluence / Bitbucket) are owned by `atlassian-pm` globally. There is **no** project-level `pm-*`, `jira-*`, `confluence-*`, or `atlassian-*` agent. **No agent except `atlassian-pm` may call `plugin-atlassian-atlassian` write tools** (`createJiraIssue`, `editJiraIssue`, `transitionJiraIssue`, `addCommentToJiraIssue`, `addWorklogToJiraIssue`, `createIssueLink`, `createConfluencePage`, `updateConfluencePage`, `createConfluenceFooterComment`, `createConfluenceInlineComment`).
   - **Atlassian entry point (`atlassian-pm`) — WRITES:** the user explicitly requests Jira / Confluence / Bitbucket activity → invoke `atlassian-pm`. Never auto-trigger for writes. Every write is gated by draft-then-approve with a 5-minute approval expiry.
-  - **Atlassian entry point (`atlassian-pm`) — READS:** any global org agent in the allow-list (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `vp-onboarding`, `kb-engineer`, `senior-dev`, `docs-researcher`) MAY invoke `atlassian-pm` via the Task tool with `mode=read-only-context` for planning / design / review context lookups. The allow-list is exhaustive; deny-by-default applies to any agent not listed. The broker preflights plugin + auth and returns `{ status: 'skipped', reason: ... }` on miss; callers MUST treat this as a silent no-op (no user-facing error). **Project-level agents** (`dev-*`, `sme-*`, `qa-*`, `devops`, `reviewer-*`) are **NOT** in the allow-list and MUST always route through explicit user invocation. The deny-list is enforced before the allow-list. **Writes are still hard-gated to user invocation only** — `read-only-context` cannot escalate to a write session; the mode parameter cannot be flipped mid-session.
+  - **Atlassian entry point (`atlassian-pm`) — READS:** any global org agent in the allow-list (`cto`, `code-reviewer`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `vp-onboarding`, `senior-dev`, `docs-researcher`) MAY invoke `atlassian-pm` via the Task tool with `mode=read-only-context` for planning / design / review context lookups. The allow-list is exhaustive; deny-by-default applies to any agent not listed. The broker preflights plugin + auth and returns `{ status: 'skipped', reason: ... }` on miss; callers MUST treat this as a silent no-op (no user-facing error). **Project-level agents** (`dev-*`, `sme-*`, `qa-*`, `devops`, `reviewer-*`) are **NOT** in the allow-list and MUST always route through explicit user invocation. The deny-list is enforced before the allow-list. **Writes are still hard-gated to user invocation only** — `read-only-context` cannot escalate to a write session; the mode parameter cannot be flipped mid-session.
   - **Deprecated plugin skills (route through `atlassian-pm`):** `spec-to-backlog`, `triage-issue`, `capture-tasks-from-meeting-notes`, `generate-status-report`. Other agents must NOT invoke these plugin skills directly; they recommend `atlassian-pm` to the user. The plugin skill files at `~/.cursor/plugins/cache/cursor-public/atlassian/.../skills/<name>/SKILL.md` are upstream-managed and not edited; this is rule-level deprecation. The plugin skills remain available for direct user invocation if the user prefers, but the org policy is that agent-mediated Atlassian work routes through `atlassian-pm`.
 
-- **Memory:** All agents follow the always-apply `memory` rule and the `context-memory` skill for reads and writes.
+- **Memory:** All agents follow `brain-conventions` and use `brain-memory-kb` (`mode: memory`) for reads and writes.
 
 - **Docs research:** All agents delegate documentation and web research to `docs-researcher`. See the `docs-researcher` rule.
 
 - **Call-chain boundaries**
-  - For multi-phase work: the user → `cto` (plan) → `tech-lead` (execution orchestration) → `dev-*` / `sme-*` / `qa` (task execution). Org specialists (`vp-architecture`, `ciso`, etc.) are invoked only by `cto` in plan mode, not by project agents.
-  - For code review: the user → `code-reviewer` → org specialists (in parallel) + project `reviewer-*` (in parallel when present) → synthesized review. Org specialists are invoked from `code-reviewer` only for review; they are not invoked from project agents.
-  - `tech-lead` is the single entrypoint for plan execution and multi-root orchestration. The user should avoid invoking `dev-*`, `reviewer-*`, `sme-*`, or `qa` directly for plan-driven work; instead, call `tech-lead`, who decides which project agents to involve. For review-only work, `code-reviewer` bypasses `tech-lead` and contacts the relevant project `reviewer-*` agents directly.
+  - For multi-phase work: the user → `cto` (plan) → **explicit checkpoint** → user invokes `tech-lead` with chosen execution_mode → project agents. Org specialists invoked only inside `cto` planning swarm (`Task` parallelism allowed among independent analysts).
+  - For code review: the user → `code-reviewer` → org specialists (in parallel) + project `reviewer-*` (in parallel when present) → synthesized review. Org specialists are invoked from `code-reviewer` only for review.
+  - `tech-lead` is single entrypoint for execution + multi-root orchestration; users avoid direct `dev-*` / `reviewer-*` for plan-bound work unless `tech-lead` routes there. Review-only bypasses `tech-lead`.
+
+- **Planning vs execution boundary:** After plan file lands under `<workspace>/.cursor/docs/plans/`, **`cto` stops**. User must acknowledge **two-choice execution gate**: **`phase-by-phase`** (checkpoint each parallel group via `tech-lead`) **`all-phases-approved`** (`execution_mode: all_phases` + explicit authorization text). Silence ≠ approval.
+
+- **No peer delegation:** Specialists / project agents NEVER `Task`-call each other laterally — always through `cto`, `tech-lead`, or `code-reviewer` orchestrator nodes.
 
 - **When to escalate to specialists (via `cto` for planning, via `code-reviewer` for review)**
   - `vp-architecture`: new services, significant refactors, data-model or boundary changes, cross-service contracts.
@@ -68,9 +72,11 @@ alwaysApply: true
   - Project `reviewer-*`: review within their stated scope when invoked by `code-reviewer` (for cross-project reviews) or by `tech-lead` (for in-project Dev-Reviewer-QA loops).
   - Specialists (`ciso`, `sre-lead`, etc.): review or extend the plan/implementation only inside their domain.
 
+- **Swarm + anti-duplication:** Disjoint `touches[]` parallelism + bounded background `Task` when no dependency / clarification blockers (`parallel-dispatch`, `routing-table.yml`). Deterministic merges use stable shard ordering + schemas in `templates/agent-result-bundle.yml.tmpl`. Payload caps + refs in `templates/subagent-response.yml.tmpl`; hook `./hooks/subagent-task-antidup-preflight.sh` + policy `configurations/orchestration-policies/anti-dup.yml`; audit `~/.cursor/ai-brain/org/global/orchestration/dispatch-audit.md`.
+
 - **Golden rule**
   - Every agent respects its scope, escalates instead of guessing outside that scope, and never skips plan checkpoints without explicit user instruction.
-  - Every agent keeps its own context lean by following the `context-memory` skill for memory operations instead of loading heavy skills and rules into every agent.
+  - Every agent keeps its own context lean by following `brain-memory-kb` for memory operations instead of loading heavy skills and rules into every agent.
   - Every subagent → parent response follows `subagent-response-protocol` (structured YAML envelope, hooks-enforced). See `~/.cursor/rules/subagent-response-protocol.mdc`.
 
 ## Workspace-folder team conventions
@@ -83,13 +89,13 @@ alwaysApply: true
 - See [`team-discovery` skill](../skills/team-discovery/SKILL.md) for the per-folder discovery and assignment algorithm org-tier `tech-lead` runs at every dispatch.
 - All project agents must keep context minimal:
   - Load only the files, rules, and skills needed for the current task.
-  - Access memory via the `context-memory` skill and delegate docs lookups to `docs-researcher` instead of loading large histories or whole documentation sets.
+  - Access memory via `brain-memory-kb` (`mode: memory`) and delegate docs lookups to `docs-researcher` instead of loading large histories or whole documentation sets.
 
 ## Org-tier orchestrator standards
 
-- **Memory namespaces:** org roles use `org/<role>/` under `~/.cursor/memory/` (see always-apply `memory` rule); project-scoped work uses `project.<name>/` per the `context-memory` skill.
+- **Memory namespaces:** canonical files live under **`~/.cursor/ai-brain/`** with the same logical layout (`org/<role>/`, `projects/<name>/`). Canonical interface is [`brain-memory-kb`](../skills/brain-memory-kb/SKILL.md).
 - **Plans and runbooks:** authoritative plan and execution docs live under `<workspace>/.cursor/docs/plans/` and `<workspace>/.cursor/docs/runbooks/` (see `docs-and-decisions` rule).
 - **Observability:** orchestrators emit metrics and decision logs per [`agent-observability` skill](../skills/agent-observability/SKILL.md).
 - **Subagent parsing:** parent agents that consume `Task` results follow the parent-side parse contract in `subagent-response-protocol` (`~/.cursor/rules/subagent-response-protocol.mdc`).
 - **Mode defaults:** `cto` — plan mode; `tech-lead` — Agent (implementation/orchestration) mode; `code-reviewer` — Agent (read-only review).
-- **Toolkit:** compose [`task-orchestration`](../skills/task-orchestration/SKILL.md), [`closed-loop-execution`](../skills/closed-loop-execution/SKILL.md), [`cross-stage-feedback`](../skills/cross-stage-feedback/SKILL.md), [`team-discovery`](../skills/team-discovery/SKILL.md), [`dev-reviewer-qa-loop`](../skills/dev-reviewer-qa-loop/SKILL.md), and [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md) as reusable building blocks.
+- **Toolkit:** compose [`task-orchestration`](../skills/task-orchestration/SKILL.md), [`closed-loop-execution`](../skills/closed-loop-execution/SKILL.md), [`cross-stage-feedback`](../skills/cross-stage-feedback/SKILL.md), [`team-discovery`](../skills/team-discovery/SKILL.md), [`dev-reviewer-qa-loop`](../skills/dev-reviewer-qa-loop/SKILL.md), [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md), [`swarm-task-decomposition`](../skills/swarm-task-decomposition/SKILL.md), [`swarm-deterministic-merge`](../skills/swarm-deterministic-merge/SKILL.md), [`swarm-critic-validation`](../skills/swarm-critic-validation/SKILL.md) as reusable building blocks.

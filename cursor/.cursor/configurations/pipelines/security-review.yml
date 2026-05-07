@@ -38,9 +38,9 @@ stages:
     skill: closed-loop-execution
 
   - id: verify
-    agent: tech-lead
+    agent: code-reviewer
     mode: agent
-    description: Verify security controls implemented correctly
+    description: Mandatory review+QA gate with security-focused test/check execution when CI checks are missing or incomplete.
     inputs: [code_changes, security_requirements]
     outputs: [verification_results]
     timeout_minutes: 15

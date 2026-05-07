@@ -1,0 +1,10 @@
+# agent_result_bundle_v1 — fan-in aggregator records (conceptual YAML)
+schema_version: 1
+merge_order: lexical_by_task_id
+shards:
+  - task_id: "<id>"
+    status: ok | warn | blocked | error
+    determinism_hash: "<sha256 of shard inputs + normalized output>"
+artifacts:
+  - "<path-or-REF-token>"
+replay_note: Same shards + same inputs => same merge hash (validate before closing group)

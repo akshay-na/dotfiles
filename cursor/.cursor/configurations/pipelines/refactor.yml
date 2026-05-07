@@ -38,9 +38,9 @@ stages:
     skill: closed-loop-execution
 
   - id: verify
-    agent: tech-lead
+    agent: code-reviewer
     mode: agent
-    description: Verify behavior unchanged — run full test suite and regression check
+    description: Mandatory review+QA gate. Validate behavior parity and trigger tests when CI signal is absent or weak.
     inputs: [code_changes, analysis]
     outputs: [verification_results]
     timeout_minutes: 20

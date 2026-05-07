@@ -31,9 +31,9 @@ alwaysApply: true
 
 - **Separation from memory**
   - `docs-researcher` is responsible for *external* documentation and web research.
-  - Persistent, internal knowledge (decisions, constraints, risks, todos, diagrams) is managed directly by agents via the `context-memory` skill and stored as Markdown files at `~/.cursor/memory/`.
+  - Persistent, internal knowledge (decisions, constraints, risks, todos, diagrams) is managed via `brain-memory-kb` (`mode: memory`); canonical storage is **`~/.cursor/ai-brain/`**.
   - Agents may combine outputs by:
     - Asking `docs-researcher` for current docs behavior.
-    - Reading existing decisions/constraints from memory via the `context-memory` skill.
+    - Reading existing decisions/constraints from memory via `brain-memory-kb` (`mode: memory`).
     - Making a decision in their own role based on both, then persisting the decision via the skill if appropriate.
 

@@ -29,9 +29,9 @@ stages:
     skill: closed-loop-execution
 
   - id: verify
-    agent: tech-lead
+    agent: code-reviewer
     mode: agent
-    description: Verify fix resolves issue, run regression checks
+    description: Mandatory review+QA gate. Run targeted regression tests when CI checks are missing or insufficient.
     inputs: [code_changes, diagnosis]
     outputs: [verification_results]
     timeout_minutes: 15

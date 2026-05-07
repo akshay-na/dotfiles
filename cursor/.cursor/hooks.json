@@ -9,6 +9,13 @@
         "timeout": 5
       },
       {
+        "command": "./hooks/subagent-task-antidup-preflight.sh",
+        "matcher": "Task",
+        "failClosed": true,
+        "enabled": true,
+        "timeout": 5
+      },
+      {
         "command": "./hooks/subagent-protocol-inject.sh",
         "matcher": "Task",
         "failClosed": false,

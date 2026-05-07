@@ -12,7 +12,7 @@
 # Fail-open: on any error (jq missing, template missing, non-Task tool), the
 # hook exits 0 without modifying anything. NEVER breaks the agent flow.
 #
-# POSIX-compatible. Uses `uuidgen` with `python3` fallback.
+# POSIX-compatible. Uses `uuidgen` with shell fallback.
 
 set -uo pipefail
 
@@ -58,8 +58,6 @@ if [ -s "$marker_file" ]; then
 else
   if command -v uuidgen >/dev/null 2>&1; then
     marker="$(uuidgen | tr '[:upper:]' '[:lower:]')"
-  elif command -v python3 >/dev/null 2>&1; then
-    marker="$(python3 -c 'import uuid;print(uuid.uuid4())')"
   else
     # last-resort fallback — timestamp + random, still unique enough per-session
     marker="sess-$(date +%s)-$RANDOM-$RANDOM"

@@ -80,7 +80,7 @@ fanout_hint:
     - Avoid scanning the entire repo or loading all rules/skills at once.
 - **Access memory directly, delegate docs research**
   - For persistent knowledge:
-    - Access memory directly via the `context-memory` skill (read/write protocols in `memory-access` and `memory-capture` rules).
+    - Access memory directly via `brain-memory-kb` (`mode: memory`) following `brain-conventions`.
     - Query namespaces: `project.<name>`, `project.<name>.<domain>`, `org.global`.
   - For external documentation:
     - Ask `docs-researcher` rather than calling docs MCPs directly.

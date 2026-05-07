@@ -6,7 +6,7 @@
 # the "trusted Cursor zones" — where agent-managed content lives and any
 # write is, by policy, considered safe to apply without a user prompt.
 #
-# Applies to ANY agent (not just kb-engineer). The hook is grant-only: if the
+# Applies to ANY agent. The hook is grant-only: if the
 # target path is outside the trusted zones it exits 0 silently and the default
 # Cursor approval flow continues unchanged. The hook never denies.
 #

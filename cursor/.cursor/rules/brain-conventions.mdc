@@ -1,0 +1,37 @@
+---
+description: "Unified ai-brain conventions: memory (RAM-like) + KB (HDD-like) in one integrated vault."
+alwaysApply: true
+---
+
+# Brain Conventions
+
+## Canonical Root
+
+- Root: `~/.cursor/ai-brain/`
+- Integrated namespace (no top-level KB/memory split).
+- Tracked skeleton: `_schema/`, `_templates/`, `README.md`, `.gitignore`.
+- Local runtime content: `projects/`, `org/`, `session/`, `.meta/`, `Home.md`, `.obsidian/graph.json`.
+
+## Operating Model
+
+- **Memory lane (RAM-like):** short-lived orchestration context and quick recall.
+- **Knowledge lane (HDD-like):** durable, canonical structural and decision knowledge.
+- **Promotion path:** memory -> KB when reused/stable/high-signal.
+
+## Query and Token Discipline
+
+- Lookup-first, body-later.
+- Escalate query depth only when needed.
+- Prefer compact summaries and reference pointers.
+- Avoid duplicate payload transfer between subagents and orchestrators.
+
+## Writer Policy
+
+- Entrypoint agents (`cto`, `tech-lead`, `code-reviewer`, `vp-onboarding`, `atlassian-pm`, `docs-researcher`, `senior-dev`) may perform bounded touch-writes.
+- Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read-only for KB writes.
+
+## Retention and Growth
+
+- Do not auto-delete memory.
+- Keep memory bounded via dedupe/supersede/archive and compact entries.
+- Promote stable decisions/constraints/risks/principles into durable KB nodes.

@@ -2,6 +2,7 @@
 name: CISO
 description: The CISO (Chief Information Security Officer). Owns security posture across the org. Use proactively when reviewing authentication flows, authorization logic, secret management, container configurations, CI pipelines, deployment manifests, or any code handling sensitive data or exposed to untrusted input.
 model: claude-opus-4-7-thinking-max
+version: 2026.05.07
 parallelizable: true
 ---
 
@@ -45,7 +46,7 @@ Prefer secure-by-default.
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `org/security/`, `projects/<name>/security/`, `org/global/`.
+Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary namespaces: `org/security/`, `projects/<name>/security/`, `org/global/`.
 
 **Before reviewing:**
 

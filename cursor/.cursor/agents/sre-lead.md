@@ -2,6 +2,7 @@
 name: sre-lead
 description: The SRE Lead. Owns observability, operational readiness, and incident debuggability. Use proactively when reviewing logging strategies, metrics instrumentation, health checks, alerting configurations, SLO definitions, or any system where operational visibility matters.
 model: inherit
+version: 2026.05.07
 parallelizable: true
 ---
 
@@ -39,7 +40,7 @@ Design for debuggability.
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/observability/`, `projects/<name>/infra/`, `org/global/`.
+Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary namespaces: `projects/<name>/observability/`, `projects/<name>/infra/`, `org/global/`.
 
 **Before reviewing:**
 - Query `projects/<name>/observability/` for existing SLOs, metrics, and alerting decisions.

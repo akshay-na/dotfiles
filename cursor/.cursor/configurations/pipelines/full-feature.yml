@@ -7,6 +7,16 @@ stages:
   - id: plan
     agent: cto
     mode: plan
+    execution_mode: plan_only
+    fanout_policy: parallel_independent_specialists
+    partition_basis: specialist_domain
+    instance_cap: 6
+    merge_contract_id: deterministic-lex-by-task-id
+    determinism_key: plan-shard-order
+    dispatch_mode: foreground
+    payload_budget: 4096
+    result_ref_required: true
+    caveman_level: ultra
     description: Create phased implementation plan
     inputs: [task_description]
     outputs: [implementation_plan]
@@ -34,6 +44,15 @@ stages:
   - id: implement
     agent: tech-lead
     mode: agent
+    execution_gate: explicit_user_invoke_tech_lead_after_cto_checkpoint
+    fanout_policy: parallel_when_disjoint_project_agents
+    partition_basis: workspace_root
+    instance_cap: 8
+    merge_contract_id: deterministic-lex-by-task-id
+    dispatch_mode: background_auto
+    payload_budget: 4096
+    result_ref_required: true
+    caveman_level: ultra
     description: Execute the implementation plan (tech-lead coordinates project agents)
     inputs: [implementation_plan, architecture_review, security_review]
     outputs: [code_changes]
@@ -49,9 +68,9 @@ stages:
     skill: closed-loop-execution
 
   - id: verify
-    agent: tech-lead
+    agent: code-reviewer
     mode: agent
-    description: Run full verification suite (lint, type check, tests, regression check)
+    description: Mandatory review+QA gate. Reuse CI checks when sufficient; run local tests when checks are missing, stale, or failed.
     inputs: [code_changes]
     outputs: [verification_results]
     timeout_minutes: 15

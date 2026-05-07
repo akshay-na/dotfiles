@@ -61,7 +61,7 @@ Derive project identity for Knowledge Base operations. This skill reads git conf
 ## Overview
 
 The KB uses project identity to:
-- Determine the KB path: `~/.cursor/docs/knowledge-base/projects/<project_name>/`
+- Determine the KB path: `~/.cursor/ai-brain/projects/<project_name>/`
 - Ensure all worktrees of the same repo share one KB
 - Generate unique identities across different organizations (same repo name, different orgs)
 
@@ -174,7 +174,7 @@ else:
 ### Step 5: Determine KB path
 
 ```
-kb_path = "~/.cursor/docs/knowledge-base/projects/" + project_name + "/"
+kb_path = "~/.cursor/ai-brain/projects/" + project_name + "/"
 # Expand ~ to actual home directory
 ```
 
@@ -211,7 +211,7 @@ Output:
     project_name: "myapp"
     identity_hash: "a1b2c3d4"
     full_identity: "myapp-a1b2c3d4"
-    kb_path: "/Users/dev/.cursor/docs/knowledge-base/projects/myapp/"
+    kb_path: "/Users/dev/.cursor/ai-brain/projects/myapp/"
     remote_url: "git@github.com:acme/myapp.git"
     is_worktree: false
     derived_from: "remote_origin"
@@ -234,7 +234,7 @@ Output:
     project_name: "myapp"
     identity_hash: "a1b2c3d4"  # Same as main checkout!
     full_identity: "myapp-a1b2c3d4"
-    kb_path: "/Users/dev/.cursor/docs/knowledge-base/projects/myapp/"
+    kb_path: "/Users/dev/.cursor/ai-brain/projects/myapp/"
     remote_url: "git@github.com:acme/myapp.git"
     is_worktree: true
     main_repo_path: "/Users/dev/myapp"
@@ -254,7 +254,7 @@ Output:
     project_name: "local-project"
     identity_hash: "e5f6g7h8"  # From SHA256 of project_root
     full_identity: "local-project-e5f6g7h8"
-    kb_path: "/Users/dev/.cursor/docs/knowledge-base/projects/local-project/"
+    kb_path: "/Users/dev/.cursor/ai-brain/projects/local-project/"
     remote_url: null
     is_worktree: false
     derived_from: "folder_name"

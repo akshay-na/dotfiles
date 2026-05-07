@@ -1,5 +1,6 @@
 name: performance
-description: Performance and reliability workflow — analysis, phased plan, implementation, observability and verification
+description: Performance and reliability workflow — analysis, phased plan,
+  implementation, observability and verification
 version: 2
 max_retries: 3
 
@@ -7,17 +8,18 @@ stages:
   - id: analyze
     agent: vp-engineering
     mode: plan
-    description: Analyze latency, throughput, resource use, concurrency, and reliability risks
-    inputs: [task_description, target_files, metrics_if_any]
-    outputs: [analysis, performance_recommendations]
+    description: Analyze latency, throughput, resource use, concurrency, and
+      reliability risks
+    inputs: [ task_description, target_files, metrics_if_any ]
+    outputs: [ analysis, performance_recommendations ]
     timeout_minutes: 25
 
   - id: plan
     agent: cto
     mode: plan
     description: Create phased implementation plan with verification targets and rollback
-    inputs: [analysis, performance_recommendations]
-    outputs: [implementation_plan]
+    inputs: [ analysis, performance_recommendations ]
+    outputs: [ implementation_plan ]
     requires_approval: true
     timeout_minutes: 20
 
@@ -25,8 +27,8 @@ stages:
     agent: tech-lead
     mode: agent
     description: Execute optimizations and fixes per plan with pre-execution validation
-    inputs: [implementation_plan]
-    outputs: [code_changes]
+    inputs: [ implementation_plan ]
+    outputs: [ code_changes ]
     timeout_minutes: 45
     retry:
       max_attempts: 3
@@ -40,9 +42,10 @@ stages:
   - id: observability_review
     agent: sre-lead
     mode: plan
-    description: Confirm metrics, logging, tracing, and operational visibility for the change
-    inputs: [code_changes, implementation_plan]
-    outputs: [observability_review, feedback_items]
+    description: Confirm metrics, logging, tracing, and operational visibility for
+      the change
+    inputs: [ code_changes, implementation_plan ]
+    outputs: [ observability_review, feedback_items ]
     timeout_minutes: 15
     feedback_loop:
       target_stage: implement
@@ -52,8 +55,8 @@ stages:
     agent: vp-engineering
     mode: plan
     description: Verify improvements against goals and check for regressions
-    inputs: [code_changes, analysis, observability_review]
-    outputs: [performance_verification, feedback_items]
+    inputs: [ code_changes, analysis, observability_review ]
+    outputs: [ performance_verification, feedback_items ]
     timeout_minutes: 15
     skill: closed-loop-execution
     feedback_loop:

@@ -119,7 +119,7 @@ created_at: ISO-8601
 task_id: string
 decision_id: string
 agent: string
-decision_type: routing | strategy | escalation | override | dispatch | specialist_escalation | folder_resolution | fallback | cleanup_audit | intra_role_fanout | loop_disabled | loop_partial
+decision_type: routing | strategy | escalation | override | dispatch | specialist_escalation | folder_resolution | fallback | cleanup_audit | intra_role_fanout | loop_partial
 decision: string
 rationale: string
 alternatives_considered: string[]
@@ -143,7 +143,6 @@ Full decision description and reasoning.
 | `fallback` | No project team matched → fallback executor (e.g. senior-dev) |
 | `cleanup_audit` | vp-onboarding legacy-delete / cleanup outcome |
 | `intra_role_fanout` | L3 → L4 N-instance horizontal fan-out within one role |
-| `loop_disabled` | Plan-level opt-out of default implementation review loop |
 | `loop_partial` | Implementation loop degraded: missing `reviewer-*` or `qa-*` |
 
 The eight orchestration-extended types (`dispatch` … `loop_partial`) MUST include **`rationale`** and **`alternatives_considered`** on every logged entry. **`intra_role_fanout`** entries SHOULD also carry `instance_count`, `partition_basis`, and `disjoint_groups` where applicable.
@@ -190,8 +189,6 @@ instance_count: 3
 partition_basis: path-prefix
 disjoint_groups: ["src/views/a/**", "src/views/b/**", "src/views/c/**"]
 
-# loop_disabled — plan-level opt-out; rationale repeats plan visibility
-decision_type: loop_disabled
 decision: "Default dev-reviewer-qa-loop not applied for this plan"
 rationale: "Hotfix; user-approved single-pass implementation"
 alternatives_considered: ["loop ON with minimal reviewer"]
@@ -418,7 +415,6 @@ Aggregate across sessions for trend analysis:
 - Fan-out hit-rate: % phases that attempted fan-out → % fan-outs succeeding post-merge → % rolled back due to overlap
 - Top-3 serial blockers by frequency (from `parallelism_decision=serial+blocker:*`): {ranked list}
 - % impl phases using default **ON** Dev-Reviewer-QA loop: P%
-- `loop_disabled` count: N; top rationales: {bullet list}
 
 ### Failure Patterns
 | Pattern | This Week | Last Week | Trend |
@@ -535,9 +531,9 @@ log_decision:
   rationale: "Pattern matched: {pattern}"
 ```
 
-### context-memory
+### brain-memory-kb (memory mode)
 
-The `context-memory` skill provides the storage backend:
+The `brain-memory-kb` skill (`mode: memory`) provides the storage backend:
 - Use `write` for creating metric/decision entries
 - Use `read` for querying
 - Use `list` for aggregation
@@ -550,7 +546,7 @@ The `context-memory` skill provides the storage backend:
 ```
 1. Validate metric_data against schema
 2. Generate entity_name: session.current.metric.{task_id}
-3. Write to context-memory with category: metric
+3. Write via `brain-memory-kb` (`mode: memory`) with category: metric
 4. Return { status: success, entry_path: ... }
 ```
 
@@ -560,7 +556,7 @@ The `context-memory` skill provides the storage backend:
 1. Validate decision_data against schema
 2. Generate decision_id if not provided
 3. Generate entity_name: session.current.decision.{task_id}.{decision_id}
-4. Write to context-memory with category: decision
+4. Write via `brain-memory-kb` (`mode: memory`) with category: decision
 5. Append decision_id to task metric's decision_trail
 6. Return { status: success, entry_path: ... }
 ```

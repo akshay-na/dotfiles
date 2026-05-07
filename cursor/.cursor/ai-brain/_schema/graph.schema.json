@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dotmate.local/ai-brain/schemas/graph.schema.json",
+  "title": "KB Project Relationship Graph",
+  "description": "Canonical graph.json under ~/.cursor/ai-brain/projects/<name>/graph.json (Obsidian + brain-memory-kb query mode).",
+  "type": "object",
+  "required": ["version", "project", "generated_at", "nodes", "edges", "stats"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "project": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "last_updated": { "type": "string", "format": "date-time" },
+    "last_full_regeneration": { "type": "string", "format": "date-time" },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/edge" }
+    },
+    "stats": {
+      "type": "object",
+      "required": ["total_nodes", "total_edges"],
+      "properties": {
+        "total_nodes": { "type": "integer", "minimum": 0 },
+        "total_edges": { "type": "integer", "minimum": 0 },
+        "modules": { "type": "integer", "minimum": 0 },
+        "services": { "type": "integer", "minimum": 0 },
+        "datastores": { "type": "integer", "minimum": 0 },
+        "external_deps": { "type": "integer", "minimum": 0 },
+        "edges_extracted": { "type": "integer", "minimum": 0 },
+        "edges_inferred": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "node": {
+      "type": "object",
+      "required": ["id", "label", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["module", "service", "datastore", "external_dep", "config", "function", "class"]
+        },
+        "kb_doc": { "type": ["string", "null"] },
+        "scope": {
+          "type": "string",
+          "enum": ["shared", "project"],
+          "description": "REQUIRED for every datastore node. Encodes whether it lives at vault root or inside the project."
+        },
+        "discovery_sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["compose", "k8s", "workspace", "convention", "procfile", "ci", "dockerfile", "code"]
+          }
+        },
+        "port": { "type": "integer" },
+        "protocol": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive", "deprecated"]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "datastore" } }, "required": ["type"] },
+          "then": { "required": ["scope"] }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "edge": {
+      "type": "object",
+      "required": ["source", "target", "relation", "confidence"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "imports",
+            "depends_on",
+            "calls",
+            "exposes",
+            "configures",
+            "extends",
+            "implements",
+            "invokes",
+            "subscribes_to",
+            "publishes_to",
+            "shares_datastore"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["EXTRACTED", "INFERRED"]
+        },
+        "inferred": {
+          "type": "boolean",
+          "description": "Convenience boolean. MUST be true when confidence == INFERRED; omitted or false when EXTRACTED."
+        },
+        "evidence": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

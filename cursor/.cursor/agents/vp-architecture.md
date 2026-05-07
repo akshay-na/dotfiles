@@ -2,6 +2,7 @@
 name: vp-architecture
 description: The VP of Architecture. Owns system design, stress-tests architecture decisions, and evaluates scaling strategies. Use proactively before implementing architecture changes, reviewing infrastructure proposals, or when design trade-offs need rigorous analysis.
 model: claude-opus-4-7-thinking-max
+version: 2026.05.07
 parallelizable: true
 ---
 
@@ -49,7 +50,7 @@ Think in terms of:
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/architecture/`, `org/global/`.
+Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary namespaces: `projects/<name>/architecture/`, `org/global/`.
 
 **Before reviewing:**
 

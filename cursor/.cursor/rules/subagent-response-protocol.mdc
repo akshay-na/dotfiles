@@ -39,7 +39,8 @@ skills. The pre-commit lint blocks drift on distinctive phrases.
   never a string.
 - Total envelope ≤ 8 KB (D9). `findings[]` ≤ 20. `artifacts[]` ≤ 50 (D20);
   overflow spills to `~/.cursor/memory/projects/<name>/explore-dumps/<task-id>.md`
-  with a single ref entry.
+  (legacy) **or** `~/.cursor/ai-brain/projects/<name>/explore-dumps/<task-id>.md`
+  when canonical root is active; never double-write; record a single ref entry.
 
 ## Compression classes (§5.2 of the plan)
 

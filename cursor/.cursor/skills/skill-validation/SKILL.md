@@ -198,7 +198,7 @@ For each step after the first:
 
 ```yaml
 # Step 1: Read memory
-- skill: context-memory
+- skill: brain-memory-kb
   inputs:
     operation: read
     namespace: org.global
@@ -236,7 +236,7 @@ Skills marked `cacheable: true` can have their outputs cached.
 
 Example:
 ```
-context-memory:a1b2c3d4e5f6
+brain-memory-kb:a1b2c3d4e5f6
 ```
 
 Where hash is SHA-256 of canonical JSON representation of inputs.
@@ -306,8 +306,8 @@ expires_at: 2026-04-04T10:30:00Z
 
 ```yaml
 ---
-name: context-memory
-description: File-based Markdown memory at ~/.cursor/memory/. Any agent can read/write directly using this skill.
+name: brain-memory-kb
+description: Unified ai-brain memory+KB operations. Use mode=memory or mode=kb-query.
 version: 1
 input_schema:
   required:
@@ -363,7 +363,7 @@ query: "auth patterns"
 **Error output:**
 ```yaml
 validation_error:
-  skill: context-memory
+  skill: brain-memory-kb
   phase: pre_execution
   check: Required input validation
   expected: namespace (string) must be provided
@@ -376,7 +376,7 @@ validation_error:
 ```yaml
 # Chain: Memory → Prompt → Validation
 chain:
-  - skill: context-memory
+  - skill: brain-memory-kb
     inputs:
       operation: read
       namespace: org.global

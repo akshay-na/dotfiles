@@ -133,6 +133,13 @@ classification:
       complexity: high
       requires_plan: true
 
+    planning:
+      signals: ["plan", "planning", "design first", "cto plan", "architecture plan"]
+      default_pipeline: ceo-planning
+      default_agents: [cto]
+      complexity: medium
+      requires_plan: true
+
     documentation:
       signals:
         ["document", "README", "explain", "clarify", "API docs", "comment"]
@@ -166,3 +173,16 @@ classification:
       then:
         pipeline: full-feature
         always_include: [vp-architecture]
+
+swarm_execution_defaults:
+  dispatch_mode: background_auto
+  background_when: disjoint_touches_preflight_ok
+  default_behavior: swarm_first_unless_entrypoint_downgrades_for_safety_or_scope
+  caveman_level: ultra
+  payload_budget_chars: 4096
+  merge_contract_id: deterministic-lex-by-task-id
+  result_ref_required: true
+  fanout_policy: swarm_first_prefer_parallel_if_disjoint
+  instance_cap: 8
+  feedback_configs:
+    implementation_loop: configurations/dev-reviewer-qa-loop.yml

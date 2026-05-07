@@ -1,0 +1,34 @@
+schema_version: 1
+enabled: true
+kb_write_roles:
+  allowed:
+    - cto
+    - tech-lead
+    - code-reviewer
+    - vp-onboarding
+    - atlassian-pm
+    - docs-researcher
+    - senior-dev
+  denied_patterns:
+    - dev-*
+    - sme-*
+    - qa-*
+    - reviewer-*
+    - devops
+quotas:
+  per_touch_byte_cap: 4096
+  per_run_node_cap:
+    cto: 8
+    tech-lead: 10
+    code-reviewer: 5
+    vp-onboarding: 4
+    atlassian-pm: 6
+    docs-researcher: 5
+    senior-dev: 6
+noise_filters:
+  skip_globs:
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/*.lock"

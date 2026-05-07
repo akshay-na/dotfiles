@@ -1,0 +1,52 @@
+# Unified implementation feedback loop contract (tech-lead + code-reviewer)
+version: 2
+execution_lifecycle:
+  phases: [ execute, review, test, critic ]
+  strict_ordering: true
+implementation_loop:
+  mandatory: true
+  explicit_user_opt_in_required: false
+  owner_agent: code-reviewer
+termination_conditions:
+  - quality_threshold_met
+  - max_iterations_reached
+  - hard_policy_violation
+iteration_caps:
+  max_iterations: 3
+  fallback_no_project_reviewers: 2
+global_retry_budget:
+  label: swarm_pipeline_total
+  max_attempts_across_nested_loops: 12
+dispatch_mode:
+  default: background_auto
+  allowed: [ foreground, background_auto ]
+swarm_defaults:
+  policy: swarm_first
+  caveat: entrypoint_may_downgrade_when_not_required_or_not_safe
+role_dispatch_preferences:
+  reviewer:
+    mode: foreground
+    rationale: decision_gate_and_fast_feedback
+  qa:
+    mode: background_auto
+    rationale: long_running_tests_should_not_block_review
+background_auto_requires:
+  - disjoint_touches_preflight_pass
+  - no_pending_user_clarification
+  - shared_write_conflict: false
+nested_loop_policy:
+  stage_retry_cap: 3
+  closed_loop_cap: 3
+feedback_routing:
+  execute_to_review: forwarding
+  review_to_test: queue
+  test_to_critic: queue
+  critic_to_execute: escalate_on_blocked_only
+signals:
+  hard_fail:
+    - schema_mismatch
+    - secret_detected_markdown
+    - anti_dup_inline_blob_violation
+  degrade_tag_only:
+    - caveman_compactness_drift
+    - kb_stale_but_readable

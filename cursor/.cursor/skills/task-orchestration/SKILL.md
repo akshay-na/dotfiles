@@ -435,7 +435,7 @@ Persistent state storage in session memory.
 
 ### Location
 
-`session.current/` namespace in context-memory.
+`session.current/` namespace in `brain-memory-kb` (`mode: memory`).
 
 ### File Naming
 
@@ -656,7 +656,7 @@ Read `configurations/pipelines/{name}.yml` for:
 
 ### With Context Memory
 
-Use `context-memory` skill for:
+Use `brain-memory-kb` (`mode: memory`) for:
 - Task state persistence
 - Dead letter storage
 - Cross-session task lookup

@@ -430,3 +430,15 @@ custom_gates:
           - type_check
           - test_check
           - e2e_smoke
+
+# Swarm orchestration knobs (paired w/ routing-table / parallel-dispatch)
+swarm_orchestration:
+  default_execution_mode: phase_by_phase
+  background_eligibility:
+    requires_disjoint_touches: true
+    max_inflight_tasks: 12
+  merge_contracts:
+    default: deterministic-lex-by-task-id
+  anti_dup:
+    policy_file: configurations/orchestration-policies/anti-dup.yml
+    audit_sink: ~/.cursor/ai-brain/org/global/orchestration/dispatch-audit.md

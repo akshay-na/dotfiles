@@ -12,6 +12,10 @@
 # Status enum: ok | warn | blocked | error | malformed
 # Size caps: summary <=120c, findings[].note <=200c (400c for security-autoclarity),
 #            findings[] <=20, artifacts[] <=50, total envelope <=8192 bytes
+#
+# Anti-dup (strict): artifact bodies >256 bytes across parent↔child boundary MUST use ASCII ref token
+#   <REF:path#sha256:HEX64#size:BYTES>
+# only (no verbatim duplicate). Parent synthesis: path + ≤120c summary; no raw child YAML to user.
 # Parser MUST scan for the LAST fenced yaml block and assert nothing non-whitespace
 # follows the closing fence (D6). schema_version other than 1 => malformed (D13).
 # reported_by is an ordered array ["origin", ..., "root"] (D12).
@@ -21,8 +25,8 @@ _marker: "<session-uuid-injected-by-parent-hook>"
 status: ok                 # ok | warn | blocked | error | malformed
 agent: "<agent-id>"
 summary: "<caveman-ultra, <=120 chars, no raw secrets>"
-artifacts:                 # verbatim paths; <=50 entries (D20)
-  - "<path>"
+artifacts:                 # path or <REF:path#sha256:...#size:N>; <=50 entries (D20)
+  - "<path-or-REF-token>"
 findings:                  # severity-graded; <=20 entries
   - severity: high         # low | med | high | critical
     category: "<slug>"     # see protocol rule 5.2 for security-autoclarity triggers

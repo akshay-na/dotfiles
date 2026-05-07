@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dotmate.local/ai-brain/migration.schema.json",
+  "title": "ai-brain migration state",
+  "type": "object",
+  "required": ["schema_version", "device_id", "stages_completed", "brain_version"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "device_id": { "type": "string", "minLength": 16 },
+    "hostname": { "type": "string" },
+    "last_migration_at": { "type": "string", "format": "date-time" },
+    "brain_version": { "type": "string" },
+    "stages_completed": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^M[0-7]$|^M[0-9]+$" }
+    },
+    "sources_detected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "existed"],
+        "properties": {
+          "path": { "type": "string" },
+          "existed": { "type": "boolean" },
+          "files": { "type": "integer" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "alias_map_path": { "type": "string" },
+    "needs_refresh": { "type": "boolean" }
+  },
+  "additionalProperties": true
+}

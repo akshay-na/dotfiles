@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dotmate.local/ai-brain/frontmatter.schema.json",
+  "title": "Unified ai-brain node frontmatter",
+  "type": "object",
+  "required": ["title", "type", "generated_at"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": [
+        "decision",
+        "constraint",
+        "principle",
+        "risk",
+        "retrospection",
+        "todo",
+        "overview",
+        "architecture",
+        "dependency",
+        "module",
+        "service",
+        "datastore"
+      ]
+    },
+    "project": { "type": "string", "description": "Set for project-scoped KB nodes." },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "generated_by": {
+      "type": "string",
+      "description": "Agent id or touch-writer token (distributed model)."
+    },
+    "category": { "type": "string", "description": "Memory-style category when overlapping memory layout." },
+    "status": { "type": "string" },
+    "source_files": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+    "stale": { "type": "boolean" },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "node_version": { "type": "integer", "minimum": 1 }
+  },
+  "additionalProperties": true
+}

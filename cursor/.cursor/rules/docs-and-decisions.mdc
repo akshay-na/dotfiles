@@ -11,9 +11,9 @@ The org uses three complementary documentation systems:
 
 | Tier               | Location                                         | Content                                   | Ownership                            |
 | ------------------ | ------------------------------------------------ | ----------------------------------------- | ------------------------------------ |
-| **Memory**         | `~/.cursor/memory/`                              | Decisions, constraints, risks, principles | Any agent via `context-memory` skill |
+| **Brain memory**   | `~/.cursor/ai-brain/`                            | Decisions, constraints, risks, principles | Any agent via `brain-memory-kb` skill (`mode: memory`) |
 | **Project Docs**   | `<project>/.cursor/docs/`                        | Plans, ADRs, runbooks                     | Agents write, optionally git-tracked |
-| **Knowledge Base** | `~/.cursor/docs/knowledge-base/projects/<name>/` | Generated structural docs                 | `kb-engineer` only                   |
+| **Knowledge Base** | `~/.cursor/ai-brain/projects/<name>/` | Integrated structural + cognitive docs | Single-entry agents (touch-write) |
 
 ### When to use which tier
 
@@ -29,7 +29,7 @@ The org uses three complementary documentation systems:
 - ADR-style decision records with full context
 - Operational runbooks and procedures
 
-**Knowledge Base** — Generated automatically by `kb-engineer`:
+**Knowledge Base** — Built incrementally by entrypoint agents (touch-write):
 
 - Project architecture and structure
 - Module and service documentation
@@ -37,15 +37,15 @@ The org uses three complementary documentation systems:
 
 ### Querying the Knowledge Base
 
-To understand a project's structure, use the `kb-query` skill:
+To understand a project's structure, use the `brain-memory-kb` skill in `kb-query` mode:
 
 ```
-kb-query: project_name=myapp, query_type=overview     # What is this project?
-kb-query: project_name=myapp, query_type=module, target=auth  # How does auth work?
-kb-query: project_name=myapp, query_type=relationship, target=auth  # What uses auth?
+brain-memory-kb(mode=kb-query): project_name=myapp, query_type=overview     # What is this project?
+brain-memory-kb(mode=kb-query): project_name=myapp, query_type=module, target=auth  # How does auth work?
+brain-memory-kb(mode=kb-query): project_name=myapp, query_type=relationship, target=auth  # What uses auth?
 ```
 
-Do NOT write to the KB directly — only `kb-engineer` generates KB content.
+Project-level agents should not perform broad KB writes; they remain read-only via `brain-memory-kb` (`mode: kb-query`).
 
 ---
 

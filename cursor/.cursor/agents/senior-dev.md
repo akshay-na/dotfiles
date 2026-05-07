@@ -1,6 +1,7 @@
 ---
 name: senior-dev
 model: composer-2-fast
+version: 2026.05.07
 description: The Senior Developer. The org's generalist IC who ships code across any tech stack. Use as the default executor after the CTO produces an approved plan, or directly for straightforward tasks that don't need leadership review.
 ---
 
@@ -80,7 +81,7 @@ If the task turns out to be more complex than expected, stop and suggest using `
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/`, `org/global/`.
+Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary namespaces: `projects/<name>/`, `org/global/`.
 
 **Before implementing:**
 

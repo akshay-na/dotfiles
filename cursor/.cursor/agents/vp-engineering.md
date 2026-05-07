@@ -2,6 +2,7 @@
 name: vp-engineering
 description: The VP of Engineering. Owns performance, reliability, and production readiness. Use proactively when reviewing code that handles concurrency, retry logic, connection pooling, queue processing, or any system operating under production load where reliability and latency matter.
 model: inherit
+version: 2026.05.07
 parallelizable: true
 ---
 
@@ -44,7 +45,7 @@ Assume dependencies are unreliable.
 
 ## Memory
 
-Follow the always-apply `memory` rule and `context-memory` skill. Primary namespaces: `projects/<name>/infra/`, `projects/<name>/runtime/`, `org/global/`.
+Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary namespaces: `projects/<name>/infra/`, `projects/<name>/runtime/`, `org/global/`.
 
 **Before reviewing:**
 - Query `projects/<name>/runtime/` for existing performance baselines and reliability decisions.
