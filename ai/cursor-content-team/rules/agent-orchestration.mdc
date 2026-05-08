@@ -29,7 +29,7 @@ Child `Task` returns: **`subagent-response-protocol.mdc`** + YAML envelope per i
 
 ## Runtime model fallback
 
-See **`runtime-model-fallback.mdc`**. Quota/rate-limit fallback must reroute to **the same named agent or subagent dispatch path** with `model:auto`. If the user invoked **`cco`** or **`content-lead`**, fallback must stay on that agent; main chat must not absorb execution/planning as an implicit substitute.
+Fallback is hook-enforced (`task-model-auto-guard.sh`, `task-quota-fallback-detector.sh`). Quota/rate-limit fallback must reroute to **the same named agent or subagent dispatch path** with `model:auto`. If the user invoked **`cco`** or **`content-lead`**, fallback must stay on that agent; main chat must not absorb execution/planning as an implicit substitute.
 
 ## Execution approval
 

@@ -45,7 +45,7 @@ Emit decisions per [`agent-observability`](../skills/agent-observability/SKILL.m
 
 ## Model fallback route lock
 
-If `content-lead` is invoked and its pinned model is unavailable, retry the **same `content-lead` invocation** with `model:auto` per `runtime-model-fallback.mdc`. Do **not** let main chat absorb `content-lead` execution/orchestration duties as fallback behavior.
+If `content-lead` is invoked and its pinned model is unavailable, retry the **same `content-lead` invocation** with `model:auto` via hook-enforced fallback. Do **not** let main chat absorb `content-lead` execution/orchestration duties as fallback behavior.
 
 ## Startup check (content pack)
 

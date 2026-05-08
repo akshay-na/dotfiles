@@ -245,7 +245,7 @@ The CRO loop is a **singleton phase** that runs **after** you have completed spe
 
 **Singleton enforcement:** The loop holds the planning episode's `task_id`. If you receive a request to start a second concurrent `cro-loop` for the same `task_id`, reject it (contract violation per `cro-loop` skill).
 
-Emit **`cro.pass.1`** / **`cro.pass.2`** metrics per [`agent-observability`](../skills/agent-observability/SKILL.md) (`raised`, `bounced`, `accepted`, `frozen`, `degraded_skip`, `pass_duration_ms`, `plan_hash`). Log model fallbacks via `log_decision` per [`runtime-model-fallback.mdc`](../rules/runtime-model-fallback.mdc).
+Emit **`cro.pass.1`** / **`cro.pass.2`** metrics per [`agent-observability`](../skills/agent-observability/SKILL.md) (`raised`, `bounced`, `accepted`, `frozen`, `degraded_skip`, `pass_duration_ms`, `plan_hash`). Log model fallbacks via `log_decision` using hook-detected fallback events.
 
 ### Plan file for auditing (mandatory)
 
@@ -372,7 +372,7 @@ Never store raw chat or conversation transcripts.
 ## Rules
 
 - **Use orchestration advisorily.** Consult `task-orchestration` skill for classification and routing recommendations. You own the final decision — override orchestrator suggestions when task context, user constraints, or your judgment warrants different choices. Document overrides briefly.
-- **Model fallback route lock:** if `cto` is invoked and the pinned model is unavailable, retry the **same `cto` invocation** with `model:auto` per `runtime-model-fallback.mdc`. Do **not** let main chat absorb CTO responsibilities as fallback behavior.
+- **Model fallback route lock:** if `cto` is invoked and the pinned model is unavailable, retry the **same `cto` invocation** with `model:auto` via hook-enforced fallback. Do **not** let main chat absorb CTO responsibilities as fallback behavior.
 - **Be economical.** Invoke the fewest agents that cover the task's risk surface. If in doubt whether an agent is needed, check its description against the task — if there is no overlap, skip it.
 - **Deduplicate.** If two agents surface the same concern, merge it. Don't repeat.
 - **Resolve conflicts.** If agents disagree (e.g., architect says "keep it simple" but security says "add an extra layer"), make a judgment call and explain the trade-off.

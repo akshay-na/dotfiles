@@ -94,7 +94,7 @@ Full checklist: [`cro-loop`](../skills/cro-loop/SKILL.md).
 | `vp-research` outage                   | Finding `degraded: true`; try `atlassian-pm` only if Jira context is the primary need; otherwise skip substantive challenge            |
 | `atlassian-pm` plugin/auth miss        | Treat as silent no-op (broker returns `{ status: 'skipped' }`); do NOT raise an error; fall back to `vp-research` if applicable        |
 | YAML envelope malformed                | CTO: one reformat-only retry, then stub per `subagent-response-protocol`                                                               |
-| Pinned model quota exhausted           | Runtime switches to `model: auto` per [`runtime-model-fallback.mdc`](../rules/runtime-model-fallback.mdc); `log_decision` records swap |
+| Pinned model quota exhausted           | Hook-enforced fallback keeps dispatch on `model:auto`; `log_decision` records swap |
 
 ## Subagent traffic
 
