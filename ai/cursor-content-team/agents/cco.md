@@ -60,6 +60,14 @@ Write the **full plan v0** only under **`<project>/.cursor/docs/plans/YYYY-MM-DD
 
 Include: Context, Scope, Risks, **Phase graph**, **Implementation phases** with `touches`, verification, n8n/automation notes, and **handoff** to **`content-lead`**.
 
+For automation-oriented plans, explicitly define canonical contract fields:
+
+- `post_id` ownership and versioning expectations (`version`, `correction_of`, `parent_post_id` when needed).
+- target channel set (`linkedin`, `instagram`, `twitter_x`) and channel-specific expectations under `content.extensions`.
+- source-of-truth vault artifact paths (`obsidian.note_rel`, `paths.manifest_path`, `paths.audit_log_path`) under `/home/n8n-runner/content-foundry`.
+- media handoff fields (`media[]`, channel constraints, discovery mode assumptions).
+- correction enqueue behavior as separate workflow executions with idempotency.
+
 ## Editorial critic (singleton)
 
 After **complete plan v0** on disk:

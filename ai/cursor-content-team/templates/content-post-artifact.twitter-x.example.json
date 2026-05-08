@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "contract": "content-post-artifact-v1",
+  "agent": "content-lead",
+  "status": "ok",
+  "run": {
+    "task_id": "n8n-run-20260508-x-001",
+    "idempotency_key": "twitter-x-2026-05-08",
+    "workflow": "content-foundry-hitl-social",
+    "execution_mode": "automation",
+    "execution_id": null,
+    "parent_execution_id": null
+  },
+  "post": {
+    "post_id": "cf-twitter-x-2026-05-08-001",
+    "version": 1,
+    "parent_post_id": null,
+    "correction_of": null,
+    "channel": "twitter_x",
+    "content_type": "social_post",
+    "status": "draft",
+    "title": "Thread intro",
+    "slug": "thread-intro"
+  },
+  "content": {
+    "text": "Twitter/X post text.",
+    "format": "plain_text",
+    "summary": "Thread summary.",
+    "draft_path": "draft/twitter_x/cf-twitter-x-2026-05-08-001.md",
+    "extensions": {
+      "twitter_x": {
+        "thread": [
+          "Tweet one",
+          "Tweet two"
+        ]
+      }
+    }
+  },
+  "approval": {
+    "required": true,
+    "state": "pending",
+    "feedback": null,
+    "reviewed_at": null
+  },
+  "obsidian": {
+    "note_rel": "draft/twitter_x/cf-twitter-x-2026-05-08-001.md",
+    "attachment_glob": "assets/twitter_x/cf-twitter-x-2026-05-08-001-*",
+    "frontmatter_keys": ["post_id", "version", "channel", "status"]
+  },
+  "media": [],
+  "paths": {
+    "workspace_root": "/home/n8n-runner/content-foundry",
+    "manifest_path": ".cursor/artifacts/cf-twitter-x-2026-05-08-001/v1/artifact.json",
+    "audit_log_path": ".cursor/artifacts/cf-twitter-x-2026-05-08-001/v1/events.jsonl",
+    "draft_path": "draft/twitter_x/cf-twitter-x-2026-05-08-001.md",
+    "staging_dir": "staging/twitter_x/cf-twitter-x-2026-05-08-001/v1",
+    "archive_dir": "published/twitter_x/cf-twitter-x-2026-05-08-001"
+  },
+  "channel_constraints": {
+    "max_text_chars": 280,
+    "required_media": false,
+    "allowed_media_types": ["image", "video"]
+  },
+  "compat": {
+    "legacy_article_id": null,
+    "legacy_media_paths": [],
+    "channel_assumed": false
+  },
+  "errors": []
+}

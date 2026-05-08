@@ -15,6 +15,46 @@
     "brief": { "type": "string" },
     "task_id": { "type": "string", "minLength": 1 },
     "idempotency_key": { "type": "string" },
+    "post_id": {
+      "type": "string",
+      "description": "Stable post identifier propagated across correction runs."
+    },
+    "post_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Current post artifact version."
+    },
+    "parent_post_id": {
+      "type": ["string", "null"]
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["linkedin", "instagram", "twitter_x"]
+    },
+    "content_type": {
+      "type": "string"
+    },
+    "workflow": {
+      "type": "string",
+      "description": "Workflow identifier/name for artifact run metadata."
+    },
+    "correction_of": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "target_schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Requested output schema version for artifact emission."
+    },
+    "media_discovery_mode": {
+      "type": "string",
+      "enum": ["parallel", "post_approval", "disabled"]
+    },
+    "correction_enqueue_mode": {
+      "type": "string",
+      "enum": ["execute_workflow", "webhook", "vault_queue", "manual"]
+    },
     "execution_mode": {
       "type": "string",
       "enum": ["automation", "interactive"],

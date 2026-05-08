@@ -16,6 +16,16 @@
     "json_schema": "contracts/schemas/main-agent-response.schema.json",
     "example": "templates/main-agent-response.example.json"
   },
+  "automation_output": {
+    "format": "application/json",
+    "description": "Canonical content artifact payload for social automation handoff.",
+    "json_schema": "contracts/schemas/content-post-artifact.schema.json",
+    "examples": [
+      "templates/content-post-artifact.linkedin.example.json",
+      "templates/content-post-artifact.instagram.example.json",
+      "templates/content-post-artifact.twitter-x.example.json"
+    ]
+  },
   "n8n_inbound_webhook": {
     "json_schema": "contracts/schemas/n8n-automation-request.schema.json",
     "content_type": "application/json"

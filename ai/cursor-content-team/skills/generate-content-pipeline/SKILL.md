@@ -19,6 +19,17 @@ version: 1
 
 Payload: `correction_brief`, `target_paths[]`, same `task_id` lineage. Re-run **`git_sync`** → surgical edits → **`git_commit_push`**.
 
+## Stage output contract
+
+- `generate_content` automation output must emit canonical `content-post-artifact-v1`.
+- Required routing anchors: `post.post_id`, `post.version`, `post.channel`, `content.text`, `paths.workspace_root`, `paths.manifest_path`, `paths.audit_log_path`, and `media[]`.
+
+## Correction execution behavior
+
+- Correction is a separate versioned workflow run, not a repeat-generation loop in the same execution.
+- Use same `post_id`, increment `version` by 1, and set `correction_of` to previous version.
+- Enqueue correction idempotently (dedupe key includes `post_id`, next version, and feedback hash); on enqueue failure use dead-letter/manual escalation.
+
 ## Pipeline files
 
 YAML under `configurations/pipelines/*.yml` names stages and allowed globs. **`skill-validation`** may reference this skill from manifests.

@@ -17,6 +17,8 @@ Standalone **content agency** Cursor configuration. Stow or symlink **this direc
 
 **n8n:** see `rules/orchestration.mdc` for payload fields (`task_id`, `target_paths[]`, `push_after_commit`, …).
 
+Canonical social automation artifact schema: `contracts/schemas/content-post-artifact.schema.json` with channel examples in `templates/content-post-artifact.*.example.json`.
+
 ## Specialists
 
 No **`atlassian-pm`**, no org **QA** tier. Human reviews after automation.
