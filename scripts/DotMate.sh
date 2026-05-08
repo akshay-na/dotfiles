@@ -158,6 +158,7 @@ stow_with_target() {
       echo_with_color "$YELLOW" "Unstowing previous ${prefix}-* packages from $target..."
       for sibling in "$DOTFILES_DIR/ai"/"${prefix}"-*; do
         [ -d "$sibling" ] || continue
+        rm -rf "$target/agents"
         stow -D -d "$DOTFILES_DIR/ai" -t "$target" "$(basename "$sibling")" || true
       done
     }
