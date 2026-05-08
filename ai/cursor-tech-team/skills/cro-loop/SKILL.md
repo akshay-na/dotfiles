@@ -72,7 +72,7 @@ On `vp-research` skip: mark finding `degraded`, continue. On envelope malformed:
 Use [`agent-observability`](../agent-observability/SKILL.md):
 
 - **`log_metric`** stage `cro.pass.1` | `cro.pass.2` with fields: `raised`, `bounced`, `accepted`, `frozen`, `degraded_skip`, `pass_duration_ms`, `plan_hash`.
-- **`log_decision`** for freeze, bounce, degraded skip, and model fallback (`decision` row schema: `invocation_kind`, `pinned_model`, `fallback_model`, …).
+- **`log_decision`** for freeze, bounce, degraded skip, and model fallback (`decision` row schema: `invocation_kind`, `pinned_model`, `fallback_model`, …). Model fallback is **hook-driven only**; CTO does not add extra Task retries across alternate slugs after hooks have fired (see `agent-orchestration.mdc` — no manual dedup fallback ladder).
 
 ## Cross-links
 
