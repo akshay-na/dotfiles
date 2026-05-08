@@ -175,6 +175,7 @@ stow_with_target() {
   copy_agents_for_app() {
     local app_name="$1"
     local target_dir="$HOME/.$app_name"
+    mkdir -p "$HOME/ai-brain"
     stow --no-folding --override="ai-brain" -d "$DOTFILES_DIR/ai" -t "$HOME/ai-brain" "ai-brain"
     rm -rf "$target_dir/agents"
     cp -rf "$DOTFILES_DIR/$folder_path/agents" "$target_dir" 2>/dev/null || true

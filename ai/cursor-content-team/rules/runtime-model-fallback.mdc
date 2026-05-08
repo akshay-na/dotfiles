@@ -21,6 +21,17 @@ The runtime MUST NOT:
 
 The parent (or the user, in main-chat) treats the fallback invocation's output identically to a normal-quota run.
 
+## Dispatch invariants (no main-chat takeover)
+
+Fallback MUST preserve the **same invocation target and execution path**:
+
+- If the user invoked a specific agent (for example `cco` / `content-lead`), runtime must dispatch that **same agent** with `model: auto`.
+- If a parent agent dispatched a subagent via `Task`, retry must be another `Task` dispatch to that **same subagent type/name** with `model: auto`.
+- Runtime MUST NOT convert a failed agent dispatch into ad-hoc work by the current/main chat agent.
+- Runtime MUST NOT "continue in place" by executing the specialist's responsibilities directly in the parent/main chat as fallback behavior.
+
+If first dispatch fails for model availability reasons, do exactly one immediate retry with `model: auto` on the same route; only after that second dispatch fails for a non-model reason may normal error handling apply.
+
 ## Observability
 
 Every fallback MUST emit a `decision` row via the `agent-observability` skill with fields:

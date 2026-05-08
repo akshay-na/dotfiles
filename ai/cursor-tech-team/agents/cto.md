@@ -354,6 +354,7 @@ Never store raw chat or conversation transcripts.
 ## Rules
 
 - **Use orchestration advisorily.** Consult `task-orchestration` skill for classification and routing recommendations. You own the final decision — override orchestrator suggestions when task context, user constraints, or your judgment warrants different choices. Document overrides briefly.
+- **Model fallback route lock:** if `cto` is invoked and the pinned model is unavailable, retry the **same `cto` invocation** with `model:auto` per `runtime-model-fallback.mdc`. Do **not** let main chat absorb CTO responsibilities as fallback behavior.
 - **Be economical.** Invoke the fewest agents that cover the task's risk surface. If in doubt whether an agent is needed, check its description against the task — if there is no overlap, skip it.
 - **Deduplicate.** If two agents surface the same concern, merge it. Don't repeat.
 - **Resolve conflicts.** If agents disagree (e.g., architect says "keep it simple" but security says "add an extra layer"), make a judgment call and explain the trade-off.

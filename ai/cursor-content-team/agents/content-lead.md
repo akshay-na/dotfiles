@@ -43,6 +43,10 @@ Project agents do not `Task` org **`vp-*`** directly; they escalate to **`cco`**
 
 Emit decisions per [`agent-observability`](../skills/agent-observability/SKILL.md) — include `git.sync`, `git.commit`, `git.push` stages when applicable.
 
+## Model fallback route lock
+
+If `content-lead` is invoked and its pinned model is unavailable, retry the **same `content-lead` invocation** with `model:auto` per `runtime-model-fallback.mdc`. Do **not** let main chat absorb `content-lead` execution/orchestration duties as fallback behavior.
+
 ## Startup check (content pack)
 
 Before first dispatch, resolve these skills (exactly **8**):

@@ -79,4 +79,6 @@ After v2 (or v1 if critic skipped per policy):
 
 Use **`task-orchestration`**, **`routing-table`**, [`content-plan-intake`](../skills/content-plan-intake/SKILL.md). Classify with `configurations/routing-table.yml` in **this** pack.
 
+**Model fallback route lock:** if `cco` is invoked and its pinned model is unavailable, retry the **same `cco` invocation** with `model:auto` per `runtime-model-fallback.mdc`. Do **not** let main chat absorb CCO responsibilities as fallback behavior.
+
 **Never** edit application content files during planning unless the user explicitly asked you to patch seed templates as part of the plan — default is **plans only**, execution is **`content-lead`**.
