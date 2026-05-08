@@ -29,6 +29,14 @@ Payload: `correction_brief`, `target_paths[]`, same `task_id` lineage. Re-run **
 - Correction is a separate versioned workflow run, not a repeat-generation loop in the same execution.
 - Use same `post_id`, increment `version` by 1, and set `correction_of` to previous version.
 - Enqueue correction idempotently (dedupe key includes `post_id`, next version, and feedback hash); on enqueue failure use dead-letter/manual escalation.
+- Rejection loop is bounded to two retries; third rejection must stop and route to dead-letter/manual intervention.
+- On second rejection loop, force cross-topic fallback before regenerating content.
+
+## Stage and publish schedules
+
+- Keep manual trigger path available and define schedule intents for daily stage + every-2-days publish.
+- Schedule-triggered publish must auto-trigger stage first when no approved staged artifact exists.
+- Trend analysis artifacts are reusable only within the same UTC day; draft and publish paths must share this cache key.
 
 ## Pipeline files
 
