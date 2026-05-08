@@ -5,7 +5,25 @@ pipeline_override:
   patterns:
     - "use pipeline: {name}"
     - "pipeline: {name}"
-  validation: pipeline must exist in configurations/pipelines/
+  validation: pipeline must exist in entrypoints[], configurations/pipelines/, or match a registered entrypoint id
+
+# Org entrypoints (agent definitions under agents/).
+entrypoints:
+  - id: n8n-builder
+    agent: n8n-builder
+    scope: org
+    all_in_one: true
+    parallelizable: false
+    description: |
+      All-in-one n8n workflow planner + executor. Single entrypoint per planning
+      episode. Plans, gates with mandatory CRO loop, then executes with optional
+      worker fan-out. Supports `mcp-live` and `as-code` modes; default `as-code`.
+    invocation_phrases:
+      - "use n8n-builder"
+      - "n8n-builder"
+      - "build n8n workflow"
+      - "design n8n workflow"
+      - "implement n8n workflow"
 
 # Multi-repo workspace support
 workspace:
@@ -155,6 +173,28 @@ classification:
       complexity: low
       requires_plan: false
 
+    n8n_workflow:
+      signals:
+        - "n8n"
+        - "n8n workflow"
+        - "n8n node"
+        - "n8n trigger"
+        - "n8n credential"
+        - "as-code n8n"
+        - "n8n-as-code"
+        - "n8n mcp"
+      default_pipeline: n8n-builder
+      default_agents: [n8n-builder]
+      complexity: high
+      requires_plan: true
+      requires_cro: true
+      single_entrypoint: true
+      description: |
+        n8n workflow design / build / refactor / migration. Routes to
+        `n8n-builder` as the all-in-one planner+executor with mandatory CRO gate
+        before execution. Other entrypoints must not preempt this routing
+        unless the user names them explicitly.
+
   fallback:
     pipeline: bug-fix
     agents: [tech-lead]
@@ -173,6 +213,23 @@ classification:
       then:
         pipeline: full-feature
         always_include: [vp-architecture]
+    - if: ["n8n_workflow", "security"]
+      then:
+        pipeline: n8n-builder
+        always_include: [ciso]
+        require_named_approval: destructive_action
+    - if: ["n8n_workflow", "architecture"]
+      then:
+        pipeline: n8n-builder
+        always_include: [vp-architecture]
+    - if: ["n8n_workflow", "performance"]
+      then:
+        pipeline: n8n-builder
+        always_include: [vp-engineering]
+    - if: ["n8n_workflow", "documentation"]
+      then:
+        pipeline: n8n-builder
+        always_include: [vp-research]
 
 swarm_execution_defaults:
   dispatch_mode: background_auto
@@ -186,3 +243,25 @@ swarm_execution_defaults:
   instance_cap: 8
   feedback_configs:
     implementation_loop: configurations/dev-reviewer-qa-loop.yml
+
+# n8n_workflow routing overrides (n8n-builder execution gate reads these).
+agent_resolution_overrides:
+  n8n_workflow:
+    primary: n8n-builder
+    cro_required: true
+    cro_skill: cro-loop
+    review_required_in_modes: [as-code]
+    qa_required_in_modes: [as-code]
+
+n8n_builder_execution_defaults:
+  default_mode: as-code
+  allowed_modes: [mcp-live, as-code, hybrid]
+  hybrid_requires_plan_metadata: [authoritative_source, sync_direction]
+  worker_caps:
+    mcp_live_max: 4
+    as_code_max: 8
+  global_concurrent_task_cap: 12
+  cro_required: true
+  cro_skip_override_phrase: "skip CRO loop for this plan"
+  destructive_approval_required: true
+  audit_sink: "~/ai-brain/org/global/orchestration/n8n-builder-audit.md"

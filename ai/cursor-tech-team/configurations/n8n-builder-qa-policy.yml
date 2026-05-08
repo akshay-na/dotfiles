@@ -1,0 +1,178 @@
+# n8n-builder QA policy for the `as-code` path.
+# Authoritative file consumed by the execution-gate skill at Stage D for any
+# phase with `mode: as-code` or hybrid code-side. The mode policy declares
+# which phases require QA; this file declares WHAT QA must do.
+
+version: 1
+
+applies_to_modes: [as-code, hybrid]
+applies_to_envs: [dev, staging, prod]
+mandatory: true
+mandatory_for_completion: true
+
+# Required reviewer + QA stages, in execution order.
+required_stages:
+  - id: reviewer
+    owner: code-reviewer
+    purpose: |
+      Review the as-code workflow artifacts for correctness, safety,
+      maintainability, and conformance with project conventions.
+    blocks_completion_on_fail: true
+  - id: qa
+    owner: project_qa_or_org_fallback
+    purpose: |
+      Execute the minimum verification set against the changed workflow
+      artifacts and (when authorized by the plan) against the live instance.
+    blocks_completion_on_fail: true
+  - id: critic
+    owner: n8n-builder
+    purpose: |
+      Final structured critic of the merged result against the plan's
+      `Verification Strategy`. Confirms reviewer + QA outcomes and records
+      any residual open risks.
+    blocks_completion_on_fail: true
+
+# Minimum verification set. Every as-code phase must produce evidence for each
+# applicable check. Skipped checks must be justified inline in the QA report.
+minimum_verification_set:
+  schema_checks:
+    - id: workflow_json_schema_valid
+      desc: |
+        Each modified workflow JSON parses against the n8n workflow schema and
+        passes structural lint (no orphan nodes, no unreferenced credentials).
+      severity: hard_fail
+    - id: credential_alias_only
+      desc: |
+        No raw credential values appear in workflow JSON. All credentials are
+        referenced by alias.
+      severity: hard_fail
+    - id: webhook_secret_referenced_only
+      desc: |
+        No raw webhook signing secrets in workflow JSON.
+      severity: hard_fail
+    - id: env_consistent_credentials
+      desc: |
+        Every credential alias used in a workflow matches the phase `env`
+        declaration (e.g. no prod credential in a dev phase).
+      severity: hard_fail
+
+  workflow_validation:
+    - id: node_family_allowlist
+      desc: |
+        Every node belongs to an allowlisted family per
+        `n8n-builder-governance.mdc`. High-risk node usage has a recorded
+        named approval.
+      severity: hard_fail
+    - id: trigger_state_intentional
+      desc: |
+        Workflow triggers are enabled/disabled exactly as declared in the
+        plan. No silent enable/disable.
+      severity: hard_fail
+    - id: expression_node_safety
+      desc: |
+        No `eval`-equivalent expressions; no shell or filesystem access from
+        Function nodes; no untrusted input flowing into HTTP request bodies
+        without sanitization.
+      severity: hard_fail
+
+  regression_checks:
+    - id: dry_run_or_replay
+      desc: |
+        Where the project has a dry-run or replay harness, run it against the
+        modified workflow against a representative input fixture set.
+      severity: hard_fail
+      may_skip_with_justification: true
+    - id: existing_workflow_drift
+      desc: |
+        For each unrelated workflow id touched by the diff, confirm no
+        unintended drift (no new nodes added, no enable/disable change, no
+        credential reassignment).
+      severity: hard_fail
+    - id: rollback_artifact_present
+      desc: |
+        Each modified workflow has an associated rollback artifact (git revert
+        target, snapshot path, or version id) referenced in the merge metadata.
+      severity: hard_fail
+
+# Fail criteria. Any of these triggers the as-code rework loop.
+fail_criteria:
+  - any_hard_fail: true
+  - reviewer_returns: hard_fail
+  - reviewer_returns: blocked
+  - qa_skipped_check_without_justification: true
+  - qa_evidence_missing: true
+  - secret_leak_suspected: true
+  - audit_row_missing_for_live_apply: true
+
+# Rework loop. Bounded retries; never silent.
+rework_loop:
+  trigger: any_fail_criterion_satisfied
+  iterations:
+    max: 3
+    counter: implementation_loop
+  routing:
+    reviewer_to_implementer: forwarding
+    qa_to_implementer: queue
+    critic_to_implementer: escalate_on_blocked_only
+  escalation:
+    after_max_iterations: blocked_review_failed
+    surface_to_user: true
+    user_must_resolve: true
+
+# Evidence retention. QA produces structured, secret-free evidence pinned to
+# the merge metadata.
+evidence:
+  retention_path: "<project>/.cursor/docs/runbooks/qa/"
+  filename_pattern: "qa-<task_id>-<phase_id>.md"
+  required_fields:
+    - task_id
+    - phase_id
+    - mode
+    - env
+    - schema_check_results
+    - workflow_validation_results
+    - regression_check_results
+    - rollback_artifact_refs
+    - reviewer_envelope_ref
+    - signoff_phrase_used      # e.g. "mark this n8n-builder run complete"
+  forbidden_fields:
+    - secret_values
+    - raw_credentials
+    - external_html
+
+# Audit hooks for QA outcomes.
+audit:
+  log_metric_stages:
+    - n8n_builder.qa.schema
+    - n8n_builder.qa.workflow_validation
+    - n8n_builder.qa.regression
+    - n8n_builder.qa.rework_iteration
+  log_decision_events:
+    - qa_skipped_with_justification
+    - rework_loop_iteration_started
+    - rework_loop_escalation
+    - reviewer_blocked
+
+# Acceptance test (used to verify this policy file at P6a):
+acceptance_test:
+  description: |
+    Simulate three policy applications and confirm enforcement.
+  scenarios:
+    - id: clean_pass
+      reviewer_outcome: ok
+      qa_outcomes:
+        schema: ok
+        workflow_validation: ok
+        regression: ok
+      expected_state: completion_allowed
+    - id: schema_hard_fail
+      reviewer_outcome: ok
+      qa_outcomes:
+        schema: hard_fail
+      expected_state: rework_loop_iteration_1
+    - id: secret_leak_suspected
+      reviewer_outcome: ok
+      qa_outcomes:
+        schema: ok
+      secret_leak: true
+      expected_state: blocked_secret_leak_suspected

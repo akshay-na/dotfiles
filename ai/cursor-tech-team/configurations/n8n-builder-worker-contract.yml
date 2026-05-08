@@ -1,0 +1,195 @@
+# n8n-builder worker contract.
+# Authoritative file for safe, deterministic worker fan-out inside n8n-builder
+# implementation phases. Consumed by the execution-gate skill.
+
+version: 1
+
+# Per-shard schema. Every worker subagent must return this shape (compatible
+# with the subagent-response-protocol envelope).
+shard_schema:
+  required_fields:
+    - phase_id              # string, matches the parent phase id (e.g. "P3")
+    - shard_id              # string, stable lexicographic id (e.g. "shard-001")
+    - mode                  # one of: mcp-live, as-code, hybrid
+    - env                   # one of: dev, staging, prod
+    - touches               # ordered list of file globs OR workflow ids; disjoint across shards
+    - artifact_refs         # ordered list of artifact references (paths, workflow ids, audit rows)
+    - status                # one of: ok, partial, blocked, error, malformed
+    - errors                # list; empty if status == ok
+    - metrics               # map: { duration_ms, retried, fallback_model? }
+  optional_fields:
+    - rollback_ref          # path or workflow snapshot ref usable to undo this shard
+    - notes                 # caveman-ultra free-form notes (no secrets)
+  forbidden_fields:
+    - secret_values         # never present
+    - raw_credentials       # never present
+    - external_html         # use artifact_refs to file paths instead
+
+# Pre-flight checks the parent (n8n-builder) MUST run before dispatch.
+preflight:
+  steps:
+    - id: declare_partition_basis
+      check: |
+        Each shard declares partition_basis ∈ {file_paths, workflow_ids,
+        node_families, workflow_groups}. Must be a single, stable basis per
+        phase.
+    - id: disjoint_touches
+      check: |
+        For every pair of shards (i, j) with i ≠ j:
+        touches_i ∩ touches_j == ∅
+        Computed against the partition_basis declared above.
+    - id: side_effect_dependencies
+      check: |
+        No shard reads a file/workflow id that another shard in the same group
+        will write before merge. If detected, demote one shard to a later
+        sequential phase.
+    - id: idempotency_classification
+      check: |
+        Each shard declares idempotent: true|false. Only idempotent shards may
+        be retried.
+    - id: env_consistency
+      check: |
+        All shards in the phase share the same `env` and `mode`. If a phase
+        needs to span envs, split into separate phases.
+    - id: destructive_pre_approval
+      check: |
+        If any shard touches a destructive action (per
+        n8n-builder-governance.mdc), the named per-action approval has already
+        been recorded.
+  failure_action: halt_and_escalate_to_n8n_builder
+
+# Concurrency caps. The lower of the per-mode cap, per-phase cap, and the
+# global safety net wins.
+concurrency_caps:
+  mode_caps:
+    mcp-live: 4
+    as-code: 8
+    hybrid: 4
+  per_phase_max_shards: 8
+  per_phase_min_shards_for_fanout: 2
+  global_concurrent_task_cap: 12
+  rate_limit_backoff:
+    consecutive_429_threshold: 3
+    backoff_factor: 0.5
+    backoff_window_seconds: 60
+
+# Merge contract.
+merge:
+  ordering:
+    by:
+      - phase_id_asc
+      - shard_id_asc_lex
+    determinism: stable_lex_by_compound_key
+  validator: parent_owns_merge
+  pre_merge_checks:
+    - all_shards_returned: true
+    - all_statuses_terminal: true
+    - post_edit_disjoint_touches_held: true
+  post_merge_checks:
+    - all_files_in_declared_touches: true
+    - no_unintended_file_modifications: true
+    - audit_rows_for_live_mutations_appended: true
+    - aggregated_diff_hash_recorded: true
+  on_disjoint_violation:
+    action: rollback_all_shards_in_group
+    rollback_strategy: per_shard_rollback_ref_then_halt
+    escalate_to: n8n-builder
+  on_partial_failure:
+    action: keep_successful_shards_quarantined
+    next_step: re_dispatch_failed_shards_one_retry
+    escalate_after: max_one_retry_per_shard
+
+# Failure semantics.
+failure_semantics:
+  shard_failure:
+    retry: idempotent_only
+    retries: 1
+    on_second_failure: escalate_and_quarantine
+  group_failure_threshold:
+    blocked_shard_count_for_group_rollback: 2
+  rollback_trigger:
+    condition: any_of
+    triggers:
+      - shared_write_detected
+      - audit_append_failed
+      - secret_leak_suspected
+      - destructive_action_executed_without_approval
+    action: full_group_rollback
+  audit_failure:
+    severity: hard_fail
+    action: halt_phase
+
+# Rollback semantics.
+rollback:
+  per_shard:
+    artifact: rollback_ref
+    types_supported:
+      - git_revert_sha
+      - workflow_json_snapshot_path
+      - mcp_workflow_version_id
+  per_phase:
+    artifact: phase.rollback_scope
+    must_be_subset_of: phase.touches
+  cross_group_rollback:
+    allowed: false
+    note: |
+      Rolling back a prior, approved group is never automatic. Escalate to the
+      user with a written impact summary and explicit approval phrase.
+
+# Dry-run / simulation mode used during P2c verification (no live writes).
+simulation:
+  enabled: true
+  outputs:
+    - planned_shard_partition
+    - disjointness_report
+    - rollback_dependency_graph
+    - estimated_concurrency
+  rejects_on:
+    - shared_write
+    - missing_rollback_ref_for_destructive_shard
+    - mode_or_env_mismatch_within_phase
+    - shard_count_exceeds_mode_cap
+
+# Anti-duplication and anti-thrash policy.
+anti_duplication:
+  same_touches_different_shards: reject
+  same_artifact_ref_different_shards: reject
+  retry_dispatch_on_same_shard_id: count_against_retry_budget
+  observability_required:
+    - dispatch
+    - completed
+    - failed
+    - retry
+    - rollback
+
+# Test matrix used in P2c verification.
+test_matrix:
+  - id: tm_disjoint_files
+    desc: "Three shards write disjoint workflow JSON files; merge succeeds."
+    shards:
+      - { phase_id: P_test, shard_id: s001, touches: ["workflows/a.json"] }
+      - { phase_id: P_test, shard_id: s002, touches: ["workflows/b.json"] }
+      - { phase_id: P_test, shard_id: s003, touches: ["workflows/c.json"] }
+    expect: merge_ok
+  - id: tm_shared_write_violation
+    desc: "Two shards write the same file; preflight rejects."
+    shards:
+      - { phase_id: P_test, shard_id: s001, touches: ["workflows/a.json"] }
+      - { phase_id: P_test, shard_id: s002, touches: ["workflows/a.json"] }
+    expect: preflight_reject
+  - id: tm_mode_cap_exceeded
+    desc: "Five mcp-live shards in a single phase; cap is 4."
+    shards_count: 5
+    mode: mcp-live
+    expect: preflight_reject
+  - id: tm_destructive_no_approval
+    desc: "Destructive shard with no recorded named approval."
+    shards:
+      - { phase_id: P_test, shard_id: s001, destructive: true }
+    expect: preflight_reject
+  - id: tm_partial_failure_retry
+    desc: "One shard fails idempotent retry succeeds; merge continues."
+    shards:
+      - { phase_id: P_test, shard_id: s001, fails_first: true, idempotent: true }
+      - { phase_id: P_test, shard_id: s002 }
+    expect: retry_success_then_merge_ok
