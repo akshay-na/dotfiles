@@ -651,6 +651,9 @@ kill_tmux() {
 # -------------------------------------------------------------------------------
 restart_gpg() {
   gpgconf --kill gpg-agent
+  rm -rf ~/.gnupg/sshcontrol >/dev/null
+  find ~/.ssh/sockets/ -mindepth 1 ! -name '.gitkeep' -delete >/dev/null
+  ssh-add -D
   gpgconf --launch gpg-agent
   gpg-connect-agent updatestartuptty /bye
   echo "✅ GPG agent restarted and startup TTY updated."
