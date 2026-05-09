@@ -1,6 +1,6 @@
 # Strict tool and responsibility boundaries (content org)
 
-Applies while **this** pack is the active global config at **`~/.cursor`**. Companion to **`agent-orchestration.md`**, **`vp-research.md`**, **`mcp-usage.md`**.
+Applies while **this** pack is the active global config at **`~/.gemini`**. Companion to **`agent-orchestration.md`**, **`vp-research.md`**, **`mcp-usage.md`**.
 
 ## Identity of `<project>`
 
@@ -44,6 +44,11 @@ When the user (or **`cco`** / **`content-lead`** per plan) invokes **`chief-prof
 
 - **Corpus-facing raster** (heroes, thumbs, committed **assets/**): **`chief-visual-officer`** only, after **`chief-visual-handoff`**.
 - Other agents supply **briefs / prompts / paths**, not final branded pixels meant for CVO.
+
+## Programmatic video (Remotion + Skia + ffmpeg)
+
+- **Editorial:** **`video-editor`**; **`video-editor-handoff`** preconditions.
+- **Execution:** **`remotion-builder`** in **Cursor** (DotMate **`ai/cursor-tech-team`**) for v1 — Gemini prepares the handoff; **`sme-*`** do not invoke **`remotion-builder`** directly.
 
 ## Brain (`~/ai-brain/`, `~/.cursor` memory lanes)
 

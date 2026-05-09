@@ -50,6 +50,11 @@ When the user (or **`cco`** / **`content-lead`** per plan) invokes **`chief-prof
 - **Corpus-facing raster** (heroes, thumbs, committed **assets/**): **`chief-visual-officer`** only, after **`chief-visual-handoff`**.
 - Other agents supply **briefs / prompts / paths**, not final branded pixels meant for CVO.
 
+## Programmatic video (Remotion + Skia + ffmpeg)
+
+- **Editorial:** **`video-editor`** briefs and phases; **`video-editor-handoff`** preconditions.
+- **Execution:** **`Task` `remotion-builder`** (tech pack **`~/.cursor/agents/remotion-builder.md`**) — **only** after handoff and **`approved_plan_path`** phase (for **`content-lead`**) or **user** / explicit **`cco`** tech dispatch. Project **`sme-*`** supply briefs only; **no** direct **`Task` `remotion-builder`**.
+
 ## Brain (`~/ai-brain/`, `~/.cursor` memory lanes)
 
 - **`brain-conventions.mdc`**; bounded fields; **no** PII or secret dumps.

@@ -6,8 +6,8 @@ Hard limits on **Cursor tools**, **shell**, and **MCP** live in **`strict-tool-b
 
 ## Entrypoints
 
-- **`cco`** — plan mode; writes `<project>/.gemini/docs/plans/*.md` (content work repo — not dotfiles pack paths); may parallel-invoke content specialists; runs **`editorial-cro-loop`** once after plan v0; may **`Task`** **`chief-visual-officer`** when visual deliverables are in scope; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the plan names browser profile capture or growth intelligence phases.
-- **`content-lead`** — execution; discovers `{root}/.gemini/agents/` via **`content-team-discovery`**, **and** registers org singleton **`chief-visual-officer`** when **`chief-visual-handoff`** applies; runs **`generate-content-pipeline`** stages, **`content-git-workflow`** when policy says push; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the approved plan’s phase lists them.
+- **`cco`** — plan mode; writes `<project>/.gemini/docs/plans/*.md` (content work repo — not dotfiles pack paths); may parallel-invoke content specialists; runs **`editorial-cro-loop`** once after plan v0; may **`Task`** **`chief-visual-officer`** when visual deliverables are in scope; may **`Task`** **`video-editor`** for programmatic-video planning; **`remotion-builder`** execution is **Cursor-only** in v1 — surface **`video-editor-handoff`** payload for the user or invoke **`remotion-builder`** in Cursor only when the user explicitly asks **`cco`** to do so; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the plan names browser profile capture or growth intelligence phases.
+- **`content-lead`** — execution; discovers `{root}/.gemini/agents/` via **`content-team-discovery`**, **and** registers org singleton **`chief-visual-officer`** when **`chief-visual-handoff`** applies; when **`approved_plan_path`** names a programmatic-video phase, satisfy **`video-editor-handoff`** and hand off to **`remotion-builder`** in **Cursor**; runs **`generate-content-pipeline`** stages, **`content-git-workflow`** when policy says push; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the approved plan’s phase lists them.
 
 ## Org singleton: `chief-visual-officer` (CVO)
 
@@ -54,6 +54,8 @@ Plans/decisions under **`<project>/.gemini/docs/`** per **`docs-and-decisions.md
 | **`chief-visual-officer`** (**CVO**) | Raster and asset paths per **`chief-visual-handoff`** | Claim ownership of copy, legal, metrics ingestion, or non-visual corpus strategy |
 | **`chief-profile-metrics`** | Browser-assisted **profile** / surface metrics when **no API**; **`metrics/`** files matching **`metric-event.schema.json`**; **`<project>`** git sync per **`content-git-workflow`** + **`--no-gpg-sign`** | Generic web fetch; credentials; post-level API pipelines owned by **`sme-channel-growth`**; **`curl`** to analytics endpoints without runbook |
 | **`chief-growth-strategy`** | Growth intel, creator benchmarks, experiment backlogs; **`Task`** **`vp-research`** for all off-corpus facts; durable notes under **`~/ai-brain/`**; optional **`<project>`** staging/ideas + git when user/plan asks | Direct HTTP/docs MCP calls; promise growth outcomes; lateral **`Task`** to project **`sme-*`** without **`cco`** / **`content-lead`** plan |
+| **`video-editor`** | Programmatic video briefs; **`video-editor-handoff`** payload for Cursor | **`Task` `remotion-builder`** from Gemini CLI (v1: execution is Cursor-only); skip handoff payload |
+| **`remotion-builder`** | **Cursor tech singleton** (`~/.cursor/agents/remotion-builder.md`) — Remotion + Skia + ffmpeg | Invoked by project **`sme-*`**; treated as if it were a Gemini-local agent without Cursor |
 | **`editorial-cro`** | Structured critique; **`bounce_target`** suggestions | **`Task`** specialists directly — only **`cco`** may dispatch those replies |
 
 ## Tool and integration boundaries

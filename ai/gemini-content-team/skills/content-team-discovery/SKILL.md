@@ -17,7 +17,7 @@ For **each** directory `root` in `workspace_roots`, run discovery against that r
 
 Before assigning any work (for both direct tasks and plan-driven phases), for each `root`:
 
-1. List all project-level agent files under `{root}/.cursor/agents/` that match team patterns (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`).
+1. List all project-level agent files under `{root}/.gemini/agents/` that match team patterns (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`) **plus** **`video-editor.md`** when present.
 2. For each, read enough of the file to extract the agent **name**, its stated **scope**, and its **`parallelizable`** flag.
 3. Build an internal table (e.g. `| Agent | Scope | Parallelizable |`) that you use to decide assignments and execution strategy.
 4. Re-run this discovery at the start of each phase (and when onboarding changes the team) so you always work from the current team.
@@ -26,7 +26,15 @@ Before assigning any work (for both direct tasks and plan-driven phases), for ea
 
 ## Org singleton: `chief-visual-officer`
 
-**Not** discovered from `{root}/.cursor/agents/` globs. When **`content-lead`** (or **`cco`** in planning) determines that phase touches **`assets/`**, **`generate_image`**, or explicit raster deliverables, register [**`chief-visual-officer`**](../agents/chief-visual-officer.md) from **this** org pack and follow [**`chief-visual-handoff`**](./chief-visual-handoff/SKILL.md). **One global definition** — client repos must not ship a duplicate `chief-visual-officer.md`.
+**Not** discovered from `{root}/.gemini/agents/` globs. When **`content-lead`** (or **`cco`** in planning) determines that phase touches **`assets/`**, **`generate_image`**, or explicit raster deliverables, register [**`chief-visual-officer`**](../agents/chief-visual-officer.md) from **this** org pack and follow [**`chief-visual-handoff`**](./chief-visual-handoff/SKILL.md). **One global definition** — client repos must not ship a duplicate `chief-visual-officer.md`.
+
+## Content-pack agent: `video-editor`
+
+When [**`video-editor`**](../agents/video-editor.md) exists under **`{root}/.gemini/agents/`**, it appears in **`discover()`**. **Encoded video execution** uses [**`video-editor-handoff`**](./video-editor-handoff/SKILL.md) → **`remotion-builder`** in **Cursor** (not a Gemini-local agent in v1).
+
+## Org tech singleton: `remotion-builder` (Cursor)
+
+**Not** in **`{root}/.gemini/agents/`**. Canonical definition: DotMate **`ai/cursor-tech-team/agents/remotion-builder.md`** → **`~/.cursor/agents/remotion-builder.md`**. Register in Gemini-only flows as an **external** execution step the user runs in Cursor after handoff.
 
 ## Org C-suite: profile metrics + growth intelligence
 

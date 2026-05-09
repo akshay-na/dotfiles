@@ -1,0 +1,66 @@
+---
+description: "Non-bypass governance for `remotion-builder`: secrets, Chromium/Skia/ffmpeg, shell, n8n argv, production renders, audit."
+globs: "**/*"
+alwaysApply: false
+---
+
+# remotion-builder Governance Rule
+
+Applies when **`remotion-builder`** is active or when editing its artifacts under **`ai/cursor-tech-team/{agents,skills,configurations,rules,docs/runbooks}`** (stowed under **`~/.cursor/...`**), or **Remotion** plans under **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-*.md`**.
+
+**Non-bypass.** Overrides only via explicit phrases in **Overrides**; record in plan or ADR.
+
+## Renderer and supply chain
+
+- **Chromium / Headless Shell:** use **vendor-documented** flows only (**`remotion browser ensure`** or equivalent for pinned **Remotion** major/minor). **No** ad hoc third-party browser binaries. Pin **Remotion** version to match downloaded browser family; document cache dir / disk budget on runners.
+- **Skia / WASM:** keep **`remotion`**, **`@remotion/skia`**, and compatible **`@shopify/react-native-skia`** on **locked** versions + lockfile; **`vp-research`** before major bumps.
+- **Do not** promise **zero** Chromium on the server unless **`vp-research`** confirms a supported path and the plan is updated.
+
+## ffmpeg high-risk
+
+- **Ad hoc** **`-vf`**, **`-filter_complex`**, or user-supplied filter graphs from **untrusted** input are **high-risk** — require **named** user approval per phase and **`ciso`** consult when novel.
+- Prefer **checked-in** **`Makefile`** targets or **`scripts/`** with **frozen** interfaces and **recipe ids** in the plan.
+- Output paths under corpus **`assets/<channel>/`** only; no path traversal.
+
+## n8n / automation
+
+- Workflows **must not** build **`remotion`** or **`ffmpeg`** argv from arbitrary payload fields. Only **allowlisted** wrappers with fixed interfaces.
+
+## Secrets
+
+- No secret values in chat, plans, runbooks, audit, ledgers, subagent envelopes, or forwarded shell output. **`<REDACTED:TYPE>`** or env **names** only.
+- Suspected leak → **`status: malformed`**, **`suspected_secret_in_output`**; incident per **`subagent-response-protocol`**.
+
+## Destructive actions
+
+- Overwriting **published** **`assets/`**, deleting production renders, or mutating canonical corpus without rollback → **separate named approval**. **`proceed`** on a phase checkpoint is **not** enough.
+
+## Production renders
+
+- **`env: prod`** (or equivalent) in phase metadata + per-phase approval + optional append-only row in **`~/ai-brain/org/global/orchestration/remotion-builder-audit.md`** (timestamp, **`task_id`**, phase, outcome, **no** secrets).
+
+## Ansible / CI logs
+
+- Align with **`no_log: true`** on **`npm ci`**, **`npx remotion browser ensure`**, and tasks that may echo env on **homelab** controllers.
+
+## Approvals vocabulary
+
+| Phrase | Meaning |
+|--------|---------|
+| `proceed` | Next parallel group (interactive mode). |
+| `approve destructive action: <id> in phase <pid>` | One named destructive action. |
+| `skip CRO loop for this plan` | Tech CRO bypass — **`## Open Risks`**. |
+| `mark this remotion-builder run complete` | Final completion. |
+
+## Overrides
+
+- **CRO bypass:** **`skip CRO loop for this plan`** — record under **`## Open Risks`**.
+- **Experimental CSR:** explicit user sign-off line in plan for **`experimental_csr`**.
+
+## Cross-references
+
+- Mode policy: `ai/cursor-tech-team/configurations/remotion-builder-mode-policy.yml`
+- QA policy: `ai/cursor-tech-team/configurations/remotion-builder-qa-policy.yml`
+- CRO runbook: `ai/cursor-tech-team/docs/runbooks/remotion-builder-cro-loop.md`
+- Planning gate: `ai/cursor-tech-team/skills/remotion-builder-planning-gate/SKILL.md`
+- Execution gate: `ai/cursor-tech-team/skills/remotion-builder-execution-gate/SKILL.md`

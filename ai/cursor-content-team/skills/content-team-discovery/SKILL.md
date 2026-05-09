@@ -17,7 +17,7 @@ For **each** directory `root` in `workspace_roots`, run discovery against that r
 
 Before assigning any work (for both direct tasks and plan-driven phases), for each `root`:
 
-1. List all project-level agent files under `{root}/.cursor/agents/` that match team patterns (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`).
+1. List all project-level agent files under `{root}/.cursor/agents/` that match team patterns (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`) **plus** **`video-editor.md`** when present (fixed name — not `sme-*`).
 2. For each, read enough of the file to extract the agent **name**, its stated **scope**, and its **`parallelizable`** flag.
 3. Build an internal table (e.g. `| Agent | Scope | Parallelizable |`) that you use to decide assignments and execution strategy.
 4. Re-run this discovery at the start of each phase (and when onboarding changes the team) so you always work from the current team.
@@ -27,6 +27,14 @@ Before assigning any work (for both direct tasks and plan-driven phases), for ea
 ## Org singleton: `chief-visual-officer`
 
 **Not** discovered from `{root}/.cursor/agents/` globs. When **`content-lead`** (or **`cco`** in planning) determines that phase touches **`assets/`**, **`generate_image`**, or explicit raster deliverables, register [**`chief-visual-officer`**](../agents/chief-visual-officer.md) from **this** org pack and follow [**`chief-visual-handoff`**](./chief-visual-handoff/SKILL.md). **One global definition** — client repos must not ship a duplicate `chief-visual-officer.md`.
+
+## Content-pack agent: `video-editor`
+
+When the project onboards [**`video-editor`**](../agents/video-editor.md) under **`{root}/.cursor/agents/`**, it appears in normal **`discover()`** globs (`sme-*` pattern does **not** apply — name is fixed). **`content-lead`** uses **`video-editor`** for editorial/brief phases; **encoded video execution** still flows through [**`video-editor-handoff`**](./video-editor-handoff/SKILL.md) → **`Task` `remotion-builder`**.
+
+## Org tech singleton: `remotion-builder`
+
+**Not** merged from project **`{root}/.cursor/agents/`**. **`remotion-builder`** is defined in **`ai/cursor-tech-team`** and stowed to **`~/.cursor/agents/remotion-builder.md`**. Register only when **`video-editor-handoff`** preconditions are satisfied and **`Task`** to **`remotion-builder`** is authorized (**user**, plan-gated **`content-lead`**, or explicit **`cco`** planning dispatch per **`agent-orchestration`**). **Never** from project **`sme-*`** direct **`Task`**.
 
 ## Org C-suite: profile metrics + growth intelligence
 

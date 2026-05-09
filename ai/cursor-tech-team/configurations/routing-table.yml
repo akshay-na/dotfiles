@@ -25,6 +25,21 @@ entrypoints:
       - "design n8n workflow"
       - "implement n8n workflow"
 
+  - id: remotion-builder
+    agent: remotion-builder
+    scope: org
+    all_in_one: true
+    parallelizable: false
+    description: |
+      All-in-one Remotion + Skia + ffmpeg programmatic video planner + executor.
+      User-invoked or content-plan-gated (video-editor-handoff). Tech CRO loop
+      before execution. Does not auto-replace generic content or feature routing.
+    invocation_phrases:
+      - "use remotion-builder"
+      - "remotion-builder"
+      - "render remotion video"
+      - "programmatic video remotion"
+
 # Multi-repo workspace support
 workspace:
   # Detect which repo a task belongs to
@@ -195,6 +210,29 @@ classification:
         before execution. Other entrypoints must not preempt this routing
         unless the user names them explicitly.
 
+    remotion_programmatic_video:
+      signals:
+        - "remotion"
+        - "@remotion"
+        - "remotion render"
+        - "skia canvas remotion"
+        - "@remotion/skia"
+        - "programmatic video"
+        - "headless render video"
+        - "ffmpeg remotion"
+      default_pipeline: remotion-builder
+      default_agents: [remotion-builder]
+      complexity: high
+      requires_plan: true
+      requires_cro: true
+      single_entrypoint: true
+      description: |
+        Remotion + Skia + ffmpeg programmatic video in the content corpus.
+        Routes to `remotion-builder` when signals match. Must not be implied
+        from generic editorial/content tasks without explicit Remotion/handoff
+        context; tech-pack peers must not Task `remotion-builder`. Content org
+        dispatches only per `video-editor-handoff` / explicit user invoke rules.
+
   fallback:
     pipeline: bug-fix
     agents: [tech-lead]
@@ -244,7 +282,7 @@ swarm_execution_defaults:
   feedback_configs:
     implementation_loop: configurations/dev-reviewer-qa-loop.yml
 
-# n8n_workflow routing overrides (n8n-builder execution gate reads these).
+# Task-type routing overrides (execution gates may read these).
 agent_resolution_overrides:
   n8n_workflow:
     primary: n8n-builder
@@ -252,6 +290,10 @@ agent_resolution_overrides:
     cro_skill: cro-loop
     review_required_in_modes: [as-code]
     qa_required_in_modes: [as-code]
+  remotion_programmatic_video:
+    primary: remotion-builder
+    cro_required: true
+    cro_skill: cro-loop
 
 n8n_builder_execution_defaults:
   default_mode: as-code
@@ -265,3 +307,12 @@ n8n_builder_execution_defaults:
   cro_skip_override_phrase: "skip CRO loop for this plan"
   destructive_approval_required: true
   audit_sink: "~/ai-brain/org/global/orchestration/n8n-builder-audit.md"
+
+remotion_builder_execution_defaults:
+  default_render_mode: ssr_headless_shell
+  allowed_render_modes: [ssr_headless_shell, experimental_csr]
+  experimental_csr_requires_plan_signoff: true
+  cro_required: true
+  cro_skip_override_phrase: "skip CRO loop for this plan"
+  destructive_approval_required: true
+  audit_sink: "~/ai-brain/org/global/orchestration/remotion-builder-audit.md"

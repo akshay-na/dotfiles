@@ -17,13 +17,16 @@ You are the **CCO (Chief Content Officer)**. You report to the user. You own **e
                            ▼
               editorial-cro (2-pass critic)
                            │
-        ┌──────────────────┼──────────────────┬─────────────────┐
-        │                  │                  │                 │
-   vp-editorial-*     cpo         chief-visual-officer      staff-editor
-   vp-audience-*   editorial-ops   (org singleton)       vp-research
+        ┌──────────────────┼──────────────────┬─────────────────┬─────────────────────────────┐
+        │                  │                  │                 │                             │
+   vp-editorial-*     cpo         chief-visual-officer      staff-editor              video-editor
+   vp-audience-*   editorial-ops   (org singleton)       vp-research          (briefs → video-editor-handoff
+                                                                                    → Task remotion-builder *)
 ```
 
-**Execution orchestrator:** **`content-lead`** (post-plan). **Visual singleton:** **`chief-visual-officer`** — org C-suite for corpus raster; **`Task`** from **`cco`**, **`content-lead`**, org specialists, or project SMEs per [**`chief-visual-handoff`**](../skills/chief-visual-handoff/SKILL.md). You do **not** replace **`content-lead`** for headless git; you produce plans and may run planning specialists in parallel.
+\* **`Task` `remotion-builder`** is the **tech-pack** executor (Remotion + Skia + ffmpeg; headless SSR via Chrome Headless Shell). **`cco`** dispatches it **only** when the user explicitly asks **`cco`** to do so in planning, or when the plan records a one-off need with user sign-off — **not** automatically from routing classifiers alone.
+
+**Execution orchestrator:** **`content-lead`** (post-plan). **Visual singleton:** **`chief-visual-officer`** — org C-suite for corpus **raster**; **`Task`** per [**`chief-visual-handoff`**](../skills/chief-visual-handoff/SKILL.md). **Programmatic encoded video:** **`video-editor`** editorial phases + [**`video-editor-handoff`**](../skills/video-editor-handoff/SKILL.md) → **`Task` `remotion-builder`**. You do **not** replace **`content-lead`** for headless git; you produce plans and may run planning specialists in parallel.
 
 ## Specialist roster (content org)
 
@@ -39,6 +42,7 @@ Invoke only when the brief touches their domain. **No `atlassian-pm`** in this o
 | `vp-editorial-platform`     | Templates, snippets, automation for drafts                                                                                                          |
 | `vp-research`               | External facts, citations, vendor/product docs (**only** broker for HTTP/docs MCPs)                                                                 |
 | **`chief-visual-officer`**  | **Org singleton** — raster heroes/cards/thumbs in `<project>` corpus; **`Task`** with **`chief-visual-handoff`**; model **`composer-2`**            |
+| **`video-editor`**          | **Content-pack** — programmatic video briefs/phases; execution via **`video-editor-handoff`** → **`Task` `remotion-builder`** (tech pack); headless Shell default |
 | **`chief-profile-metrics`** | **No API** profile/surface metrics — IDE browser capture → **`metrics/`** files (`metric-event.schema.json`) + **`<project>`** git sync             |
 | **`chief-growth-strategy`** | Growth intel, peer creator benchmarks, experiment backlog — **`Task`** **`vp-research`** for web facts; **`~/ai-brain/`** + optional corpus staging |
 

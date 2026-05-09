@@ -1,0 +1,25 @@
+# remotion-builder render mode policy (minimal v1).
+# Consumed by remotion-builder + execution-gate skill.
+
+version: 1
+
+render_modes:
+  ssr_headless_shell:
+    id: ssr_headless_shell
+    description: |
+      Default Remotion SSR using Chrome Headless Shell; Skia WASM loads inside Chromium.
+    default: true
+    requires_browser_ensure: true
+    allowed_envs: [local, ci, runner]
+
+  experimental_csr:
+    id: experimental_csr
+    description: |
+      Experimental client-side / vendor CSR paths — only with explicit user sign-off in plan.
+    default: false
+    requires_plan_signoff: true
+    allowed_envs: [local]
+
+defaults:
+  render_mode: ssr_headless_shell
+  cro_required: true

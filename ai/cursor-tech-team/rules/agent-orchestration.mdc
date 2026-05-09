@@ -14,7 +14,7 @@ alwaysApply: true
   - **`tech-lead`**: when **any** orchestration signal is true: (a) `cto` plan with a phase graph, (b) project team present in `.cursor/agents/`, (c) task spans **≥ 2** workspace roots, (d) **explicit user request** to use `tech-lead` or to orchestrate across folders/phases.
   - **Invoker wins**: if the user names an agent, honor that agent. If the user describes work without naming an agent → choose `tech-lead` when **any** of the four signals above holds; otherwise `staff-engineer`.
 - **Use `vp-onboarding`** to bootstrap or refresh project-local agents, rules, and skills in a repo's `.cursor/` directory; never modify org-level agents from project agents.
-- **Default modes:** `cto` and other org VPs run in plan mode; `code-reviewer` runs in Agent (read-only review) mode; `staff-engineer` runs in Agent (implementation/review) mode by default; `tech-lead` runs in Agent mode (it executes approved plans, it does not author them). All project-level `dev-*`, `sme-*`, `qa-*`, and `devops` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
+- **Default modes:** `cto` and other org VPs run in plan mode; `code-reviewer` runs in Agent (read-only review) mode; `staff-engineer` runs in Agent (implementation/review) mode by default; `tech-lead` runs in Agent mode **scoped to orchestration** — it **coordinates** approved-plan execution via `Task` to implementers, aggregates subagent results, and enforces checkpoints; it is **read-only on product repositories** (no direct code/config edits in app trees). See **`tech-lead-implementation-boundary.mdc`**. All project-level `dev-*`, `sme-*`, `qa-*`, and `devops` agents run in Agent (implementation) mode by default and only escalate to `cto` for a new plan when they discover architectural or multi-phase scope.
 
 - **Org vs project responsibilities**
   - Org agents (`cto`, `cro`, `code-reviewer`, `vp-research`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `tech-lead`, `atlassian-pm`) own cross-project strategy, plans, reviews, and high-level standards. Org-tier execution orchestration is defined in [`tech-lead`](../agents/tech-lead.md).
@@ -42,6 +42,8 @@ alwaysApply: true
 - **Planning vs execution boundary:** After plan file lands under `<project>/.cursor/docs/plans/`, **`cto` stops**. User must acknowledge **two-choice execution gate**: **`phase-by-phase`** (checkpoint each parallel group via `tech-lead`) **`all-phases-approved`** (`execution_mode: all_phases` + explicit authorization text). Silence ≠ approval.
 - **Single-entry hardening:** entrypoint agents (`cto` for planning, `code-reviewer` for review, `tech-lead` for execution) are non-bypass routes. Other agents must not emulate their gate logic inline. If an entrypoint precondition fails, flow stays blocked at that entrypoint (fail-closed) instead of rerouting to ad-hoc execution.
 
+- **`remotion-builder` (user-invoked and content-handoff only):** `cto`, `tech-lead`, `staff-engineer`, `code-reviewer`, `vp-*`, `sre-lead`, `ciso`, `vp-platform`, `vp-onboarding`, and other **tech-pack** orchestrators **must not** `Task` `remotion-builder`. **No exception** from tech peers for convenience routing. **Cross-pack:** the **content org** may satisfy **`video-editor-handoff`** and then `Task` `remotion-builder` only when **`content-lead`** / explicit user rules in the **content** `agent-orchestration` allow it (plan-gated phase, or user naming the tech agent); **`cco`** only when the user explicitly asks **`cco`** to dispatch **`remotion-builder`** in planning — **not** from routing-table classification alone. **`sme-*`** must **not** `Task` `remotion-builder` directly.
+
 - **No peer delegation:** Specialists / project agents NEVER `Task`-call each other laterally — always through `cto`, `tech-lead`, or `code-reviewer` orchestrator nodes.
   - **Exemption:** `cro` proposes specialist **bounce targets**; **only `cto`** may `Task` those specialists and merge replies. `cro` MUST NOT subagent-call `vp-*` / `ciso` / `sre-lead` / `staff-engineer` directly.
 
@@ -63,7 +65,7 @@ alwaysApply: true
 
 - **Plan and phase discipline**
   - In plan mode, `cto` groups work into numbered phases with explicit verification and rollback for each phase.
-  - Implementation agents (usually `staff-engineer` directly, or `tech-lead` plus its project team) must:
+  - Implementers (`dev-*`, `qa-*`, `devops`, or `staff-engineer` fallback), **coordinated** by `tech-lead` when orchestration applies (`tech-lead` does **not** implement), must:
     - Follow phases in order.
     - Run the specified verification for each phase before claiming it complete.
     - Stop and wait for explicit user approval at every checkpoint before moving to the next phase.
@@ -76,7 +78,7 @@ alwaysApply: true
   - `cto` and VPs: design the plan and define phases, risks, and verification.
   - `code-reviewer`: owns review triage, specialist delegation, and review synthesis.
   - `staff-engineer` / project `dev-*`: implement the plan with minimal diffs, matching existing patterns.
-  - `tech-lead`: maps plan phases to project agents (per workspace folder), tracks progress, and enforces checkpoints across roots.
+  - `tech-lead`: maps plan phases to project agents (per workspace folder), **`Task`-dispatches** work, tracks progress, merges structured child outputs for the user, and enforces checkpoints across roots — **no** product-tree edits (orchestration-only).
   - `staff-engineer`: default maintainability reviewer and fallback implementer when project-level implementers are absent. May consult project `sme-*` through orchestrated routing for domain-specific context.
   - Specialists (`ciso`, `sre-lead`, etc.): review or extend the plan/implementation only inside their domain.
 
@@ -105,6 +107,6 @@ alwaysApply: true
 - **Plans and runbooks:** authoritative plan and execution docs live under **`<project>/.cursor/docs/plans/`** and **`<project>/.cursor/docs/runbooks/`** (see `docs-and-decisions` rule). **`<project>`** is the repo being planned or executed, not global `~/.cursor/docs/`.
 - **Observability:** orchestrators emit metrics and decision logs per [`agent-observability` skill](../skills/agent-observability/SKILL.md).
 - **Subagent parsing:** parent agents that consume `Task` results follow the parent-side parse contract in `subagent-response-protocol` (`~/.cursor/rules/subagent-response-protocol.mdc`).
-- **Mode defaults:** `cto` — plan mode; `tech-lead` — Agent (implementation/orchestration) mode; `code-reviewer` — Agent (read-only review).
+- **Mode defaults:** `cto` — plan mode; `tech-lead` — Agent (**orchestration-only**; not product implementation); `code-reviewer` — Agent (read-only review).
   - `cro` — Agent mode internally (invoked **only** by `cto`); read-only on workspace repos; outputs structured critique only.
 - **Toolkit:** compose [`task-orchestration`](../skills/task-orchestration/SKILL.md), [`closed-loop-execution`](../skills/closed-loop-execution/SKILL.md), [`cross-stage-feedback`](../skills/cross-stage-feedback/SKILL.md), [`team-discovery`](../skills/team-discovery/SKILL.md), [`dev-reviewer-qa-loop`](../skills/dev-reviewer-qa-loop/SKILL.md), [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md), [`swarm-task-decomposition`](../skills/swarm-task-decomposition/SKILL.md), [`swarm-deterministic-merge`](../skills/swarm-deterministic-merge/SKILL.md), [`swarm-critic-validation`](../skills/swarm-critic-validation/SKILL.md), [`cro-loop`](../skills/cro-loop/SKILL.md) as reusable building blocks.

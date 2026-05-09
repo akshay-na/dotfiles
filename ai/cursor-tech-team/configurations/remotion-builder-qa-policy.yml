@@ -1,0 +1,25 @@
+# remotion-builder QA policy (minimal v1).
+
+version: 1
+
+mandatory: true
+
+minimum_verification_set:
+  remotion:
+    - id: compositions_list_or_smoke_render
+      desc: npx remotion compositions` or short render smoke succeeds.
+      severity: hard_fail
+    - id: skia_load_order
+      desc: Entry invokes LoadSkia before registerRoot per project scaffold.
+      severity: hard_fail
+  ffmpeg_when_used:
+    - id: ffmpeg_version
+      desc: ffmpeg binary available; recipe matches plan id.
+      severity: hard_fail
+  outputs:
+    - id: file_size_sanity
+      desc: Output size within plan bounds when declared.
+      severity: warn
+    - id: duration_cap
+      desc: Encoded duration within plan cap when declared.
+      severity: warn
