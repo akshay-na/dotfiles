@@ -8,8 +8,18 @@ Standalone **content agency** Cursor configuration. Stow or symlink **this direc
 - `rules/` — `agent-orchestration.mdc`, **`strict-tool-boundaries.mdc`**, `git-safety.mdc`, `orchestration.mdc`, `brain-conventions.mdc`, `vp-research.mdc`, `subagent-response-protocol.mdc`, `main-agent-response.mdc`, `mode-auto-selection.mdc`, plus copied baselines (`base`, `error-handling`, …).
 - `skills/` — `content-plan-intake`, `content-git-workflow`, `generate-content-pipeline`, `content-team-discovery`, `editorial-cro-loop`, **`chief-visual-handoff`**, `brain-memory-kb`, `kb-identity`, orchestration helpers, etc.
 - `configurations/` — `routing-table.yml`, `pipelines/article.yml`, `orchestration-policies/`.
-- `hooks/` + `hooks.json` — subagent inject/lint (rule file: `subagent-response-protocol.mdc`).
+- `hooks/` + `hooks.json` — two complementary tracks:
+  - safety controls: `cursor-zone-writes.sh`, `safe-shell.sh`,
+    `subagent-task-antidup-preflight.sh`, `subagent-protocol-inject.sh`,
+    `subagent-protocol-lint.sh` (pre-commit).
+  - telemetry pipeline (fail-open) — `telemetry-*.sh` family wired into
+    `sessionStart`, `sessionEnd`, `pre/postToolUse`, `postToolUseFailure`,
+    `before/afterShellExecution`, `before/afterMCPExecution`,
+    `subagentStart`, `subagentStop`. Config:
+    `configurations/telemetry.yml`. Runbook:
+    `docs/runbooks/telemetry-pipeline.md`.
 - `docs/plans/` — implementation spec copy.
+- `docs/runbooks/` — operational runbooks (e.g. telemetry pipeline).
 
 ## Flow
 

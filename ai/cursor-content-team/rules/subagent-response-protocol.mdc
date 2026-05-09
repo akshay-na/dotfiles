@@ -39,7 +39,7 @@ Parents (`cco`, `content-lead`, any orchestrator) consuming a subagent result MU
 
 1. `JSON.parse` the **full** child output; reject if extra prose remains outside the object.
 2. Validate against `contracts/schemas/subagent-response.schema.json` and `_marker`.
-3. One **reformat-only** retry on malformed; use phrase **REFORMAT ONLY. Do not redo work.** (from `subagent-contract-block.md`).
+3. One reformat-only retry on malformed; use the canonical retry phrase from `contracts/subagent-contract-block.md` (do not paraphrase or duplicate that wording here — the pre-commit lint blocks inlined copies).
 4. Stub on persistent failure: minimal `status: malformed`, `degraded_reason`, `summary`, required keys.
 5. Secret redaction scan on all string values; on leak suspicion set `suspected_secret_in_output` and log to `<project>/.cursor/docs/runbooks/subagent-protocol.md` when applicable.
 6. Strip `_marker` from logs and user-facing copy.

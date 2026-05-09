@@ -1,0 +1,56 @@
+# Telemetry pipeline policy.
+#
+# Consumed by the telemetry-* hook scripts under ../hooks/. Every key is
+# overridable via env var (CURSOR_TELEMETRY_*). Leave `enabled: false` to
+# disable the pipeline entirely without removing the hook wiring.
+#
+# All telemetry hooks are FAIL-OPEN. They never gate or deny. The existing
+# safety hooks (cursor-zone-writes, safe-shell, subagent-task-antidup-preflight,
+# subagent-protocol-inject) keep their failClosed semantics unchanged.
+
+schema_version: 1
+
+# Master switch. Set to false to suppress all telemetry events without
+# touching hooks.json wiring.
+enabled: true
+
+# Where the JSONL events stream and per-session manifests live.
+# Override: CURSOR_TELEMETRY_DIR
+log_dir: ~/.cursor/logs/telemetry
+
+# Daily rotation prunes anything older than this many days. Sessions
+# manifests follow the same window.
+# Override: CURSOR_TELEMETRY_RETENTION_DAYS
+retention_days: 14
+
+# Hard caps to keep events bounded. Strings get truncated; whole events get
+# truncated to a stub when they exceed the byte cap.
+# Overrides: CURSOR_TELEMETRY_FIELD_CAP_CHARS, CURSOR_TELEMETRY_SUMMARY_CAP_CHARS,
+# CURSOR_TELEMETRY_EVENT_CAP_BYTES
+field_cap_chars: 200
+summary_cap_chars: 256
+event_cap_bytes: 4096
+
+# Redaction is always applied to any text-bearing field before it lands in
+# events.jsonl. The pattern library covers AWS / Slack / Anthropic / OpenAI /
+# Stripe / GitHub / GitLab / npm / Twilio / Google / JWT / Bearer / URL
+# userinfo / private key blocks / generic ENV-style assignments. Disabling
+# this is NOT supported.
+redaction:
+  pattern_library: enabled
+
+# Lifecycle event toggles. Hooks read `enabled` first; if true, they ALL fire
+# unless overridden here. Set a key to false to silence one event class
+# without touching hooks.json.
+events:
+  sessionStart: true
+  sessionEnd: true
+  preToolUse: true
+  postToolUse: true
+  postToolUseFailure: true
+  beforeShellExecution: true
+  afterShellExecution: true
+  beforeMCPExecution: true
+  afterMCPExecution: true
+  subagentStart: true
+  subagentStop: true

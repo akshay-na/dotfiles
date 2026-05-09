@@ -61,16 +61,35 @@ YAML policy/config data for orchestration behaviors.
 
 - Includes routing maps and orchestration policy documents.
 - Supports deterministic dispatch and anti-duplication controls.
+- `telemetry.yml` configures the hook-based telemetry pipeline (log dir,
+  retention, caps, redaction, per-event toggles).
+- `pack-identity.yml` carries the pack id (`cursor-tech-team`) used by the
+  telemetry hooks to tag every JSONL event with `hooks_pack`.
 
 ### `hooks/` and `hooks.json`
 
-Local lifecycle automations around tool calls, shell, and commits.
+Local lifecycle automations around tool calls, shell, MCP, subagents, and
+sessions.
 
 - `hooks.json` wires these scripts into Cursor hook points.
-- Current hook groups:
-  - `preToolUse`: write guards + task preflight/injection hooks
-  - `beforeShellExecution`: shell safety wrapper
-  - `preCommit`: protocol lint checks for subagent response schema drift
+- Two complementary tracks share the hook chain:
+  - **Safety controls (fail-closed where appropriate):**
+    - `cursor-zone-writes.sh` — auto-approves writes inside trusted zones.
+    - `safe-shell.sh` — auto-approves a narrow read-only command allowlist.
+    - `subagent-task-antidup-preflight.sh` — rejects oversized inline blobs in
+      `Task` dispatches (`failClosed: true`).
+    - `subagent-protocol-inject.sh` — injects the subagent response contract
+      and per-session marker.
+  - **Telemetry pipeline (fail-open):** the `telemetry-*.sh` family records
+    a structured JSONL audit + observability stream of every Cursor
+    lifecycle event (`sessionStart`, `sessionEnd`, `pre/post ToolUse`,
+    `postToolUseFailure`, `before/after ShellExecution`,
+    `before/after MCPExecution`, `subagentStart`, `subagentStop`).
+    Configuration: `configurations/telemetry.yml`.
+    Operational runbook: `docs/runbooks/telemetry-pipeline.md`.
+- The lint hook for subagent-protocol drift is
+  `hooks/subagent-protocol-lint.sh` and runs as a pre-commit check rather
+  than a Cursor hook event.
 
 ### `contracts/`
 
@@ -86,9 +105,11 @@ MCP server definitions used by this setup.
   - `time`
   - `context7`
 
-### `ai-brain/`
+### `ai-brain/` (sibling package, not part of this tree)
 
-Tracked skeleton for local AI brain bootstrap.
+The tracked skeleton for the local AI brain lives in a **separate** stow
+package at `dotfiles/ai/ai-brain/` and is not nested inside this Cursor pack.
+After stow it surfaces as `~/ai-brain/`.
 
 - Source skeleton includes templates/instructions (for example `_schema/`, `_templates/`, and `README.md`).
 - Runtime/project-specific brain content is intentionally local and ignored after stow.
@@ -121,4 +142,7 @@ Tracked skeleton for local AI brain bootstrap.
 - `templates/onboarding/_index.yml` paths resolve to real template files.
 - `mcp.json` remains valid JSON and matches intended server set.
 - No secrets are introduced in tracked files.
+- `~/.cursor/logs/telemetry/events.jsonl` (when stowed and active) contains
+  no raw secrets and every line parses with `schema_version: 1`. Verify with
+  the redaction grep in `docs/runbooks/telemetry-pipeline.md`.
 - Stow still links this package cleanly.

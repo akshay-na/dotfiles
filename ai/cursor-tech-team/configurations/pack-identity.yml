@@ -1,0 +1,6 @@
+# Pack identity used by hooks/telemetry-common.sh to tag every JSONL event
+# with `hooks_pack`. Differs across packs intentionally — kept as a single
+# scalar so the rest of the telemetry library stays byte-identical between
+# the tech and content packs.
+schema_version: 1
+pack_id: cursor-tech-team

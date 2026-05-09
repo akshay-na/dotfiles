@@ -51,3 +51,12 @@ alwaysApply: false
   - Persist orchestration audit stream under `~/ai-brain/org/global/orchestration/`.
   - Maintain append-only event ledger for subagent lifecycle events and a compact index for query/report generation.
   - Do not store full raw tool output in audit entries; store references (`artifact_ref`) to bounded files when needed.
+
+- **Hook-based telemetry pipeline**
+  - The `hooks/telemetry-*.sh` family captures the runtime substrate beneath the agent metric stream: every Cursor lifecycle event (`sessionStart`, `sessionEnd`, `pre/postToolUse`, `postToolUseFailure`, `before/afterShellExecution`, `before/afterMCPExecution`, `subagentStart`, `subagentStop`) is recorded as a single JSONL line under `$CURSOR_TELEMETRY_DIR/events.jsonl` (default `~/.cursor/logs/telemetry/events.jsonl`).
+  - Every event carries `schema_version: 1`, `event_id`, `ts` (ISO-8601 UTC ms), `session_id`, `trace_id`, `hooks_pack`, `outcome`, `tool_name`, `duration_ms` (when paired), `error_class`, `actor.workspace_root`, and a redacted `summary`.
+  - Telemetry hooks are **fail-open** by contract: a failure inside any `telemetry-*.sh` script must never break the agent flow. The pre-existing safety hooks (`cursor-zone-writes.sh`, `safe-shell.sh`, `subagent-task-antidup-preflight.sh`, `subagent-protocol-inject.sh`) keep their original gating semantics and are NOT weakened by this pipeline.
+  - **No raw payloads, no secrets.** Tool inputs, command strings, file bodies, stdouts, and stderrs are never persisted. All text-bearing fields run through a deterministic pattern-library redaction pass (AWS / Slack / Anthropic / OpenAI / Stripe / GitHub / GitLab / npm / Twilio / Google / JWT / Bearer / URL userinfo / private key blocks / generic ENV-style assignments). Field- and event-level caps prevent unbounded growth.
+  - Configuration lives in each pack's `configurations/telemetry.yml`. Master toggle: `enabled`. Hard kill switch: env var `CURSOR_TELEMETRY_DISABLED=1`. Retention defaults to 14 days with daily rotation triggered on the first `sessionStart` of each UTC day.
+  - Operational runbook: `docs/runbooks/telemetry-pipeline.md` in each pack.
+  - The telemetry stream is **complementary** to the agent-observability skill: agents continue to write per-task metric and decision entries via `brain-memory-kb`. The hook-based pipeline captures the orchestration substrate (tool calls, durations, MCP traffic, subagent lifecycle) that those metrics summarize.

@@ -772,3 +772,18 @@ log_metric:
 6. **Review reports** — Use weekly reports to identify patterns and improve agent prompts
 7. **Track feedback loops** — Monitor pre-validation catch rates and cross-stage resolution rates to measure feedback loop effectiveness
 8. **Review strategy effectiveness** — Identify underperforming strategies for improvement or replacement
+
+## Relationship to the hook-based telemetry pipeline
+
+This skill (and the `brain-memory-kb` storage backend) covers the **agent-tier metric layer**: per-task summaries, per-stage outcomes, decision rationales, dispatch counters. Those entries live in `session.current/` and are promoted to `projects/{name}/metrics/`.
+
+The Cursor hook pipeline (see `docs/runbooks/telemetry-pipeline.md` in each pack) covers the **runtime substrate layer**: every tool call, shell invocation, MCP request, and subagent lifecycle event is recorded as a single JSONL line under `$CURSOR_TELEMETRY_DIR/events.jsonl` with `schema_version: 1`.
+
+The two streams are complementary:
+
+- The hook stream is **agent-agnostic and fail-open**. It cannot encode the agent's intent or rationale; it only captures what was dispatched, when, with what outcome, and how long it took.
+- The agent-observability stream is **agent-authored and fail-closed where the orchestration rule requires it**. It encodes routing decisions, rationale, alternatives, dispatch fan-outs, escalations, fallbacks, and feedback-loop counters.
+
+When generating a session or weekly report, agents may **augment** their metric-derived report with summaries pulled from the hook stream — for example, "Total tool calls: N, with X% failure rate" — but should not duplicate the substrate data into the brain. Always cite the hook stream by reference (`~/.cursor/logs/telemetry/events.jsonl`) rather than copying entries into memory.
+
+Operators tail the hook stream directly with `jq` for live triage; agents consume it programmatically only when they have a specific question (e.g. "how often did `Shell` fail this session?") that the agent-tier metrics don't already answer.
