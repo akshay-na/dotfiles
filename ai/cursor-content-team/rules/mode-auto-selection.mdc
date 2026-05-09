@@ -7,8 +7,15 @@ alwaysApply: true
 
 - **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example **`cco`** in plan mode). This rule only guides which mode to switch into when the current assistant has a choice.
 
-- **Content org entrypoints**:
-  - Editorial / drafts / newsletter / channel / **brain + repo corpus** planning → prefer invoking or behaving like **`cco`** (plan) then **`content-lead`** (execute).
+- **Explicit agent invocation (hard gate — overrides heuristics below)**:
+  - Triggers include the user **naming** an org or project agent and asking to **use**, **invoke**, **run**, **call**, **dispatch**, **open**, **with**, **via**, **`@...`**, or equivalent (e.g. “use cco”, “invoke content-lead”, “run chief-visual-officer”, “Task sme-shortform”).
+  - **Required:** the **first** substantive step is a **`Task`** with `subagent_type` set to that agent (match **`~/.cursor/agents/`** and **`agent-orchestration.mdc`**). Put the user’s goal, constraints, and corpus context in the Task prompt.
+  - **Forbidden:** answering **as** that agent in main chat (CCO-style plans, pipeline narration, **or any other “styled” substitute**) **without** dispatching **`Task`**.
+  - **Forbidden:** clarifying questions **before** that **`Task`** unless the user message has **zero** actionable substance (then **at most one** minimal clarification).
+  - **Not an invocation:** generic editorial asks **without** naming an entrypoint — use **`agent-orchestration.mdc`** routing (often **`cco`** then **`content-lead`**), still via **`Task`** when the named entrypoint applies.
+
+- **Content org entrypoints** (when the user does **not** name a specific agent):
+  - Editorial / drafts / newsletter / channel / **brain + repo corpus** planning → **`Task`** **`cco`** for plans, then **`content-lead`** for execution after checkpoints — not in-chat roleplay of those roles.
   - Pure explanation of existing content → Ask mode.
 
 - **Ask mode (explanation / reading)**:

@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Agent orchestration and escalation
 
+- **User-requested agent = real dispatch, not persona:** When the user explicitly asks to **use / invoke / run / call / Task** a named agent, the parent assistant **must** **`Task`** that agent (see **`mode-auto-selection.mdc`** — explicit invocation gate). **Never** substitute in-chat imitation of that agent’s output style for a missing **`Task`**.
+
 - **Start with `cto` in plan mode** when a task has multiple steps, non-trivial trade-offs, or touches architecture, security, performance, or observability.
 - **Start with `code-reviewer`** for any code review request — PR links, branches, diffs, "review my change", security/perf/style review. It is the single entry point for review just as `cto` is for planning: it applies an adaptive context gate (full context for external/author review, lightweight context for same-cycle `tech-lead` feedback loops), then triages and delegates to org specialists. `staff-engineer` is mandatory in review routing. Never invoke `vp-architecture`/`ciso`/`vp-engineering`/`sre-lead`/`staff-engineer`/`vp-platform` directly for review — go through `code-reviewer`.
 - **Invoker-wins precedence (R10):**

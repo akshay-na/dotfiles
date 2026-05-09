@@ -7,6 +7,8 @@ alwaysApply: true
 
 Hard limits on **Cursor tools**, **shell**, and **MCP** live in **`strict-tool-boundaries.mdc`** — read both when editing or dispatching.
 
+- **User-requested agent = real dispatch, not persona:** When the user explicitly asks to **use / invoke / run / call / Task** a named agent, the assistant **must** **`Task`** that agent (see **`mode-auto-selection.mdc`** — explicit invocation gate). **Never** substitute in-chat imitation of **`cco`**, **`content-lead`**, or specialist tone for a missing **`Task`**.
+
 ## Entrypoints
 
 - **`cco`** — plan mode; writes `<project>/.cursor/docs/plans/*.md` (content work repo — not dotfiles pack paths); may parallel-invoke content specialists; runs **`editorial-cro-loop`** once after plan v0; may **`Task`** **`chief-visual-officer`** when visual deliverables are in scope; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the plan names browser profile capture or growth intelligence phases.

@@ -7,6 +7,13 @@ alwaysApply: true
 
 - **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example `cto` in plan mode, `senior-dev` in Agent mode). This rule only guides which mode to switch into when the current assistant has a choice.
 
+- **Explicit agent invocation (hard gate — overrides heuristics below)**:
+  - Triggers include the user **naming** an org or project agent and asking to **use**, **invoke**, **run**, **call**, **dispatch**, **open**, **with**, **via**, **`@...`**, or equivalent (e.g. “use cto”, “invoke code-reviewer”, “run tech-lead”, “Task staff-engineer”).
+  - **Required:** the **first** substantive step is a **`Task`** with `subagent_type` set to that agent (match **`~/.cursor/agents/`** / pack routing). Put the user’s goal, constraints, and workspace context in the Task prompt.
+  - **Forbidden:** answering **as** that agent in main chat (CTO-style plans, reviewer-style writeups, VP-style memos, **or any other “styled” substitute**) **without** dispatching **`Task`**.
+  - **Forbidden:** clarifying questions **before** that **`Task`** unless the user message has **zero** actionable substance (then **at most one** minimal clarification).
+  - **Not an invocation:** generic “plan this” or “review this” **without** naming an entrypoint agent — normal routing in **`agent-orchestration.mdc`** still applies.
+
 - **Ask mode (explanation / reading)**:
   - Use Ask mode when the user is primarily asking for explanations, walkthroughs, or conceptual help (e.g. "explain", "what does this do?", "how does X work?") and is not requesting code changes.
   - Stay read-only: do not edit files or run commands unless the user then asks for changes.
