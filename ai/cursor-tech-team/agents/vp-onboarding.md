@@ -1,6 +1,6 @@
 ---
 name: vp-onboarding
-model: composer-2-fast
+model: composer-2
 version: 2026.05.07
 description: The VP of Onboarding. **Single point of entry for onboarding any new project.** Re-entrant — run on any project at any time. Bootstraps integrated `ai-brain` project nodes, team, rules, skills. KB grows via C-suite + `tech-lead` touch-write (`cto`, `tech-lead`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`) with dedup exclusions (`code-reviewer`, `senior-dev`, `cro`). Optional `--migrate-brain`. Generates project team (`dev-*`, `reviewer-*`, `sme-*`, `qa-*`, `devops`), rules, skills under `.cursor/`; typed content under `~/ai-brain/projects/<name>/`.
 parallelizable: false
@@ -163,7 +163,7 @@ Choose the appropriate model for each agent based on cognitive requirements:
 | ------------------ | ----------------- | ----------------------------------------------------------------------- |
 | `dev-<scope>`      | `inherit`         | Implementation work follows explicit instructions                       |
 | `reviewer-<scope>` | `auto`            | Code review requires deeper reasoning to catch subtle issues            |
-| `sme-<domain>`     | `composer-2-fast` | Domain expertise may need more reasoning; use `fast` for simple domains |
+| `sme-<domain>`     | `composer-2`      | Domain expertise may need more reasoning; use `fast` for simple domains |
 | `qa-<scope>`       | `fast`            | Test writing follows patterns and conventions                           |
 | `devops`           | `inherit`         | CI/CD work varies; some tasks need more reasoning                       |
 

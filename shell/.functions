@@ -976,6 +976,17 @@ switch_ai_team() {
   echo -e "  ${DIM}Target${NC} ${CYAN}~/${NC}${BOLD}.$selected_tool${NC}"
   echo
   if (cd "$dotfiles_dir" && make stow-with-target TOOL_PATH="$selected_path" TARGET_NAME=".$selected_tool"); then
+    if [[ "$selected_tool" == "cursor" && $SUBSCRIPTION_EXHUSTED == true ]]; then
+      local model_rewrite_count=0
+      for agent_file in "$HOME/.cursor/agents"/*.md; do
+        [[ -f "$agent_file" ]] || continue
+        sed -i '' -E 's/^model:[[:space:]].*$/model: inherit/' "$agent_file"
+        model_rewrite_count=$((model_rewrite_count + 1))
+      done
+      if ((model_rewrite_count > 0)); then
+        echo -e "${YELLOW}Subscription exhausted:${NC} rewrote ${BOLD}${model_rewrite_count}${NC} global Cursor agent model key(s) to ${BOLD}inherit${NC}."
+      fi
+    fi
     echo
     echo -e "${GREEN}Done:${NC} switched ${CYAN}$selected_tool${NC} → ${BOLD}$selected_team${NC}."
     echo -e "${YELLOW}Reload the Cursor IDE to load the new agents/rules.${NC} command-palette -> Reload Window"

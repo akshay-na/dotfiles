@@ -9,13 +9,6 @@
         "timeout": 5
       },
       {
-        "command": "./hooks/task-model-auto-guard.sh",
-        "matcher": "Task|Subagent",
-        "failClosed": true,
-        "enabled": true,
-        "timeout": 5
-      },
-      {
         "command": "./hooks/subagent-task-antidup-preflight.sh",
         "matcher": "Task",
         "failClosed": true,
@@ -37,30 +30,6 @@
         "timeout": 5
       }
     ],
-    "preCommit": [
-      {
-        "command": "./hooks/subagent-protocol-lint.sh",
-        "failClosed": true,
-        "enabled": true,
-        "timeout": 10,
-        "note": "D16 pre-commit lint. Blocks drift of two SoT templates. Run manually or via git pre-commit wrapper."
-      }
-    ],
-    "postToolUse": [
-      {
-        "command": "./hooks/task-quota-fallback-detector.sh",
-        "matcher": "Task",
-        "failClosed": false,
-        "enabled": true,
-        "timeout": 5
-      },
-      {
-        "command": "./hooks/subagent-failure-fallback-detector.sh",
-        "matcher": "Subagent",
-        "failClosed": false,
-        "enabled": true,
-        "timeout": 5
-      }
-    ]
+    "postToolUse": []
   }
 }

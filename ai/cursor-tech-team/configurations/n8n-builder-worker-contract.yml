@@ -16,7 +16,7 @@ shard_schema:
     - artifact_refs         # ordered list of artifact references (paths, workflow ids, audit rows)
     - status                # one of: ok, partial, blocked, error, malformed
     - errors                # list; empty if status == ok
-    - metrics               # map: { duration_ms, retried, fallback_model? }
+    - metrics               # map: { duration_ms, retried }
   optional_fields:
     - rollback_ref          # path or workflow snapshot ref usable to undo this shard
     - notes                 # caveman-ultra free-form notes (no secrets)

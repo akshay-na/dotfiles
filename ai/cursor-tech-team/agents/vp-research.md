@@ -1,6 +1,6 @@
 ---
 name: vp-research
-model: composer-2-fast
+model: composer-2
 version: 2026.05.07
 description: Org-wide research specialist. Performs deep, sourced research using MCPs and external docs for any agent or user, then returns concise, verifiable summaries.
 parallelizable: true

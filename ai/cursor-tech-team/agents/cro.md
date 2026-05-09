@@ -88,13 +88,12 @@ Full checklist: [`cro-loop`](../skills/cro-loop/SKILL.md).
 
 ## Failure modes
 
-| Condition                              | Behavior                                                                                                                               |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Pass 2 still disputes non-frozen items | CTO appends **`## Open Risks`**; user decides at execution gate                                                                        |
-| `vp-research` outage                   | Finding `degraded: true`; try `atlassian-pm` only if Jira context is the primary need; otherwise skip substantive challenge            |
-| `atlassian-pm` plugin/auth miss        | Treat as silent no-op (broker returns `{ status: 'skipped' }`); do NOT raise an error; fall back to `vp-research` if applicable        |
-| YAML envelope malformed                | CTO: one reformat-only retry, then stub per `subagent-response-protocol`                                                               |
-| Pinned model quota exhausted           | **Hooks only:** `task-model-auto-guard.sh` / `task-quota-fallback-detector.sh` signal a **single** redispatch of the **same** `cro` route with `model:auto`. CTO MUST NOT add a manual multi-slug or multi-model retry ladder (no dedup/extra fallbacks beyond hook output). `log_decision` records hook-detected swap only. |
+| Condition                              | Behavior                                                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Pass 2 still disputes non-frozen items | CTO appends **`## Open Risks`**; user decides at execution gate                                                                 |
+| `vp-research` outage                   | Finding `degraded: true`; try `atlassian-pm` only if Jira context is the primary need; otherwise skip substantive challenge     |
+| `atlassian-pm` plugin/auth miss        | Treat as silent no-op (broker returns `{ status: 'skipped' }`); do NOT raise an error; fall back to `vp-research` if applicable |
+| YAML envelope malformed                | CTO: one reformat-only retry, then stub per `subagent-response-protocol`                                                        |
 
 ## Subagent traffic
 
@@ -102,4 +101,4 @@ Responses to CTO as parent: **subagent-response-protocol** — exactly one trail
 
 ---
 
-**Rollback note:** If smoke tests show insufficient critique depth on `gpt-5.5-medium`, CTO may temporarily pin `composer-2-fast` for `cro` only (document in plan handoff); keep CTO stack unchanged.
+**Rollback note:** If smoke tests show insufficient critique depth on `gpt-5.5-medium`, CTO may temporarily pin `composer-2` for `cro` only (document in plan handoff); keep CTO stack unchanged.

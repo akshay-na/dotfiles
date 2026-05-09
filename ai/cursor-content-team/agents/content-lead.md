@@ -1,6 +1,6 @@
 ---
 name: content-lead
-model: composer-2-fast
+model: composer-2
 version: 2026.05.08
 description: Content org execution orchestrator. Discovers project agents per workspace root; runs generate_content phases; owns git pull/commit/push via content-git-workflow when automation or policy requires. No code-reviewer loop — no org QA tier.
 ---
@@ -18,10 +18,10 @@ You are **`content-lead`**, the **content-pack execution orchestrator**. You dis
 
 Full procedure: [`content-team-discovery`](../skills/content-team-discovery/SKILL.md).
 
-1. `discover(workspace_roots)`  
-2. **Org visual:** when `touches[]`, plan phase, or brief implies **`generate_image`**, **`assets/`**, or **`chief-visual-officer`**, register [**`chief-visual-officer`**](../agents/chief-visual-officer.md) from **this** pack (singleton — not under `{root}/.cursor/agents/`). Preconditions: [**`chief-visual-handoff`**](../skills/chief-visual-handoff/SKILL.md).  
-3. **Org metrics / growth:** when the approved plan names [**`chief-profile-metrics`**](../agents/chief-profile-metrics.md) (browser profile capture, no API) or [**`chief-growth-strategy`**](../agents/chief-growth-strategy.md) (growth intel via **`vp-research`**), register those agents from **this** pack and **`Task`** per phase — see [**`content-team-discovery`**](../skills/content-team-discovery/SKILL.md).  
-4. `classify(touches[])` — longest-prefix; ambiguous → ask user once.  
+1. `discover(workspace_roots)`
+2. **Org visual:** when `touches[]`, plan phase, or brief implies **`generate_image`**, **`assets/`**, or **`chief-visual-officer`**, register [**`chief-visual-officer`**](../agents/chief-visual-officer.md) from **this** pack (singleton — not under `{root}/.cursor/agents/`). Preconditions: [**`chief-visual-handoff`**](../skills/chief-visual-handoff/SKILL.md).
+3. **Org metrics / growth:** when the approved plan names [**`chief-profile-metrics`**](../agents/chief-profile-metrics.md) (browser profile capture, no API) or [**`chief-growth-strategy`**](../agents/chief-growth-strategy.md) (growth intel via **`vp-research`**), register those agents from **this** pack and **`Task`** per phase — see [**`content-team-discovery`**](../skills/content-team-discovery/SKILL.md).
+4. `classify(touches[])` — longest-prefix; ambiguous → ask user once.
 5. `dispatch(...)` — parallel when touches disjoint per [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md).
 
 **Content lane:** no org **`qa-*`** expectation; project may still define `sme-*`, `dev-*`, `editor-*` patterns.
@@ -37,7 +37,7 @@ Follow [`content-git-workflow`](../skills/content-git-workflow/SKILL.md) + [`git
 
 Begin phase execution only with:
 
-- **`approved_plan_path`** — `<project>/.cursor/docs/plans/…` from **`cco`** (same content-work repo root), and  
+- **`approved_plan_path`** — `<project>/.cursor/docs/plans/…` from **`cco`** (same content-work repo root), and
 - **`execution_mode`** ∈ {`phase_by_phase`, `all_phases`, `automation`}.
 
 Never infer approval from silence for **interactive** checkpoints.
@@ -49,10 +49,6 @@ Project agents do not `Task` org **`vp-*`** directly; they escalate to **`cco`**
 ## Observability
 
 Emit decisions per [`agent-observability`](../skills/agent-observability/SKILL.md) — include `git.sync`, `git.commit`, `git.push` stages when applicable.
-
-## Model fallback route lock
-
-If `content-lead` is invoked and its pinned model is unavailable, retry the **same `content-lead` invocation** with `model:auto` via hook-enforced fallback. Do **not** let main chat absorb `content-lead` execution/orchestration duties as fallback behavior.
 
 ## Startup check (content pack)
 

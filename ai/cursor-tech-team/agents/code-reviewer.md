@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-model: claude-opus-4-7-thinking
+model: claude-opus-4-7
 version: 2026.05.07
 description: The Code Reviewer. Single point of entry for any code review and implementation validation. Owns review + QA/test execution strategy for both tech-lead handoffs and direct review requests.
 ---

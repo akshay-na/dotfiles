@@ -1,6 +1,6 @@
 ---
 name: tech-lead
-model: composer-2-fast
+model: composer-2
 version: 2026.05.07
 description: "Org-tier execution orchestrator. Discovers project implementers per workspace folder; always routes review/QA decisions through `code-reviewer`. Single entrypoint for plan execution and multi-root orchestration."
 ---

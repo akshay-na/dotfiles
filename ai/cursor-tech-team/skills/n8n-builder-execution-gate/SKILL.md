@@ -144,7 +144,7 @@ For each phase about to be dispatched:
   - `n8n_builder.exec.group.<gid>` — `phases_planned`, `phases_dispatched`,
     `phases_succeeded`, `phases_failed`, `group_duration_ms`.
   - `n8n_builder.exec.shard.<phase>.<shard>` — `duration_ms`, `retried`,
-    `fallback_model`, `mode`, `env`.
+    `mode`, `env`.
 - `log_decision` rows for every per-phase rollback, fan-out collapse,
   destructive approval received, and override use.
 

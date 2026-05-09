@@ -1,7 +1,7 @@
 ---
 name: cpo
 description: Chief Privacy Officer (content org). Editorial claims, PII, consent language, plagiarism/sourcing policy, sensitive topics in drafts. Invoked from cco plans or editorial-cro bounces.
-model: claude-opus-4-7-thinking
+model: claude-opus-4-7
 version: 2026.05.08
 parallelizable: true
 ---

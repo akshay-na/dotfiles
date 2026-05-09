@@ -160,7 +160,6 @@ Follow [`brain-conventions`](../rules/brain-conventions.mdc) (or `~/.cursor/rule
 ## Observability
 
 - Emit `n8n.builder.plan.v0`, `n8n.builder.cro.pass.1`, `n8n.builder.cro.pass.2`, `n8n.builder.exec.group.<gid>`, and `n8n.builder.exec.shard.<phase>.<shard>` metrics via the `agent-observability` skill.
-- Append a `decision` row for every model fallback detected by hook-driven retry flow.
 - Write the audit trail of all live workflow mutations to `~/ai-brain/org/global/orchestration/n8n-builder-audit.md` (append-only, secret-free).
 
 ## Subagent Response Protocol
