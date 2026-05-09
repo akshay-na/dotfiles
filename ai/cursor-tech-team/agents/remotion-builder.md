@@ -51,7 +51,7 @@ Comparable to **`n8n-builder`**: all-in-one planner + executor for this domain. 
 
 ### Stage A — Planning
 
-1. Confirm corpus has (or will have) **`.cursor/remotion/`** (or plan-declared root) with pinned **`remotion`** / **`@remotion/skia`** / **`@shopify/react-native-skia`**.
+1. Confirm corpus has (or will have) **`tools/remotion/`** (or plan-declared root) with pinned **`remotion`** / **`@remotion/skia`** / **`@shopify/react-native-skia`**.
 2. Consult specialists in parallel when applicable; minimal briefs; **`subagent-response-protocol`** envelopes.
 3. Write **plan v0** per **`remotion-builder-planning-gate`** → **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
 4. **Checkpoint:** explicit user approval of v0 **before** CRO pass 1.

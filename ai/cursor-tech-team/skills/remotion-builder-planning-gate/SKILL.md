@@ -24,7 +24,7 @@ Path: **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
 3. **Scope** — corpus paths, compositions, asset outputs.
 4. **Out of Scope** — explicit non-goals.
 5. **Assumptions** — `verified` / `pending`.
-6. **Remotion project** — root path (e.g. **`.cursor/remotion/`**), **Skia enabled** (yes/no), **`LoadSkia()`** / entry file, **pinned** `remotion`, `@remotion/skia`, `@shopify/react-native-skia` (exact versions).
+6. **Remotion project** — root path (e.g. **`tools/remotion/`** in content-foundry), **Skia enabled** (yes/no), **`LoadSkia()`** / entry file, **pinned** `remotion`, `@remotion/skia`, `@shopify/react-native-skia` (exact versions).
 7. **Entry composition** — id, props, duration.
 8. **Render mode** — `ssr_headless_shell` (default) vs `experimental_csr` (needs explicit user sign-off in plan).
 9. **Chromium / GL posture** — local vs CI, **`--gl`** / vendor flags if any.
