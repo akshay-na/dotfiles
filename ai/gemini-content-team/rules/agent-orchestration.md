@@ -1,0 +1,71 @@
+# Content agent orchestration
+
+Hard limits on **Cursor tools**, **shell**, and **MCP** live in **`strict-tool-boundaries.md`** — read both when editing or dispatching.
+
+- **User-requested agent = real dispatch, not persona:** When the user explicitly asks to **use / invoke / run / call / Task** a named agent, the assistant **must** **`Task`** that agent (see **`mode-auto-selection.md`** — explicit invocation gate). **Never** substitute in-chat imitation of **`cco`**, **`content-lead`**, or specialist tone for a missing **`Task`**.
+
+## Entrypoints
+
+- **`cco`** — plan mode; writes `<project>/.gemini/docs/plans/*.md` (content work repo — not dotfiles pack paths); may parallel-invoke content specialists; runs **`editorial-cro-loop`** once after plan v0; may **`Task`** **`chief-visual-officer`** when visual deliverables are in scope; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the plan names browser profile capture or growth intelligence phases.
+- **`content-lead`** — execution; discovers `{root}/.gemini/agents/` via **`content-team-discovery`**, **and** registers org singleton **`chief-visual-officer`** when **`chief-visual-handoff`** applies; runs **`generate-content-pipeline`** stages, **`content-git-workflow`** when policy says push; may **`Task`** **`chief-profile-metrics`** / **`chief-growth-strategy`** when the approved plan’s phase lists them.
+
+## Org singleton: `chief-visual-officer` (CVO)
+
+- **Location:** **`~/.gemini/agents/chief-visual-officer.md`** when this pack is stowed — **do not** duplicate the role in `<project>/.gemini/agents/`.
+- **Callers:** **`cco`**, **`content-lead`**, org **`vp-*`**, **`cpo`**, **`staff-editor`**, **`editorial-ops-lead`**, and **project** SMEs — all may **`Task`** CVO with a payload meeting [**`chief-visual-handoff`**](../skills/chief-visual-handoff/SKILL.md). This is **not** a lateral project→`vp-*` violation; CVO is the designated visual execution agent.
+- **Model:** **`composer-2`**, pinned in CVO frontmatter.
+
+## No Atlassian / no org QA
+
+- **`atlassian-pm`** is **not** part of this pack.  
+- No org-tier **`qa-*`**; human reviews after automation; optional plan-only critic is **`editorial-cro`**.
+
+## Subagent protocol
+
+Child `Task` returns: **`subagent-response-protocol.md`** + YAML envelope per inject hook. Parent parse contract same as org standard.
+
+## Execution approval
+
+- **Interactive:** explicit checkpoint wording per phase (silence ≠ approval).  
+- **Automation (`execution_mode: automation`):** no chat gates; **`content-git-workflow`** + n8n payloads per **`orchestration.md`**.
+
+## Escalation
+
+- Project agents → **`cco`** for replanning (no lateral org `Task` chains from project tier **to `vp-*` / `cpo` / `staff-editor`** for new strategy).
+- **Exception:** project agents **may** **`Task`** org **`chief-visual-officer`** for visual execution when **`chief-visual-handoff`** preconditions are met (same as **`content-lead`**).
+- **`editorial-cro`** findings with `bounce_target` → only **`cco`** issues specialist `Task`s.
+
+## Brain
+
+Canonical data: `~/.gemini/ai-brain/` (see **`brain-conventions.md`**). Both tech and content packs may share this **data** path when switched; rules are not merged.
+
+## Docs
+
+Plans/decisions under **`<project>/.gemini/docs/`** per **`docs-and-decisions.md`** (`<project>` = content corpus git root, not org-pack-only trees).
+
+## Agent responsibility matrix (hard boundaries)
+
+| Tier | Owns | Must **not** |
+|------|------|--------------|
+| **`cco`** | Plans under `<project>/.gemini/docs/plans/`; planning swarm **`Task`**s; one **`editorial-cro-loop`** after plan v0; **`Task`** **CVO** when visuals are in plan scope | Execute routine corpus edits unless the brief explicitly names **`cco`** as executor; skip **`editorial-cro`** critic gate; invent **`Task`** targets outside plan/skill allowlists |
+| **`content-lead`** | **`content-team-discovery`**, pipeline stages (**`generate-content-pipeline`**), **`content-git-workflow`** when policy allows; register **CVO** when **`chief-visual-handoff`** applies | Author net-new **CCO** plans (that is **`cco`**); **`Task`** org **`vp-*`** for fresh strategy without **`cco`** context; push without idempotency / payload checks per **`orchestration.md`** |
+| **Org specialists** (`vp-*`, **`staff-editor`**, **`cpo`**, **`editorial-ops-lead`**, etc.) | Their slice inside a **`cco`** swarm or explicit user/org invoke | Peer-to-peer **`Task`** chains with each other without **`cco`** (or stated parent) orchestration; write arbitrary `<project>` paths outside plan **`touches[]`** / role scope |
+| **Project agents** (per-repo `sme-*`, `reviewer-*`) | Paths and gates defined in **that** repo’s rules | **`Task`** **`cco`** / **`content-lead`** / **`vp-*`** for new strategy mid-task; redefine **CVO** locally |
+| **`chief-visual-officer`** (**CVO**) | Raster and asset paths per **`chief-visual-handoff`** | Claim ownership of copy, legal, metrics ingestion, or non-visual corpus strategy |
+| **`chief-profile-metrics`** | Browser-assisted **profile** / surface metrics when **no API**; **`metrics/`** files matching **`metric-event.schema.json`**; **`<project>`** git sync per **`content-git-workflow`** + **`--no-gpg-sign`** | Generic web fetch; credentials; post-level API pipelines owned by **`sme-channel-growth`**; **`curl`** to analytics endpoints without runbook |
+| **`chief-growth-strategy`** | Growth intel, creator benchmarks, experiment backlogs; **`Task`** **`vp-research`** for all off-corpus facts; durable notes under **`~/ai-brain/`**; optional **`<project>`** staging/ideas + git when user/plan asks | Direct HTTP/docs MCP calls; promise growth outcomes; lateral **`Task`** to project **`sme-*`** without **`cco`** / **`content-lead`** plan |
+| **`editorial-cro`** | Structured critique; **`bounce_target`** suggestions | **`Task`** specialists directly — only **`cco`** may dispatch those replies |
+
+## Tool and integration boundaries
+
+Execution details for **file tools**, **terminal**, and **`Task`**: **`strict-tool-boundaries.md`** (read together with this section).
+
+- **HTTP, web fetch, search, docs MCP:** **only** **`vp-research`** — **`vp-research.md`**. All other agents delegate through **`cco`** (planning) or user-invoked **`vp-research`**; no side-door fetch for “just checking the platform.”
+- **Atlassian:** **not** in this pack — **no** `plugin-atlassian-atlassian` writes; treat missing tooling as out-of-scope.
+- **Brain / memory:** **`brain-conventions.md`** only; **no** secrets in writes; bounded fields per skill.
+- **`Task`:** subagents obey **`subagent-response-protocol.md`**; parents **must not** dispatch agents absent from routing table / plan / this rule’s allowlists.
+- **Shell:** prefer **`content-git-workflow`** for pull/commit/push; **no** destructive git (**`--force`**, **`reset --hard`**) unless user explicitly orders; **no** ad-hoc **`curl`** / **`wget`** to third-party editorial or analytics endpoints unless a **skill or runbook** authorizes that integration.
+
+## Violations
+
+- On boundary breach (wrong **`Task`**, direct web from non-**`vp-research`**, writes outside **`touches[]`**): **stop**, report briefly, and let user or **`cco`** correct course — **do not** silently continue.

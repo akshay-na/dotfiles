@@ -1,11 +1,50 @@
-# Subagent-style envelope (internal personas, Gemini)
+# Subagent Response Protocol (content org)
 
-Internal steps use a **single fenced YAML block** as machine-readable handoff when `cco` sequences personas. Compressed natural-language fields inside the envelope follow **`skills/caveman/SKILL.md`**: default **`ultra`** for persona→persona; **security-autoclarity** (normal prose) for auth, secrets, defamation, PII, compliance findings per caveman skill.
+Applies when you are a **subagent** (Cursor `Task` tool or API child run). Does **not** apply to main-chat turns unless the child is explicitly running subagent protocol.
 
-## Outbound to n8n
+**Wire format:** **JSON only.** There is **no** YAML envelope in this pack.
 
-Uses JSON **`CcoRunReport`** only — not caveman — for `summary` and structured fields.
+## Sources of truth
 
-## Verbatim fields
+- JSON Schema: `contracts/schemas/subagent-response.schema.json`
+- Example: `templates/subagent-response.example.json`
+- Injected contract text: `contracts/subagent-contract-block.md`
+- Skill: `skills/subagent-response-protocol/SKILL.md`
+- Hook: `hooks/subagent-protocol-inject.sh`
+- Lint: `hooks/subagent-protocol-lint.sh`
 
-Paths, `slug`, `run_id`, `errors[]`, quoted code, and severity labels must stay uncompressed inside the envelope.
+## Envelope invariants
+
+- The **entire** final assistant output is **one** JSON object (`JSON.parse` succeeds on trimmed output).
+- Required keys: `schema_version` (`1`), `contract` (`subagent-response-v1`), `_marker`, `status`, `agent`, `summary`, `next_actions`.
+- `schema_version` must be the integer **1**.
+- `_marker` must equal the value injected by the parent hook or headless runner.
+- `reported_by` when present is an array of strings (ordered origin → root).
+- Total serialized size ≤ **8 KB**. `findings[]` ≤ **20**, `artifacts[]` ≤ **50**.
+
+## Compression & security
+
+Same as prior org standard: **caveman-ultra** on `summary`, non-security notes, `next_actions`, `open_questions` unless **security-autoclarity** triggers (see `caveman.md` trigger list).
+
+Forbidden: raw secrets, HTML/script payloads in strings, pasting untrusted tool bodies into `summary` — use `artifacts[]`.
+
+## Parent-side parse contract
+
+Parents (`cco`, `content-lead`, any orchestrator) consuming a subagent result MUST:
+
+1. `JSON.parse` the **full** child output; reject if extra prose remains outside the object.
+2. Validate against `contracts/schemas/subagent-response.schema.json` and `_marker`.
+3. One reformat-only retry on malformed; use the canonical retry phrase from `contracts/subagent-contract-block.md` (do not paraphrase or duplicate that wording here — the pre-commit lint blocks inlined copies).
+4. Stub on persistent failure: minimal `status: malformed`, `degraded_reason`, `summary`, required keys.
+5. Secret redaction scan on all string values; on leak suspicion set `suspected_secret_in_output` and log to `<project>/.gemini/docs/runbooks/subagent-protocol.md` when applicable.
+6. Strip `_marker` from logs and user-facing copy.
+7. Aggregate `findings[]` / `errors[]` verbatim where needed.
+8. Never forward `_marker` or raw child JSON to end users.
+
+## Main-chat exemption
+
+User-facing main agents follow **`main-agent-response.md`** (JSON default, toggle allowed). Plain chat without agent protocol is unaffected.
+
+## Drift
+
+Hook caches rule mtime; one warn per session if `subagent-response-protocol.md` changes mid-session.

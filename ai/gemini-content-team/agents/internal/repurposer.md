@@ -1,10 +1,6 @@
 ---
 name: repurposer
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: REPURPOSE
 ---
-
 # repurposer (internal)
 
 ## Mission

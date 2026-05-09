@@ -1,10 +1,6 @@
 ---
 name: vp-research
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: RESEARCH
 ---
-
 # vp-research (internal)
 
 ## Mission

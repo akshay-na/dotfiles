@@ -21,7 +21,7 @@ Encodes the **singleton, post-plan** plan-critic loop. After `cto` has consulted
 | Plan draft                 | Markdown body or path + hash                    |
 | `specialist_bundle_refs[]` | Aggregated specialist outputs / shard refs      |
 | `pass_number`              | `1` or `2`                                      |
-| `ledger_path`              | `~/ai-brain/session/<task-id>/critic-ledger.md` |
+| `ledger_path`              | `~/ai-brain/session/cursor-<task-id>/critic-ledger.md` |
 | `frozen_finding_ids[]`     | Pass 2 only; monotonic freeze list from ledger  |
 
 ## Outputs

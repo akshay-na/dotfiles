@@ -1,10 +1,6 @@
 ---
 name: kb-librarian
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: PUBLISH
 ---
-
 # kb-librarian (internal)
 
 ## Mission

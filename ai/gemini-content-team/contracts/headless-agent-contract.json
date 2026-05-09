@@ -1,0 +1,35 @@
+{
+  "contract_id": "content-org-headless-v1",
+  "description": "Content agency pack: all structured agent I/O is JSON. Paths relative to this pack's .cursor/ directory.",
+  "subagent_output": {
+    "format": "application/json",
+    "parse_rule": "Final assistant output MUST be exactly one JSON object. No markdown fences. No prose before/after. UTF-8; trim whitespace; JSON.parse.",
+    "json_schema": "contracts/schemas/subagent-response.schema.json",
+    "example": "templates/subagent-response.example.json",
+    "size_cap_bytes": 8192
+  },
+  "main_agent_output": {
+    "format": "application/json",
+    "default_on": true,
+    "toggle_env": "CONTENT_ORG_MAIN_JSON_OUTPUT=0 disables structured main reply",
+    "toggle_payload_field": "json_output: false in n8n body",
+    "json_schema": "contracts/schemas/main-agent-response.schema.json",
+    "example": "templates/main-agent-response.example.json"
+  },
+  "automation_output": {
+    "format": "application/json",
+    "description": "Canonical content artifact payload for social automation handoff.",
+    "json_schema": "contracts/schemas/content-post-artifact.schema.json",
+    "examples": [
+      "templates/content-post-artifact.linkedin.example.json",
+      "templates/content-post-artifact.instagram.example.json",
+      "templates/content-post-artifact.twitter-x.example.json"
+    ]
+  },
+  "n8n_inbound_webhook": {
+    "json_schema": "contracts/schemas/n8n-automation-request.schema.json",
+    "content_type": "application/json"
+  },
+  "compression": "caveman-ultra in envelope summaries/notes unless security-autoclarity; corpus files stay editorial prose",
+  "no_yaml_envelope": true
+}

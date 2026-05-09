@@ -39,7 +39,7 @@ You operate as a **singleton loop** after **`cco`** has written the **complete p
 | `pass_number` | `1` or `2` |
 | `plan_path` | Path to plan under critique |
 | `specialist_bundle_refs[]` | Pointers to specialist inputs **`cco`** merged |
-| `ledger_path` | `~/.cursor/ai-brain/session/<task-id>/critic-ledger.md` (or content ADR path) |
+| `ledger_path` | `~/ai-brain/session/cursor-<task-id>/critic-ledger.md` (canonical ai-brain root; or content ADR path if plan overrides) |
 | `frozen_finding_ids[]` | Pass 2 only; do not re-raise |
 
 **Outputs:**

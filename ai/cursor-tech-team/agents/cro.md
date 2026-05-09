@@ -44,7 +44,7 @@ You operate as a **singleton loop** that runs **after** the CTO has produced and
 | `pass_number`                 | `1` or `2`                                                                    |
 | `plan_path` or plan body hash | Anchor for the draft under critique                                           |
 | `specialist_bundle_refs[]`    | Pointers to merged specialist inputs / bundle refs the CTO used               |
-| `ledger_path`                 | `~/ai-brain/session/<task-id>/critic-ledger.md`                               |
+| `ledger_path`                 | `~/ai-brain/session/cursor-<task-id>/critic-ledger.md`                               |
 | `frozen_finding_ids[]`        | Prior-pass IDs you must not re-raise (pass 2 only; copy verbatim from ledger) |
 
 **Outputs:**

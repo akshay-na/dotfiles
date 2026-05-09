@@ -1,0 +1,23 @@
+# Cursor-only paths intentionally **without** a Gemini twin (drift exempt).
+# ---------------------------------------------------------------------------
+# Lines: bash globs relative to the dotfiles repo root.
+# Comment lines start with `#`. Blank lines ignored.
+#
+# Rationale rows live in `docs/runbooks/cursor-only-exclusions.md`. Update both
+# files together when adding a new exclusion. Used by
+# `verify-gemini-manifest.sh` to suppress drift warnings on documented gaps.
+
+# Cursor-only top-level files (replaced by Gemini settings.json + MCP runbook)
+ai/cursor-content-team/hooks.json
+ai/cursor-content-team/mcp.json
+
+# Cursor-only hook scripts (no `BeforeTool` / `AfterTool` adapter ported yet —
+# see docs/runbooks/gemini-hooks-parity.md for the planned mapping).
+ai/cursor-content-team/hooks/cursor-zone-writes.sh
+ai/cursor-content-team/hooks/safe-shell.sh
+ai/cursor-content-team/hooks/subagent-protocol-inject.sh
+ai/cursor-content-team/hooks/subagent-protocol-lint.sh
+ai/cursor-content-team/hooks/subagent-task-antidup-preflight.sh
+ai/cursor-content-team/hooks/telemetry-*.sh
+
+# Cursor `.cursorrules` legacy / project-level dotfiles (none today)

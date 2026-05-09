@@ -1,12 +1,6 @@
 ---
 name: editor-shorts
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: DRAFT
-parallel_group: draft-fanout
-parallel_rank: 3
 ---
-
 # editor-shorts (internal)
 
 ## Mission

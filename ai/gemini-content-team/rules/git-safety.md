@@ -1,0 +1,25 @@
+# Content git safety
+
+## Allowed commands
+
+`git fetch`, `git pull`, `git rebase`, `git status`, `git diff`, `git add` (path-scoped), `git commit` (template or `--file` pre-built body), `git push` (no `--force` to repo **default branch**).
+
+## Agent commits — no GPG sign
+
+If **`commit.gpgsign`** is enabled globally, **agent/automation commits must still not sign**: always pass **`--no-gpg-sign`** on `git commit` (or **`git -c commit.gpgsign=false commit`**). See **`brain-conventions.md`** for the same rule and for optional **`~/ai-brain`** pull → commit → push when that directory is a git repo.
+
+## Commit messages (`~/.gitmessage` + Conventional Commits)
+
+- **Subject (first line):** **`type[(optional-scope)]: imperative summary`** — Conventional Commits; **≤ ~72 characters**; **no trailing period**; imperative mood (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`, …). **Vault / corpus:** for stage-primary work, prefer **`draft`**, **`staging`**, **`published`** as **`type`** (see **`brain-conventions.md`**).
+- **Body:** same **section order** as **`$HOME/.gitmessage`** (DotMate `git/.gitmessage` when stowed). **Keep it short:** at most **2–3** bullets; **`Context:`** and **`Impact:`** **one line each** unless unavoidable; no long narratives.
+- **`Notes:`** — **AI-authored** lines when automation/plan requires (see **`content-git-workflow`**); optional trailers (e.g. `Co-authored-by:`) only if project ADR defines them — after a blank line at end of message.
+
+## Forbidden
+
+- `git push --force` to **`main`**/default without documented break-glass.  
+- Committing **secrets**, tokens, `.env`, SSH private keys.  
+- `git add -A` when `target_paths[]` / policy forbids broad adds.
+
+## Conflicts
+
+On pull/rebase conflict: **stop**; return structured error to orchestrator / n8n; do not silent-resolve.

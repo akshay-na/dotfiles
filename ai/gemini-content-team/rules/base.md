@@ -1,0 +1,13 @@
+# AI Assistant Guidelines
+
+## Core Principles
+
+1. **Autonomy**: Follow all project rules without requiring reminders.
+2. **Consistency**: Match existing codebase patterns.
+3. **Proactivity**: Anticipate rule requirements before starting work.
+4. **Accuracy**: Adhere to all relevant guidelines in every implementation.
+
+## Things to Avoid
+
+1. Making changes unrelated to the task — suggest improvements instead.
+2. Getting stuck without asking for help — if struggling, just ask.

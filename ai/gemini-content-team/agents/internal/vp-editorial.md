@@ -1,10 +1,6 @@
 ---
 name: vp-editorial
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: BRIEF
 ---
-
 # vp-editorial (internal)
 
 ## Mission

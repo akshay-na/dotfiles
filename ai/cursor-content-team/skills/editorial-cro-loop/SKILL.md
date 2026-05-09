@@ -21,7 +21,7 @@ Singleton **post-plan** critic: after **`cco`** writes **plan v0** to `<project>
 | Plan draft | Path + hash or body |
 | `specialist_bundle_refs[]` | Specialist bundle refs from **`cco`** |
 | `pass_number` | `1` or `2` |
-| `ledger_path` | `~/.cursor/ai-brain/session/<task-id>/critic-ledger.md` |
+| `ledger_path` | `~/ai-brain/session/cursor-<task-id>/critic-ledger.md` |
 | `frozen_finding_ids[]` | Pass 2 only |
 
 ## Outputs

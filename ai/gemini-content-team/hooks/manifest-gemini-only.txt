@@ -1,0 +1,63 @@
+# Gemini-only paths intentionally **without** a Cursor twin (drift exempt).
+# ---------------------------------------------------------------------------
+# Lines: bash globs relative to the dotfiles repo root.
+# Comment lines start with `#`. Blank lines ignored.
+
+# Gemini-specific entry docs
+ai/gemini-content-team/CONVENTIONS.md
+ai/gemini-content-team/GEMINI.md
+
+# Separate documentation tree (per § "Separate documentation trees" of the parity plan)
+ai/gemini-content-team/docs/**
+
+# Gemini-specific scripts (auth helpers, etc.)
+ai/gemini-content-team/scripts/**
+
+# Gemini-only hook adapters and tooling (no Cursor twin)
+ai/gemini-content-team/hooks/README.md
+ai/gemini-content-team/hooks/gemini-hook-json-pass-through.sh
+ai/gemini-content-team/hooks/verify-gemini-hooks.sh
+ai/gemini-content-team/hooks/check-gemini-agent-frontmatter.sh
+ai/gemini-content-team/hooks/remind-content-pack-dual-edit.sh
+ai/gemini-content-team/hooks/verify-gemini-manifest.sh
+ai/gemini-content-team/hooks/manifest-pairs.txt
+ai/gemini-content-team/hooks/manifest-exclusions.txt
+ai/gemini-content-team/hooks/manifest-gemini-only.txt
+ai/gemini-content-team/hooks/install-pre-commit.sh
+
+# Gemini cco-internal personas (Cursor exposes the same roles as external org agents — see plan § Mapping table)
+ai/gemini-content-team/agents/internal/**
+
+# Cursor `metrics-steward` is exposed differently in Cursor (specialist invoked via cco swarm) — Gemini ships it as a top-level external agent
+ai/gemini-content-team/agents/metrics-steward.md
+
+# Gemini-specific rules (no 1:1 Cursor twin — different orchestration shape)
+ai/gemini-content-team/rules/_cursor-parity-orchestration.md
+ai/gemini-content-team/rules/brain-paths.md
+ai/gemini-content-team/rules/brand-voice.md
+ai/gemini-content-team/rules/cco-single-invocation.md
+ai/gemini-content-team/rules/dedup.md
+ai/gemini-content-team/rules/docs-and-knowledge.md
+ai/gemini-content-team/rules/inter-persona-observability.md
+ai/gemini-content-team/rules/memory.md
+ai/gemini-content-team/rules/metrics-contract.md
+ai/gemini-content-team/rules/n8n-handoff.md
+ai/gemini-content-team/rules/platform-engagement.md
+ai/gemini-content-team/rules/project-identity.md
+ai/gemini-content-team/rules/repo-hygiene.md
+
+# Gemini-specific skills (cco orchestration internals, project identity, subagent observability)
+ai/gemini-content-team/skills/cco-orchestration/**
+ai/gemini-content-team/skills/project-identity/**
+ai/gemini-content-team/skills/subagent-observability/**
+
+# Gemini-specific configuration aliases (e.g. flat article.yml vs Cursor's pipelines/article.yml)
+ai/gemini-content-team/configurations/article.yml
+
+# Gemini-specific templates (some have no Cursor counterpart yet)
+ai/gemini-content-team/templates/brand-voice.md
+ai/gemini-content-team/templates/brief.md
+ai/gemini-content-team/templates/draft.md
+ai/gemini-content-team/templates/frontmatter.yml
+ai/gemini-content-team/templates/ledger-entry.md
+ai/gemini-content-team/templates/metrics-payload.example.json

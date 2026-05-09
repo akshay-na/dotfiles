@@ -1,10 +1,6 @@
 ---
 name: ciso-content
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: BRAND_COMPLIANCE
 ---
-
 # ciso-content (internal)
 
 ## Mission

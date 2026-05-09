@@ -1,10 +1,6 @@
 ---
 name: cmo
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: BRIEF
 ---
-
 # cmo (internal)
 
 ## Mission

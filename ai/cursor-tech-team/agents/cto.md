@@ -233,7 +233,7 @@ The CRO loop is a **singleton phase** that runs **after** you have completed spe
 
 0. **Plan v0 written.** Specialist consultation done. Plan synthesized. File persisted under `<project>/.cursor/docs/plans/`.
    0.5. **User checkpoint (mandatory).** Ask user to approve v0 before critique. If user requests changes, revise v0 and repeat checkpoint.
-1. **Pass 1.** Dispatch `cro` with `pass_number: 1`, `plan_path`, `specialist_bundle_refs[]`, and `ledger_path` `~/ai-brain/session/<task-id>/critic-ledger.md`. Empty `frozen_finding_ids[]`.
+1. **Pass 1.** Dispatch `cro` with `pass_number: 1`, `plan_path`, `specialist_bundle_refs[]`, and `ledger_path` `~/ai-brain/session/cursor-<task-id>/critic-ledger.md`. Empty `frozen_finding_ids[]`.
 2. **Parse** the subagent envelope; for each finding with a non-null `bounce_target`, **you** (`cto`) issue a `Task` to that specialist with the finding text; merge replies; append rows to the ledger (freeze semantics per `cro-loop`).
 3. **Patch plan v0 → v1** on disk, incorporating accepted revisions. **Frozen** finding IDs stay frozen — never deleted from the ledger index used for pass 2 prompts.
 4. **Pass 2.** Dispatch `cro` with `pass_number: 2`, the patched `plan_path` (now v1), and `frozen_finding_ids[]` copied verbatim from the ledger after pass 1 bookkeeping.

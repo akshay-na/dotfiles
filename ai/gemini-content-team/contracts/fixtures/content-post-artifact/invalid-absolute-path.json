@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "contract": "content-post-artifact-v1",
+  "agent": "content-lead",
+  "status": "ok",
+  "run": {
+    "task_id": "fixture-invalid-absolute-path",
+    "idempotency_key": "fixture-invalid-absolute-path",
+    "workflow": "content-foundry-hitl-linkedin",
+    "execution_mode": "automation",
+    "execution_id": null,
+    "parent_execution_id": null
+  },
+  "post": {
+    "post_id": "cf-invalid-path-001",
+    "version": 1,
+    "parent_post_id": null,
+    "correction_of": null,
+    "channel": "linkedin",
+    "content_type": "social_post",
+    "status": "draft",
+    "title": "Invalid fixture",
+    "slug": "invalid-fixture"
+  },
+  "content": {
+    "text": "Invalid fixture text.",
+    "format": "plain_text",
+    "summary": null,
+    "draft_path": "/tmp/escape.md",
+    "extensions": {}
+  },
+  "approval": {
+    "required": true,
+    "state": "pending",
+    "feedback": null,
+    "reviewed_at": null
+  },
+  "obsidian": {
+    "note_rel": "draft/linkedin/cf-invalid-path-001.md",
+    "attachment_glob": "assets/linkedin/cf-invalid-path-001-*",
+    "frontmatter_keys": ["post_id", "version", "channel", "status"]
+  },
+  "media": [],
+  "paths": {
+    "workspace_root": "/home/n8n-runner/content-foundry",
+    "manifest_path": ".cursor/artifacts/cf-invalid-path-001/v1/artifact.json",
+    "audit_log_path": ".cursor/artifacts/cf-invalid-path-001/v1/events.jsonl",
+    "draft_path": "draft/linkedin/cf-invalid-path-001.md",
+    "staging_dir": "staging/linkedin/cf-invalid-path-001/v1",
+    "archive_dir": "published/linkedin/cf-invalid-path-001"
+  },
+  "channel_constraints": {
+    "max_text_chars": 3000,
+    "required_media": false,
+    "allowed_media_types": ["image", "video"]
+  },
+  "compat": {
+    "legacy_article_id": null,
+    "legacy_media_paths": [],
+    "channel_assumed": false
+  },
+  "errors": []
+}

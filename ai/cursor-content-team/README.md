@@ -2,6 +2,12 @@
 
 Standalone **content agency** Cursor configuration. Stow or symlink **this directory** to **`~/.cursor`** when doing editorial work; use **one pack at a time** — do not merge with the **tech** Cursor pack in the same target.
 
+## Gemini parity (dual-pack maintenance)
+
+This tree is **canonical** for Cursor-stowed editorial org behavior. Any behavioral, layout, or automation change here that affects operator obligations **must** be ported to **`dotfiles/ai/gemini-content-team/`** in the **same pull request** or an immediate follow-up, **or** documented with rationale in **`gemini-content-team/docs/runbooks/cursor-only-exclusions.md`** (Gemini substitute or deferral).
+
+Parity plan (maintenance contract): [`../../.cursor/docs/plans/2026-05-10-gemini-content-team-parity.md`](../../.cursor/docs/plans/2026-05-10-gemini-content-team-parity.md).
+
 ## Layout
 
 - `agents/` — `cco`, `content-lead`, `editorial-cro`, **`chief-visual-officer`** (org singleton, visual), **`chief-profile-metrics`** (browser profile metrics when no API), **`chief-growth-strategy`** (growth intel + creator benchmarks via **`vp-research`**), content VPs, `vp-research`, etc.
@@ -45,6 +51,6 @@ Or use Cursor Settings “Rules / Agents” to import this folder if your client
 
 ## Brain
 
-Durable data may still live under **`~/.cursor/ai-brain/`** (see `brain-conventions.mdc`) — shared _data_ with tech is OK; **rules/skills** here are content-only.
+Durable data follows **`~/ai-brain/`** (see `brain-conventions.mdc`) — single canonical vault with Cursor and Gemini packs; **rules/skills** here are Cursor-stowed editorial config only.
 
 Private vault policy (see `brain-conventions.mdc`): **PII allowed** in private/local brain + corpus contexts when user-approved; **secrets forbidden** (passwords, API keys, tokens, private keys, cookies, MFA seeds, payment/bank secrets). Operator profile path: `~/ai-brain/org/global/operator-profile/` (layout in `_templates/operator-profile.md`).

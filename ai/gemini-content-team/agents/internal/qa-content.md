@@ -1,10 +1,6 @@
 ---
 name: qa-content
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: QA_SERIAL
 ---
-
 # qa-content (internal)
 
 ## Mission

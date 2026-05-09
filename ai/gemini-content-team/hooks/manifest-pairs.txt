@@ -1,0 +1,36 @@
+# Cursor ↔ Gemini paired-path manifest (drift detector input)
+# ------------------------------------------------------------
+# Lines: <pair-rule>|<cursor-glob>|<gemini-glob>
+# Comment lines start with `#`. Blank lines ignored.
+#
+# Rules:
+#   same-path   gemini twin path == cursor path with `cursor-content-team` → `gemini-content-team`
+#   mdc-to-md   cursor `.mdc` → gemini `.md` rename in addition to package swap
+#   one-to-one  explicit single-file pair (use literal paths, no globs)
+#
+# Globs use bash `**`/`*`. Used by `verify-gemini-manifest.sh` (and the manual
+# reminder `remind-content-pack-dual-edit.sh`).
+
+# Top-level pack docs
+one-to-one|ai/cursor-content-team/README.md|ai/gemini-content-team/README.md
+
+# Agents (1:1 by basename; same .md extension)
+same-path|ai/cursor-content-team/agents/*.md|ai/gemini-content-team/agents/*.md
+
+# Rules (.mdc → .md)
+mdc-to-md|ai/cursor-content-team/rules/*.mdc|ai/gemini-content-team/rules/*.md
+
+# Skills (1:1 by relative path under skills/)
+same-path|ai/cursor-content-team/skills/**/SKILL.md|ai/gemini-content-team/skills/**/SKILL.md
+
+# Contracts (schemas, fixtures, subagent contract block)
+same-path|ai/cursor-content-team/contracts/**|ai/gemini-content-team/contracts/**
+
+# Templates
+same-path|ai/cursor-content-team/templates/**|ai/gemini-content-team/templates/**
+
+# Configurations (routing, telemetry, anti-dup, touch-write, pack-identity, pipelines)
+same-path|ai/cursor-content-team/configurations/**|ai/gemini-content-team/configurations/**
+
+# Hooks adapters that have a Gemini twin (most are excluded — see manifest-exclusions.txt)
+same-path|ai/cursor-content-team/hooks/*.sh|ai/gemini-content-team/hooks/*.sh

@@ -1,69 +1,43 @@
-# Gemini Setup Guide
+# Gemini content org pack (DotMate)
 
-This directory is the shared Gemini capability layer in DotMate.
-When stowed, it maps to `~/.gemini/` and provides the content pipeline orchestration setup.
+Versioned **Gemini CLI** editorial org configuration. Stow source: **`dotfiles/ai/gemini-content-team/`** → target **`~/.gemini/`** (use `./scripts/DotMate.sh stow_with_target ai/gemini-content-team .gemini` or `make stow-with-target TOOL_PATH="ai/gemini-content-team" TARGET_NAME=".gemini"` from the dotfiles repo root).
+
+**Canonical Cursor pack (port source):** `dotfiles/ai/cursor-content-team/`. **Dual-pack rule:** behavior changes in Cursor content pack need matching Gemini updates or a documented exception — see **maintenance plan** below.
+
+**Parity plan:** [`../../.cursor/docs/plans/2026-05-10-gemini-content-team-parity.md`](../../.cursor/docs/plans/2026-05-10-gemini-content-team-parity.md).
 
 ## What this package is
 
-- Versioned source of Gemini agent configs, rules, skills, templates, and minimal scripts.
-- Built for content operations driven by `cco` and `metrics-steward`.
-- Durable KB and memory follow **`~/ai-brain/`** (same model as Cursor **`kb-identity`**): **`~/ai-brain/projects/<project_name>/`** for pipeline files, with **`project_name`** from git remote or folder.
-- Intended workflow is "edit in dotfiles, then stow", not editing symlink targets directly.
+- Agents, rules, skills, templates, hooks (Gemini JSON I/O), configurations, contracts — aligned with the Cursor content pack where the CLI supports the same contracts.
+- Durable memory/KB: **`~/ai-brain/`** (same writer policy as Cursor `brain-conventions` port under `rules/brain-conventions.md`).
+- **Separate agent-written docs:** org/project plans and reviews go to **`~/.gemini/docs/**`** (and repo **`…/.gemini/docs/`**), never **`~/.cursor/docs/**`** — per-client audit.
 
-## How it is applied
+## Apply
 
-- Source path: `dotfiles/ai/.gemini/`
-- Target path: `~/.gemini/`
-- Apply with:
-  - `make stow CONFIGS="gemini"` or `make stow CONFIGS="ai"` when using the combined `ai` stow package
-  - or `make install`
+1. Ensure **`~/ai-brain/`** exists (stow `dotfiles/ai/ai-brain` or equivalent).
+2. Stow this tree to **`~/.gemini/`** via DotMate (`stow_with_target` unstows sibling `gemini-*` packages first per `DotMate.sh`).
+3. Enable Gemini CLI agents: `experimental.enableAgents` in **`~/.gemini/settings.json`**.
+4. Merge **`hooks`** snippets from `docs/runbooks/gemini-settings-merge.md` — **never** overwrite a user’s full settings file wholesale.
 
-No bootstrap script: ensure **`~/ai-brain/`** exists (stow `dotfiles/ai/ai-brain` or equivalent). Opening Gemini from a **git repo** (or setting **`GEMINI_PROJECT_ROOT`**) defines **`<project_name>`** and thus **`~/ai-brain/projects/<project_name>/`** for editorial content.
+## Layout
+
+| Area | Role |
+|------|------|
+| `agents/` | External: **`cco`**, **`content-lead`**, **`metrics-steward`**; internal personas under `agents/internal/` |
+| `rules/` | Policy mirrors of Cursor `.mdc` where ported (`*.md`) |
+| `skills/` | Editorial pipeline, **`brain-memory-kb`**, **`editorial-cro-loop`**, orchestration helpers |
+| `hooks/` | Gemini stdin/stdout JSON adapters |
+| `docs/` | Runbooks and plans — stows under **`~/.gemini/docs/`** |
+| `contracts/` / `templates/` | Automation schemas + examples |
+| `configurations/` | Routing, pipelines, orchestration policies |
 
 ## Core references
 
-- `CONVENTIONS.md` — canonical paths and contracts.
-- `GEMINI.md` — runtime behavior for external/internal agents and phase flow.
-- `rules/project-identity.md` — **`project_name`** / **`<content-brain>`** resolution (**`kb-identity`** parity).
-- `skills/project-identity/SKILL.md` — full derivation algorithm.
-- `rules/brain-paths.md` — editorial folder layout under **`~/ai-brain/projects/<project_name>/`**.
-- `rules/orchestration.md` — phase DAG and execution order.
-- `rules/brain-conventions.md` — unified `~/ai-brain/` memory+KB (aligned with Cursor).
-- `rules/brain-conventions.md` also defines private-vault policy: **PII allowed** when user-approved, **secrets forbidden**; operator profile path is `~/ai-brain/org/global/operator-profile/` (template: `_templates/operator-profile.md`).
-- `rules/docs-and-knowledge.md` — three-tier docs/knowledge model.
-- `rules/memory.md` — Gemini-local `~/.gemini/memory/` vs `~/ai-brain/`.
+- **`GEMINI.md`** — load order, headless flags, external entrypoints.
+- **`CONVENTIONS.md`** — path symbols and contracts.
+- **`docs/runbooks/gemini-hooks-parity.md`** — Cursor → Gemini hook mapping.
+- **`docs/runbooks/gemini-cli-capabilities-map.md`** — CLI doc crosswalk.
 
-## Directory breakdown
+## Editing
 
-### `agents/`
-
-- External entrypoints: `agents/cco.md`, `agents/metrics-steward.md`
-- Internal personas: `agents/internal/` (invoked inside `cco` only).
-
-### `rules/`
-
-- Policy for orchestration, repo hygiene, observability, dedup, platform behavior, brand, metrics.
-
-### `skills/`
-
-- `cco-orchestration`, `project-identity`, `caveman`, `subagent-observability`, etc.
-
-### `scripts/`
-
-- `scripts/auth/keychain-helper.sh` — optional macOS keychain helper.
-
-### `templates/`
-
-- Briefs, drafts, brand voice, ledger, metrics examples.
-
-## New user quick start
-
-1. Stow: `make stow CONFIGS="ai"` (or `gemini` if split).
-2. Ensure `~/ai-brain/` exists; run from your **project git root** (or set **`GEMINI_PROJECT_ROOT`**) so **`<project_name>`** resolves and **`~/ai-brain/projects/<project_name>/`** is used for pipeline artefacts.
-3. Enable Gemini CLI subagents (`experimental.enableAgents` in `~/.gemini/settings.json`).
-4. Use `cco` for pipeline runs and `metrics-steward` for analytics ingestion.
-
-## Editing and maintenance guidance
-
-- Keep changes minimal and targeted.
-- Keep agents, orchestration rules, and templates aligned with `rules/brain-paths.md`.
+Edit **sources in this repo**, not symlink/copy targets under **`~/.gemini/`** directly. Keep changes minimal; follow dual-pack maintenance in the parity plan.

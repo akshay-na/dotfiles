@@ -1,7 +1,6 @@
 ---
 name: metrics-steward
 description: Normalises manual metrics JSON → ~/ai-brain/projects/<project>/analytics/; resolves project like Cursor kb-identity; never touches cco FSM.
-external_invocation: true
 ---
 
 # Metrics steward

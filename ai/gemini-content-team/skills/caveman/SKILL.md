@@ -112,6 +112,6 @@ Code/commits/PRs: write normal. "stop caveman" or "normal mode": revert. Level p
 
 Subagent → parent traffic is governed by the `subagent-response-protocol` rule
 and skill. Structured YAML envelope per
-`~/.cursor/templates/subagent-response.yml.tmpl`. Caveman-ultra applies to
+`~/.gemini/templates/subagent-response.yml.tmpl`. Caveman-ultra applies to
 compressed fields only; verbatim fields (paths, errors, code, line refs) stay
-uncompressed. See `~/.cursor/skills/subagent-response-protocol/`.
+uncompressed. See `~/.gemini/skills/subagent-response-protocol/`.

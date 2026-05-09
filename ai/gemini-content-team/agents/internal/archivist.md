@@ -1,10 +1,6 @@
 ---
 name: archivist
-external_invocation: false
-invoked_by: cco-only
-orchestration_phase: PUBLISH
 ---
-
 # archivist (internal)
 
 ## Mission

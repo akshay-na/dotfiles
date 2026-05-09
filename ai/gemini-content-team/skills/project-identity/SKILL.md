@@ -5,7 +5,7 @@ description: Derive ai-brain project name and KB path from git remote or folder 
 
 # project-identity (Gemini)
 
-**Parity:** Same resolution as Cursor **`~/.cursor/skills/kb-identity/SKILL.md`** (after DotMate stow) → durable path **`~/ai-brain/projects/<project_name>/`**. Keep algorithm aligned if you edit either skill.
+**Parity:** Same resolution as Cursor **`~/.gemini/skills/kb-identity/SKILL.md`** (after DotMate stow) → durable path **`~/ai-brain/projects/<project_name>/`**. Keep algorithm aligned if you edit either skill.
 
 ## Inputs
 

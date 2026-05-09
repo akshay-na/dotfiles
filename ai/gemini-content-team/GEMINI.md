@@ -1,6 +1,6 @@
 # Gemini CLI — Dotfiles content pipeline
 
-This file is stowed to `~/.gemini/GEMINI.md`. It describes the **ai-brain + Gemini** setup: one external orchestrator (`cco`), one external metrics agent (`metrics-steward`), and **internal** personas that only run inside a single `cco` invocation.
+This file is stowed to `~/.gemini/GEMINI.md`. It describes the **ai-brain + Gemini** setup: external **`cco`** (planning + pipeline owner), **`content-lead`** (execution orchestrator), **`metrics-steward`** (metrics ingest), and **internal** personas that only run inside a single **`cco`** invocation.
 
 Canonical paths: **`CONVENTIONS.md`**, **`rules/project-identity.md`**, **`skills/project-identity/SKILL.md`**, **`rules/brain-paths.md`** ( **`~/ai-brain/projects/<project_name>/`** — same derivation as Cursor **`kb-identity`**).
 
@@ -23,10 +23,17 @@ Before running orchestration commands:
 
 | Agent             | File                        | Role                                                                                                                                                                                                                               |
 | ----------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cco`             | `agents/cco.md`             | Chief Content Officer — end-to-end pipeline (research → brief → parallel drafts → QA → brand/compliance → human gate → publish/repurpose). Owns FSM, METRICS_READ, inter-persona audit NDJSON, `CcoRunReport` JSON for automation. |
-| `metrics-steward` | `agents/metrics-steward.md` | Ingest/normalise manual metrics into `<content-brain>/analytics/`. **Never** run inside `cco`.                                                                                                            |
+| `cco`             | `agents/cco.md`             | Chief Content Officer — planning entrypoint; editorial phases; **`editorial-cro-loop`** after plan v0; delegates to org specialists; does **not** replace **`content-lead`** for repo execution.                                      |
+| `content-lead`    | `agents/content-lead.md`    | Execution orchestrator — **`content-team-discovery`**, **`generate-content-pipeline`**, **`content-git-workflow`**; discovers **`{root}/.gemini/agents/`** on Gemini runs; checkpoints per plan.                                        |
+| `metrics-steward` | `agents/metrics-steward.md` | Ingest/normalise manual metrics into `<content-brain>/analytics/`. **Never** run inside `cco`.                                                                                                                                      |
 
-No third production external agent. Do not expose `agents/internal/*` as separate HTTP/CLI products.
+**Registry:** YAML frontmatter on agent files is **`name` + `description` only** — model pins and tool policy live here, in **`rules/`**, and in runbooks (`docs/runbooks/gemini-agent-registry.md`).
+
+Do not expose `agents/internal/*` as separate HTTP/CLI products.
+
+### Hooks (Gemini native)
+
+Lifecycle automation uses **`settings.json` → `"hooks"`** (merge-only — see **`docs/runbooks/gemini-settings-merge.md`**). Adapter scripts live in **`hooks/`** and must emit **strict JSON on stdout** ([Gemini hooks](https://geminicli.com/docs/hooks/)).
 
 ## Internal personas (`cco` only)
 
@@ -67,14 +74,22 @@ Phase ids: `INTAKE` → `TOPIC_DECISION` → `RESEARCH` → `BRIEF` → `DRAFT` 
 4. `rules/brain-paths.md`
 5. `rules/brain-conventions.md`
 6. `rules/docs-and-knowledge.md`
-7. `rules/orchestration.md`
-8. `rules/cco-single-invocation.md`
-9. `rules/inter-persona-observability.md`
-10. `rules/n8n-handoff.md`
-11. `skills/cco-orchestration/SKILL.md`
-12. `skills/caveman/SKILL.md`
-13. `skills/subagent-observability/SKILL.md`
-14. Internal persona bodies from `agents/internal/*.md` when their phase runs.
+7. `rules/agent-orchestration.md`
+8. `rules/strict-tool-boundaries.md`
+9. `rules/vp-research.md`
+10. `rules/mode-auto-selection.md`
+11. `rules/git-safety.md`
+12. `rules/subagent-response-protocol.md`
+13. `rules/orchestration.md`
+14. `rules/cco-single-invocation.md`
+15. `rules/inter-persona-observability.md`
+16. `rules/n8n-handoff.md`
+17. `skills/cco-orchestration/SKILL.md`
+18. `skills/caveman/SKILL.md`
+19. `skills/subagent-observability/SKILL.md`
+20. Internal persona bodies from `agents/internal/*.md` when their phase runs.
+
+Additional ported policies (**`docs-and-decisions.md`**, **`trusted-edit-zones.md`**, **`error-handling-and-security.md`**, **`mcp-usage.md`**, **`testing.md`**, **`observability.md`**) apply when the brief touches docs writes, trusted zones, MCP, or telemetry — load when relevant if context window allows.
 
 ## METRICS_READ
 
@@ -96,6 +111,14 @@ Before **BRIEF**: read `<content-brain>/analytics/metrics-current.json` and `met
 ## Content writes
 
 Prefer normal editor tools. Do not use shell heredocs to author structured content unless a rule explicitly allows. **`metrics-steward`** alone writes analytics artefacts under `<content-brain>/analytics/metrics-*`.
+
+## Parity with `cursor-content-team`
+
+- **Canonical pack:** `dotfiles/ai/cursor-content-team/` — authoritative editorial behaviors ported here as **`rules/*.md`**, **`skills/`**, **`agents/`**, **`contracts/`**.
+- **Exclusions:** documented in **`docs/runbooks/cursor-only-exclusions.md`** where the IDE or Cursor hooks have no Gemini twin.
+- **Repo-local dual config:** content repos may carry **both** `.cursor/` and `.gemini/` (example: **`content-foundry`** vault) — same policies; **separate** `docs/` trees per client.
+- **Brain:** single **`~/ai-brain/`** contract — critic ledgers under **`~/ai-brain/session/gemini-<task-id>/critic-ledger.md`** for Gemini editorial critic episodes (**`cursor-<task-id>`** reserved for Cursor-only flows).
+- **Docs audit roots:** Gemini outputs **`~/.gemini/docs/**`** and **`…/.gemini/docs/`** only — never Cursor paths.
 
 ## Gemini CLI coexistence
 

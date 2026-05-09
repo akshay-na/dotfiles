@@ -1,0 +1,35 @@
+# Mode auto-selection from user prompts
+
+- **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example **`cco`** in plan mode). This rule only guides which mode to switch into when the current assistant has a choice.
+
+- **Explicit agent invocation (hard gate — overrides heuristics below)**:
+  - Triggers include the user **naming** an org or project agent and asking to **use**, **invoke**, **run**, **call**, **dispatch**, **open**, **with**, **via**, **`@...`**, or equivalent (e.g. “use cco”, “invoke content-lead”, “run chief-visual-officer”, “Task sme-shortform”).
+  - **Required:** the **first** substantive step is a **`Task`** with `subagent_type` set to that agent (match **`~/.gemini/agents/`** and **`agent-orchestration.md`**). Put the user’s goal, constraints, and corpus context in the Task prompt.
+  - **Forbidden:** answering **as** that agent in main chat (CCO-style plans, pipeline narration, **or any other “styled” substitute**) **without** dispatching **`Task`**.
+  - **Forbidden:** clarifying questions **before** that **`Task`** unless the user message has **zero** actionable substance (then **at most one** minimal clarification).
+  - **Not an invocation:** generic editorial asks **without** naming an entrypoint — use **`agent-orchestration.md`** routing (often **`cco`** then **`content-lead`**), still via **`Task`** when the named entrypoint applies.
+
+- **Content org entrypoints** (when the user does **not** name a specific agent):
+  - Editorial / drafts / newsletter / channel / **brain + repo corpus** planning → **`Task`** **`cco`** for plans, then **`content-lead`** for execution after checkpoints — not in-chat roleplay of those roles.
+  - Pure explanation of existing content → Ask mode.
+
+- **Ask mode (explanation / reading)**:
+  - Use Ask mode when the user is primarily asking for explanations, walkthroughs, or conceptual help (e.g. "explain", "what does this do?", "how does X work?") and is not requesting code changes.
+  - Stay read-only: do not edit files or run commands unless the user then asks for changes.
+
+- **Debug mode (errors, failures, broken behavior)**:
+  - If the user pastes an error message, stack trace, test failure output, or clearly describes broken behavior ("this crashes", "tests are failing", "getting 500s"), switch to Debug mode.
+  - Prioritize understanding and reproducing the issue first; propose or apply fixes only after identifying a likely root cause.
+
+- **Agent (implementation) mode (changes, updates, implementation)**:
+  - If the user mentions updating, implementing, adding, creating, refactoring, fixing, or otherwise changing code or configuration, use Agent mode for implementation work.
+  - Treat phrases like "update this", "implement X", "add Y", "refactor", "fix this" as strong signals for Agent mode, even when the user provides existing code.
+
+- **Plan mode (architecture, multi-step, or ambiguous scope)**:
+  - For large, multi-step, or high-impact tasks (architecture, security, performance, observability, infra, migrations), or when the user explicitly asks for a plan or design, switch to Plan mode before implementation.
+  - When users invoke org-level agents other than one-shots, assume plan mode as their default, in line with their agent definitions.
+
+- **User intent and conflicts**:
+  - If multiple signals appear (for example, an error message plus a request to redesign a feature), prefer Debug mode first to stabilize behavior, then Plan/Agent as appropriate.
+  - If the user explicitly names a mode or asks not to switch modes, honor the user instruction over these heuristics, as long as it does not conflict with agent-specific mode requirements.
+

@@ -1,6 +1,6 @@
 # Documentation and knowledge (Gemini)
 
-Mirrors Cursor `~/.cursor/rules/docs-and-decisions.mdc` for **where** durable knowledge lives. Gemini has no `brain-memory-kb` skill file here—apply the **same three-tier model** by path and process.
+Mirrors Cursor `~/.cursor/rules/docs-and-decisions.md` for **where** durable knowledge lives. Gemini has no `brain-memory-kb` skill file here—apply the **same three-tier model** by path and process.
 
 ## Three-tier model
 
@@ -16,7 +16,7 @@ Mirrors Cursor `~/.cursor/rules/docs-and-decisions.mdc` for **where** durable kn
 
 - Decided constraints, SLO notes, org-wide patterns.
 - Project overview graph and module docs under `~/ai-brain/projects/<name>/`.
-- Session ledger paths under `~/ai-brain/session/<task-id>/` where policies require it.
+- Session ledger paths under `~/ai-brain/session/<client>-<task-id>/` where policies require it (`<client>` ∈ `cursor` \| `gemini` — critic ledgers; OR-09).
 
 **Project docs** — long-form, VCS-friendly write-ups next to the repo:
 

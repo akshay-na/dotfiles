@@ -6,7 +6,7 @@ Canonical names for paths and automation. Durable pipeline artefacts live under 
 
 | Symbol | Path |
 |--------|------|
-| Capability root | `~/.gemini/` (stowed from `dotfiles/ai/.gemini/`) |
+| Capability root | `~/.gemini/` (stowed from `dotfiles/ai/gemini-content-team/`) |
 | Content brain (`<content-brain>`) | `$HOME/ai-brain/projects/<project_name>/` after resolution, or `GEMINI_CONTENT_BRAIN` |
 | Project root hint | `GEMINI_PROJECT_ROOT`, inbound `project_root`, workspace root, or `PWD` |
 | Unified ai-brain | `~/ai-brain/` (`rules/brain-conventions.md`) |
@@ -14,8 +14,8 @@ Canonical names for paths and automation. Durable pipeline artefacts live under 
 
 ## Agents
 
-- **External:** `~/.gemini/agents/cco.md`, `~/.gemini/agents/metrics-steward.md` (`external_invocation: true`).
-- **Internal:** `~/.gemini/agents/internal/*.md` (`external_invocation: false`), loaded only inside `cco`.
+- **External:** `~/.gemini/agents/cco.md`, `~/.gemini/agents/content-lead.md`, `~/.gemini/agents/metrics-steward.md` — selectable CLI entrypoints (`experimental.enableAgents`).
+- **Internal:** `~/.gemini/agents/internal/*.md` (`external_invocation: false` behavior described in `GEMINI.md`), loaded inside `cco`.
 
 ## Rules and skills
 
@@ -55,4 +55,4 @@ Optional `git pull` for the **active** workspace when files are git-tracked (`ru
 
 ## Native Gemini CLI files (do not collide)
 
-Gemini CLI may own `~/.gemini/settings.json`, `extensions/`, `oauth_creds.json`, `GEMINI.md`. This package uses `agents/`, `rules/`, `skills/`, `templates/`, `scripts/`.
+Gemini CLI may own `~/.gemini/settings.json`, `extensions/`, `oauth_creds.json`, `GEMINI.md`. This package uses `agents/`, `rules/`, `skills/`, `templates/`, `scripts/`, `hooks/`. **Hooks** merge into `settings.json` per **`docs/runbooks/gemini-settings-merge.md`** (see official [Hooks](https://geminicli.com/docs/hooks/) doc).
