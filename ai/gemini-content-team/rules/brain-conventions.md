@@ -22,7 +22,7 @@
 
 ## Writer Policy
 
-- C-suite agents (`cto`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`) and `tech-lead` may perform bounded touch-writes to memory and KB. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
+- C-suite agents (`cto`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`) and `tech-lead` may perform bounded touch-writes to memory and KB. **Content org entrypoints** **`cco`**, **`content-lead`**, and **`metrics-steward`** (within analytics policy) may perform bounded touch-writes under **`~/ai-brain/projects/<project_name>/`** and **`<content-brain>`** per **`rules/brain-paths.md`** and **`skills/project-identity`** — **not** skeleton paths. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
 - Excluded from KB/memory writes for dedup control: `code-reviewer`, `senior-dev`, `cro`.
 - All other agents are read/query only for brain (`~/ai-brain/`) and must not write memory or KB.
 - Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
@@ -71,6 +71,17 @@ Use **`$HOME/.gitmessage`** (DotMate: `dotfiles/git/.gitmessage` when stowed). P
 3. **Body: concise** — match template sections; **at most 2–3** bullets if needed; **`Context:`** / **`Impact:`** **one short line each** by default; avoid essays (detail belongs in PR or plan docs).
 4. **`Notes:`** — optional **brief** operational refs (e.g. `Task-ID`, ticket keys) only.
 5. **Attribution — forbidden in commit messages:** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit — **do not** add these.
+
+## Entrypoint + decision agents — KB duty (gradual, mandatory)
+
+Applies to **Gemini** content entrypoints and org decision agents. **Goal:** grow **`<content-brain>`** = **`~/ai-brain/projects/<project_name>/`** and **`org/`** **incrementally**. Use **`brain-memory-kb`**, **`project-identity`**, **`rules/brain-paths.md`**.
+
+- **Who (writes):** **`cco`**, **`content-lead`**, **`metrics-steward`** (within scope), plus org roles allowed **touch-writes** above when executing routed work. **Who (handoff only):** personas that must not touch brain FS — emit structured handoffs for **`cco`** / **`content-lead`** to persist.
+- **Per project:** Resolve **`project_name`** / **`<content-brain>`** for **every** workspace / payload root in scope — **no** collapsing multiple corpora into one node.
+- **Start:** **`brain-memory-kb`** lookup on **`projects/<project_name>/`**, **`session/`**, **`org/`** before **`cco`** planning or **`content-lead`** execution.
+- **Gradual persistence:** At **each** DAG phase boundary, critic pass, or automation checkpoint: **≥ 1** bounded write ( **`~/.gemini/memory/`** mirror + promote to **`<content-brain>`** or **`~/ai-brain/org/`** per policy). Default **≤ 3** new/changed durable paths per checkpoint unless the plan enumerates brain **`touches[]`**. **Dedupe** existing KB nodes.
+- **Git-backed `~/ai-brain`:** **`pull --rebase` before first brain write** when **`~/ai-brain`** is a git repo (§ below); after material writes: scoped **`add` / `commit` / `push`** per **Signing** — keep **origin** (e.g. GitHub) **in sync** when configured.
+- **Fail-closed:** Do not finish a run that produced **new** durable facts without persistence or explicit **`degraded`** in **`session/`** / reports.
 
 ## `~/ai-brain` as a git repository (optional)
 

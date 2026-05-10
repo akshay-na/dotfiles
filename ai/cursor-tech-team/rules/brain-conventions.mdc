@@ -78,6 +78,17 @@ Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). *
 3. **`Notes:`** — optional **brief** operational refs only (e.g. `Task-ID`, ticket keys) where the project already uses them.
 4. **Attribution — forbidden in commit messages:** **`Co-authored-by:`** lines for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, Cursor/Gemini vendor attribution, or similar. Commits are normal project history — **no** tool or model credit trailers.
 
+## Entrypoint + decision agents — KB duty (gradual, mandatory)
+
+Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspace (see **`agent-orchestration.mdc`**). **Goal:** build **`~/ai-brain/`** per project **incrementally** — not ad-hoc “sometimes” dumps. Use **`brain-memory-kb`** + **`kb-identity`**.
+
+- **Who (writes):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`** when they are the invoked entrypoint; org roles already allowed **touch-writes** above (**`vp-*`**, **`ciso`**, **`sre-lead`**, **`staff-engineer`**, **`vp-platform`**, **`vp-onboarding`**) when executing their routed work. **Who (handoff only):** **`code-reviewer`**, **`cro`**, **`senior-dev`** — **no** direct brain filesystem writes; they **must** populate **`memory_writes[]`** / structured findings so the **owning entrypoint** (**`cto`**, **`tech-lead`**, or parent orchestrator) persists (or the user runs promotion).
+- **Per-repo scope:** For **each** distinct **`workspace_root`** in the invocation (multi-root = **each** folder), resolve **`kb-identity`** → **`~/ai-brain/projects/<slug>/`**. Do **not** collapse several repos into one project node.
+- **Start of run:** **`memory` / `kb-query`** via **`brain-memory-kb`** — L0/L1 on **`projects/<slug>/`**, **`session/`**, relevant **`org/`** before drafting plans or execution.
+- **Gradual persistence:** At **every** phase boundary, swarm merge, critic pass, or user checkpoint: **at least one** bounded write — append **`session/`** ledger, patch **one** durable KB file, or **one** **`promote`** — **not** only a pile of files at the end. Default **≤ 3** new/changed paths under **`~/ai-brain/projects/<slug>/`** (or **`org/`**) per checkpoint unless the plan explicitly lists **`touches[]`** for brain. **Dedupe:** update existing nodes; mark **`supersedes`**; avoid orphan duplicates.
+- **Git-backed `~/ai-brain`:** If **`~/ai-brain`** is a git repo per **§ below**: **`pull --rebase` before first brain write** in the task; after material writes, **path-scoped** **`add` / `commit` / `push`** per signing rules — keep the remote **in sync**; on conflict **stop** and surface (no blind force-push).
+- **Fail-closed:** Do not end an entrypoint episode that created **new** durable facts (decisions, constraints, risks, checkpoints) with **zero** persistence unless **`degraded`** is recorded in **`session/`** or the subagent envelope and the user is told.
+
 ## `~/ai-brain` as a git repository (optional)
 
 **Two intentional layouts:** (a) **`~/ai-brain`** is a **git clone** (e.g. personal machine → GitHub); (b) **`~/ai-brain`** has **no** `.git` — vault stays **local-only** (e.g. office laptop). **Do not** `git init` or force-push brain on machines meant to stay local-only.

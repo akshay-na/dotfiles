@@ -48,6 +48,8 @@ Child `Task` returns: **`subagent-response-protocol.mdc`** + YAML envelope per i
 
 Canonical data: `~/.cursor/ai-brain/` (see **`brain-conventions.mdc`**). Both tech and content packs may share this **data** path when switched; rules are not merged.
 
+- **KB duty:** **`cco`**, **`content-lead`**, **`metrics-steward`**, and org specialists with **touch-writes** **must** update **`~/ai-brain/`** **gradually** per **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** (per-repo **`kb-identity`**, phase-boundary writes, git pull/commit/push when the brain is a clone). **`editorial-cro`** / **`reviewer-*`** hand off **`memory_writes[]`** when they do not write brain files directly.
+
 ## Docs
 
 Plans/decisions under **`<project>/.cursor/docs/`** per **`docs-and-decisions.mdc`** (`<project>` = content corpus git root, not org-pack-only trees).

@@ -43,3 +43,7 @@ Promote when item is:
 ## Compatibility
 
 - Canonical interface is `brain-memory-kb`.
+
+## Entrypoint rhythm (orchestrators)
+
+When **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** applies: **lookup first**, then **one bounded write set per checkpoint** (session append, single KB patch, or **`promote`**); **pull `--rebase`** on git-backed **`~/ai-brain`** before first write; **commit/push** after material changes. **No** “only at end” batch unless the plan’s **`touches[]`** says otherwise.

@@ -45,6 +45,8 @@ Child **dispatch** returns: **`subagent-response-protocol.md`** + YAML envelope 
 
 Canonical data: `~/.gemini/ai-brain/` (see **`brain-conventions.md`**). Both tech and content packs may share this **data** path when switched; rules are not merged.
 
+- **KB duty:** **`cco`**, **`content-lead`**, **`metrics-steward`**, and org roles with **touch-writes** **must** persist to **`<content-brain>`** / **`~/ai-brain/`** **gradually** per **`brain-conventions.md` → Entrypoint + decision agents — KB duty** (**`project-identity`**, phase-boundary writes, **`~/ai-brain`** pull/commit/push when it is a git clone). Internal personas and critics **hand off** structured updates for **`cco`** / **`content-lead`** when they do not write brain paths directly.
+
 ## Docs
 
 Plans/decisions under **`<project>/.gemini/docs/`** per **`docs-and-decisions.md`** (`<project>` = content corpus git root, not org-pack-only trees).

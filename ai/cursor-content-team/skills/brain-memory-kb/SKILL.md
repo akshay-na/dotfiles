@@ -42,3 +42,7 @@ Promote when item is:
 ## Compatibility
 
 - Canonical interface is `brain-memory-kb`.
+
+## Entrypoint rhythm (orchestrators)
+
+When **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** applies: **lookup first**, then **one bounded write per checkpoint**; **git pull --rebase** on the brain clone **before** first write; **commit/push** per signing rules after. See **`kb-identity`** / **`project-identity`** for **per-repo** **`projects/<slug>/`**.

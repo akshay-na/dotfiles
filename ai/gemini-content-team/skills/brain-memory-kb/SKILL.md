@@ -42,3 +42,7 @@ Promote when item is:
 ## Compatibility
 
 - Canonical interface is `brain-memory-kb`.
+
+## Entrypoint rhythm (orchestrators)
+
+When **`brain-conventions.md` → Entrypoint + decision agents — KB duty** applies: **lookup first**, **one bounded write per DAG checkpoint**; promote from **`~/.gemini/memory/`** to **`<content-brain>`** / **`~/ai-brain/org/`** as policy says; **git pull --rebase** / **commit** / **push** on a git-backed **`~/ai-brain`** so **origin** stays current.

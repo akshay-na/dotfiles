@@ -31,6 +31,7 @@ alwaysApply: true
   - **Deprecated plugin skills (route through `atlassian-pm`):** `spec-to-backlog`, `triage-issue`, `capture-tasks-from-meeting-notes`, `generate-status-report`. Other agents must NOT invoke these plugin skills directly; they recommend `atlassian-pm` to the user. The plugin skill files at `~/.cursor/plugins/cache/cursor-public/atlassian/.../skills/<name>/SKILL.md` are upstream-managed and not edited; this is rule-level deprecation. The plugin skills remain available for direct user invocation if the user prefers, but the org policy is that agent-mediated Atlassian work routes through `atlassian-pm`.
 
 - **Memory:** All agents follow `brain-conventions` and use `brain-memory-kb` (`mode: memory`) for reads and writes.
+- **KB duty (entrypoints + decision writers):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`**, and org **`vp-*` / `ciso` / `sre-lead` / `staff-engineer` / `vp-platform` / `vp-onboarding`** when executing routed work **must** persist to **`~/ai-brain/`** **gradually** per **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** (per-repo **`kb-identity`**, phase-boundary writes, **`~/ai-brain`** pull/commit/push when it is a git clone). **`code-reviewer`** / **`cro`** hand off **`memory_writes[]`** — no direct brain writes.
 
 - **Docs research:** All agents delegate documentation and web research to `vp-research`. See the docs broker rule.
 
