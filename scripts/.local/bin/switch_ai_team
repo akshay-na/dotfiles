@@ -93,7 +93,10 @@ list_packs_for_tool() {
 
 # Print active pack directory basename under ai/ (e.g. cursor-content-team), or empty.
 detect_active_team() {
-  local tool="$1" root="$HOME/.$tool" path ref_real rest
+  # Split locals: same-line `local tool="$1" root="$HOME/.$tool"` can expand
+  # `$tool` before `tool` is assigned (bash + set -u → "unbound variable").
+  local tool="$1"
+  local root="$HOME/.$tool" path ref_real rest
   [[ -d "$root" ]] || { printf '\n'; return 0; }
   while IFS= read -r path; do
     [[ -e "$path" ]] || continue
