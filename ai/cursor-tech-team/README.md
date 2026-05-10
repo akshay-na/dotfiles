@@ -125,6 +125,12 @@ After stow it surfaces as `~/ai-brain/`.
 5. Make changes in this repo under `dotfiles/ai/cursor-tech-team/`, not under `~/.cursor/` directly.
 6. Re-run stow after edits when needed.
 
+## Token and cache discipline
+
+- **Goal:** smaller `alwaysApply` hot path, stable early prefix, fewer redundant reads — see [`skills/context-cache-discipline/SKILL.md`](skills/context-cache-discipline/SKILL.md).
+- **Policy:** long playbooks live in **skills**; rules keep **hard gates + pointers**. Edit pack in-repo, then stow — avoid drifting local `~/.cursor` copies.
+- **Cross-pack:** content org pack may point here for canonical discipline text (`dotfiles/ai/cursor-tech-team/skills/context-cache-discipline/SKILL.md`).
+
 ## Editing guidance
 
 - Keep diffs minimal and behavior-focused.

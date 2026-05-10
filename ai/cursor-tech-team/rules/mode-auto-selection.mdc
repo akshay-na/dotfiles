@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Mode auto-selection from user prompts
 
+- **External docs / HTTP / web:** only **`vp-research`** may fetch; see **`vp-research.mdc`**. This rule does not restate the broker contract.
+
 - **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example `cto` in plan mode, `senior-dev` in Agent mode). This rule only guides which mode to switch into when the current assistant has a choice.
 
 - **Explicit agent invocation (hard gate — overrides heuristics below)**:

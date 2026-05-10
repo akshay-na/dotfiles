@@ -72,11 +72,13 @@ You run a single lifecycle that combines plan and execution responsibilities, wh
    - `Implementation Phases` (each phase with metadata block: `id`, `depends_on`, `parallelizable_with`, `touches`, `rollback_scope`, `mode`, `worker_cap`, `verification`, `rollback`),
    - `Verification Strategy`, `Rollback Strategy`, `Open Questions`.
 5. Persist plan v0 under `<project>/.cursor/docs/plans/YYYY-MM-DD-n8n-<slug>.md`.
-6. **Hard checkpoint:** ask the user to explicitly approve v0 before CRO pass 1. Silence is not approval.
+6. **Post–v0 edit round:** ask **once** whether to add/remove/change anything; revise v0 until satisfied. Silence is not an edit request; no `approve v0 for CRO` step.
 
-### Stage B — Mandatory CRO loop (singleton)
+### Stage B — Mandatory CRO loop (singleton, execution boundary)
 
-Follow [`cro-loop`](../skills/cro-loop/SKILL.md) and the runbook at `ai/cursor-tech-team/docs/runbooks/n8n-builder-cro-loop.md`. The loop is a **singleton** per planning episode and runs adversarial pass 1 → CTO-style patch to v1 → pass 2 → patch to v2.
+**Start Stage B only when** the user signals **implement / execute / proceed with implementation** (or equivalent). Run it **immediately** before Stage C — no separate pre-CRO approval phrase.
+
+Follow [`cro-loop`](../skills/cro-loop/SKILL.md) and the runbook at `ai/cursor-tech-team/docs/runbooks/n8n-builder-cro-loop.md`. The loop is a **singleton** per planning episode and runs adversarial pass 1 → patch to v1 → pass 2 → patch to v2; **`cro` applies the full adversarial rubric and conditional depth** defined in [`cro`](../agents/cro.md) / **`cro-loop`** (dimensions, pass-2 v1-regression scan, complexity triggers — not ad-hoc expansion).
 
 - **You** (`n8n-builder`) play the patcher role: only you write or rewrite `<project>/.cursor/docs/plans/*.md`.
 - `cro` is read-only on disk: critique, envelope, ledger delta only.

@@ -11,7 +11,7 @@ version: 1
 | Stage | Owner | Notes |
 |-------|--------|------|
 | `git_sync` | `content-lead` / shell | `fetch` + `pull`; must run before **`cco`** if session starts here |
-| `plan` | `cco` | Writes plan v0; optional **`editorial-cro-loop`** |
+| `plan` | `cco` | Writes plan v0 + post–v0 edit round; **`editorial-cro-loop`** mandatory at execution intent before **`generate_content`** (unless documented override) |
 | `generate_content` | `content-lead` + project agents | Touches drafts per `touches[]` |
 | `git_commit_push` | `content-lead` | [`content-git-workflow`](../content-git-workflow/SKILL.md) |
 

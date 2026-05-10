@@ -1,5 +1,7 @@
 # Docs Researcher & Docs Broker Rules
 
+**Canonical copy:** HTTP/web/docs MCP access control is defined **here**. **`mcp-usage.md`**, **`mode-auto-selection.md`**, and **`agent-orchestration.md`** **point here** — do not duplicate broker bullets.
+
 `vp-research` is the only broker for HTTP/web/docs MCP; other agents’ tool surface for that is blocked by **`strict-tool-boundaries.md`**.
 
 - **Single docs broker**

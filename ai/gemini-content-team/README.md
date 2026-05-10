@@ -19,6 +19,10 @@ Versioned **Gemini CLI** editorial org configuration. Stow source: **`dotfiles/a
 3. Enable Gemini CLI agents: `experimental.enableAgents` in **`~/.gemini/settings.json`**.
 4. Merge **`hooks`** snippets from `docs/runbooks/gemini-settings-merge.md` — **never** overwrite a user’s full settings file wholesale.
 
+## Token and cache discipline
+
+- [`skills/context-cache-discipline/SKILL.md`](skills/context-cache-discipline/SKILL.md) — minimal payloads; canonical text may cite **`dotfiles/ai/cursor-tech-team/skills/context-cache-discipline/SKILL.md`**.
+
 ## Layout
 
 | Area | Role |

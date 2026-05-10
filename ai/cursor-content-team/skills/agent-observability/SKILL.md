@@ -102,6 +102,10 @@ For `cco`, `content-lead`, and `editorial-cro`, the following fields are mandato
 - `pipeline`, `stage_id`, `workspace_root`
 - `event_type`, `event_outcome`, `attempt`
 
+### Optional `token_stats` / `token_estimate`
+
+Advisory **`token_stats`** on JSON subagent payloads and **`token_estimate`** on swarm audit rows when the runtime provides numbers — for before/after session comparisons; not billing truth. Never store secrets in these fields.
+
 ## Per-Task Metric Entry Schema
 
 Store task execution metrics using this schema:

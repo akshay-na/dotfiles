@@ -85,6 +85,14 @@ This skill provides the core orchestration protocol for routing tasks to appropr
 7. Output merging (combining parallel stage outputs)
 8. Dead letter handling (failed task recovery)
 
+## Task dispatch payload (cache / token discipline)
+
+Parents keep **`Task` prompts** small: goals, **`approved_plan_path`**, phase/shard id, **`touches[]`**, corpus roots — not full rules or transcripts. See [`context-cache-discipline`](./context-cache-discipline/SKILL.md).
+
+## Reference diagram (content org)
+
+**Planning:** User → **`cco`** → `vp-editorial-*`, **`cpo`**, **`staff-editor`**, **`editorial-ops-lead`**, **`chief-visual-officer`** (when visuals), **`video-editor`** (when programmatic video planning), **`vp-research`** (facts) → **`editorial-cro`** 2-pass → plan under **`<project>/.cursor/docs/plans/`** → **`content-lead`** runs pipeline / git.
+
 ## Multi-Repo Workspace Detection
 
 When working in a workspace with multiple repositories, the orchestrator MUST identify which repo the task belongs to and route to that repo's content-lead.

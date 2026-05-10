@@ -54,11 +54,13 @@ Comparable to **`n8n-builder`**: all-in-one planner + executor for this domain. 
 1. Confirm corpus has (or will have) **`tools/remotion/`** (or plan-declared root) with pinned **`remotion`** / **`@remotion/skia`** / **`@shopify/react-native-skia`**.
 2. Consult specialists in parallel when applicable; minimal briefs; **`subagent-response-protocol`** envelopes.
 3. Write **plan v0** per **`remotion-builder-planning-gate`** → **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
-4. **Checkpoint:** explicit user approval of v0 **before** CRO pass 1.
+4. **Post–v0 edit round:** ask **once** whether to add/remove/change anything; revise until satisfied. **No** `approve v0 for CRO` phrase.
 
-### Stage B — Mandatory tech CRO loop (singleton)
+### Stage B — Mandatory tech CRO loop (singleton, execution boundary)
 
-Follow **`cro-loop`** and **`docs/runbooks/remotion-builder-cro-loop.md`**.
+**Start Stage B only when** the user signals **implement / execute / proceed with implementation**. Run **`cro-loop`** **immediately** before Stage C.
+
+Follow **`cro-loop`** and **`docs/runbooks/remotion-builder-cro-loop.md`**; **`cro` uses the same adversarial rubric and conditional depth** as in [`cro`](cro.md) / **[`cro-loop`](../skills/cro-loop/SKILL.md)** (full dimensions, pass-2 v1-regression scan — single pointer, no duplicate rubric here).
 
 - **`remotion-builder`** is the **only** writer of the **remotion** plan file; **`cro`** is read-only on disk.
 - Ledger: **`~/ai-brain/session/<task-id>/critic-ledger.md`** (or session prefix per **`brain-conventions`**).

@@ -1,6 +1,6 @@
 ---
 name: remotion-builder-planning-gate
-description: Standardizes how `remotion-builder` performs planning triage, specialist consultation, and produces plan v0 for the mandatory tech CRO loop. Use when remotion-builder is in Stage A (planning).
+description: Standardizes how `remotion-builder` performs planning triage, specialist consultation, and produces plan v0; mandatory tech `cro-loop` at execution intent before Stage C. Use when remotion-builder is in Stage A (planning).
 version: 1
 ---
 
@@ -17,7 +17,7 @@ Planning contract for **`remotion-builder`** Stage A. Plan v0 feeds the [CRO run
 
 ## Required plan structure
 
-Path: **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
+**Prefer** path **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**; **prompt-only** v0 is valid when disk is unavailable — **`cro-loop`** still runs at execution intent (stable plan body in `Task` payload).
 
 1. **Context** — what render/pipeline changes and why.
 2. **Problem Framing** — constraints, unknowns.
@@ -36,7 +36,7 @@ Path: **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
 15. **Implementation Phases** — metadata: `id`, `depends_on`, `parallelizable_with`, `touches`, `rollback_scope`, `destructive`, `verification`, `rollback`.
 16. **Verification Strategy** / **Rollback Strategy**.
 17. **Open Questions** / **Open Risks** (CRO bookkeeping).
-18. **Execution Gate (Post-Plan)** — `phase-by-phase` vs `all-phases-approved` after CRO.
+18. **Execution Gate (Post-Plan)** — `phase-by-phase` vs `all-phases-approved` after CRO (CRO runs when user signals implementation).
 
 ## Specialist consultation triggers
 
@@ -50,9 +50,9 @@ Path: **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
 | Templates / repeated renders | `vp-platform` |
 | Vendor docs, version bumps | `vp-research` (always for external docs) |
 
-## Pre-CRO checkpoint
+## Post–v0 edit round
 
-> Plan v0 written: `<plan_path>`. Reply **`approve v0 for CRO`** to start the tech CRO loop, or reply with feedback to revise v0 first.
+After v0: ask **once** whether to add/remove/change anything; revise until satisfied. **No** `approve v0 for CRO` phrase. When the user signals **implement / execute / proceed with implementation**, run **`cro-loop`** immediately (see [`remotion-builder` agent](../../agents/remotion-builder.md) Stage B).
 
 ## Cross-references
 

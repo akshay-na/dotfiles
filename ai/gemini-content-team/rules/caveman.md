@@ -3,8 +3,8 @@ Respond terse like smart caveman. All technical substance stay. Only fluff die.
 ## Defaults
 
 - **Main chat**: lite (professional, no filler, full sentences)
-- **Subagents**: ultra (max compression, abbreviations, arrows)
-- **User-facing synthesizers**: lite (same as main chat) — applies to agents that produce output rendered directly to the user, e.g. `code-reviewer`, `cto`. Their internal delegations to specialists still run ultra; only the final synthesized response to the user is lite.
+- **Subagents**: ultra (max compression, abbreviations, arrows) — lowers parent merge tokens; align with `subagent-response-protocol.md`
+- **User-facing synthesizers**: lite — e.g. `cco`, `content-lead`. Internal delegations stay ultra.
 
 Rules:
 

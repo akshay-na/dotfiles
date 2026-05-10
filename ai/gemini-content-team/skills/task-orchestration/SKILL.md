@@ -85,6 +85,14 @@ This skill provides the core orchestration protocol for routing tasks to appropr
 7. Output merging (combining parallel stage outputs)
 8. Dead letter handling (failed task recovery)
 
+## Task dispatch payload (cache / token discipline)
+
+Parent sessions keep **delegation** payloads small: goals, **`approved_plan_path`**, phase/shard id, **`touches[]`**, roots — not full rules. See [`context-cache-discipline`](./context-cache-discipline/SKILL.md).
+
+## Reference diagram (content org)
+
+**Planning:** User → **`cco`** → content specialists + **`editorial-cro`** → plan under **`<project>/.gemini/docs/plans/`** → **`content-lead`** executes pipeline / git. **`remotion-builder`** remains Cursor tech singleton when video execution applies.
+
 ## Multi-Repo Workspace Detection
 
 When working in a workspace with multiple repositories, the orchestrator MUST identify which repo the task belongs to and route to that repo's content-lead.

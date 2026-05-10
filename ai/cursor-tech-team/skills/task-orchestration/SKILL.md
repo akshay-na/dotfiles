@@ -85,6 +85,47 @@ This skill provides the core orchestration protocol for routing tasks to appropr
 7. Output merging (combining parallel stage outputs)
 8. Dead letter handling (failed task recovery)
 
+## Task dispatch payload (cache / token discipline)
+
+Parents MUST keep **`Task` prompts** small and stable:
+
+- **Include:** user goal, constraints, **`approved_plan_path`** (when executing), phase or shard id, **`touches[]`**, workspace roots, correlation ids (`trace_id`, `task_id`, `dispatch_id`) when orchestration requires them.
+- **Exclude:** full rule bodies, entire plan text, raw transcripts, large diffs — use paths and **`REF:`** tokens per anti-dup policy.
+- **Reads:** batch parallel independent file reads; one **`Read` per file** per turn unless the file changed.
+
+Canonical discipline: [`context-cache-discipline`](./context-cache-discipline/SKILL.md).
+
+## Workspace-folder team conventions (org `tech-lead`)
+
+- Typed names from `vp-onboarding`: `dev-<scope>`, `sme-<domain>`, `qa-<scope>`, `devops`.
+- Per-folder discovery algorithm: [`team-discovery`](./team-discovery/SKILL.md).
+- Project agents load only files/rules/skills needed for the brief; memory via **`brain-memory-kb`**; docs via **`vp-research`** delegation.
+
+## Toolkit composition (orchestrators)
+
+Compose as needed: [`closed-loop-execution`](./closed-loop-execution/SKILL.md), [`cross-stage-feedback`](./cross-stage-feedback/SKILL.md), [`team-discovery`](./team-discovery/SKILL.md), [`dev-reviewer-qa-loop`](./dev-reviewer-qa-loop/SKILL.md), [`parallel-dispatch`](./parallel-dispatch/SKILL.md), [`swarm-task-decomposition`](./swarm-task-decomposition/SKILL.md), [`swarm-deterministic-merge`](./swarm-deterministic-merge/SKILL.md), [`swarm-critic-validation`](./swarm-critic-validation/SKILL.md), [`cro-loop`](./cro-loop/SKILL.md).
+
+## Reference diagrams (replace heavy agent ASCII)
+
+**Planning (`cto`):** User (CEO) → **`cto`** → specialists (`vp-architecture`, `ciso`, `vp-engineering`, `sre-lead`, `vp-platform`, …) + **`staff-engineer`** → synthesized plan file under **`<project>/.cursor/docs/plans/`** → user invokes **`tech-lead`** for execution. **`atlassian-pm`**: writes user-invoked only; reads may use `mode=read-only-context` per **`agent-orchestration.mdc`**.
+
+**Review (`code-reviewer`):** User → **`code-reviewer`** → same specialist set with **`staff-engineer` mandatory** → unified review under **`<project>/.cursor/docs/reviews/`**.
+
+**Execution (`tech-lead`):** Org-tier orchestrator; peers include **`cto`**, **`code-reviewer`**, **`vp-*`**, **`atlassian-pm`**, **`vp-research`**; dispatches to project `dev-*` / `qa-*` / `devops` per [`team-discovery`](./team-discovery/SKILL.md). **No product-tree edits** — orchestration only.
+
+## CTO plan — phase DAG parallel-safety (A–F)
+
+When **`cto`** builds phases, every **`parallelizable_with`** pair MUST satisfy:
+
+- **A.** Disjoint **`touches`** — no two parallel phases mutate the same file; else merge phases or serialize.
+- **B.** No ordering via side-effects across siblings — declare real **`depends_on`** if one phase needs another’s output.
+- **C.** Independent **Verification** per parallel phase — runnable without siblings having run.
+- **D.** Independent **Rollback** — rolling back one sibling does not undo others.
+- **E.** Shared-read OK; shared-write not OK.
+- **F.** Destructive ops isolated unless rollback proven safe.
+
+**Construction (summary):** cluster steps → assign **`touches`**, **`depends_on`** → build DAG → topological groups → validate A–F → emit dependency table in plan. **Checkpoints:** one user approval per **parallel group**, not per phase inside the group.
+
 ## Multi-Repo Workspace Detection
 
 When working in a workspace with multiple repositories, the orchestrator MUST identify which repo the task belongs to and route to that repo's tech-lead.

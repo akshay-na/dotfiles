@@ -1,5 +1,7 @@
 # Mode auto-selection from user prompts
 
+- **External docs / HTTP / web:** only **`vp-research`** may fetch; see **`vp-research.md`**.
+
 - **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example **`cco`** in plan mode). This rule only guides which mode to switch into when the current assistant has a choice.
 
 - **Explicit agent invocation (hard gate — overrides heuristics below)**:

@@ -48,3 +48,11 @@ Promote when item is:
 When **`brain-conventions.md` → Entrypoint + decision agents — KB duty** applies: **lookup first**, **one bounded write per DAG checkpoint**; promote from **`~/.gemini/memory/`** to **`<content-brain>`** / **`~/ai-brain/org/`** as policy says; **git pull --rebase** / **commit** / **push** on a git-backed **`~/ai-brain`** so **origin** stays current.
 
 **`~/ai-brain` git commits:** subject **` from <short-hostname>`** + **agent** **one** **`Co-authored-by:`** trailer per **`brain-conventions.md`** items **6–7**; **`hostname -s`** (or fallbacks). **No** DotMate **`commit-msg`** hook on brain clone.
+
+## Git-backed vault sync (`~/ai-brain` optional git repo)
+
+**Layouts:** git clone vs local-only; **`~/.gemini/ai-brain`** may substitute for **`$HOME/ai-brain`** per **`brain-conventions.md`**.
+
+1. **Detect** git root + work tree match.
+2. **If** changes on allowed paths: **`pull --rebase`** → scoped **`add`** / **`commit --no-gpg-sign`** / **`push`**.
+3. Clean tree → skip commit/push.

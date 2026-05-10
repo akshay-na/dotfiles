@@ -27,6 +27,10 @@ Parity plan (maintenance contract): [`../../.cursor/docs/plans/2026-05-10-gemini
 - `docs/plans/` — implementation spec copy.
 - `docs/runbooks/` — operational runbooks (e.g. telemetry pipeline).
 
+## Token and cache discipline
+
+- Lean **`alwaysApply`** rules + **skill indirection** — see [`skills/context-cache-discipline/SKILL.md`](skills/context-cache-discipline/SKILL.md); canonical shared text may cite **`dotfiles/ai/cursor-tech-team/skills/context-cache-discipline/SKILL.md`**.
+
 ## Flow
 
 **Plan → generate_content → git pull/commit/push** (SSH assumed for the content repo only). Commits use **`~/.gitmessage`**: **concise Conventional Commits** subject (`draft` / `staging` / `published` lifecycle types when stage-primary, else `feat` / `chore` / …) + short **Context** / **Impact** + **AI `Notes:`** per `content-git-workflow` / `brain-conventions.mdc`.

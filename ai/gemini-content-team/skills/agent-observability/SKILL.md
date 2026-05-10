@@ -102,6 +102,10 @@ For `cco`, `content-lead`, and `editorial-cro`, the following fields are mandato
 - `pipeline`, `stage_id`, `workspace_root`
 - `event_type`, `event_outcome`, `attempt`
 
+### Optional `token_stats` / `token_estimate`
+
+Use advisory token fields when the runtime exposes them — for session before/after comparisons only; never store secrets.
+
 ## Per-Task Metric Entry Schema
 
 Store task execution metrics using this schema:

@@ -13,6 +13,7 @@
 ## Pass 1
 
 - [ ] Inputs: `plan_path` (v0), `specialist_bundle_refs[]`, `pass_number: 1`, `ledger_path`, `frozen_finding_ids: []`
+- [ ] **Breadth:** full adversarial dimensions on v0 (loopholes, second-order, DAG, rollback/obs, migration, human/process)
 - [ ] Dispatch `cro`; parse envelope; append ledger delta (Pass 1 table)
 - [ ] For each finding with `bounce_target`: CTO `Task` specialist → merge → append ledger (`resolved_in_plan_section` / freeze)
 - [ ] Patch plan v0 → v1 on disk (CTO only); emit `cro.pass.1` metric
@@ -20,6 +21,8 @@
 ## Pass 2
 
 - [ ] Inputs: `plan_path` (v1) + `frozen_finding_ids[]` from ledger, `pass_number: 2`
+- [ ] **Residual + freeze:** no re-litigation of frozen IDs; flag only new / non-frozen residual
+- [ ] **v1 regression scan:** diff v1 vs v0 mentally — new second-order issues or loopholes from patches?
 - [ ] Dispatch `cro`; envelope MUST NOT duplicate frozen IDs in new findings body
 - [ ] Repeat bounce/apply cycle once for new pass-2 bounces only
 - [ ] Residual open items → `## Open Risks` in final plan file

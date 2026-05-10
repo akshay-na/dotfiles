@@ -96,17 +96,7 @@ Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspa
 
 ## `~/ai-brain` as a git repository (optional)
 
-**Two intentional layouts:** (a) **`~/ai-brain`** is a **git clone** (e.g. personal machine → GitHub); (b) **`~/ai-brain`** has **no** `.git` — vault stays **local-only** (e.g. office laptop). **Do not** `git init` or force-push brain on machines meant to stay local-only.
-
-1. **Detect** before any brain-repo git sync: `git -C "$HOME/ai-brain" rev-parse --git-dir` succeeds **and** the work tree is **`$HOME/ai-brain`** (not a subfolder-only repo). If this **fails** or there is **no** git metadata at `~/ai-brain`, **skip** all of the following — no pull, commit, or push.
-
-2. **If** `~/ai-brain` **is** that git repo and there are **changes to commit** (after writes under allowed brain paths, **not** skeleton paths):
-   - **`git -C "$HOME/ai-brain" pull --rebase`** (or fetch + rebase per ADR) **before** commit/push. On conflict: **stop**, report, leave tree for human — no blind force-push.
-   - **`git add`** path-scoped to intended files only.
-   - **`git commit --no-gpg-sign`** with a message matching **Commit message format** above (**items 5–6** — hostname + agent **`Co-authored-by`** when applicable).
-   - **`git push`** to upstream (no **`--force`** to default branch unless documented break-glass).
-
-3. If **`git status`** is clean after pull, **skip** commit and push.
+**Layouts, detect, pull/rebase, path-scoped add/commit/push, skip-when-clean:** full narrative in [`brain-memory-kb`](../skills/brain-memory-kb/SKILL.md) § Git-backed vault sync (same pack). **Do not** `git init` or force-push brain on machines meant to stay local-only.
 
 ## Retention and Growth
 

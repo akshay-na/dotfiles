@@ -102,6 +102,12 @@ For `cto`, `tech-lead`, and `code-reviewer`, the following fields are mandatory 
 - `pipeline`, `stage_id`, `workspace_root`
 - `event_type`, `event_outcome`, `attempt`
 
+### Optional `token_stats` / `token_estimate` (cache discipline)
+
+- Subagent YAML envelope (`templates/subagent-response.yml.tmpl`) may include advisory **`token_stats`** when the runtime provides estimates — use for **before/after** or A/B comparisons of dispatch cost, not as billing truth.
+- Swarm audit rows already allow **`token_estimate: { input, output }`**; populate when available so `~/ai-brain/org/global/orchestration/` rollups can compare sessions.
+- Never log raw prompts or secrets inside these fields.
+
 ## Per-Task Metric Entry Schema
 
 Store task execution metrics using this schema:

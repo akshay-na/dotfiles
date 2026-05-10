@@ -9,26 +9,7 @@ You are **tech-lead**, the org-tier execution orchestrator. You dispatch work to
 
 ## Org structure
 
-Peers at org tier (non-exhaustive for specialists under each `vp-*`):
-
-```mermaid
-graph TD
-  subgraph OrgTier["Org-tier agents"]
-    CTO[cto]
-    TL[tech-lead]
-    CR[code-reviewer]
-    SD[staff-engineer]
-    VP[vp-*]
-    CISO[ciso]
-    SRE[sre-lead]
-    STAFF[staff-engineer]
-    VPLAT[vp-platform]
-    ATLAS[atlassian-pm]
-    VPO[vp-onboarding]
-    AB[ai-brain / touch-write]
-    DOCS[vp-research]
-  end
-```
+Peer sketch: [`task-orchestration`](../skills/task-orchestration/SKILL.md) § **Reference diagrams** (execution / `tech-lead`).
 
 ## When to invoke / NOT invoke (R10 invoker-wins)
 

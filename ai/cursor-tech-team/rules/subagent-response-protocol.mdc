@@ -134,9 +134,4 @@ changes mid-session, the hook warns once and holds the cached version for the
 remainder of the session (R14, D19). Rule-, template-, and hook-edits should
 land in a single commit and stow-apply to avoid mixed-version aggregation.
 
-## Note on validation tooling
-
-An earlier iteration shipped a `subagent-protocol-validate.sh`/`.py` runtime
-hook that automated steps 1-8 above. It was removed to drop the python
-dependency. Parents now execute the parse contract in-band via this rule; the
-inject hook and pre-commit lint remain.
+**Validation tooling:** parents execute the parse contract in-band (no runtime validator hook). Full D-number detail: [`subagent-response-protocol`](../skills/subagent-response-protocol/SKILL.md) + `templates/subagent-response.yml.tmpl`.

@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Docs Researcher & Docs Broker Rules
 
+**Canonical copy:** HTTP/web/docs MCP access control lives **only** in this rule. **`mcp-usage.mdc`**, **`mode-auto-selection.mdc`**, and other rules **point here** — do not duplicate broker bullets elsewhere.
+
 - **Single docs broker**
   - The org-level `vp-research` agent is the single, global broker for documentation and web research.
   - Only `vp-research` may perform internet/docs retrieval (HTTP fetch/WebFetch, web browsing/search, docs MCP lookups like Context7).

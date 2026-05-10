@@ -1,14 +1,14 @@
 ---
 name: n8n-builder-planning-gate
-description: Standardizes how `n8n-builder` performs planning triage, specialist consultation, and produces an implementation-ready plan v0 ready for the mandatory CRO loop. Use when n8n-builder is in Stage A (planning).
+description: Standardizes how `n8n-builder` performs planning triage, specialist consultation, and produces plan v0 plus post–v0 edit round; mandatory `cro-loop` runs at execution intent before Stage C. Use when n8n-builder is in Stage A (planning).
 version: 1
 ---
 
 # n8n-builder Planning Gate
 
 This skill defines the **planning contract** that `n8n-builder` follows in
-Stage A. It produces the plan v0 artifact the [CRO loop runbook](../../docs/runbooks/n8n-builder-cro-loop.md)
-expects on disk and the structure the [execution-gate skill](../n8n-builder-execution-gate/SKILL.md)
+Stage A. It produces plan v0 on disk (feeds the [CRO loop runbook](../../docs/runbooks/n8n-builder-cro-loop.md)
+when the user signals implementation) and the structure the [execution-gate skill](../n8n-builder-execution-gate/SKILL.md)
 relies on at dispatch time.
 
 ## When to use
@@ -18,8 +18,8 @@ relies on at dispatch time.
 - No plan v0 exists yet for the current `task_id`.
 
 If a plan v0 already exists for the episode, do **not** re-run this skill —
-either revise v0 in-place per user feedback (pre-CRO checkpoint) or proceed
-to the CRO loop.
+either revise v0 in-place per user feedback (post–v0 edit round) or, when
+the user signals implementation, proceed to the CRO loop.
 
 ## Required plan structure
 
@@ -66,7 +66,7 @@ following sections in this order:
 13. **Open Risks** (auto-populated by CRO bookkeeping; may be empty at v0).
 14. **Execution Gate (Post-Plan)** — declare the two-choice gate
     (`phase-by-phase` vs `all-phases-approved`) the user will choose **after**
-    the CRO loop completes.
+    the CRO loop completes (CRO runs when user signals implementation, not immediately after v0).
 
 ## Specialist consultation triggers
 
@@ -90,7 +90,7 @@ to `n8n-builder`.
 
 ## Output contract for plan v0
 
-The handoff to the CRO loop is the markdown file. Additionally, `n8n-builder`
+The plan artifact (input to **`cro-loop`** when the user signals implementation) is **preferably** the markdown file under `<project>/.cursor/docs/plans/`; **prompt-only** full plan text is valid when disk is unavailable — pass stable body + hash to **`cro`**. Additionally, `n8n-builder`
 must return a structured handoff envelope (used internally by the CRO loop
 runbook) containing:
 
@@ -109,7 +109,7 @@ plan_handoff:
       ref: "<ref id or path>"
     # ... etc
   open_questions: [ ... ]
-  status: ready_for_user_v0_checkpoint
+  status: ready_for_post_v0_edit_round
 ```
 
 The handoff is structured data, not a free-form chat blob. Secret values are
@@ -134,15 +134,14 @@ Validate before writing:
 - [ ] No secret values anywhere in the plan; references only.
 - [ ] Plan ends with the two-choice execution gate stub (resolved after CRO).
 
-## Pre-CRO user checkpoint
+## Post–v0 edit round (planning)
 
-After persisting v0, surface the checkpoint exactly as defined in the CRO
-runbook:
+After v0 is settled (file **or** prompt-only), ask **once** whether the user wants to add, remove, or
+change anything; revise v0 until satisfied. **Do not** ask for `approve v0 for CRO`.
 
-> Plan v0 written: `<plan_path>`. Reply `approve v0 for CRO` to start the
-> CRO adversarial loop. Reply with feedback to revise v0 first.
-
-Do not start CRO without explicit approval text.
+When the user signals **implement / execute / proceed with implementation**,
+start the **`cro-loop` immediately** as the next step (before Stage C) — see
+[`n8n-builder` agent](../../agents/n8n-builder.md) Stage B.
 
 ## Cross-references
 

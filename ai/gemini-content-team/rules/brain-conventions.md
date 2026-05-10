@@ -87,17 +87,7 @@ Applies to **Gemini** content entrypoints and org decision agents. **Goal:** gro
 
 ## `~/ai-brain` as a git repository (optional)
 
-**Two intentional layouts:** (a) **`~/ai-brain`** is a **git clone** (personal / sync to GitHub); (b) **no** `.git` under `~/ai-brain` — vault **local-only** (office laptop). **Do not** `git init` brain on local-only machines. If your only git root for the vault is **`~/.gemini/ai-brain`**, substitute that path for **`$HOME/ai-brain`** in **`-C`** below.
-
-1. **Detect:** `git -C "$HOME/ai-brain" rev-parse --git-dir` succeeds and work tree is **`$HOME/ai-brain`**. If **not**, **skip** pull / commit / push for brain — do nothing.
-
-2. **If** it **is** a repo and there are **staged-worthy changes** (allowed paths only; **never** skeleton paths):
-   - **`git -C "$HOME/ai-brain" pull --rebase`** first. On conflict: **stop**, surface error, human resolves.
-   - **`git add`** (path-scoped).
-   - **`git commit --no-gpg-sign`** (message per **Commit message format** above; **items 6–7** — hostname + agent **`Co-authored-by`** when applicable).
-   - **`git push`** (no **`--force`** to default branch without break-glass).
-
-3. Clean tree after pull → **no** commit/push.
+**Detect, pull/rebase, scoped commit/push, `~/.gemini/ai-brain` substitute:** full steps in [`brain-memory-kb`](../skills/brain-memory-kb/SKILL.md) § Git-backed vault sync.
 
 ## Retention and Growth
 

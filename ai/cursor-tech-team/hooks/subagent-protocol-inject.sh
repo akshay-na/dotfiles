@@ -92,10 +92,11 @@ contract="$(sed "s|{{MARKER}}|$marker|g" "$TEMPLATE")"
 # --- emit agent_message so Cursor surfaces the contract to the subagent ---
 # The message is structured as a clearly delimited injection block so the
 # subagent can recognize and follow it.
-msg="--- PARENT-INJECTED CONTRACT (subagent-response-protocol) ---
+# Short delimiters only — body is still full contract file (no behavior change).
+msg="--- SUBAGENT-PROTOCOL ---
 $contract
 ${drift_note:+[hook: $drift_note]}
---- END CONTRACT ---"
+--- END ---"
 
 # Emit both agent_message (visible to agent) and permission=allow.
 # Some Cursor versions also honor additionalContext / promptPrepend; include
