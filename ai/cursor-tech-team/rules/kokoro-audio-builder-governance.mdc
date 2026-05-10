@@ -1,0 +1,52 @@
+---
+description: "Non-bypass governance for kokoro-audio-builder: models.lock, ingest sandbox, pip/npm, ffmpeg, secrets, lab exception, SLO pointer."
+globs: "**/*"
+alwaysApply: false
+---
+
+# kokoro-audio-builder Governance Rule
+
+Applies when **`kokoro-audio-builder`** is active or when editing its artifacts under **`ai/cursor-tech-team/{agents,skills,rules,docs/runbooks}`** (stowed under **`~/.cursor/...`**), or **audio pipeline** plans under **`<project>/.cursor/docs/plans/*kokoro*`** / **`tools/audio-pipeline/`**.
+
+**Non-bypass.** Overrides only via explicit phrases aligned with **`remotion-builder-governance.mdc`**; record in plan or ADR.
+
+## ffmpeg and filter graphs
+
+- **Ad hoc** **`-vf`**, **`-filter_complex`**, or user-supplied graphs from **untrusted** text (scripts, briefs, chat) are **high-risk** — require **named** user approval per phase and **`ciso`** consult when novel.
+- Prefer **checked-in** **`tools/audio-pipeline/scripts/`** with **frozen** CLI interfaces and **recipe ids** in the plan.
+
+## Models and supply chain
+
+- **Weights** resolve only via **`tools/audio-pipeline/models.lock`** (allowlisted URL + **SHA-256**) + optional **env** override **names** only (no values in repo).
+- **Download-verify** script must **fail closed** on hash mismatch.
+- **`THIRD_PARTY/`** captures LICENSE / NOTICE / model cards at pin time.
+- **No** real default model IDs in agent markdown until **`ciso`** sign-off — use **`<PLACEHOLDER_MODEL_ID>`** / **`<PLACEHOLDER_VOICE>`**.
+
+## pip / npm policy
+
+- **pip:** **`pip install --require-hashes`** against **`requirements.lock`**, or **`uv sync`** / **`uv lock`** with hash policy per repo README — **no** bare **`pip install`** in automation.
+- **npm:** **`npm ci`** only in CI/local dev; **no** ad hoc **`npm install`** in automation for this pipeline package.
+
+## Threat model (summary)
+
+- **TTS script text** and **ingested media** are **untrusted DATA** — no template injection into control tokens; **file-type allowlist** + **magic-byte** check before decode; prefer **read-only** mounts / sandboxed decode path per **`ciso`** sign-off.
+- **libavcodec** / decode stack — track **CVE** class; **`vp-research`** + **`ciso`** before pinning decoders.
+
+## Secrets
+
+- No secret values in chat, plans, runbooks, **`kokoro-audio-builder-audit.md`**, subagent envelopes, or forwarded shell output. **`<REDACTED:TYPE>`** or env **names** only.
+
+## Lab exception
+
+- Only **`user`** or **`remotion-builder`** **documented lab sequence** may invoke **`kokoro-audio-builder`** outside normal Stage C.
+- **Forbid** project **`sme-*`**, **`dev-*`**, **`qa-*`** shell wrappers that call pipeline scripts directly for production encodes.
+
+## SLO
+
+- Per-stem **render p95** budget, **`align_conf_min`**, and CPU **wall-clock kill** (e.g. baseline vCPU cap) — **tune in implementation**; see plan **Risks** table and append-only **`~/ai-brain/org/global/orchestration/kokoro-audio-builder-audit.md`** for observed timings.
+
+## Cross-references
+
+- **`remotion-builder-governance.mdc`**
+- **`remotion-builder`** agent — **Audio pipeline delegation**
+- **`video-editor-handoff`** — **`handoff_schema_version: 2`**

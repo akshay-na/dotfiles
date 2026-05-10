@@ -26,6 +26,7 @@ When the plan targets the checked-in Remotion package (**`tools/remotion/`** und
 - **Default expectation:** encoded deliverables include an **audible** track unless the brief explicitly says **`silent`** (e.g. platform loop on mute). Silent exports need a recorded reason in the plan.
 - **Brief must specify:** kind (**music bed**, **VO script**, **SFX**, or combo), **tone** (energy, genre-agnostic words), **approximate level** (“bed under narration”, “punchy hook”), **loop vs one-shot**, and **licensing** (corpus-owned asset path, royalty-free source, or record **VO only**). Never invent rights; point to approved assets or **`sme-*`** / legal workflow.
 - **Handoff `audio` field:** set to **`required`** with those notes, or **`optional`** / **`silent`** with justification — never leave **`remotion-builder`** guessing whether to mux.
+- **`audio.pipeline` = `kokoro_whisper_v1`:** **`video-editor-handoff`** (**`handoff_schema_version: 2`**) **must** include an **`audio_editor_artifact`** pointer (corpus-relative path or stable id) to the **`audio-editor`** **`audio_brief`** + cue table package **`video-editor`** relied on. **Motion, color, and composition editorial** remain owned here; synthetic stem generation is **`kokoro-audio-builder`** under **`remotion-builder`**, not **`audio-editor`** execution.
 
 ## Motion and attention (default)
 

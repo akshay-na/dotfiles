@@ -43,6 +43,22 @@ Align implementation with **`video-editor`** briefs and **`video-editor-handoff`
 - **Avoid** default flat gray UI for explainer pieces. Use a **defined palette** (hex in code or tokens): rich **background**, **surface**, **2–3 accents**, **semantic** highlight (success/warn). Skia **fills**, **strokes**, and HTML overlays should feel **intentionally colorful** and on-brand when brief supplies brand colors.
 - **Contrast:** keep **captions** and **labels** readable (WCAG-minded); test on dark **and** light accents if composition mixes both.
 
+## Audio pipeline delegation
+
+When **`video-editor-handoff`** declares **`handoff_schema_version: 2`** and **`audio.pipeline`** is **`kokoro_whisper_v1`** (synthetic VO + Whisper alignment):
+
+1. **`Task` `kokoro-audio-builder`** **before** composition lock-in that depends on **`staticFile`** paths under **`tools/audio-pipeline/out/<video_slug>/`**.
+2. **Serial default:** generate **WAV stems** + **`alignment.json`** + **`manifest.json`** → wire **Remotion** (`<Audio>` / **`staticFile`**) → **CLI render** → **ffmpeg** only from **approved recipes**.
+3. **Inputs:** `workspace_root`, `video_slug`, **`audio.brief_path`**, **`audio.voice_id`**, **`audio.locale`**, script text or corpus-relative path, **`audio_editor_artifact`** pointer, **corpus-relative** reference media only.
+4. **Outputs:** under **`tools/audio-pipeline/out/<video_slug>/`** — stems, **`alignment.json`** (**`whisper_words_v1`**), **`manifest.json`**.
+5. **Checkpoints:**
+   - After stem generation: **`ffprobe`** + **loudness** probe vs handoff **`audio.format`** (**`lufs_target`**, **`true_peak_max_dbtp`**).
+   - After alignment: **JSON schema** validation + **`align_conf_min`** vs SLO (**`kokoro-audio-builder-governance.mdc`**).
+   - After Remotion render: **audio stream** present in container (**`ffprobe`** / **`afinfo`**).
+6. **Audit:** append one **append-only** row to **`~/ai-brain/org/global/orchestration/kokoro-audio-builder-audit.md`**: `timestamp`, `task_id`, `phase`, `video_slug`, model ids (**`<PLACEHOLDER_MODEL_ID>`** / **`<PLACEHOLDER_VOICE>`** until **`ciso`** + **`models.lock`** pin — **no** real default IDs in examples), `render_ms`, `lufs_reading`, `align_conf_min`, `outcome` — **no secrets**.
+
+**Placeholders only** in agent markdown examples until **`ciso`** gate: **`<PLACEHOLDER_MODEL_ID>`**, **`<PLACEHOLDER_VOICE>`**.
+
 ## Boundaries (Hard)
 
 - You do **not** bypass the **tech `cro-loop`**. Implementation cannot start until CRO pass-2 has completed (or explicit **`skip CRO loop for this plan`** recorded under **`## Open Risks`**).
