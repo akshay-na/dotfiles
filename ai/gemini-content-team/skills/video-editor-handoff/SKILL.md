@@ -1,7 +1,7 @@
 ---
 name: video-editor-handoff
-description: Structured handoff to Cursor remotion-builder for programmatic video; payload contract; Gemini prepares briefs — execution in Cursor when remotion-builder is available.
-version: 1
+description: Structured handoff to Cursor remotion-builder for programmatic video; payload contract with Remotion paths, composition id, output basename, aspect ratio, audio; Gemini prepares briefs — execution in Cursor when remotion-builder is available.
+version: 2
 ---
 
 # video-editor-handoff
@@ -23,14 +23,27 @@ Org skill — **`~/.gemini/skills/video-editor-handoff/`** after stow. Use when 
 2. **`content_id`** (`cf-*`) and target note path when tied to a corpus atom.
 3. **`approved_plan_path`** — under **`<project>/.gemini/docs/plans/`** or **`<project>/.cursor/docs/plans/`** per active tool; phase must list this work.
 4. **Brief** — script/beats, brand refs.
-5. **Output spec** — resolution, duration cap, **`assets/...`** paths.
+5. **Output spec** — resolution, duration cap, final **`assets/...`** paths, **and** **`tools/remotion/out/<basename>.mp4`** stem during implementation.
 6. **Render mode** — `ssr_headless_shell` (default) vs `experimental_csr` (explicit sign-off).
 7. **Skia** — yes/no; **`LoadSkia()`** reference.
 8. **ffmpeg** — **recipe id** or **`none`**.
 
+## Remotion naming linkage (content-foundry)
+
+Under corpus **`tools/remotion/`**:
+
+- **`video_slug`** — **`src/videos/<video_slug>/`**; equals **`Composition` `id`** and default **`out/<basename>.mp4`** basename.
+- **`remotion_src_dir`** — e.g. **`tools/remotion/src/videos/<video_slug>/`**.
+- **`composition_id`** — typically same as **`video_slug`**.
+- **`output_basename`** — stem for **`tools/remotion/out/<output_basename>.mp4`**.
+- **`aspect_ratio`** — **`16:9`** | **`9:16`**.
+- **`audio`** — **`required`** | **`optional`** + notes.
+
 ## Task payload (minimal)
 
-- `workspace_root`, `content_id`, `target_note_path`, `approved_plan_path`, `brief_markdown`, `render_mode`, `skia_enabled`, `ffmpeg_recipe_id`, `output_paths_glob`
+- `workspace_root`, `content_id`, `target_note_path`, `approved_plan_path`, `brief_markdown`
+- `video_slug`, `remotion_src_dir`, `composition_id`, `output_basename`, `aspect_ratio`, `audio`
+- `render_mode`, `skia_enabled`, `ffmpeg_recipe_id`, `output_paths_glob`
 
 ## Target agent
 

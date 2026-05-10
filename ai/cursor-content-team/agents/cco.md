@@ -55,6 +55,7 @@ For automation-oriented plans, explicitly define canonical contract fields:
 
 - `post_id` ownership and versioning expectations (`version`, `correction_of`, `parent_post_id` when needed).
 - target channel set (`linkedin`, `instagram`, `twitter_x`) and channel-specific expectations under `content.extensions`.
+- **Instagram (Reels / vertical video):** when the brief includes **Instagram** as a surface for **Reels or vertical encoded video**, the plan **MUST** include a **separate plan subsection** (or separate artifact path) for **vertical video** — not only caption/hashtag/copy. That subsection **MUST** specify its own **`video_slug`** / path hint, **9:16** intent, **safe zones** (notch, captions, UI chrome), **target duration**, and **hook / first-frame** guidance. **Editorial language** for that subsection is owned by **`video-editor`**; **`content-lead`** uses **`video-editor-handoff`** to drive **`remotion-builder`** with **`composition_id`**, **`output_basename`**, **`aspect_ratio: 9:16`**, and **`audio`** per the handoff skill.
 - source-of-truth vault artifact paths (`obsidian.note_rel`, `paths.manifest_path`, `paths.audit_log_path`) under `/home/n8n-runner/content-foundry`.
 - media handoff fields (`media[]`, channel constraints, discovery mode assumptions).
 - correction enqueue behavior as separate workflow executions with idempotency.

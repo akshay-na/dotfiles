@@ -53,6 +53,7 @@ For automation-oriented plans, explicitly define canonical contract fields:
 
 - `post_id` ownership and versioning expectations (`version`, `correction_of`, `parent_post_id` when needed).
 - target channel set (`linkedin`, `instagram`, `twitter_x`) and channel-specific expectations under `content.extensions`.
+- **Instagram (Reels / vertical video):** when the brief includes **Instagram** for **Reels or vertical encoded video**, the plan **MUST** include a **separate subsection** (or separate artifact under **`<project>/.gemini/docs/plans/`**) for **vertical video** — not only caption/hashtag/copy. Specify **`video_slug`**, **9:16**, **safe zones**, **duration**, **hook**. **`video-editor`** owns that editorial sub-plan; **`content-lead`** + **`~/.gemini/skills/video-editor-handoff/SKILL.md`** → **`remotion-builder`** in Cursor (**`aspect_ratio: 9:16`**, **`audio`**, **`composition_id`**, **`output_basename`**).
 - source-of-truth vault artifact paths (`obsidian.note_rel`, `paths.manifest_path`, `paths.audit_log_path`) under `/home/n8n-runner/content-foundry`.
 - media handoff fields (`media[]`, channel constraints, discovery mode assumptions).
 - correction enqueue behavior as separate workflow executions with idempotency.
