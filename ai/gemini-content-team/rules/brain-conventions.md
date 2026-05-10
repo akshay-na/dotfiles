@@ -66,11 +66,13 @@ After stow, equivalent runtime paths include `~/ai-brain/_schema/**`, `~/ai-brai
 
 Use **`$HOME/.gitmessage`** (DotMate: `dotfiles/git/.gitmessage` when stowed). Prefer **`git commit --no-gpg-sign -t "$HOME/.gitmessage"`** or **`--file`** per [**`content-git-workflow`**](../skills/content-git-workflow/SKILL.md) for **corpus/brain**; **dotfiles** uses **signed** commits per **Signing** above.
 
-1. **Subject:** **`type[(optional-scope)]: imperative summary`** — Conventional Commits (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`, …). **≤ ~72 characters** total; **no trailing period**; imperative mood.
+1. **Subject:** **`type[(optional-scope)]: imperative summary`** — Conventional Commits (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`, …). Keep summary **≤ ~72 characters** when practical; **no trailing period** before any hostname suffix; imperative mood.
 2. **Content corpus lifecycle `type` (this pack / vault repos):** when the commit is **mainly** about atoms at a **stage**, prefer **`draft`**, **`staging`**, or **`published`** as **`type`** (parallel to `draft/` / `staging/` / `published/` paths), e.g. `draft: add LinkedIn hook cf-2026-0001`, `staging: tighten CTA after review`, `published: promote cf-2026-0003`. Optional **`(scope)`** may hold channel or `cf-*`, e.g. `draft(linkedin): …`. Use standard types (`chore`, `fix`, `docs`, …) for **repo-only** work (indexes, `_meta`, tooling) that is not stage-dominant.
 3. **Body: concise** — match template sections; **at most 2–3** bullets if needed; **`Context:`** / **`Impact:`** **one short line each** by default; avoid essays (detail belongs in PR or plan docs).
 4. **`Notes:`** — optional **brief** operational refs (e.g. `Task-ID`, ticket keys) only.
-5. **Attribution — forbidden in commit messages:** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit — **do not** add these.
+5. **Attribution — forbidden in commit messages (default):** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit — **do not** add these on **content corpus** or non-brain repos. **Exception:** git-backed **`~/ai-brain`** agent commits — **item 7** only.
+6. **`~/ai-brain` git repo — hostname in subject (mandatory):** When **`git commit`** targets the **brain git root** (**`git -C "$HOME/ai-brain"`** or **`~/.gemini/ai-brain`** per **Canonical Root**), the **first line** **must** end with **` from <short-hostname>`**. Use **`hostname -s`**, else **`scutil --get LocalHostName`**, else **`HOSTNAME`** / **`COMPUTERNAME`**. **Pattern:** **`type[(scope)]: <imperative summary> from <short-hostname>`** with **`(scope)`** = **`project-identity`** / **`kb-identity`** slug when project-scoped (e.g. **`docs(content-foundry): update KB decision on promotion from studio-mac`**). **Agents** must substitute the real hostname.
+7. **`~/ai-brain` git repo — `Co-authored-by` which AI (mandatory for agent/automation commits):** When **`git commit`** targets that **brain git root** and the committer is **agent or automation**, append **exactly one** trailer: **`Co-authored-by: <Product> <synthetic-email>`** — **`<Product>`** = **`Google Gemini`**, **`Cursor Agent`**, **`GitHub Copilot`**, … per runtime; **`<synthetic-email>`** = **`ai@local.invalid`** or org **noreply** only. **Still forbidden:** **`AI-authored:`**, **`Generated-by:`**, “written by AI” in body. **Do not** point **`~/ai-brain`** **`core.hooksPath`** at DotMate **`git/githooks`** (strips AI **`Co-authored-by`**).
 
 ## Entrypoint + decision agents — KB duty (gradual, mandatory)
 
@@ -92,7 +94,7 @@ Applies to **Gemini** content entrypoints and org decision agents. **Goal:** gro
 2. **If** it **is** a repo and there are **staged-worthy changes** (allowed paths only; **never** skeleton paths):
    - **`git -C "$HOME/ai-brain" pull --rebase`** first. On conflict: **stop**, surface error, human resolves.
    - **`git add`** (path-scoped).
-   - **`git commit --no-gpg-sign`** (message per **Commit message format** above).
+   - **`git commit --no-gpg-sign`** (message per **Commit message format** above; **items 6–7** — hostname + agent **`Co-authored-by`** when applicable).
    - **`git push`** (no **`--force`** to default branch without break-glass).
 
 3. Clean tree after pull → **no** commit/push.

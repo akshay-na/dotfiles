@@ -15,7 +15,7 @@ JSON body matching metrics contract; optional top-level **`project_root`** (abso
 
 ## Repo hygiene (optional)
 
-Read **`rules/repo-hygiene.md`** and **`rules/brain-conventions.md`**. If **`~/ai-brain`** is a git repo (`git -C ~/ai-brain rev-parse` succeeds), **`git pull --rebase`** before writes when shell is available; after writes, **commit with `git commit --no-gpg-sign`** and **`git push`** when automation policy says so. If **`~/ai-brain`** is **not** a git repo, **do not** run git there. Wrapper/human runs the same when the model has no shell.
+Read **`rules/repo-hygiene.md`** and **`rules/brain-conventions.md`**. If **`~/ai-brain`** is a git repo (`git -C ~/ai-brain rev-parse` succeeds), **`git pull --rebase`** before writes when shell is available; after writes, **commit with `git commit --no-gpg-sign`** using a subject that ends with **` from <short-hostname>`** plus **one** **`Co-authored-by:`** trailer for the assistant (per **`brain-conventions.md` → Commit message format items 6–7**), then **`git push`** when automation policy says so. If **`~/ai-brain`** is **not** a git repo, **do not** run git there. Wrapper/human runs the same when the model has no shell.
 
 ## Invocation
 

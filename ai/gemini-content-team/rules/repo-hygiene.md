@@ -4,7 +4,7 @@ There is **no** separate content KB repository or kb-sync script. Durable pipeli
 
 ## `~/ai-brain` as its own git repo (optional)
 
-Some machines use **`~/ai-brain`** as a **standalone git clone**; others keep the vault **without** `.git` (local-only). **Authoritative procedure:** **`rules/brain-conventions.md`** — detect repo, **pull before push**, **`git commit --no-gpg-sign`**, push; **if not a git repo, do nothing** for brain sync. **Commit messages:** **`~/.gitmessage`** shape + **concise Conventional Commits** subject (`type(scope): imperative summary`, ≤ ~72 chars); editorial vaults may use **`draft`**, **`staging`**, **`published`** as **`type`** when the commit is stage-primary — see **`brain-conventions.md` → Commit message format**.
+Some machines use **`~/ai-brain`** as a **standalone git clone**; others keep the vault **without** `.git` (local-only). **Authoritative procedure:** **`rules/brain-conventions.md`** — detect repo, **pull before push**, **`git commit --no-gpg-sign`**, push; **if not a git repo, do nothing** for brain sync. **Commit messages:** **`~/.gitmessage`** shape + **concise Conventional Commits** subject (`type(scope): imperative summary`, ≤ ~72 chars for the summary portion); **git-backed `~/ai-brain`:** subject **must** end with **` from <short-hostname>`**; **agent commits** also append **one** **`Co-authored-by: <Product> <synthetic-email>`** per **`brain-conventions.md` → Commit message format**. Editorial vaults may use **`draft`**, **`staging`**, **`published`** as **`type`** when the commit is stage-primary.
 
 ## When the workspace is a git repo
 

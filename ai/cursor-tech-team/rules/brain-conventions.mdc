@@ -73,10 +73,15 @@ After stow, those paths are the same files as:
 
 Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). **Dotfiles repo:** **`git commit -t "$HOME/.gitmessage"`** (or **`--file`**) **with signing** as above. **Other agent-driven commits:** add **`--no-gpg-sign`** to the same invocation pattern.
 
-1. **Subject (first line):** [Conventional Commits](https://www.conventionalcommits.org/) — **`type[(optional-scope)]: imperative summary`**. Common **`type`**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`. Keep the **entire subject ≤ ~72 characters**; **no trailing period**; summary in **imperative** mood (*add*, not *added*).
+1. **Subject (first line):** [Conventional Commits](https://www.conventionalcommits.org/) — **`type[(optional-scope)]: imperative summary`**. Common **`type`**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`. Keep the summary portion **≤ ~72 characters** when practical; **no trailing period** before any hostname suffix; summary in **imperative** mood (*add*, not *added*).
 2. **Body: stay short.** Optional **bullet list** with **at most 2–3** bullets. **`Context:`** and **`Impact:`** — **one line each** unless the change truly needs two short lines; **no long narratives** (put detail in PRs, plans, or KB).
 3. **`Notes:`** — optional **brief** operational refs only (e.g. `Task-ID`, ticket keys) where the project already uses them.
-4. **Attribution — forbidden in commit messages:** **`Co-authored-by:`** lines for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, Cursor/Gemini vendor attribution, or similar. Commits are normal project history — **no** tool or model credit trailers.
+4. **Attribution — forbidden in commit messages (default):** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit in **body** or trailers — **do not** add these on **workspace projects**, **content corpus**, **dotfiles**, or any repo **except** **item 6** (**git-backed `~/ai-brain`**, **one** AI **`Co-authored-by`** trailer only). Commits stay normal project history unless **item 6** applies.
+5. **`~/ai-brain` as a git repo — hostname in subject (mandatory):** When **`git commit`** targets the **brain git root** (see **§ `~/ai-brain` as a git repository** — typically **`git -C "$HOME/ai-brain"`**; same rule if your layout uses **`~/.cursor/ai-brain`** or **`~/.gemini/ai-brain`** as that root), the **subject (first line)** **must** end with **` from <short-hostname>`** so multi-machine history is obvious. Resolve **`<short-hostname>`** at commit time: prefer **`hostname -s`** (POSIX); on macOS if empty use **`scutil --get LocalHostName`**; otherwise **`HOSTNAME`**, **`COMPUTERNAME`**, or documented org default. **Pattern:** **`type[(scope)]: <imperative summary> from <short-hostname>`** — use **`(scope)`** = **`kb-identity`** / project slug (e.g. **`content-foundry`**) when the change is project-scoped. **Example:** `docs(content-foundry): update KB decision on promotion from studio-mac`. **Agents/automation** must inject the real hostname string, not a placeholder. The hostname suffix **overrides** strict ~72-char caps for the full first line.
+6. **`~/ai-brain` git repo — `Co-authored-by` which AI (mandatory for agent/automation commits):** When **`git commit`** targets that **same brain git root** and the committer is an **agent or automation** (not a human-only manual commit), append **exactly one** trailer line after the body / **`Notes:`**:
+   - **Format:** **`Co-authored-by: <Product> <synthetic-email>`** — Git trailer syntax; **`<Product>`** must match the assistant used (e.g. **`Cursor Agent`**, **`Google Gemini`**, **`GitHub Copilot`**). **`<synthetic-email>`** must be a **non-secret** placeholder only — use **`ai@local.invalid`** (RFC 2606) or an org-documented vendor **noreply**; **never** a human’s real address or any secret.
+   - **Still forbidden** on brain commits: **`AI-authored:`**, **`Generated-by:`**, and “written by AI” **prose** in the body — only the single **`Co-authored-by`** trailer is allowed for AI credit.
+   - **Hook warning:** **Do not** point **`~/ai-brain`**’s **`core.hooksPath`** at DotMate **`git/githooks`** — that **`commit-msg`** hook **strips** AI **`Co-authored-by`** lines and would remove this trailer.
 
 ## Entrypoint + decision agents — KB duty (gradual, mandatory)
 
@@ -98,7 +103,7 @@ Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspa
 2. **If** `~/ai-brain` **is** that git repo and there are **changes to commit** (after writes under allowed brain paths, **not** skeleton paths):
    - **`git -C "$HOME/ai-brain" pull --rebase`** (or fetch + rebase per ADR) **before** commit/push. On conflict: **stop**, report, leave tree for human — no blind force-push.
    - **`git add`** path-scoped to intended files only.
-   - **`git commit --no-gpg-sign`** with a message matching **Commit message format** above.
+   - **`git commit --no-gpg-sign`** with a message matching **Commit message format** above (**items 5–6** — hostname + agent **`Co-authored-by`** when applicable).
    - **`git push`** to upstream (no **`--force`** to default branch unless documented break-glass).
 
 3. If **`git status`** is clean after pull, **skip** commit and push.

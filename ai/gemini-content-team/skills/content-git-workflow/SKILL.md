@@ -17,10 +17,10 @@ version: 1
 2. Content agents **modify** allowed paths only (`target_paths[]` from pipeline).
 3. **`git status`/`git diff`** — if no changes, skip commit (log `git.commit_skipped_empty`).
 4. **`git add`** path-scoped; **`git commit`** with **`--file`** composed message OR **`--template "$HOME/.gitmessage"`** — append **`--no-gpg-sign`** for **content corpus** / **`~/ai-brain`** automation (see **`brain-conventions.md`**). **Never** use **`--no-gpg-sign`** when the git root is the **DotMate dotfiles** repository (sign those commits).
-   - **Subject:** Conventional Commits — **`type[(optional-scope)]: imperative summary`**, **≤ ~72 chars**, no trailing period, imperative mood. For **content vault** commits, use lifecycle types **`draft`**, **`staging`**, **`published`** when the change is mainly that stage (per **`brain-conventions.md`**); otherwise `feat` / `chore` / … as usual.
+   - **Subject:** Conventional Commits — **`type[(optional-scope)]: imperative summary`**, **≤ ~72 chars** for the summary portion, no trailing period before an optional suffix, imperative mood. For **content vault** commits, use lifecycle types **`draft`**, **`staging`**, **`published`** when the change is mainly that stage (per **`brain-conventions.md`**); otherwise `feat` / `chore` / … as usual. When **`git commit`** targets **git-backed `~/ai-brain`**, the first line **must** end with **` from <short-hostname>`** (see **`brain-conventions.md`**).
    - **Body:** same sections as **`~/.gitmessage`** but **brief**: ≤ **2–3** bullets if any; **`Context:`** / **`Impact:`** one short line each by default.
-   - **`Notes:`** — optional **brief** operational refs (e.g. `Task-ID`, ticket keys) only — **no** `Co-authored-by:` for AI/tools, **`AI-authored`**, **`Generated-by:`**, or “written by AI”.
-   - **No** tool-attribution trailers — see **`git-safety.md`**.
+   - **`Notes:`** — optional **brief** operational refs (e.g. `Task-ID`, ticket keys) only — **no** `Co-authored-by:` for AI/tools, **`AI-authored`**, **`Generated-by:`**, or “written by AI” **on corpus / non-brain repos**. **Git-backed `~/ai-brain`:** after body/`Notes:`, **one** **`Co-authored-by: <Product> <synthetic-email>`** for agent commits per **`brain-conventions.md` item 7**.
+   - **Trailers:** **`git-safety.md`** — **no** AI attribution except **one** **`Co-authored-by`** on **`~/ai-brain`** agent commits (**item 7**).
 5. **`git push`** to configured upstream; on non-FF → **one** retry with fetch/rebase/push; then fail closed (no `git push --force` to default branch).
 
 ## Error codes (for n8n)

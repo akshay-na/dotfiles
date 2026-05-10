@@ -13,7 +13,7 @@ See **`brain-conventions.md`**: **DotMate / dotfiles** git root → **OpenPGP si
 - **Subject (first line):** **`type[(optional-scope)]: imperative summary`** — Conventional Commits; **≤ ~72 characters**; **no trailing period**; imperative mood (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`, …). **Vault / corpus:** for stage-primary work, prefer **`draft`**, **`staging`**, **`published`** as **`type`** (see **`brain-conventions.md`**).
 - **Body:** same **section order** as **`$HOME/.gitmessage`** (DotMate `git/.gitmessage` when stowed). **Keep it short:** at most **2–3** bullets; **`Context:`** and **`Impact:`** **one line each** unless unavoidable; no long narratives.
 - **`Notes:`** — optional **brief** operational refs (e.g. `Task-ID`, ticket keys) only.
-- **Forbidden:** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit in the message body or trailers.
+- **Forbidden:** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit in the message body or trailers — **except** **one** AI **`Co-authored-by`** on **git-backed `~/ai-brain`** agent commits per **`brain-conventions.md` → Commit message format item 7**.
 
 ## Forbidden
 

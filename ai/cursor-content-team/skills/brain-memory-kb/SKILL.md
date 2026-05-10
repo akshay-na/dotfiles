@@ -46,3 +46,5 @@ Promote when item is:
 ## Entrypoint rhythm (orchestrators)
 
 When **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** applies: **lookup first**, then **one bounded write per checkpoint**; **git pull --rebase** on the brain clone **before** first write; **commit/push** per signing rules after. See **`kb-identity`** / **`project-identity`** for **per-repo** **`projects/<slug>/`**.
+
+**`~/ai-brain` git commits:** subject **` from <short-hostname>`** + **agent** **one** **`Co-authored-by:`** trailer per **`brain-conventions.mdc`** items **6–7**; **`hostname -s`** (or fallbacks). **No** DotMate **`commit-msg`** hook on brain clone.

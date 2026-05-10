@@ -46,3 +46,5 @@ Promote when item is:
 ## Entrypoint rhythm (orchestrators)
 
 When **`brain-conventions.md` → Entrypoint + decision agents — KB duty** applies: **lookup first**, **one bounded write per DAG checkpoint**; promote from **`~/.gemini/memory/`** to **`<content-brain>`** / **`~/ai-brain/org/`** as policy says; **git pull --rebase** / **commit** / **push** on a git-backed **`~/ai-brain`** so **origin** stays current.
+
+**`~/ai-brain` git commits:** subject **` from <short-hostname>`** + **agent** **one** **`Co-authored-by:`** trailer per **`brain-conventions.md`** items **6–7**; **`hostname -s`** (or fallbacks). **No** DotMate **`commit-msg`** hook on brain clone.

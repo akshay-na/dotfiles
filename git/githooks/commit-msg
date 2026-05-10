@@ -1,6 +1,7 @@
 #!/bin/sh
 # DotMate dotfiles: strip AI/IDE attribution trailers from commit messages.
 # Enable: git config core.hooksPath git/githooks  (from repository root)
+# Do not reuse this hooksPath for ~/ai-brain — brain policy allows one AI Co-authored-by there.
 set -u
 msgfile=${1:?}
 [ -f "$msgfile" ] || exit 0
