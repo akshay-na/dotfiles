@@ -66,7 +66,7 @@ After stow, those paths are the same files as:
 
 ## Git commits — signing
 
-- **DotMate / dotfiles repository** (the **git root** of this configuration source tree — the repo you **`make stow`** from): **OpenPGP-sign every commit** (`commit.gpgsign=true` for that repo or globally). **Do not** use **`--no-gpg-sign`** or **`git -c commit.gpgsign=false`** when committing **here**. Merge commits follow the same rule when signing is enabled.
+- **DotMate / dotfiles repository** (the **git root** of this configuration source tree — the repo you **`make stow`** from): **OpenPGP-sign every commit** (`commit.gpgsign=true` for that repo or globally). **Do not** use **`--no-gpg-sign`** or **`git -c commit.gpgsign=false`** when committing **here**. Merge commits follow the same rule when signing is enabled. **Hook:** from this repo’s root run **`git config core.hooksPath git/githooks`** so **`git/githooks/commit-msg`** removes injected **`Co-authored-by`** / **`AI-authored`** / **`Generated-by`** lines that violate **Attribution** below.
 - **All other repositories** (workspace projects, **`~/ai-brain`** when agents or automation commit, any non-dotfiles clone): use **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`** so unattended automation does not block on passphrase prompts, unless a **project ADR** overrides.
 
 ## Commit message format (`~/.gitmessage` + Conventional Commits)
