@@ -19,6 +19,10 @@ Before running orchestration commands:
    - **API-level thoughts (thinking models):** to avoid emitting thought traces in the generation config, add a **`modelConfigs`** override for the models/agents you use with **`generateContentConfig.thinkingConfig`** — e.g. **`includeThoughts`: `false`** and **`thinkingBudget`: `0`** where the API supports it (see **`docs/reference/configuration.md`** and **`docs/cli/generation-settings.md`** in [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli)). Prefer a **`modelConfigs.customOverrides`** (or alias) entry scoped to your headless profile so interactive sessions can keep different thinking defaults.
    - Do **not** enable debug verbosity for production headless jobs: avoid **`--debug`** / **`-d`** unless diagnosing a failure.
 
+## Agent dispatch (Gemini CLI)
+
+Subagents are **not** Cursor **`Task`** calls. With **`experimental.enableAgents`**, the CLI exposes **per-agent delegation tools** (see session tool list). **Dispatch** = invoke the tool bound to that agent’s definition under **`~/.gemini/agents/`** or **`<project>/.gemini/agents/`**. Policy: **`mode-auto-selection.md`** + **`agent-orchestration.md`** (zero-gap chain — no roleplay substitutes).
+
 ## External agents (selectable entrypoints)
 
 | Agent             | File                        | Role                                                                                                                                                                                                                               |

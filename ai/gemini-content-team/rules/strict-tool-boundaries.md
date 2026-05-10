@@ -14,10 +14,12 @@ Applies while **this** pack is the active global config at **`~/.gemini`**. Comp
   - **`cco` / `content-lead` / org specialists:** only `<project>` paths in **`touches[]`** / phase text, plus **`<project>/.gemini/docs/`** as the role allows. No new `<project>` top-level directories without plan/ADR.
   - **Project agents (`sme-*`, `reviewer-*`):** only what **that** repository’s rules allow (e.g. **content-foundry** → **`path-conventions.md`**).
 
-## `Task` (subagents)
+## Subagent dispatch (Gemini CLI — not Cursor `Task`)
 
+- Use the **Gemini CLI agent-delegation tool** registered for the target agent (see **`mode-auto-selection.md`**). **Do not** reference Cursor IDE’s **`Task`** tool in this client.
 - Dispatch **only** agents allowed by **`agent-orchestration.md`**, the active **CCO plan**, **`content-team-discovery`**, or **`routing-table.yml`**.
-- **No** improvised subagent names. **No** peer `Task` chains **org `vp-*` ↔ `vp-*`** without **`cco`** orchestration.
+- **No** improvised agent names. **No** peer dispatch chains **org `vp-*` ↔ `vp-*`** without **`cco`** orchestration.
+- **Zero-gap:** no parent file writes on child-owned **`touches[]`** until the child dispatch completes (or protocol degraded stub) — same chain rules as **`agent-orchestration.md`**.
 - Child agents return structured output per **`subagent-response-protocol.md`** where required.
 
 ## Shell (`run_terminal_cmd`)
