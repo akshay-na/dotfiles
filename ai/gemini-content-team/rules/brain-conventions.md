@@ -59,7 +59,7 @@ After stow, equivalent runtime paths include `~/ai-brain/_schema/**`, `~/ai-brai
 
 ## Git commits — signing
 
-- **DotMate / dotfiles repository** (the **git root** of the DotMate checkout — **`ai/cursor-tech-team/rules/brain-conventions.mdc`** when stowed to Cursor): **OpenPGP-sign every commit**; **never** **`--no-gpg-sign`** on that repository.
+- **DotMate / dotfiles repository** (the **git root** of the DotMate checkout — **`ai/cursor-tech-team/rules/brain-conventions.mdc`** when stowed to Cursor): **OpenPGP-sign every commit** — **including agent/automation**; **never** **`--no-gpg-sign`** on that repository; use **`git commit -S`** when config does not already sign.
 - **Content corpus**, **`~/ai-brain`**, and **other** agent/automation commits under this pack: **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`**, unless a **project ADR** overrides.
 
 ## Commit message format (`~/.gitmessage` + Conventional Commits)

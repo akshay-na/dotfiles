@@ -1,0 +1,38 @@
+---
+description: "Cross-cutting conventions and pitfalls for the DotMate (dotfiles) repo."
+globs: "**/*"
+alwaysApply: true
+---
+
+# Do's and Don'ts for DotMate
+
+- **Do use Make + Stow**
+  - Use `make install`, `make stow`, `make unstow`, `make backup`, `make update`, and `make clean` instead of ad-hoc manual steps.
+  - Edit source files in this repo; do **not** edit the generated symlinks under `$HOME` directly.
+
+- **Do prefer local overrides for host-specific tweaks**
+  - Use documented local override files such as:
+    - `~/.gitconfig_local`, `~/.zshrc_local`, `~/.bashrc_local`, `~/.aliases_local`, `~/.functions_local`, `~/.commonrc_local`, `~/.config/starship_local.toml`, etc.
+  - Keep tracked configs focused on shared, cross-machine behavior.
+
+- **Don't mass-autoformat or rewrite configs**
+  - Avoid running formatters over entire config trees just to change style.
+  - Keep diffs minimal and intentional; focus on the behavior requested.
+
+- **Do respect backups and safety**
+  - Use `make backup` and existing backup flows instead of ad-hoc copy/rename
+    when making potentially breaking changes.
+  - Prefer reversible operations and avoid deleting user data or configs.
+
+- **Don't commit or log secrets**
+  - Never add real credentials, tokens, or SSH/GPG private material to this repo.
+  - Avoid logging sensitive values when adding debugging or automation.
+
+- **Do OpenPGP-sign commits in this repository**
+  - This **DotMate / dotfiles** git root is the exception to “agent commits skip GPG” elsewhere: **always sign** (`commit.gpgsign=true` and/or **`git commit -S`**). **Do not** use **`--no-gpg-sign`** or **`git -c commit.gpgsign=false`** when committing **here** (including AI-assisted commits). Other repos (corpus, `~/ai-brain`, projects) keep **unsigned automation** per **`brain-conventions.mdc`** unless an ADR overrides.
+
+- **Do read existing patterns before changing them**
+  - Follow current structure and style for shell, editor, and automation
+    configs instead of introducing new patterns without a clear reason.
+  - When in doubt about how to modify configs, consider using the
+    `dotmate-config-changes` skill for a guided workflow. 
