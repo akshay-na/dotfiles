@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+# Interactive or non-interactive AI pack switcher via DotMate stow.
+# Tools are discovered from ai/<pack>: pack names must start with "<tool>-" (tool = first segment
+# before the first hyphen), except legacy "ai/.gemini" which maps to tool "gemini".
+#
+# Usage:
+#   switch_ai_team                          # interactive menus
+#   switch_ai_team apply  <tool> <team-basename>
+#   switch_ai_team ensure <tool> <team-basename>   # no-op if already active
+#
+# Env:
+#   DOTFILES_ROOT or DOTFILES_DIR — dotfiles repo (default: ~/dotfiles)
+#   SUBSCRIPTION_EXHUSTED=true — after a cursor switch, set agent model: lines to inherit (optional)
+
+set -euo pipefail
+
+BOLD='\033[1m'
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+DIM='\033[2m'
+NC='\033[0m'
+
+die() {
+  echo -e "${RED}Error:${NC} $*" >&2
+  exit 1
+}
+
+usage() {
+  echo "Usage: switch_ai_team | switch_ai_team apply|ensure <tool> <team-basename>" >&2
+  echo "  <tool> is the stow target ~/.<tool> (derived from pack name: cursor-tech → cursor)." >&2
+  exit 0
+}
+
+dotfiles_dir="${DOTFILES_ROOT:-${DOTFILES_DIR:-$HOME/dotfiles}}"
+ai_dir="$dotfiles_dir/ai"
+
+[[ -d "$ai_dir" ]] || die "AI directory not found at '${CYAN}$ai_dir${NC}'."
+
+dotfiles_real="$(cd "$dotfiles_dir" && pwd -P)"
+ai_prefix="${dotfiles_real}/ai/"
+
+# Map ai/<basename> → tool for ~/.<tool> (must match DotMate stow_with_target logic).
+tool_from_pkg_basename() {
+  case "$1" in
+  .gemini) printf '%s\n' gemini ;;
+  ai-brain) printf '%s\n' ai-brain ;;
+  *)
+    if [[ "$1" == *-* ]]; then
+      printf '%s\n' "${1%%-*}"
+    else
+      printf '%s\n' "$1"
+    fi
+    ;;
+  esac
+}
+
+assert_pack_belongs_to_tool() {
+  local tool="$1" pack="$2"
+  local implied
+  implied="$(tool_from_pkg_basename "$pack")"
+  [[ "$implied" == "$tool" ]] || die "pack '${pack}' maps to tool '${implied}', not '${tool}'"
+}
+
+# Print sorted unique tool names (excluding ai-brain).
+collect_tools() {
+  local raw=() dir_path dir_bn tool
+  while IFS= read -r -d '' dir_path; do
+    dir_bn="$(basename "$dir_path")"
+    [[ "$dir_bn" == "ai-brain" || "$dir_bn" == "ai-teams" ]] && continue
+    tool="$(tool_from_pkg_basename "$dir_bn")"
+    [[ "$tool" == "ai-brain" ]] && continue
+    raw+=("$tool")
+  done < <(find -L "$ai_dir" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  ((${#raw[@]} > 0)) || return 0
+  printf '%s\n' "${raw[@]}" | LC_ALL=C sort -u
+}
+
+# Print sorted pack basenames for a tool (directory names under ai/).
+list_packs_for_tool() {
+  local want="$1"
+  local packs=() dir_path dir_bn
+  while IFS= read -r -d '' dir_path; do
+    dir_bn="$(basename "$dir_path")"
+    [[ "$dir_bn" == "ai-brain" ]] && continue
+    [[ "$(tool_from_pkg_basename "$dir_bn")" == "$want" ]] || continue
+    packs+=("$dir_bn")
+  done < <(find "$ai_dir" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  ((${#packs[@]} > 0)) || return 0
+  printf '%s\n' "${packs[@]}" | LC_ALL=C sort
+}
+
+# Print active pack directory basename under ai/ (e.g. cursor-content-team), or empty.
+detect_active_team() {
+  local tool="$1" root="$HOME/.$tool" path ref_real rest
+  [[ -d "$root" ]] || { printf '\n'; return 0; }
+  while IFS= read -r path; do
+    [[ -e "$path" ]] || continue
+    ref_real="$(realpath "$path" 2>/dev/null || true)"
+    [[ -n "$ref_real" && "$ref_real" == "$ai_prefix"* ]] || continue
+    rest="${ref_real#"$ai_prefix"}"
+    printf '%s\n' "${rest%%/*}"
+    return 0
+  done < <(find "$root" \( -type f -o -type l \) -maxdepth 8 2>/dev/null | head -n 500)
+  printf '\n'
+}
+
+run_stow() {
+  local selected_tool="$1" selected_path="$2"
+  echo
+  echo -e "${YELLOW}Applying selection…${NC}"
+  echo -e "  ${DIM}Tool${NC}   ${BOLD}${CYAN}$selected_tool${NC}"
+  echo -e "  ${DIM}Path${NC}   ${BOLD}$selected_path${NC}"
+  echo -e "  ${DIM}Target${NC} ${CYAN}~/${NC}${BOLD}.$selected_tool${NC}"
+  echo
+  if (cd "$dotfiles_dir" && make stow-with-target TOOL_PATH="$selected_path" TARGET_NAME=".$selected_tool"); then
+    maybe_rewrite_cursor_models "$selected_tool"
+    echo
+    echo -e "${GREEN}Done:${NC} switched ${CYAN}$selected_tool${NC} → ${BOLD}${selected_path#ai/}${NC}."
+    if [[ "$selected_tool" == "cursor" ]]; then
+      echo -e "${YELLOW}Reload Cursor to pick up agents/rules:${NC} Command Palette → Reload Window"
+    fi
+  else
+    echo
+    die "could not switch ${CYAN}$selected_tool${NC} to ${BOLD}$selected_path${NC}."
+  fi
+}
+
+maybe_rewrite_cursor_models() {
+  local selected_tool="$1"
+  [[ "$selected_tool" == "cursor" ]] || return 0
+  [[ "${SUBSCRIPTION_EXHUSTED:-}" == "true" ]] || return 0
+
+  local agent_file count=0
+  shopt -s nullglob
+  for agent_file in "$HOME/.cursor/agents"/*.md; do
+    [[ -f "$agent_file" ]] || continue
+    grep -qE '^model:[[:space:]]' "$agent_file" || continue
+    sed -E 's/^model:[[:space:]].*$/model: inherit/' "$agent_file" >"${agent_file}.tmp.$$"
+    mv "${agent_file}.tmp.$$" "$agent_file"
+    count=$((count + 1))
+  done
+  shopt -u nullglob
+  if ((count > 0)); then
+    echo -e "${YELLOW}Subscription exhausted:${NC} rewrote ${BOLD}$count${NC} global Cursor agent model key(s) to ${BOLD}inherit${NC}."
+  fi
+}
+
+cmd_apply() {
+  local tool="$1" team="$2"
+  [[ -n "$team" ]] || die "team basename required"
+  [[ -d "$dotfiles_dir/ai/$team" ]] || die "no pack at ${CYAN}$dotfiles_dir/ai/$team${NC}"
+  assert_pack_belongs_to_tool "$tool" "$team"
+  run_stow "$tool" "ai/$team"
+}
+
+cmd_ensure() {
+  local tool="$1" team="$2"
+  [[ -n "$team" ]] || die "team basename required"
+  [[ -d "$dotfiles_dir/ai/$team" ]] || die "no pack at ${CYAN}$dotfiles_dir/ai/$team${NC}"
+  assert_pack_belongs_to_tool "$tool" "$team"
+  local active
+  read -r active < <(detect_active_team "$tool")
+  if [[ "$active" == "$team" ]]; then
+    echo -e "${DIM}switch_ai_team:${NC} $tool already on ${BOLD}$team${NC}, skip."
+    exit 0
+  fi
+  run_stow "$tool" "ai/$team"
+}
+
+interactive() {
+  local selected_tool selected_team selected_path
+  local tools=() teams=() team_paths=()
+  local tool_choice team_choice
+  local pack i
+
+  while IFS= read -r pack; do
+    [[ -n "$pack" ]] && tools+=("$pack")
+  done < <(collect_tools)
+
+  ((${#tools[@]} > 0)) || die "No tool teams found under '${CYAN}$ai_dir${NC}' (expected ai/<tool>-… packs)."
+
+  echo
+  echo -e "${BOLD}${CYAN}AI Team Switcher${NC}"
+  echo -e "${DIM}Source:${NC} ${CYAN}$ai_dir${NC}"
+  echo
+  echo -e "${YELLOW}Available tools:${NC}"
+  echo
+  i=1
+  for pack in "${tools[@]}"; do
+    printf "%b%2d)%b %b%s%b\n" "$DIM" "$i" "$NC" "$BOLD" "$pack" "$NC"
+    i=$((i + 1))
+  done
+  echo
+  printf "%bEnter tool number:%b " "$BOLD" "$NC"
+  if [[ -r /dev/tty ]]; then read -r tool_choice < /dev/tty; else read -r tool_choice; fi
+  [[ -n "$tool_choice" && "$tool_choice" =~ ^[0-9]+$ ]] || die "Invalid selection. Enter a valid number."
+  ((tool_choice >= 1 && tool_choice <= ${#tools[@]})) || die "Out of range. Pick ${DIM}1${NC}–${DIM}${#tools[@]}${NC}."
+  selected_tool="${tools[$((tool_choice - 1))]}"
+
+  local active_team=""
+  read -r active_team < <(detect_active_team "$selected_tool")
+
+  teams=()
+  team_paths=()
+  while IFS= read -r pack; do
+    [[ -z "$pack" ]] && continue
+    [[ "$pack" == "$active_team" ]] && teams+=("$pack [ACTIVE]") || teams+=("$pack")
+    team_paths+=("ai/$pack")
+  done < <(list_packs_for_tool "$selected_tool")
+
+  ((${#teams[@]} > 0)) || die "No teams found for tool '${CYAN}$selected_tool${NC}'."
+
+  echo
+  echo -e "${YELLOW}Available teams for${NC} ${BOLD}${CYAN}$selected_tool${NC}${YELLOW}:${NC}"
+  echo
+  i=1
+  for pack in "${teams[@]}"; do
+    if [[ "$pack" == *" [ACTIVE]" ]]; then
+      printf "%b%2d)%b %b%s%b %b[ACTIVE]%b\n" "$DIM" "$i" "$NC" "$BOLD" "${pack% \[ACTIVE\]}" "$NC" "$GREEN" "$NC"
+    else
+      printf "%b%2d)%b %b%s%b\n" "$DIM" "$i" "$NC" "$BOLD" "$pack" "$NC"
+    fi
+    i=$((i + 1))
+  done
+  echo
+  printf "%bEnter team number:%b " "$BOLD" "$NC"
+  if [[ -r /dev/tty ]]; then read -r team_choice < /dev/tty; else read -r team_choice; fi
+  [[ -n "$team_choice" && "$team_choice" =~ ^[0-9]+$ ]] || die "Invalid selection. Enter a valid number."
+  ((team_choice >= 1 && team_choice <= ${#teams[@]})) || die "Out of range. Pick ${DIM}1${NC}–${DIM}${#teams[@]}${NC}."
+
+  selected_team="${teams[$((team_choice - 1))]}"
+  selected_team="${selected_team% \[ACTIVE\]}"
+  selected_path="${team_paths[$((team_choice - 1))]}"
+  [[ -n "$selected_path" ]] || selected_path="ai/$selected_team"
+
+  run_stow "$selected_tool" "$selected_path"
+}
+
+main() {
+  case "${1:-}" in
+  -h | --help | help) usage ;;
+  apply)
+    shift
+    (($# == 2)) || die "apply needs <tool> <team-basename>"
+    cmd_apply "$1" "$2"
+    ;;
+  ensure)
+    shift
+    (($# == 2)) || die "ensure needs <tool> <team-basename>"
+    cmd_ensure "$1" "$2"
+    ;;
+  "") interactive ;;
+  *) die "unknown command '${1:-}'. Try --help." ;;
+  esac
+}
+
+main "$@"

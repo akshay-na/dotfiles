@@ -126,6 +126,21 @@ stow_multiple_dotfiles() {
   done
 }
 
+# Tool id for ~/.<tool> from ai package directory name (cursor-tech-team→cursor; .gemini→gemini).
+ai_tool_from_package_name() {
+  case "$1" in
+  .gemini) printf '%s\n' gemini ;;
+  ai-brain) printf '%s\n' ai-brain ;;
+  *)
+    if [[ "$1" == *-* ]]; then
+      printf '%s\n' "${1%%-*}"
+    else
+      printf '%s\n' "$1"
+    fi
+    ;;
+  esac
+}
+
 # Stow a specific folder path to a target folder name under $HOME
 # Usage: stow_with_target <folder_path_from_dotfiles> [target_folder_name]
 stow_with_target() {
@@ -149,24 +164,24 @@ stow_with_target() {
 
   local stow_target="$HOME/$target_folder_name"
 
-  # Switching cursor/gemini teams: remove every sibling package from the same target
+  # Switching ai team packs: remove every package that maps to the same ~/.<tool> target
   # first, or stow errors ("existing target is stowed to a different package").
   if [ "$package_dir" = "ai" ]; then
-    unstow_sibling_packages() {
-      local prefix="$1"
+    unstow_same_tool_siblings() {
+      local want_tool="$1"
       local target="$2"
-      echo_with_color "$YELLOW" "Unstowing previous ${prefix}-* packages from $target..."
-      for sibling in "$DOTFILES_DIR/ai"/"${prefix}"-*; do
-        [ -d "$sibling" ] || continue
-        rm -rf "$target/agents"
-        stow -D -d "$DOTFILES_DIR/ai" -t "$target" "$(basename "$sibling")" || true
-      done
+      local sibling base pkg_tool
+      echo_with_color "$YELLOW" "Unstowing previous ${want_tool} team packages from $target..."
+      rm -rf "${target}/agents" 2>/dev/null || true
+      while IFS= read -r -d '' sibling; do
+        base="$(basename "$sibling")"
+        [ "$base" = "ai-brain" ] && continue
+        pkg_tool="$(ai_tool_from_package_name "$base")"
+        [ "$pkg_tool" = "$want_tool" ] || continue
+        stow -D -d "$DOTFILES_DIR/ai" -t "$target" "$base" 2>/dev/null || true
+      done < <(find "$DOTFILES_DIR/ai" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
     }
-
-    case "$package_name" in
-    cursor-*) unstow_sibling_packages "cursor" "$stow_target" ;;
-    gemini-*) unstow_sibling_packages "gemini" "$stow_target" ;;
-    esac
+    unstow_same_tool_siblings "$(ai_tool_from_package_name "$package_name")" "$stow_target"
   fi
 
   echo_with_color "$GREEN" "Stowing $folder_path -> $stow_target"
@@ -182,14 +197,12 @@ stow_with_target() {
     cp -rf "$DOTFILES_DIR/$folder_path/agents" "$target_dir" 2>/dev/null || true
   }
 
-  case "$package_name" in
-  cursor | cursor-*)
-    copy_agents_for_app "cursor"
-    ;;
-  gemini | gemini-*)
-    copy_agents_for_app "gemini"
-    ;;
-  esac
+  if [ "$package_dir" = "ai" ]; then
+    app_tool="$(ai_tool_from_package_name "$package_name")"
+    if [ "$app_tool" != "ai-brain" ]; then
+      copy_agents_for_app "$app_tool"
+    fi
+  fi
 }
 
 # Remove symlinks for specific dotfiles (support multiple arguments)
