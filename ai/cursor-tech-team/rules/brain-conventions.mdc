@@ -64,17 +64,19 @@ After stow, those paths are the same files as:
 - **Who may write:** roles allowed **touch-writes** under **Writer Policy** above. Prefer **append** + **dated** entries for inferred material; separate **user-stated** vs **`inferred`** facts in **`prompt-signals.md`** / **`predicted-needs.md`**.
 - **Prompt analysis:** update profile from **main prompts** only when patterns are **clear and recurring**; **never** store secrets or guess credentials. Low confidence → omit or ask once.
 
-## Agent `git commit` (no GPG sign)
+## Git commits — signing
 
-The human may have **`commit.gpgsign=true`** globally. **All commits created by agents or automation in this pack** must **not** invoke GPG (no signing prompt, no agent stall). Use **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`** (same for merge commits if agents create them: **`--no-gpg-sign`** where supported). Applies to workspace repos, `~/ai-brain` when synced below, and any other agent-driven commit.
+- **DotMate / dotfiles repository** (the **git root** of this configuration source tree — the repo you **`make stow`** from): **OpenPGP-sign every commit** (`commit.gpgsign=true` for that repo or globally). **Do not** use **`--no-gpg-sign`** or **`git -c commit.gpgsign=false`** when committing **here**. Merge commits follow the same rule when signing is enabled.
+- **All other repositories** (workspace projects, **`~/ai-brain`** when agents or automation commit, any non-dotfiles clone): use **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`** so unattended automation does not block on passphrase prompts, unless a **project ADR** overrides.
 
 ## Commit message format (`~/.gitmessage` + Conventional Commits)
 
-Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). Prefer **`git commit --no-gpg-sign -t "$HOME/.gitmessage"`** or **`--file`** with the same **section order** as that template (`Context:`, `Impact:`, `Notes:`).
+Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). **Dotfiles repo:** **`git commit -t "$HOME/.gitmessage"`** (or **`--file`**) **with signing** as above. **Other agent-driven commits:** add **`--no-gpg-sign`** to the same invocation pattern.
 
 1. **Subject (first line):** [Conventional Commits](https://www.conventionalcommits.org/) — **`type[(optional-scope)]: imperative summary`**. Common **`type`**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`. Keep the **entire subject ≤ ~72 characters**; **no trailing period**; summary in **imperative** mood (*add*, not *added*).
 2. **Body: stay short.** Optional **bullet list** with **at most 2–3** bullets. **`Context:`** and **`Impact:`** — **one line each** unless the change truly needs two short lines; **no long narratives** (put detail in PRs, plans, or KB).
-3. **`Notes:`** — session or automation metadata only when policy requires (e.g. `Task-ID`, `AI-authored`); optional caveats **briefly**.
+3. **`Notes:`** — optional **brief** operational refs only (e.g. `Task-ID`, ticket keys) where the project already uses them.
+4. **Attribution — forbidden in commit messages:** **`Co-authored-by:`** lines for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, Cursor/Gemini vendor attribution, or similar. Commits are normal project history — **no** tool or model credit trailers.
 
 ## `~/ai-brain` as a git repository (optional)
 

@@ -11,7 +11,7 @@ Some machines use **`~/ai-brain`** as a **standalone git clone**; others keep th
 If **`cco`** or **`metrics-steward`** runs with an open workspace that is a git checkout (for example the repo you use to version `~/ai-brain` or a project that tracks marketing assets):
 
 1. **Start (optional):** `git pull --rebase --autostash` in **that** workspace root when you need an up-to-date tree before reads/writes.
-2. **End:** commit and push when policy requires — use **`git commit --no-gpg-sign`** for any agent/automation commit (**`brain-conventions.md`**); message body follows **`~/.gitmessage`** + **Commit message format** in **`brain-conventions.md`**. If the runtime cannot run shell, the human or n8n wrapper runs the same commands.
+2. **End:** commit and push when policy requires — use **`git commit --no-gpg-sign`** for agent/automation commits **except** when the git root is the **DotMate dotfiles** repository (**sign** those — **`brain-conventions.md`**); message body follows **`~/.gitmessage`** + **Commit message format** in **`brain-conventions.md`**. If the runtime cannot run shell, the human or n8n wrapper runs the same commands.
 
 If the model runtime cannot run shell, the human or n8n wrapper may run the same git commands for the **active** repo.
 

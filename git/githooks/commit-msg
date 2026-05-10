@@ -1,0 +1,13 @@
+#!/bin/sh
+# DotMate dotfiles: strip AI/IDE attribution trailers from commit messages.
+# Enable: git config core.hooksPath git/githooks  (from repository root)
+set -u
+msgfile=${1:?}
+[ -f "$msgfile" ] || exit 0
+tmp=$(mktemp "${TMPDIR:-/tmp}/dotfiles-commit-msg.XXXXXX")
+# shellcheck disable=SC2086
+grep -v -iE '^co-authored-by:[[:space:]].*(cursor|cursoragent|copilot|open[[:space:]]*ai|github[[:space:]]*copilot)' "$msgfile" \
+	| grep -v -iE '^ai-authored:' \
+	| grep -v -iE '^generated-by:' > "$tmp" || true
+mv "$tmp" "$msgfile"
+exit 0

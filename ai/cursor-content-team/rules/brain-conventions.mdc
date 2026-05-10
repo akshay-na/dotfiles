@@ -62,18 +62,20 @@ After stow, equivalent runtime paths include `~/ai-brain/_schema/**`, `~/ai-brai
 - **Who may write:** org roles with brain **touch-write** per **Writer Policy** (`cco` / `content-lead` coordinated updates when plans call for it; same bounded discipline as other `org/` writes).
 - **Prompt analysis:** maintain **`prompt-signals.md`** / **`predicted-needs.md`** from **high-signal** prompts; tag **`inferred`** + date; **no** secrets; refresh conservatively.
 
-## Agent `git commit` (no GPG sign)
+## Git commits — signing
 
-The human may have **`commit.gpgsign=true`** globally. **All commits created by agents or automation in this pack** must **not** invoke GPG. Use **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`**. Applies to the **content corpus** repo (`content-git-workflow`), **`~/ai-brain`** when synced below, and any other agent-driven commit.
+- **DotMate / dotfiles repository** (the **git root** of the DotMate checkout — same rule as **`ai/cursor-tech-team/rules/brain-conventions.mdc`**): **OpenPGP-sign every commit**; **never** **`--no-gpg-sign`** on that repository.
+- **Content corpus**, **`~/ai-brain`**, and **other** agent/automation commits under this pack: **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`** (avoid blocking prompts), unless a **project ADR** overrides.
 
 ## Commit message format (`~/.gitmessage` + Conventional Commits)
 
-Use **`$HOME/.gitmessage`** (DotMate: `dotfiles/git/.gitmessage` when stowed). Prefer **`git commit --no-gpg-sign -t "$HOME/.gitmessage"`** or **`--file`** per [**`content-git-workflow`**](../skills/content-git-workflow/SKILL.md).
+Use **`$HOME/.gitmessage`** (DotMate: `dotfiles/git/.gitmessage` when stowed). Prefer **`git commit --no-gpg-sign -t "$HOME/.gitmessage"`** or **`--file`** per [**`content-git-workflow`**](../skills/content-git-workflow/SKILL.md) for **corpus/brain** commits; **dotfiles** repo uses **signed** commits per **Signing** above.
 
 1. **Subject:** **`type[(optional-scope)]: imperative summary`** — Conventional Commits (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`, …). **≤ ~72 characters** total; **no trailing period**; imperative mood.
 2. **Content corpus lifecycle `type` (this pack / vault repos):** when the commit is **mainly** about atoms at a **stage**, prefer **`draft`**, **`staging`**, or **`published`** as **`type`** (parallel to `draft/` / `staging/` / `published/` paths), e.g. `draft: add LinkedIn hook cf-2026-0001`, `staging: tighten CTA after review`, `published: promote cf-2026-0003`. Optional **`(scope)`** may hold channel or `cf-*`, e.g. `draft(linkedin): …`. Use standard types (`chore`, `fix`, `docs`, …) for **repo-only** work (indexes, `_meta`, tooling) that is not stage-dominant.
 3. **Body: concise** — match template sections; **at most 2–3** bullets if needed; **`Context:`** / **`Impact:`** **one short line each** by default; avoid essays (detail belongs in PR or plan docs).
-4. **`Notes:`** — include **AI block** when **`content-git-workflow`** / automation requires (`AI-authored`, `Generated-by`, `Task-ID`, `Workflow`); keep other notes **brief**.
+4. **`Notes:`** — optional **brief** operational refs (e.g. `Task-ID`, ticket keys) only.
+5. **Attribution — forbidden in commit messages:** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit — **do not** add these.
 
 ## `~/ai-brain` as a git repository (optional)
 

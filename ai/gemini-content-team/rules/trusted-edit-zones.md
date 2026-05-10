@@ -30,7 +30,7 @@ Any agent **may** create, update, move, or delete files under the paths below **
 When edits land under paths like `$HOME/dotfiles/ai/gemini-content-team/**` or `$HOME/dotfiles/ai/ai-brain/**`:
 
 - Prefer editing the tracked source in the dotfiles repo (that's what stow symlinks point at — both `~/ai-brain/foo` and `~/dotfiles/ai/ai-brain/foo` are the same file when stowed).
-- Commit and push via the dotfiles repo's normal git workflow (`--no-gpg-sign` per `brain-conventions.md`).
+- Commit and push via the dotfiles repo's normal git workflow (**OpenPGP-sign** commits to the **dotfiles** git root — mandatory per **`brain-conventions.md`**).
 - Re-run `./scripts/DotMate.sh stow_with_target ai/gemini-content-team .gemini` only when adding brand-new files or changing the stow structure.
 
 Editing either path works; once the hook adapter ports, both literal and realpath matchers will treat them as equivalent.
