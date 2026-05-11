@@ -3,6 +3,8 @@
 
 # Variables
 SCRIPT := ./scripts/DotMate.sh
+# Makefile directory (repo root even when invoked as `make -f path/Makefile`)
+MAKEFILE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 # Colors for output
 GREEN := \033[1;32m
@@ -11,6 +13,7 @@ RESET := \033[0m
 
 # Ensure script is executable before running any target
 .PHONY: prep
+prep:
 	@chmod +x $(SCRIPT)
 
 	# SSH permissions
@@ -55,6 +58,8 @@ help:
 	@echo "  unstow      - Remove symlinks created by stow. Use CONFIGS to specify specific tools."
 	@echo "                Example: make unstow CONFIGS=\"git ssh nvim\""
 	@echo "  clean       - Clean up broken symlinks in the home directory"
+	@echo "  bootstrap-local - Scaffold ~/dotfiles-local (or LOCAL_DIR=...) for per-host overrides"
+	@echo "                Run from upstream clone; copies DotMate.sh, Makefile, .stowrc from canonical root."
 	@echo "  help        - Show this help message"
 
 # Targets
@@ -86,3 +91,7 @@ unstow: prep ## Remove symlinks for specified dotfiles
 .PHONY: clean
 clean: prep ## Clean up broken symlinks
 	@$(SCRIPT) clean
+
+.PHONY: bootstrap-local
+bootstrap-local: prep ## Scaffold second stow tree (LOCAL_DIR=..., SKIP_GIT_INIT=1 optional)
+	@DOTMATE_CANONICAL_ROOT=$(MAKEFILE_DIR) $(SCRIPT) bootstrap_local $(LOCAL_DIR)

@@ -1,21 +1,89 @@
 #!/bin/bash
 
-# Directories and timestamped backup
-DOTFILES_DIR=$HOME/dotfiles
-BACKUP_DIR=$HOME/dotfiles_backup/$(date +%Y%m%d_%H%M%S)
-
-source $DOTFILES_DIR/shell/.functions
-
-# Colors for output
+# Colors for output (defined before repo resolution so trust checks can use them)
 GREEN="\033[1;32m"
 RED="\033[1;31m"
 YELLOW="\033[1;33m"
 RESET="\033[0m"
 
-# Function to echo with color
 echo_with_color() {
   echo -e "${1}${2}${RESET}"
 }
+
+# Absolute path to this script (symlink-safe, no readlink -f requirement)
+_dotmate_self_path() {
+  local s="${BASH_SOURCE[0]:-$0}"
+  while [ -L "$s" ]; do
+    local dir
+    dir="$(cd -P "$(dirname "$s")" && pwd)"
+    s="$(readlink "$s")"
+    case "$s" in /*) ;; *) s="$dir/$s" ;; esac
+  done
+  echo "$(cd -P "$(dirname "$s")" && pwd)/$(basename "$s")"
+}
+
+# Repo root: directory containing scripts/DotMate.sh, else directory of script
+_dotmate_repo_root_from_script() {
+  local self="$1"
+  local dir
+  dir="$(cd -P "$(dirname "$self")" && pwd)"
+  if [ "$(basename "$dir")" = "scripts" ]; then
+    cd -P "$(dirname "$dir")" && pwd
+  else
+    echo "$dir"
+  fi
+}
+
+# Resolve operational dotfiles tree (upstream clone or ~/dotfiles-local)
+if [ -n "${DOTFILES_DIR:-}" ]; then
+  if ! DOTFILES_DIR="$(cd -P "$DOTFILES_DIR" 2>/dev/null && pwd)"; then
+    echo_with_color "$RED" "Invalid DOTFILES_DIR: ${DOTFILES_DIR:-}"
+    exit 1
+  fi
+else
+  _dotmate_sp="$(_dotmate_self_path)"
+  DOTFILES_DIR="$(_dotmate_repo_root_from_script "$_dotmate_sp")"
+fi
+
+# Trust boundary: sourcing from DOTFILES_DIR is like trusting a git checkout
+_dotmate_assert_dotfiles_dir_trusted() {
+  local root="$1"
+  if [ ! -d "$root" ]; then
+    echo_with_color "$RED" "Dotfiles directory missing: $root"
+    exit 1
+  fi
+  local cur_uid owner_uid
+  cur_uid="$(id -u)"
+  if stat -f '%u' "$root" >/dev/null 2>&1; then
+    owner_uid="$(stat -f '%u' "$root")"
+  elif stat -c '%u' "$root" >/dev/null 2>&1; then
+    owner_uid="$(stat -c '%u' "$root")"
+  else
+    echo_with_color "$YELLOW" "DotMate: could not stat DOTFILES_DIR; skipping ownership check."
+    return 0
+  fi
+  if [ "$owner_uid" != "$cur_uid" ]; then
+    echo_with_color "$RED" "DotMate: refusing DOTFILES_DIR not owned by current user (euid $cur_uid): $root"
+    exit 1
+  fi
+  if find "$root" -maxdepth 0 -perm -0002 2>/dev/null | grep -q .; then
+    echo_with_color "$RED" "DotMate: refusing world-writable DOTFILES_DIR: $root"
+    exit 1
+  fi
+}
+
+_dotmate_assert_dotfiles_dir_trusted "$DOTFILES_DIR"
+
+_DOTMATE_FUNCTIONS="$DOTFILES_DIR/shell/.functions"
+if [ -f "$_DOTMATE_FUNCTIONS" ]; then
+  # shellcheck source=/dev/null
+  source "$_DOTMATE_FUNCTIONS"
+else
+  echo_with_color "$YELLOW" "DotMate: missing shell/.functions — continuing without shared functions."
+fi
+
+# Directories and timestamped backup
+BACKUP_DIR=$HOME/dotfiles_backup/$(date +%Y%m%d_%H%M%S)
 
 # Backup existing dotfiles to avoid data loss
 backup_dotfiles() {
@@ -83,7 +151,7 @@ install() {
 # Create symlinks for dotfiles using stow
 stow_dotfiles() {
   echo_with_color "$GREEN" "Stowing dotfiles..."
-  EXCLUDED_DIRS=("ai")
+  EXCLUDED_DIRS=("ai" "scripts")
   for dir in "$DOTFILES_DIR"/*/; do
     if [[ ! " ${EXCLUDED_DIRS[@]} " =~ " $(basename "$dir") " ]]; then
       stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
@@ -218,6 +286,86 @@ unstow_multiple_dotfiles() {
   done
 }
 
+# Second repo for per-host overrides. Sources of truth for copies: DOTMATE_CANONICAL_ROOT only.
+bootstrap_local_main() {
+  if [ -z "${DOTMATE_CANONICAL_ROOT:-}" ]; then
+    echo_with_color "$RED" "Run via \`make bootstrap-local\` from upstream clone or set \`DOTMATE_CANONICAL_ROOT\`."
+    exit 1
+  fi
+  if ! CANON="$(cd -P "$DOTMATE_CANONICAL_ROOT" 2>/dev/null && pwd)"; then
+    echo_with_color "$RED" "Invalid DOTMATE_CANONICAL_ROOT: $DOTMATE_CANONICAL_ROOT"
+    exit 1
+  fi
+  local raw="${LOCAL_DIR:-${1:-}}"
+  raw="${raw:-$HOME/dotfiles-local}"
+  case "$raw" in
+  ~/*) raw="$HOME/${raw#~/}" ;;
+  ~) raw="$HOME" ;;
+  esac
+  mkdir -p "$raw" || {
+    echo_with_color "$RED" "Could not create LOCAL_DIR: $raw"
+    exit 1
+  }
+  local_dir="$(cd -P "$raw" && pwd)" || {
+    echo_with_color "$RED" "Could not resolve LOCAL_DIR: $raw"
+    exit 1
+  }
+
+  echo_with_color "$GREEN" "Bootstrapping local dotfiles tree: $local_dir"
+  mkdir -p "$local_dir/shell" "$local_dir/git" "$local_dir/ssh/.ssh" "$local_dir/utilities" "$local_dir/scripts"
+
+  cp -n "$CANON/scripts/DotMate.sh" "$local_dir/scripts/DotMate.sh"
+  cp -n "$CANON/Makefile" "$local_dir/Makefile"
+  if [ -f "$CANON/.stowrc" ]; then
+    cp -n "$CANON/.stowrc" "$local_dir/.stowrc"
+  else
+    echo_with_color "$YELLOW" "Warning: $CANON/.stowrc missing; skipping copy."
+  fi
+
+  _bootstrap_scaffold_if_missing() {
+    local f="$1"
+    if [ ! -e "$f" ]; then
+      : >"$f"
+    fi
+  }
+  _bootstrap_scaffold_if_missing "$local_dir/shell/.commonrc_local"
+  _bootstrap_scaffold_if_missing "$local_dir/shell/.functions_local"
+  _bootstrap_scaffold_if_missing "$local_dir/shell/.aliases_local"
+  _bootstrap_scaffold_if_missing "$local_dir/shell/.zshrc_local"
+  _bootstrap_scaffold_if_missing "$local_dir/shell/.bashrc_local"
+  _bootstrap_scaffold_if_missing "$local_dir/shell/.tmux_local.conf"
+  _bootstrap_scaffold_if_missing "$local_dir/git/.gitconfig_local"
+  _bootstrap_scaffold_if_missing "$local_dir/ssh/.ssh/config_local"
+  _bootstrap_scaffold_if_missing "$local_dir/utilities/.taskrc_local"
+
+  if [ ! -f "$local_dir/.gitignore" ]; then
+    cat >"$local_dir/.gitignore" <<'EOF'
+.DS_Store
+EOF
+  fi
+  if [ ! -f "$local_dir/README.md" ]; then
+    cat >"$local_dir/README.md" <<'EOF'
+# Local dotfiles overrides
+
+Machine-specific stow tree. Refresh `DotMate.sh`, `Makefile`, and `.stowrc` from upstream by running `make bootstrap-local` from your canonical clone (or set `DOTMATE_CANONICAL_ROOT` explicitly).
+
+See upstream README: two-root contract and trust boundaries for `DOTFILES_DIR`.
+EOF
+  fi
+
+  if command -v git >/dev/null 2>&1 && [ "${SKIP_GIT_INIT:-0}" != "1" ]; then
+    if [ ! -d "$local_dir/.git" ]; then
+      (cd "$local_dir" && git init -b main)
+    fi
+    if [ ! -f "$local_dir/.git/HEAD" ]; then
+      echo_with_color "$RED" "Expected $local_dir/.git/HEAD after git init."
+      exit 1
+    fi
+  fi
+
+  echo_with_color "$GREEN" "bootstrap-local finished: $local_dir"
+}
+
 # Main logic to handle arguments
 case "$1" in
 backup)
@@ -225,7 +373,11 @@ backup)
   ;;
 update)
   backup_dotfiles
-  check_dotfiles_update
+  if declare -F check_dotfiles_update >/dev/null 2>&1; then
+    check_dotfiles_update
+  else
+    echo_with_color "$YELLOW" "check_dotfiles_update not defined; skipping update check."
+  fi
   stow_dotfiles
   ;;
 install)
@@ -256,8 +408,12 @@ unstow)
 clean)
   clean_symlinks
   ;;
+bootstrap_local | bootstrap-local)
+  shift
+  bootstrap_local_main "$@"
+  ;;
 *)
-  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean}"
+  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean|bootstrap_local}"
   exit 1
   ;;
 esac

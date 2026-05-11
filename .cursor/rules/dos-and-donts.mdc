@@ -12,7 +12,7 @@ alwaysApply: true
 
 - **Do prefer local overrides for host-specific tweaks**
   - Use documented local override files such as:
-    - `~/.gitconfig_local`, `~/.zshrc_local`, `~/.bashrc_local`, `~/.aliases_local`, `~/.functions_local`, `~/.commonrc_local`, `~/.config/starship_local.toml`, etc.
+    - `~/.gitconfig_local`, `~/.zshrc_local`, `~/.bashrc_local`, `~/.aliases_local`, `~/.functions_local`, `~/.commonrc_local`, etc.
   - Keep tracked configs focused on shared, cross-machine behavior.
 
 - **Don't mass-autoformat or rewrite configs**
