@@ -157,8 +157,8 @@ make stow-with-target TOOL_PATH="git"
 - **Common Configuration** (`.commonrc`):
   - Shared environment variables, paths, and tool initializations
   - Homebrew, editor detection, and tool setup
-  - Dotfiles update checks are skipped over SSH sessions
-  - Interactive dotfiles update checks are **off** by default; set `DOTFILES_ENABLE_UPDATE=true` to enable them on shell startup
+  - Dotfiles update checks are skipped over SSH sessions (`SSH_CONNECTION` / `SSH_TTY`)
+  - On an interactive local TTY, DotMate may run a background `git fetch` in `DOTFILES_DIR` and call `check_dotfiles_update` (from `.functions`) when the host can reach the network. Set **`DOTFILES_DISABLE_UPDATE=true`** in the environment or in **`~/.commonrc_local`** to skip that path entirely (agents, CI, or slow links)
   - Cross-platform compatibility (macOS/Linux)
 - **Aliases** (`.aliases`):
   - Comprehensive collection of useful command shortcuts
