@@ -51,3 +51,7 @@ Safe resume: `post_brief`, `post_all_drafts`, `post_qa`. On `action: revise`, re
 ## Observability
 
 On every `phase_enter`, `phase_exit`, and `handoff`: append one NDJSON line per `rules/inter-persona-observability.md`.
+
+## Automation gate signals
+
+Automation (**`execution_mode: automation`**) honors **plan-declared structured signals only** — PR merge, approval webhook, or **idempotency-keyed** payload field (e.g. `correction_enqueue_mode`, `push_after_commit`). **Never** infer approval from silence or generic affirmations. Plans must enumerate the gate event for each automated stage.

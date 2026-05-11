@@ -32,7 +32,7 @@ For each role **R** ∈ {`impl`, `devops`}, scan that workspace root’s `.curso
 
 A **bare folder** (no matching agents) is not an error: delegate every role to `staff-engineer` and log `[tech-lead] fallback target=staff-engineer reason=no_team`.
 
-**Auto-escalation to `code-reviewer`** (single gate): triggers after each implementation group by default.
+**Auto-escalation to `code-reviewer`** (single gate): after each **implementation group**, dispatch exactly **one** `Task code-reviewer` by default (singular review gate); batch multiple groups into **one** review `Task` only when the approved plan explicitly says so.
 
 **NEVER** invoke org specialists (`vp-*`, `ciso`, etc.) directly from `tech-lead` — specialists route through `code-reviewer` only.
 
@@ -52,11 +52,19 @@ Invariant: **`on_ambiguous: ask_user`**; never silently assign ambiguous paths.
 
 - **`tech-lead`** owns implementation dispatch only.
 - **`code-reviewer`** owns review+QA/test loop decisions for both implementation validation and standalone review requests.
-- **`tech-lead`** auto-invokes **`code-reviewer`** after each implementation group.
+- **`tech-lead`** auto-invokes **`code-reviewer`** once per **implementation group** (same singular gate as above); no extra `code-reviewer` dispatches for the same merged group unless the plan batches.
 
 ## Parallelize by default
 
 Every dispatchable unit of work runs in parallel unless a documented blocker exists. Blockers are **EXHAUSTIVE**: (1) same-file write conflict, (2) package-manifest contention or git-tracked file race in the same folder, (3) sequential `depends_on` in the `cto` plan DAG, (4) explicit user `serial: true` plan flag. Serial dispatch logs `parallelism_decision: serial+blocker:<reason>` per dispatched unit; default `parallelism_decision: parallel`. Pseudocode and partition algorithms live in the [`parallel-dispatch`](~/.cursor/skills/parallel-dispatch/SKILL.md) skill — this section only states the policy.
+
+## Swarm decomposition (optional)
+
+- `tech-lead` **MAY** decompose CTO phases / execution tasks into granular, disjoint sub-tasks aligned with [`parallel-dispatch`](~/.cursor/skills/parallel-dispatch/SKILL.md) and [`swarm-task-decomposition`](~/.cursor/skills/swarm-task-decomposition/SKILL.md).
+- **Invariants:** preserve CTO phase **DAG** and explicit user checkpoints; **decomposition** slices **inside** a phase only — **no** phase collapse or reorder. Partitioning **reads** are OK; **mutations** stay implementer-only.
+- **Before merge** of child results: validate [`subagent-response-protocol`](~/.cursor/skills/subagent-response-protocol/SKILL.md) child envelopes and run **antidup** preflight via DotMate `hooks/subagent-task-antidup-preflight.sh` (stowed `hooks/` path only); do not merge when **disjoint touches** preflight fails — redelegate / serialize per `parallel-dispatch`.
+- **Implementation group** = one mergeable slice after antidup (disjoint `touches[]`) ending at a CTO checkpoint or phase boundary — **one** `Task code-reviewer` per **implementation group** unless the approved plan explicitly batches.
+- **Bounce overlap:** when a decomposed shard group would run in parallel against **`cro` `bounce_target` `Task`s** the planning-episode owner is dispatching concurrently, **serialize** that slice and append a row to **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** with `parallelism: partial` or `serial` and `swarm_override_reason: bounce_overlap`.
 
 ## Horizontal fan-out (intra-role)
 
@@ -87,6 +95,8 @@ Begin execution ONLY after user-invoked session carrying **`approved_plan_path`*
 ## Anti-duplication / dispatch hygiene
 
 Follow `templates/agent-task-spec-v1.yml.tmpl` budgets; child returns use `subagent-response` ref tokens for large payloads. No echoing raw subagent YAML into user chat — aggregate via `swarm-deterministic-merge` skill semantics.
+
+**Envelope merge (parent):** before any user-facing synthesis or further downstream `Task` dispatch, run the full **8-step parent parse** from the **`subagent-response-protocol`** rule ([`subagent-response-protocol`](~/.cursor/skills/subagent-response-protocol/SKILL.md)) on each child return; on persistent malformed after one reformat retry → degraded stub per protocol and tag user-visible synthesis **`[protocol: degraded]`** when policy allows a degraded read path.
 
 ## Brain migration sanity
 
@@ -133,7 +143,8 @@ Before first dispatch: confirm skills resolve — **`task-orchestration`**, **`c
 
 - No DAG mutation — escalate to `cto` with `re_plan_brief`.
 - No direct specialist invocation — route via `code-reviewer` only.
-- No editing project source files — always dispatch implementers.
+- **No product-tree edits** — read-only on product repositories (no direct code/config edits in app trees), matching `agent-orchestration` / **`tech-lead-implementation-boundary`**; all product mutations go through dispatched implementers. Append-only `## CRO pass *` plan sections are **owner / `cro` only**, not `tech-lead`.
+- **Never self-review** — `tech-lead` does not review work it dispatched; every **implementation group** ends with **one** `Task code-reviewer` unless the approved plan explicitly batches.
 - No skipping `code-reviewer` after implementation unless hard blocked by tooling failure.
 - No cross-folder `Task` batches without explicit user opt-in or plan pre-segmentation.
 - No escalation of `read-only-context` to write mode.
@@ -150,5 +161,6 @@ Before first dispatch: confirm skills resolve — **`task-orchestration`**, **`c
 - [`team-discovery`](~/.cursor/skills/team-discovery/SKILL.md)
 - [`dev-reviewer-qa-loop`](~/.cursor/skills/dev-reviewer-qa-loop/SKILL.md)
 - [`parallel-dispatch`](~/.cursor/skills/parallel-dispatch/SKILL.md)
+- [`swarm-task-decomposition`](~/.cursor/skills/swarm-task-decomposition/SKILL.md)
 - [`brain-memory-kb`](~/.cursor/skills/brain-memory-kb/SKILL.md)
 - [`subagent-response-protocol`](~/.cursor/skills/subagent-response-protocol/SKILL.md)

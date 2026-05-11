@@ -23,3 +23,14 @@ Automation: sync → **`cco`** (plan) → **`content-lead`** (generate + **commi
 ## Human gate
 
 Publishing / CMS remains **after** human approval; agents stop at pushed drafts.
+
+## Gemini vs Cursor telemetry
+
+Gemini CLI has **no** Cursor JSONL hook telemetry substrate (`~/.cursor/hooks/telemetry-*.sh` is **Cursor-only**). Coordinators rely on **`agent-observability`** metrics + brain ledger writes; append **`swarm_override_reason`** to **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** when applicable (same cross-pack sink as tech pack).
+
+## Parity checklist (orchestration)
+
+- ☑ Automation gate signals mirrored (`rules/orchestration.md`).
+- ☑ Corpus boundary pointer mirrored (`rules/agent-orchestration.md`).
+- ☑ Cross-pack swarm audit + `dispatch-audit.md` pointer mirrored.
+- ☑ Gemini hook/telemetry gap documented (§ Gemini vs Cursor telemetry).

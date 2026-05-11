@@ -28,3 +28,7 @@ Automation: sync → **`cco`** (plan) → **`content-lead`** (generate + **commi
 ## Human gate
 
 Publishing / CMS remains **after** human approval; agents stop at pushed drafts.
+
+## Automation gate signals
+
+Automation (**`execution_mode: automation`**) honors **plan-declared structured signals only** — PR merge, approval webhook, or **idempotency-keyed** payload field (e.g. `correction_enqueue_mode`, `push_after_commit`). **Never** infer approval from silence or generic affirmations. Plans must enumerate the gate event for each automated stage.

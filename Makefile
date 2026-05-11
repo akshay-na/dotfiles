@@ -15,32 +15,16 @@ RESET := \033[0m
 .PHONY: prep
 prep:
 	@chmod +x $(SCRIPT)
-
-	# SSH permissions
 	@if [ -d "./ssh/.ssh" ]; then \
-	    chmod 700 ./ssh/.ssh; \
-	    find ./ssh/.ssh -type f -exec chmod 600 {} \; 2>/dev/null; \
-	    echo "SSH permissions set."; \
-	else \
-	    echo "Warning: ./ssh/.ssh does not exist, skipping SSH permissions."; \
+		chmod 700 ./ssh/.ssh; \
+		find ./ssh/.ssh -type f -exec chmod 600 {} \; 2>/dev/null; \
 	fi
-
-	# SSH socket permissions (only if directory exists)
 	@if [ -d "./ssh/.ssh/sockets" ]; then \
-	    find ./ssh/.ssh/sockets -type f -exec chmod 600 {} \; 2>/dev/null; \
-	    echo "SSH socket permissions set."; \
-	else \
-	    echo "Warning: ./ssh/.ssh/sockets does not exist, skipping socket permissions."; \
+		find ./ssh/.ssh/sockets -type f -exec chmod 600 {} \; 2>/dev/null; \
 	fi
-
-	# GPG permissions
 	@if [ -d "./gnupg/.gnupg" ]; then \
-	    chmod 700 ./gnupg/.gnupg; \
-	    chmod +x ./gnupg/.gnupg/pinentry.sh; \
-	    find ./gnupg/.gnupg -type f -exec chmod 600 {} \; 2>/dev/null; \
-	    echo "GPG permissions set."; \
-	else \
-	    echo "Warning: ./gnupg/.gnupg does not exist, skipping GPG permissions."; \
+		chmod 700 ./gnupg/.gnupg; \
+		find ./gnupg/.gnupg -type f -exec chmod 600 {} \; 2>/dev/null; \
 	fi
 
 # Default target to show available commands and usage

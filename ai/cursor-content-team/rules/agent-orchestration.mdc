@@ -84,6 +84,8 @@ Execution details for **file tools**, **terminal**, and **`Task`**: **`strict-to
 - **Brain / memory:** **`brain-conventions.mdc`** only; **no** secrets in writes; bounded fields per skill.
 - **`Task`:** subagents obey **`subagent-response-protocol.mdc`**; parents **must not** dispatch agents absent from routing table / plan / this rule’s allowlists.
 - **Shell:** prefer **`content-git-workflow`** for pull/commit/push; **no** destructive git (**`--force`**, **`reset --hard`**) unless user explicitly orders; **no** ad-hoc **`curl`** / **`wget`** to third-party editorial or analytics endpoints unless a **skill or runbook** authorizes that integration.
+- **Corpus project rules:** project agents in the active content corpus repo (whatever folder is **`workspace_root`**) follow **that repo's own** boundary rule (e.g. **`*-agent-boundaries.mdc`** if present) for **`Task`** allowlist + tool boundaries — this pack does **not** redefine project-tier allowlists.
+- **Swarm audit (cross-pack pointer):** coordinator swarm overrides + **`swarm_override_reason`** semantics + row schema live in **`ai/cursor-tech-team/rules/agent-orchestration.mdc`** § **Swarm default + orchestration audit**. Canonical cross-pack sink: **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** — same sink, same semantics; do **not** duplicate the field list here.
 
 ## Violations
 
