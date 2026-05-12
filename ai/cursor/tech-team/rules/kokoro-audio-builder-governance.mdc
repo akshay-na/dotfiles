@@ -6,7 +6,7 @@ alwaysApply: false
 
 # kokoro-audio-builder Governance Rule
 
-Applies when **`kokoro-audio-builder`** is active or when editing its artifacts under **`ai/cursor-tech-team/{agents,skills,rules,docs/runbooks}`** (stowed under **`~/.cursor/...`**), or **audio pipeline** plans under **`<project>/.cursor/docs/plans/*kokoro*`** / **`tools/audio-pipeline/`**.
+Applies when **`kokoro-audio-builder`** is active or when editing its artifacts under **`ai/cursor/tech-team/{agents,skills,rules,docs/runbooks}`** (stowed under **`~/.cursor/...`**), or **audio pipeline** plans under **`<project>/.cursor/docs/plans/*kokoro*`** / **`tools/audio-pipeline/`**.
 
 **Non-bypass.** Overrides only via explicit phrases aligned with **`remotion-builder-governance.mdc`**; record in plan or ADR.
 

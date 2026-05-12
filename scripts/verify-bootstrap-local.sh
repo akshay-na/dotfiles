@@ -28,7 +28,7 @@ if [ "${VERIFY_SKIP_GIT_INIT:-0}" = 1 ]; then
 fi
 
 run_bootstrap() {
-  make bootstrap-local LOCAL_DIR="$LOCAL_DIR" DOTMATE_CANONICAL_ROOT="$REPO_ROOT"
+  make bootstrap_local LOCAL_DIR="$LOCAL_DIR" DOTMATE_CANONICAL_ROOT="$REPO_ROOT"
 }
 
 run_bootstrap

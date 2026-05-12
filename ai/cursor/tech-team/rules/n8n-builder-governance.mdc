@@ -8,7 +8,7 @@ alwaysApply: false
 
 This rule applies whenever the `n8n-builder` agent is active or whenever any
 agent is editing canonical `n8n-builder` artifacts under
-`ai/cursor-tech-team/{agents,skills,configurations,rules,docs/runbooks,docs/decisions}`
+`ai/cursor/tech-team/{agents,skills,configurations,rules,docs/runbooks,docs/decisions}`
 in the DotMate repo (stowed under `~/.cursor/...`), or project-local plans under
 `<project>/.cursor/docs/plans/`.
 
@@ -146,9 +146,9 @@ Silence, generic praise, or unrelated text is never approval.
 
 ## Cross-References
 
-- Mode policy: `ai/cursor-tech-team/configurations/n8n-builder-mode-policy.yml`
-- Worker contract: `ai/cursor-tech-team/configurations/n8n-builder-worker-contract.yml`
-- QA policy: `ai/cursor-tech-team/configurations/n8n-builder-qa-policy.yml`
-- CRO runbook: `ai/cursor-tech-team/docs/runbooks/n8n-builder-cro-loop.md`
-- Operations runbook: `ai/cursor-tech-team/docs/runbooks/n8n-builder-operations.md`
-- As-code reviewer/QA runbook: `ai/cursor-tech-team/docs/runbooks/n8n-builder-as-code-review-qa.md`
+- Mode policy: `ai/cursor/tech-team/configurations/n8n-builder-mode-policy.yml`
+- Worker contract: `ai/cursor/tech-team/configurations/n8n-builder-worker-contract.yml`
+- QA policy: `ai/cursor/tech-team/configurations/n8n-builder-qa-policy.yml`
+- CRO runbook: `ai/cursor/tech-team/docs/runbooks/n8n-builder-cro-loop.md`
+- Operations runbook: `ai/cursor/tech-team/docs/runbooks/n8n-builder-operations.md`
+- As-code reviewer/QA runbook: `ai/cursor/tech-team/docs/runbooks/n8n-builder-as-code-review-qa.md`

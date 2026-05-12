@@ -194,7 +194,7 @@ stow_multiple_dotfiles() {
   done
 }
 
-# Tool id for ~/.<tool> from ai package directory name (cursor-tech-team→cursor; .gemini→gemini).
+# Tool id for ~/.<tool> from ai package directory basename (hyphenated names strip first segment; .gemini and ai-brain special-cased; nested paths use ai_tool_from_folder_path).
 ai_tool_from_package_name() {
   case "$1" in
   .gemini) printf '%s\n' gemini ;;
@@ -209,6 +209,60 @@ ai_tool_from_package_name() {
   esac
 }
 
+# Tool id from a repo-relative ai pack path (nested ai/<tool>/<team> or ai/private-teams/<tool>/<team>).
+ai_tool_from_folder_path() {
+  local fp="$1"
+  case "$fp" in
+  ai/private-teams/*/*)
+    local sub="${fp#ai/private-teams/}"
+    printf '%s\n' "${sub%%/*}"
+    ;;
+  ai/*/*)
+    local sub="${fp#ai/}"
+    printf '%s\n' "${sub%%/*}"
+    ;;
+  *)
+    ai_tool_from_package_name "$(basename "$fp")"
+    ;;
+  esac
+}
+
+# Before restowing an ai pack, drop prior stows into the same ~/.<tool> target (nested ai/<tool>/<team> and ai/private-teams/<tool>/<team> only; no flat legacy packs).
+ai_unstow_sibling_packs_for_stow_target() {
+  local target="$1"
+  local want_tool="$2"
+  local sibling base
+
+  echo_with_color "$YELLOW" "Unstowing previous ${want_tool} team packages from $target..."
+  rm -rf "${target}/agents" 2>/dev/null || true
+
+  if [ -d "$DOTFILES_DIR/ai/$want_tool" ]; then
+    while IFS= read -r -d '' sibling; do
+      base="$(basename "$sibling")"
+      stow -D -d "$DOTFILES_DIR/ai/$want_tool" -t "$target" "$base" 2>/dev/null || true
+    done < <(find "$DOTFILES_DIR/ai/$want_tool" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  fi
+
+  if [ -d "$DOTFILES_DIR/ai/private-teams/$want_tool" ]; then
+    while IFS= read -r -d '' sibling; do
+      base="$(basename "$sibling")"
+      stow -D -d "$DOTFILES_DIR/ai/private-teams/$want_tool" -t "$target" "$base" 2>/dev/null || true
+    done < <(find "$DOTFILES_DIR/ai/private-teams/$want_tool" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  fi
+}
+
+# Copy agents from the stowed ai pack into ~/.<tool>/ (not symlinked). Refreshes ~/ai-brain via ai-brain stow.
+ai_copy_agents_from_ai_pack() {
+  local folder_path="$1"
+  local app_tool="$2"
+  local target_dir="$HOME/.$app_tool"
+
+  mkdir -p "$HOME/ai-brain"
+  stow --no-folding --override="ai-brain" -d "$DOTFILES_DIR/ai" -t "$HOME/ai-brain" "ai-brain"
+  rm -rf "${target_dir}/agents"
+  cp -rf "$DOTFILES_DIR/$folder_path/agents" "$target_dir" 2>/dev/null || true
+}
+
 # Stow a specific folder path to a target folder name under $HOME
 # Usage: stow_with_target <folder_path_from_dotfiles> [target_folder_name]
 stow_with_target() {
@@ -219,8 +273,7 @@ stow_with_target() {
 
   local folder_path="$1"
   local target_folder_name="${2:-$(basename "$folder_path")}"
-  local package_dir
-  local package_name
+  local package_dir package_name stow_target app_tool
 
   package_dir="$(dirname "$folder_path")"
   package_name="$(basename "$folder_path")"
@@ -230,46 +283,19 @@ stow_with_target() {
     exit 1
   fi
 
-  local stow_target="$HOME/$target_folder_name"
+  stow_target="$HOME/$target_folder_name"
+  app_tool=
 
-  # Switching ai team packs: remove every package that maps to the same ~/.<tool> target
-  # first, or stow errors ("existing target is stowed to a different package").
-  if [ "$package_dir" = "ai" ]; then
-    unstow_same_tool_siblings() {
-      local want_tool="$1"
-      local target="$2"
-      local sibling base pkg_tool
-      echo_with_color "$YELLOW" "Unstowing previous ${want_tool} team packages from $target..."
-      rm -rf "${target}/agents" 2>/dev/null || true
-      while IFS= read -r -d '' sibling; do
-        base="$(basename "$sibling")"
-        [ "$base" = "ai-brain" ] && continue
-        pkg_tool="$(ai_tool_from_package_name "$base")"
-        [ "$pkg_tool" = "$want_tool" ] || continue
-        stow -D -d "$DOTFILES_DIR/ai" -t "$target" "$base" 2>/dev/null || true
-      done < <(find "$DOTFILES_DIR/ai" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
-    }
-    unstow_same_tool_siblings "$(ai_tool_from_package_name "$package_name")" "$stow_target"
+  if [[ "$folder_path" == ai/* ]]; then
+    app_tool="$(ai_tool_from_folder_path "$folder_path")"
+    ai_unstow_sibling_packs_for_stow_target "$stow_target" "$app_tool"
   fi
 
   echo_with_color "$GREEN" "Stowing $folder_path -> $stow_target"
   stow --no-folding --override="$package_name" -R -d "$DOTFILES_DIR/$package_dir" -t "$stow_target" "$package_name"
 
-  # AI agents: copy (not symlink). ai-brain skeleton is stowed only here — not via make stow CONFIGS (ai/ excluded).
-  copy_agents_for_app() {
-    local app_name="$1"
-    local target_dir="$HOME/.$app_name"
-    mkdir -p "$HOME/ai-brain"
-    stow --no-folding --override="ai-brain" -d "$DOTFILES_DIR/ai" -t "$HOME/ai-brain" "ai-brain"
-    rm -rf "$target_dir/agents"
-    cp -rf "$DOTFILES_DIR/$folder_path/agents" "$target_dir" 2>/dev/null || true
-  }
-
-  if [ "$package_dir" = "ai" ]; then
-    app_tool="$(ai_tool_from_package_name "$package_name")"
-    if [ "$app_tool" != "ai-brain" ]; then
-      copy_agents_for_app "$app_tool"
-    fi
+  if [[ "$folder_path" == ai/* ]] && [ "$app_tool" != "ai-brain" ]; then
+    ai_copy_agents_from_ai_pack "$folder_path" "$app_tool"
   fi
 }
 
@@ -289,7 +315,7 @@ unstow_multiple_dotfiles() {
 # Second repo for per-host overrides. Sources of truth for copies: DOTMATE_CANONICAL_ROOT only.
 bootstrap_local_main() {
   if [ -z "${DOTMATE_CANONICAL_ROOT:-}" ]; then
-    echo_with_color "$RED" "Run via \`make bootstrap-local\` from upstream clone or set \`DOTMATE_CANONICAL_ROOT\`."
+    echo_with_color "$RED" "Run via \`make bootstrap_local\` from upstream clone or set \`DOTMATE_CANONICAL_ROOT\`."
     exit 1
   fi
   if ! CANON="$(cd -P "$DOTMATE_CANONICAL_ROOT" 2>/dev/null && pwd)"; then
@@ -347,7 +373,7 @@ EOF
     cat >"$local_dir/README.md" <<'EOF'
 # Local dotfiles overrides
 
-Machine-specific stow tree. Refresh `DotMate.sh`, `Makefile`, and `.stowrc` from upstream by running `make bootstrap-local` from your canonical clone (or set `DOTMATE_CANONICAL_ROOT` explicitly).
+Machine-specific stow tree. Refresh `DotMate.sh`, `Makefile`, and `.stowrc` from upstream by running `make bootstrap_local` from your canonical clone (or set `DOTMATE_CANONICAL_ROOT` explicitly).
 
 See upstream README: two-root contract and trust boundaries for `DOTFILES_DIR`.
 EOF
@@ -363,7 +389,29 @@ EOF
     fi
   fi
 
-  echo_with_color "$GREEN" "bootstrap-local finished: $local_dir"
+  echo_with_color "$GREEN" "bootstrap_local finished: $local_dir"
+}
+
+# Init/sync all submodules from .gitmodules; advance those with submodule.<name>.branch; then enable GPG signing in each checkout.
+sync_git_submodules() {
+  if [ ! -f "$DOTFILES_DIR/.gitmodules" ]; then
+    return 0
+  fi
+  if ! git -C "$DOTFILES_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+    echo_with_color "$YELLOW" "DotMate: not a git checkout; skipping submodule sync."
+    return 0
+  fi
+  echo_with_color "$GREEN" "DotMate: syncing git submodules…"
+  GIT_TERMINAL_PROMPT=0 git -C "$DOTFILES_DIR" submodule sync --recursive 2>/dev/null || true
+  if ! GIT_TERMINAL_PROMPT=0 git -C "$DOTFILES_DIR" submodule update --init --recursive; then
+    echo_with_color "$RED" "DotMate: submodule update --init failed (SSH, host keys, or network?)."
+    echo_with_color "$YELLOW" "DotMate: when access works: git -C \"$DOTFILES_DIR\" submodule update --init --recursive"
+    return 1
+  fi
+  if ! GIT_TERMINAL_PROMPT=0 git -C "$DOTFILES_DIR" submodule update --remote --recursive; then
+    echo_with_color "$YELLOW" "DotMate: submodule update --remote had issues (submodules without branch= in .gitmodules stay at the superproject pin)."
+  fi
+  return 0
 }
 
 # Main logic to handle arguments
@@ -374,7 +422,10 @@ backup)
 update)
   backup_dotfiles
   if declare -F check_dotfiles_update >/dev/null 2>&1; then
+    DOTMATE_UPDATE_FROM_DOTMATE=1
+    export DOTMATE_UPDATE_FROM_DOTMATE
     check_dotfiles_update
+    unset DOTMATE_UPDATE_FROM_DOTMATE
   else
     echo_with_color "$YELLOW" "check_dotfiles_update not defined; skipping update check."
   fi
@@ -408,12 +459,15 @@ unstow)
 clean)
   clean_symlinks
   ;;
-bootstrap_local | bootstrap-local)
+bootstrap_local)
   shift
   bootstrap_local_main "$@"
   ;;
+sync_submodules)
+  sync_git_submodules
+  ;;
 *)
-  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean|bootstrap_local}"
+  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean|bootstrap_local|sync_submodules}"
   exit 1
   ;;
 esac

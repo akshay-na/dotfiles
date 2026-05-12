@@ -284,9 +284,16 @@ check_dotfiles_update() {
       read -r REPLY
       echo # Move to a new line
       if [[ $REPLY =~ ^[Yy]$ ]]; then
-        git pull
+        git pull || exit 1
+        if [ -f "$DOTFILES_DIR/scripts/DotMate.sh" ]; then
+          if ! bash "$DOTFILES_DIR/scripts/DotMate.sh" sync_submodules; then
+            echo "⚠️  git submodules: sync skipped (SSH, host keys, or network); dotfiles pull still applied."
+          fi
+        fi
         make clean
-        make stow
+        if [ -z "${DOTMATE_UPDATE_FROM_DOTMATE:-}" ]; then
+          make stow
+        fi
         echo "✅ Dotfiles repository updated successfully!"
       else
         echo "🚫 Update skipped. Remember to update later to stay in sync!"

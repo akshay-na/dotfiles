@@ -20,8 +20,8 @@
 #     $HOME/.cursor/ai-brain/** — legacy/alternate brain location (symlink or copy)
 #
 #   Global stow source (dotfiles repo — same files via symlink):
-#     $HOME/dotfiles/ai/cursor-tech-team/docs/**
-#     $HOME/dotfiles/ai/cursor-tech-team/memory/**
+#     $HOME/dotfiles/ai/cursor/tech-team/docs/**
+#     $HOME/dotfiles/ai/cursor/tech-team/memory/**
 #     $HOME/dotfiles/ai/ai-brain/**
 #
 #   Workspace / project-level:
@@ -93,8 +93,8 @@ HOME_DOCS="$HOME/.cursor/docs"
 HOME_MEM="$HOME/.cursor/memory"
 HOME_BRAIN="$HOME/ai-brain"
 HOME_BRAIN_CURSOR="$HOME/.cursor/ai-brain"
-STOW_DOCS="$HOME/dotfiles/ai/cursor-tech-team/docs"
-STOW_MEM="$HOME/dotfiles/ai/cursor-tech-team/memory"
+STOW_DOCS="$HOME/dotfiles/ai/cursor/tech-team/docs"
+STOW_MEM="$HOME/dotfiles/ai/cursor/tech-team/memory"
 STOW_BRAIN="$HOME/dotfiles/ai/ai-brain"
 WS_CURSOR="$workspace_root/.cursor"
 

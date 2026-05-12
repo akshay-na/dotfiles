@@ -139,6 +139,7 @@
   autoSetupRemote = true  # Automatically set up remote tracking
   default         = simple  # Push the current branch to its upstream branch
   followTags      = true  # Push tags along with commits
+  recurseSubmodules = on-demand # Push submodules on demand
 
 [rebase]
   autoSquash  = true  # Automatically squash fixup commits

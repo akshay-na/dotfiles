@@ -6,7 +6,7 @@ alwaysApply: false
 
 # remotion-builder Governance Rule
 
-Applies when **`remotion-builder`** is active or when editing its artifacts under **`ai/cursor-tech-team/{agents,skills,configurations,rules,docs/runbooks}`** (stowed under **`~/.cursor/...`**), or **Remotion** plans under **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-*.md`**.
+Applies when **`remotion-builder`** is active or when editing its artifacts under **`ai/cursor/tech-team/{agents,skills,configurations,rules,docs/runbooks}`** (stowed under **`~/.cursor/...`**), or **Remotion** plans under **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-*.md`**.
 
 **Non-bypass.** Overrides only via explicit phrases in **Overrides**; record in plan or ADR.
 
@@ -59,8 +59,8 @@ Applies when **`remotion-builder`** is active or when editing its artifacts unde
 
 ## Cross-references
 
-- Mode policy: `ai/cursor-tech-team/configurations/remotion-builder-mode-policy.yml`
-- QA policy: `ai/cursor-tech-team/configurations/remotion-builder-qa-policy.yml`
-- CRO runbook: `ai/cursor-tech-team/docs/runbooks/remotion-builder-cro-loop.md`
-- Planning gate: `ai/cursor-tech-team/skills/remotion-builder-planning-gate/SKILL.md`
-- Execution gate: `ai/cursor-tech-team/skills/remotion-builder-execution-gate/SKILL.md`
+- Mode policy: `ai/cursor/tech-team/configurations/remotion-builder-mode-policy.yml`
+- QA policy: `ai/cursor/tech-team/configurations/remotion-builder-qa-policy.yml`
+- CRO runbook: `ai/cursor/tech-team/docs/runbooks/remotion-builder-cro-loop.md`
+- Planning gate: `ai/cursor/tech-team/skills/remotion-builder-planning-gate/SKILL.md`
+- Execution gate: `ai/cursor/tech-team/skills/remotion-builder-execution-gate/SKILL.md`

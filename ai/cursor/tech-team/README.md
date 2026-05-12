@@ -11,11 +11,11 @@ When stowed, it maps to `~/.cursor/` and becomes the active local orchestration 
 
 ## Content org pack (separate stow target)
 
-Editorial/content automation uses a **separate** Cursor pack, also stowed to **`~/.cursor`**. Do **not** stow both this tech tree (`ai/cursor-tech-team`) and the content pack into **`~/.cursor`** at the same time — switch packs per workflow. See the **content org** pack’s README in `ai/cursor-content-team/`.
+Editorial/content automation uses a **separate** Cursor pack, also stowed to **`~/.cursor`**. Do **not** stow both this tech tree (`ai/cursor/tech-team`) and the content pack into **`~/.cursor`** at the same time — switch packs per workflow. See the **content org** pack’s README in `ai/private-teams/cursor/content-team/`.
 
 ## How this tech package is applied
 
-- Package path: `dotfiles/ai/cursor-tech-team/`
+- Package path: `dotfiles/ai/cursor/tech-team/`
 - Target path after stow: `~/.cursor/`
 - Apply with:
   - `make stow CONFIGS="cursor"`
@@ -122,14 +122,14 @@ After stow it surfaces as `~/ai-brain/`.
 2. Run `make install` (or `make stow CONFIGS="cursor"` if only Cursor config is needed).
 3. Confirm `~/.cursor/` resolves to symlinks from this repo.
 4. Open Cursor and verify hooks/MCP are loaded.
-5. Make changes in this repo under `dotfiles/ai/cursor-tech-team/`, not under `~/.cursor/` directly.
+5. Make changes in this repo under `dotfiles/ai/cursor/tech-team/`, not under `~/.cursor/` directly.
 6. Re-run stow after edits when needed.
 
 ## Token and cache discipline
 
 - **Goal:** smaller `alwaysApply` hot path, stable early prefix, fewer redundant reads — see [`skills/context-cache-discipline/SKILL.md`](skills/context-cache-discipline/SKILL.md).
 - **Policy:** long playbooks live in **skills**; rules keep **hard gates + pointers**. Edit pack in-repo, then stow — avoid drifting local `~/.cursor` copies.
-- **Cross-pack:** content org pack may point here for canonical discipline text (`dotfiles/ai/cursor-tech-team/skills/context-cache-discipline/SKILL.md`).
+- **Cross-pack:** content org pack may point here for canonical discipline text (`dotfiles/ai/cursor/tech-team/skills/context-cache-discipline/SKILL.md`).
 
 ## Editing guidance
 

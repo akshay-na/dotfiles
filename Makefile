@@ -38,11 +38,11 @@ help:
 	@echo "  stow        - Create symlinks for dotfiles using stow. Use CONFIGS to specify specific tools."
 	@echo "                Example: make stow CONFIGS=\"git ssh nvim\""
 	@echo "  stow-with-target - Stow one folder path to a custom target under HOME."
-	@echo "                     Example: make stow-with-target TOOL_PATH=\"ai/cursor-tech-team\" TARGET_NAME=\".cursor\""
+	@echo "                     Example: make stow-with-target TOOL_PATH=\"ai/cursor/tech-team\" TARGET_NAME=\".cursor\""
 	@echo "  unstow      - Remove symlinks created by stow. Use CONFIGS to specify specific tools."
 	@echo "                Example: make unstow CONFIGS=\"git ssh nvim\""
 	@echo "  clean       - Clean up broken symlinks in the home directory"
-	@echo "  bootstrap-local - Scaffold ~/dotfiles-local (or LOCAL_DIR=...) for per-host overrides"
+	@echo "  bootstrap_local - Scaffold ~/dotfiles-local (or LOCAL_DIR=...) for per-host overrides"
 	@echo "                Run from upstream clone; copies DotMate.sh, Makefile, .stowrc from canonical root."
 	@echo "  help        - Show this help message"
 
@@ -76,6 +76,6 @@ unstow: prep ## Remove symlinks for specified dotfiles
 clean: prep ## Clean up broken symlinks
 	@$(SCRIPT) clean
 
-.PHONY: bootstrap-local
-bootstrap-local: prep ## Scaffold second stow tree (LOCAL_DIR=..., SKIP_GIT_INIT=1 optional)
+.PHONY: bootstrap_local
+bootstrap_local: prep ## Scaffold second stow tree (LOCAL_DIR=..., SKIP_GIT_INIT=1 optional)
 	@DOTMATE_CANONICAL_ROOT=$(MAKEFILE_DIR) $(SCRIPT) bootstrap_local $(LOCAL_DIR)

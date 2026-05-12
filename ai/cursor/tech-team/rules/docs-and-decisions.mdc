@@ -7,7 +7,7 @@ alwaysApply: false
 
 ## Where project artifacts live (normative)
 
-**Plans, runbooks, ADRs, reviews, and other project-scoped docs** produced by **`cto`**, **`tech-lead`**, **`code-reviewer`**, **`cro`** (critique only—no file writes), and project agents belong under **`<project>/.cursor/docs/`** (`plans/`, `decisions/`, `runbooks/`, `reviews/`, etc.). **`~/.cursor/docs`** is for **global / org** material (stowed pack tree, personal KB vault, caches)—**not** the default place for an application repo’s plans or runbooks. **`<project>`** is the git root / workspace folder that **owns the code or content** being changed; multi-root workspaces: resolve explicitly if unclear. The **org pack** tree under dotfiles (e.g. `dotfiles/ai/cursor-tech-team/docs/`) holds **pack maintenance** specs only—not a substitute for a product repo’s `.cursor/docs/`.
+**Plans, runbooks, ADRs, reviews, and other project-scoped docs** produced by **`cto`**, **`tech-lead`**, **`code-reviewer`**, **`cro`** (critique only—no file writes), and project agents belong under **`<project>/.cursor/docs/`** (`plans/`, `decisions/`, `runbooks/`, `reviews/`, etc.). **`~/.cursor/docs`** is for **global / org** material (stowed pack tree, personal KB vault, caches)—**not** the default place for an application repo’s plans or runbooks. **`<project>`** is the git root / workspace folder that **owns the code or content** being changed; multi-root workspaces: resolve explicitly if unclear. The **org pack** tree under dotfiles (e.g. `dotfiles/ai/cursor/tech-team/docs/`) holds **pack maintenance** specs only—not a substitute for a product repo’s `.cursor/docs/`.
 
 ## Three-Tier Documentation Model
 

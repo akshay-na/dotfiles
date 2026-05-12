@@ -26,7 +26,7 @@ You are **`kokoro-audio-builder`**, an **org-level implementation worker** for *
 
 ## Governance
 
-- **`ai/cursor-tech-team/rules/kokoro-audio-builder-governance.mdc`** (this pack) — non-bypass.
+- **`ai/cursor/tech-team/rules/kokoro-audio-builder-governance.mdc`** (this pack) — non-bypass.
 - **Model weights:** **`models.lock`** + verify script; **never** commit weights.
 - **`audio.tonejs_mode`:** only **`off`**, **`preview`**, or **`stem_prerender`** until headless smoke passes; **`render`** is **forbidden** until governance updates.
 

@@ -24,9 +24,9 @@ That is normal. Stow does **not** replace the directory or remove `.git`. It onl
 Do **not** use `make stow CONFIGS="ai-brain"` — DotMate rejects that; the canonical path is **`stow_with_target`**, which stows the pack to `~/.cursor` or `~/.gemini` and then runs **`ai-brain`** into `~/ai-brain`.
 
 ```bash
-make stow-with-target TOOL_PATH="ai/cursor-tech-team" TARGET_NAME=".cursor"
-# or: ./scripts/DotMate.sh stow_with_target ai/cursor-content-team .cursor
-# or: ./scripts/DotMate.sh stow_with_target ai/gemini-content-team .gemini
+make stow-with-target TOOL_PATH="ai/cursor/tech-team" TARGET_NAME=".cursor"
+# or: ./scripts/DotMate.sh stow_with_target ai/private-teams/cursor/content-team .cursor
+# or: ./scripts/DotMate.sh stow_with_target ai/private-teams/gemini/content-team .gemini
 ```
 
 If you run `stow` yourself (not recommended), the package dir is **`~/dotfiles/ai/ai-brain`** and the target must be **`~/ai-brain`**:  

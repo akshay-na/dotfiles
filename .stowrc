@@ -10,3 +10,4 @@
 --ignore='.stowrc'
 --ignore='agents'
 --ignore='README.md'
+--ignore='verify-bootstrap-local'

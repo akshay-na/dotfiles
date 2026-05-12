@@ -20,11 +20,11 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 | Surface | Agent / skill | Role |
 |--------|----------------|------|
-| **Cursor tech pack** (`ai/cursor-tech-team`) | **`remotion-builder`** (`~/.cursor/agents/remotion-builder.md`) | Single **implementation** entrypoint: Remotion + Skia + **ffmpeg** post-steps, plans under `<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-*.md`, tech **`cro-loop`**. |
-| **Content Cursor + Gemini packs** | **`video-editor`** (`ai/cursor-content-team/agents/video-editor.md` + Gemini twin) | **Editorial / orchestration** name: CCO diagrams, user invoke “use **video-editor**”, briefs, phases. Does **not** replace tech agent on disk in tech pack. |
+| **Cursor tech pack** (`ai/cursor/tech-team`) | **`remotion-builder`** (`~/.cursor/agents/remotion-builder.md`) | Single **implementation** entrypoint: Remotion + Skia + **ffmpeg** post-steps, plans under `<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-*.md`, tech **`cro-loop`**. |
+| **Content Cursor + Gemini packs** | **`video-editor`** (`ai/private-teams/cursor/content-team/agents/video-editor.md` + Gemini twin) | **Editorial / orchestration** name: CCO diagrams, user invoke “use **video-editor**”, briefs, phases. Does **not** replace tech agent on disk in tech pack. |
 | **Content handoff skill** | **`video-editor-handoff`** | Same contract as prior `remotion-builder-handoff` design; payload still ends in **`Task` → `remotion-builder`** with handoff preconditions. |
 
-**Explicit invoke mapping:** User or orchestrator may say **video-editor** in content sessions; **`content-lead`** / **`cco`** satisfy **`video-editor-handoff`** then dispatch **`Task` with `subagent_type` / agent target `remotion-builder`** (tech pack). **Do not** add a second tech agent file named `video-editor` under **`ai/cursor-tech-team`**.
+**Explicit invoke mapping:** User or orchestrator may say **video-editor** in content sessions; **`content-lead`** / **`cco`** satisfy **`video-editor-handoff`** then dispatch **`Task` with `subagent_type` / agent target `remotion-builder`** (tech pack). **Do not** add a second tech agent file named `video-editor` under **`ai/cursor/tech-team`**.
 
 ### Invocation matrix — who may `Task` `remotion-builder` (CRO v1)
 
@@ -41,14 +41,14 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 | Area | Path |
 |------|------|
-| Tech — agent + skills + governance + routing | **dotfiles:** `ai/cursor-tech-team/agents/remotion-builder.md`, `skills/remotion-builder-planning-gate/`, `skills/remotion-builder-execution-gate/`, `rules/remotion-builder-governance.mdc`, `configurations/routing-table.yml`, optional `configurations/remotion-builder-{mode,qa}-policy.yml`, `docs/runbooks/remotion-builder-*.md` |
-| Tech — orchestration hardening | **dotfiles:** `ai/cursor-tech-team/rules/agent-orchestration.mdc` (explicit non-auto-invoke + deny-list for peer `Task`); **`ai/cursor-tech-team/rules/observability.mdc`** (add **`remotion-builder`** to orchestration entrypoint audit list per CRO pass 2) |
-| Content Cursor — **video-editor** + handoff + orchestration | **dotfiles:** `ai/cursor-content-team/agents/video-editor.md`, `skills/video-editor-handoff/SKILL.md`, `agents/cco.md`, `agents/content-lead.md`, `skills/content-team-discovery/SKILL.md`, `rules/agent-orchestration.mdc`, `rules/strict-tool-boundaries.mdc`, `README.md` (optional one-liner) |
-| Content Gemini — parity | **dotfiles:** `ai/gemini-content-team/` twins per `hooks/manifest-pairs.txt` for touched **content-pack** files; `GEMINI.md`, `rules/agent-orchestration.md`, `docs/runbooks/gemini-agent-registry.md` if registry lists entrypoints |
+| Tech — agent + skills + governance + routing | **dotfiles:** `ai/cursor/tech-team/agents/remotion-builder.md`, `skills/remotion-builder-planning-gate/`, `skills/remotion-builder-execution-gate/`, `rules/remotion-builder-governance.mdc`, `configurations/routing-table.yml`, optional `configurations/remotion-builder-{mode,qa}-policy.yml`, `docs/runbooks/remotion-builder-*.md` |
+| Tech — orchestration hardening | **dotfiles:** `ai/cursor/tech-team/rules/agent-orchestration.mdc` (explicit non-auto-invoke + deny-list for peer `Task`); **`ai/cursor/tech-team/rules/observability.mdc`** (add **`remotion-builder`** to orchestration entrypoint audit list per CRO pass 2) |
+| Content Cursor — **video-editor** + handoff + orchestration | **dotfiles:** `ai/private-teams/cursor/content-team/agents/video-editor.md`, `skills/video-editor-handoff/SKILL.md`, `agents/cco.md`, `agents/content-lead.md`, `skills/content-team-discovery/SKILL.md`, `rules/agent-orchestration.mdc`, `rules/strict-tool-boundaries.mdc`, `README.md` (optional one-liner) |
+| Content Gemini — parity | **dotfiles:** `ai/private-teams/gemini/content-team/` twins per `hooks/manifest-pairs.txt` for touched **content-pack** files; `GEMINI.md`, `rules/agent-orchestration.md`, `docs/runbooks/gemini-agent-registry.md` if registry lists entrypoints |
 | Reference corpus (separate git root) | **content-foundry:** `tools/remotion/**` (ADR `2026-05-10-tools-remotion-root`); `.cursor/rules/content-foundry-visual.mdc`, `content-foundry-agent-boundaries.mdc`, optional `_schema` + `_meta/SCHEMAS.md` if new frontmatter fields (e.g. `asset_video`) |
 | **n8n-runner bootstrap (homelab)** | **home-server:** `infra/roles/ansible_user_setup/tasks/n8n_runner_bootstrap.yml`, **new** `tasks/n8n_runner_remotion_prereqs.yml` (or equivalent name), `defaults/main.yml` (**includes `ffmpeg` APT**); optional Molecule scenario / docs under `infra/tests/ansible/molecule/` or `.cursor/docs/` |
 
-**Out of scope:** shipping a full Remotion starter **in this markdown plan** (P6/P7 describe scaffold + Ansible hooks only); CI vendor choice for **content-foundry** git repo (delegate to `vp-research`); duplicating **`remotion-builder.md`** into `gemini-content-team/agents/` (canonical definition stays **`ai/cursor-tech-team`** — see Open Questions).
+**Out of scope:** shipping a full Remotion starter **in this markdown plan** (P6/P7 describe scaffold + Ansible hooks only); CI vendor choice for **content-foundry** git repo (delegate to `vp-research`); duplicating **`remotion-builder.md`** into `private-teams/gemini/content-team/agents/` (canonical definition stays **`ai/cursor/tech-team`** — see Open Questions).
 
 ## Risks & mitigations
 
@@ -58,7 +58,7 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 | `sme-*` or `tech-lead` auto-`Task`s `remotion-builder` | Policy breach, bypass gates | Tech: `agent-orchestration.mdc` deny-list; content: `agent-orchestration` + `content-foundry-agent-boundaries` clarify allowlist unchanged for SMEs | execution |
 | Secrets in render (font CDN tokens, private assets) | Leak via logs/commits | `remotion-builder-governance.mdc`: env-only refs, `<REDACTED>`, no credentials in plans; optional `beforeShellExecution` redaction (existing hooks) | execution |
 | Dual CRO confusion | Wrong critic applied to wrong artifact | **Editorial-cro** only on **CCO** plan; **tech cro-loop** only on **remotion-builder** plan (see below) | planners |
-| Gemini drift vs Cursor content pack | Broken parity | Apply paired edits; run `ai/gemini-content-team/hooks/verify-gemini-manifest.sh` after changes | execution |
+| Gemini drift vs Cursor content pack | Broken parity | Apply paired edits; run `ai/private-teams/gemini/content-team/hooks/verify-gemini-manifest.sh` after changes | execution |
 | Large binaries in git | Repo bloat | Prefer **Git LFS** or **ephemeral CI artifacts** + pointer path in frontmatter; document in governance | execution |
 | Stakeholder expects **zero** Chromium on server | Wrong architecture / blocked CI | Document **renderer reality** section in agent + handoff skill; default = Headless Shell; optional track **experimental CSR** only with explicit user approval and separate runbook | planners + `remotion-builder` |
 | Skia / Remotion **version skew** | Broken WASM or build | Lockfile + same minor on `remotion`, `@remotion/skia`, `@shopify/react-native-skia` per install docs; `vp-research` before major bumps | execution |
@@ -87,13 +87,13 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 | Group | Phase ID | Depends on | Parallel siblings | Touches (disjoint across siblings) |
 |-------|----------|------------|-------------------|-----------------------------------|
-| G1 | P1 | — | — | `ai/cursor-tech-team/agents/remotion-builder.md`, `configurations/routing-table.yml`, `rules/agent-orchestration.mdc`, `rules/observability.mdc` |
-| G2 | P2a | P1 | P2b | `ai/cursor-tech-team/skills/remotion-builder-planning-gate/**`, `docs/runbooks/remotion-builder-cro-loop.md` |
-| G2 | P2b | P1 | P2a | `ai/cursor-tech-team/skills/remotion-builder-execution-gate/**`, optional `configurations/remotion-builder-*.yml` |
-| G3 | P3 | P2a, P2b | — | `ai/cursor-tech-team/rules/remotion-builder-governance.mdc` |
-| G4 | P4a | P3 | P4b | `ai/cursor-content-team/agents/video-editor.md`, `skills/video-editor-handoff/SKILL.md`, `agents/cco.md`, `skills/content-team-discovery/SKILL.md` |
-| G4 | P4b | P3 | P4a | `ai/cursor-content-team/agents/content-lead.md`, `rules/agent-orchestration.mdc`, `rules/strict-tool-boundaries.mdc` |
-| G5 | P5 | P4a, P4b | — | `ai/gemini-content-team/**` (paired files), `GEMINI.md`, `docs/runbooks/gemini-agent-registry.md` |
+| G1 | P1 | — | — | `ai/cursor/tech-team/agents/remotion-builder.md`, `configurations/routing-table.yml`, `rules/agent-orchestration.mdc`, `rules/observability.mdc` |
+| G2 | P2a | P1 | P2b | `ai/cursor/tech-team/skills/remotion-builder-planning-gate/**`, `docs/runbooks/remotion-builder-cro-loop.md` |
+| G2 | P2b | P1 | P2a | `ai/cursor/tech-team/skills/remotion-builder-execution-gate/**`, optional `configurations/remotion-builder-*.yml` |
+| G3 | P3 | P2a, P2b | — | `ai/cursor/tech-team/rules/remotion-builder-governance.mdc` |
+| G4 | P4a | P3 | P4b | `ai/private-teams/cursor/content-team/agents/video-editor.md`, `skills/video-editor-handoff/SKILL.md`, `agents/cco.md`, `skills/content-team-discovery/SKILL.md` |
+| G4 | P4b | P3 | P4a | `ai/private-teams/cursor/content-team/agents/content-lead.md`, `rules/agent-orchestration.mdc`, `rules/strict-tool-boundaries.mdc` |
+| G5 | P5 | P4a, P4b | — | `ai/private-teams/gemini/content-team/**` (paired files), `GEMINI.md`, `docs/runbooks/gemini-agent-registry.md` |
 | G6 | P6 | P5 | — | `content-foundry/.cursor/**` (remotion subtree, rule tweaks, optional schema) |
 | G7 | P7 | P6 | — | **home-server** `infra/roles/ansible_user_setup/**` (n8n-runner Remotion prereqs) |
 
@@ -105,14 +105,14 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P1` · `depends_on: []` · `parallelizable_with: []` ·  
-`touches: [ai/cursor-tech-team/agents/remotion-builder.md, ai/cursor-tech-team/configurations/routing-table.yml, ai/cursor-tech-team/rules/agent-orchestration.mdc, ai/cursor-tech-team/rules/observability.mdc]` ·  
+`touches: [ai/cursor/tech-team/agents/remotion-builder.md, ai/cursor/tech-team/configurations/routing-table.yml, ai/cursor/tech-team/rules/agent-orchestration.mdc, ai/cursor/tech-team/rules/observability.mdc]` ·  
 `rollback_scope: same` · `destructive: false`
 
 **Goal:** Define **`remotion-builder`** and prevent any other tech-pack entrypoint from `Task`-invoking it.
 
 **Steps:**
 
-1. **Add** `ai/cursor-tech-team/agents/remotion-builder.md` with frontmatter aligned to `n8n-builder.md`:
+1. **Add** `ai/cursor/tech-team/agents/remotion-builder.md` with frontmatter aligned to `n8n-builder.md`:
    - `name: remotion-builder`
    - `description:` explicit user invocation + programmatic video / **Remotion + Skia** + **ffmpeg** post-process / headless render / corpus-linked renders (see renderer reality in plan)
    - `model: inherit` (or pin per org policy)
@@ -121,12 +121,12 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
    - `all_in_one: true`
    - `version: 2026.05.10` (date stamp)
    - Body: lifecycle **Stage A–E** analogous to `n8n-builder` (plan v0 → user approve → **tech `cro-loop`** → execution gate → verification); **delegate all Remotion API/version/CI research to `vp-research`**; **no** direct fetch tools in agent prose; workspace = **content corpus `<project>`** for plans under `<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`; composition/repo files under corpus as per handoff.
-2. **Extend** `ai/cursor-tech-team/configurations/routing-table.yml`:
+2. **Extend** `ai/cursor/tech-team/configurations/routing-table.yml`:
    - New `entrypoints[]` item `id: remotion-builder` with `invocation_phrases` e.g. `use remotion-builder`, `remotion-builder`, `render remotion video`.
    - New `task_types.remotion_programmatic_video` (or `programmatic_video`) with `default_agents: [remotion-builder]`, `requires_plan: true`, signals like `remotion`, `skia`, `ffmpeg`, `programmatic video`, `@remotion`.
-3. **Patch** `ai/cursor-tech-team/rules/agent-orchestration.mdc`:
+3. **Patch** `ai/cursor/tech-team/rules/agent-orchestration.mdc`:
    - New subsection: **`remotion-builder` (user-invoked only)** — `cto`, `tech-lead`, `staff-engineer`, `code-reviewer`, `vp-*`, `sre-lead`, `ciso`, `vp-platform`, `vp-onboarding` **must not** `Task` `remotion-builder`. **Exception:** none from tech pack; **content org** handoff is not a tech-pack peer (document cross-pack pattern per **Invocation matrix** above: **user**, plan-gated **`content-lead`**, and **`cco`** only under explicit user-approved planning dispatch — not routing-table auto-select).
-4. **Patch** `ai/cursor-tech-team/rules/observability.mdc` — extend the fail-closed bullet that lists orchestration entrypoint agents so **`remotion-builder`** is included alongside **`cto`**, **`tech-lead`**, **`code-reviewer`** for required swarm audit fields (finding **cro-rmt-p02-03**). If org policy exempts all-in-one entrypoints, record **ADR** under `.cursor/docs/decisions/` instead — default here is **extend the list**.
+4. **Patch** `ai/cursor/tech-team/rules/observability.mdc` — extend the fail-closed bullet that lists orchestration entrypoint agents so **`remotion-builder`** is included alongside **`cto`**, **`tech-lead`**, **`code-reviewer`** for required swarm audit fields (finding **cro-rmt-p02-03**). If org policy exempts all-in-one entrypoints, record **ADR** under `.cursor/docs/decisions/` instead — default here is **extend the list**.
 
 **Verification:** Grep shows no other `Task remotion-builder` from tech agents; YAML parses; agent frontmatter passes existing Cursor agent lints if any; **observability** rule mentions **`remotion-builder`** where entrypoint audit is defined.
 
@@ -138,15 +138,15 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P2a` · `depends_on: [P1]` · `parallelizable_with: [P2b]` ·  
-`touches: [ai/cursor-tech-team/skills/remotion-builder-planning-gate/SKILL.md, ai/cursor-tech-team/docs/runbooks/remotion-builder-cro-loop.md]` ·  
+`touches: [ai/cursor/tech-team/skills/remotion-builder-planning-gate/SKILL.md, ai/cursor/tech-team/docs/runbooks/remotion-builder-cro-loop.md]` ·  
 `rollback_scope: same`
 
 **Goal:** Standardize plan v0 structure and tech CRO handoff for Remotion episodes.
 
 **Steps:**
 
-1. **Add** `ai/cursor-tech-team/skills/remotion-builder-planning-gate/SKILL.md` — mirror `n8n-builder-planning-gate` sections but replace n8n-specific fields with: Remotion **root path**, **Skia enabled** (yes/no + `LoadSkia` / entry path), **pinned dependency set** (`remotion`, `@remotion/skia`, `@shopify/react-native-skia`), **entry composition**, **render mode** (`ssr_headless_shell` default vs `experimental_csr` — if latter, explicit user sign-off), **Chromium / GL posture** (local vs CI, `--gl` if any), **output codec/resolution**, **asset output paths**, **ffmpeg post-flight** (none / remux / transcode / audio mux — **recipe id** or frozen argv template, platform target e.g. Reels), **font/asset credential posture** (env vars only), **parallel phases** over disjoint compositions or disjoint corpus notes. Include one-line **renderer reality** (Skia WASM inside Headless Shell for default SSR).
-2. **Add** `ai/cursor-tech-team/docs/runbooks/remotion-builder-cro-loop.md` — adapt from `n8n-builder-cro-loop.md`: singleton loop, ledger path `~/ai-brain/session/<task-id>/critic-ledger.md`, patcher = `remotion-builder`.
+1. **Add** `ai/cursor/tech-team/skills/remotion-builder-planning-gate/SKILL.md` — mirror `n8n-builder-planning-gate` sections but replace n8n-specific fields with: Remotion **root path**, **Skia enabled** (yes/no + `LoadSkia` / entry path), **pinned dependency set** (`remotion`, `@remotion/skia`, `@shopify/react-native-skia`), **entry composition**, **render mode** (`ssr_headless_shell` default vs `experimental_csr` — if latter, explicit user sign-off), **Chromium / GL posture** (local vs CI, `--gl` if any), **output codec/resolution**, **asset output paths**, **ffmpeg post-flight** (none / remux / transcode / audio mux — **recipe id** or frozen argv template, platform target e.g. Reels), **font/asset credential posture** (env vars only), **parallel phases** over disjoint compositions or disjoint corpus notes. Include one-line **renderer reality** (Skia WASM inside Headless Shell for default SSR).
+2. **Add** `ai/cursor/tech-team/docs/runbooks/remotion-builder-cro-loop.md` — adapt from `n8n-builder-cro-loop.md`: singleton loop, ledger path `~/ai-brain/session/<task-id>/critic-ledger.md`, patcher = `remotion-builder`.
 
 **Verification:** Skill lists required plan sections; runbook references `cro-loop` skill and `subagent-response-protocol`.
 
@@ -158,7 +158,7 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P2b` · `depends_on: [P1]` · `parallelizable_with: [P2a]` ·  
-`touches: [ai/cursor-tech-team/skills/remotion-builder-execution-gate/SKILL.md, ai/cursor-tech-team/configurations/remotion-builder-mode-policy.yml, ai/cursor-tech-team/configurations/remotion-builder-qa-policy.yml]` ·  
+`touches: [ai/cursor/tech-team/skills/remotion-builder-execution-gate/SKILL.md, ai/cursor/tech-team/configurations/remotion-builder-mode-policy.yml, ai/cursor/tech-team/configurations/remotion-builder-qa-policy.yml]` ·  
 `rollback_scope: same` (optional YAMLs may be omitted in minimal v1)
 
 **Goal:** Gate shell/render execution and optional QA checklist.
@@ -178,7 +178,7 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P3` · `depends_on: [P2a, P2b]` · `parallelizable_with: []` ·  
-`touches: [ai/cursor-tech-team/rules/remotion-builder-governance.mdc]` ·  
+`touches: [ai/cursor/tech-team/rules/remotion-builder-governance.mdc]` ·  
 `rollback_scope: same`
 
 **Goal:** Non-bypass rule for secrets, prod render, dependency install, font licensing.
@@ -197,14 +197,14 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P4a` · `depends_on: [P3]` · `parallelizable_with: [P4b]` ·  
-`touches: [ai/cursor-content-team/agents/video-editor.md, ai/cursor-content-team/skills/video-editor-handoff/SKILL.md, ai/cursor-content-team/agents/cco.md, ai/cursor-content-team/skills/content-team-discovery/SKILL.md]` ·  
+`touches: [ai/private-teams/cursor/content-team/agents/video-editor.md, ai/private-teams/cursor/content-team/skills/video-editor-handoff/SKILL.md, ai/private-teams/cursor/content-team/agents/cco.md, ai/private-teams/cursor/content-team/skills/content-team-discovery/SKILL.md]` ·  
 `rollback_scope: same`
 
 **Goal:** Content-org **name** **`video-editor`** with **`video-editor-handoff`**; execution remains **`Task` → `remotion-builder`**.
 
 **Steps:**
 
-1. **Add** `ai/cursor-content-team/agents/video-editor.md` — content-pack agent (frontmatter `name: video-editor` or display equivalent per pack conventions):
+1. **Add** `ai/private-teams/cursor/content-team/agents/video-editor.md` — content-pack agent (frontmatter `name: video-editor` or display equivalent per pack conventions):
    - **Role:** Editorial video pipeline owner in content org — briefs, phase text, optional storyboard notes; **does not** redefine tech **`remotion-builder`** lifecycle.
    - **Invoke:** User may **`Task` `video-editor`** for planning/brief help; for **render + ffmpeg execution**, orchestration uses **`video-editor-handoff`** then **`Task` `remotion-builder`** (same as CVO pattern: specialist vs executor).
    - **Body:** Point to **`video-editor-handoff`**, **`~/.cursor/agents/remotion-builder.md`**, renderer reality (Headless Shell), **ffmpeg** mentioned as post-step owned by **`remotion-builder`**.
@@ -226,7 +226,7 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P4b` · `depends_on: [P3]` · `parallelizable_with: [P4a]` ·  
-`touches: [ai/cursor-content-team/agents/content-lead.md, ai/cursor-content-team/rules/agent-orchestration.mdc, ai/cursor-content-team/rules/strict-tool-boundaries.mdc]` ·  
+`touches: [ai/private-teams/cursor/content-team/agents/content-lead.md, ai/private-teams/cursor/content-team/rules/agent-orchestration.mdc, ai/private-teams/cursor/content-team/rules/strict-tool-boundaries.mdc]` ·  
 `rollback_scope: same`
 
 **Goal:** Plan-gated execution path for `content-lead`.
@@ -249,7 +249,7 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 
 **Metadata:**  
 `id: P5` · `depends_on: [P4a, P4b]` · `parallelizable_with: []` ·  
-`touches: [ai/gemini-content-team/agents/video-editor.md, ai/gemini-content-team/agents/cco.md, ai/gemini-content-team/agents/content-lead.md, ai/gemini-content-team/skills/video-editor-handoff/SKILL.md, ai/gemini-content-team/skills/content-team-discovery/SKILL.md, ai/gemini-content-team/rules/agent-orchestration.md, ai/gemini-content-team/rules/strict-tool-boundaries.md, ai/gemini-content-team/GEMINI.md, ai/gemini-content-team/docs/runbooks/gemini-agent-registry.md]` ·  
+`touches: [ai/private-teams/gemini/content-team/agents/video-editor.md, ai/private-teams/gemini/content-team/agents/cco.md, ai/private-teams/gemini/content-team/agents/content-lead.md, ai/private-teams/gemini/content-team/skills/video-editor-handoff/SKILL.md, ai/private-teams/gemini/content-team/skills/content-team-discovery/SKILL.md, ai/private-teams/gemini/content-team/rules/agent-orchestration.md, ai/private-teams/gemini/content-team/rules/strict-tool-boundaries.md, ai/private-teams/gemini/content-team/GEMINI.md, ai/private-teams/gemini/content-team/docs/runbooks/gemini-agent-registry.md]` ·  
 `rollback_scope: same`
 
 **Goal:** Mirror Cursor content edits; document Gemini plan paths (`.gemini/docs/plans`).
@@ -257,7 +257,7 @@ DotMate currently separates **Cursor tech pack** (planning/execution agents such
 **Steps:**
 
 1. **Port** paired files (manual or script): same semantic edits as P4a/P4b with `.gemini` path wording where rules already differ (**`video-editor`**, **`video-editor-handoff`**).
-2. **Update** `GEMINI.md` — table or subsection: **Programmatic video** — content org **`video-editor`**; tech execution **`remotion-builder`** in **`ai/cursor-tech-team/agents/remotion-builder.md`** (Cursor stow); **ffmpeg** post-process owned by **`remotion-builder`**; Gemini sessions **hand off** via user invocation in Cursor or repeated brief in Gemini with user executing render in Cursor (document explicitly).
+2. **Update** `GEMINI.md` — table or subsection: **Programmatic video** — content org **`video-editor`**; tech execution **`remotion-builder`** in **`ai/cursor/tech-team/agents/remotion-builder.md`** (Cursor stow); **ffmpeg** post-process owned by **`remotion-builder`**; Gemini sessions **hand off** via user invocation in Cursor or repeated brief in Gemini with user executing render in Cursor (document explicitly).
 3. **Run** `hooks/verify-gemini-manifest.sh` from repo root per `CONVENTIONS.md`.
 4. **Update** `gemini-agent-registry.md` if it lists orchestration agents — add **`video-editor`** (content) + **`remotion-builder`** (external / Cursor tech) pointers.
 
@@ -360,12 +360,12 @@ content-lead (execution; registers CVO when chief-visual-handoff applies; video-
 **Dotfiles / stow**
 
 - [ ] `make stow` (or DotMate equivalent) installs `~/.cursor/agents/remotion-builder.md`, rules, skills, configurations.
-- [ ] `ai/cursor-tech-team/configurations/routing-table.yml` validates (YAML load).
-- [ ] `ai/gemini-content-team/hooks/verify-gemini-manifest.sh` exits 0 after parity edits.
+- [ ] `ai/cursor/tech-team/configurations/routing-table.yml` validates (YAML load).
+- [ ] `ai/private-teams/gemini/content-team/hooks/verify-gemini-manifest.sh` exits 0 after parity edits.
 
 **Tech orchestration**
 
-- [ ] `grep -R "Task.*remotion-builder" ai/cursor-tech-team/agents` — only `remotion-builder.md` self-reference if any; **no** `cto`/`tech-lead`/`staff-engineer` matches.
+- [ ] `grep -R "Task.*remotion-builder" ai/cursor/tech-team/agents` — only `remotion-builder.md` self-reference if any; **no** `cto`/`tech-lead`/`staff-engineer` matches.
 
 **Content orchestration**
 
@@ -502,7 +502,7 @@ all_in_one: true
 
 ### Content pack frontmatter reference (`video-editor`)
 
-Suggested YAML frontmatter for **`ai/cursor-content-team/agents/video-editor.md`** (Gemini twin mirrors); finalize in P4a:
+Suggested YAML frontmatter for **`ai/private-teams/cursor/content-team/agents/video-editor.md`** (Gemini twin mirrors); finalize in P4a:
 
 ```yaml
 name: video-editor
@@ -515,10 +515,10 @@ version: 2026.05.10
 
 ## References consulted
 
-- `ai/cursor-tech-team/agents/n8n-builder.md` — entrypoint / lifecycle pattern  
-- `ai/cursor-content-team/agents/cco.md`, `content-lead.md`, `skills/chief-visual-handoff/SKILL.md` — CVO / handoff precedent; **`video-editor`** + **`video-editor-handoff`** mirror  
-- `ai/cursor-content-team/rules/agent-orchestration.mdc` — singleton registration  
-- `ai/gemini-content-team/rules/agent-orchestration.md`, `hooks/manifest-pairs.txt` — parity expectations  
+- `ai/cursor/tech-team/agents/n8n-builder.md` — entrypoint / lifecycle pattern  
+- `ai/private-teams/cursor/content-team/agents/cco.md`, `content-lead.md`, `skills/chief-visual-handoff/SKILL.md` — CVO / handoff precedent; **`video-editor`** + **`video-editor-handoff`** mirror  
+- `ai/private-teams/cursor/content-team/rules/agent-orchestration.mdc` — singleton registration  
+- `ai/private-teams/gemini/content-team/rules/agent-orchestration.md`, `hooks/manifest-pairs.txt` — parity expectations  
 - `content-foundry/_schema/path-conventions.md`, `content-foundry-visual.mdc`, `content-foundry-agent-boundaries.mdc`
 - **home-server:** `infra/roles/ansible_user_setup/tasks/main.yml`, `tasks/n8n_runner_bootstrap.yml`, `tasks/n8n_runner_ssh.yml`, `defaults/main.yml`
 - Remotion: [Skia](https://www.remotion.dev/docs/skia), [Enable Skia](https://www.remotion.dev/docs/skia/enable-skia), [Skia Canvas](https://www.remotion.dev/docs/skia/skia-canvas), [Chrome Headless Shell](https://www.remotion.dev/docs/miscellaneous/chrome-headless-shell), [GL options](https://www.remotion.dev/docs/gl-options), [Client-side rendering](https://www.remotion.dev/docs/client-side-rendering), [Linux dependencies](https://www.remotion.dev/docs/miscellaneous/linux-dependencies)

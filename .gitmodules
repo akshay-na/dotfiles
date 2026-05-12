@@ -1,0 +1,4 @@
+[submodule "ai/private-teams"]
+	path = ai/private-teams
+	url = git@github.com:akshay-na/ai-teams.git
+	branch = master

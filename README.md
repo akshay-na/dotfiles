@@ -49,6 +49,8 @@ make update
 
 This backs up, optionally runs `check_dotfiles_update` when defined in `shell/.functions`, then re-stows. If `.functions` is missing or the function is undefined, the update check is skipped with a warning (no hard failure).
 
+When you accept a dotfiles **`git pull`** from `check_dotfiles_update`, DotMate runs **`sync_submodules`**: it syncs and **`git submodule update --init --recursive`** for every path in **`.gitmodules`**, then **`git submodule update --remote`** for entries that declare **`branch=`** (others stay at the superproject pin), then sets **OpenPGP commit signing** in each initialized submodule clone. **`make clean`** runs next. **`make stow`** runs in the same flow when the prompt was triggered from an interactive shell; **`make update`** finishes with **`stow_dotfiles`** so stow is not duplicated.
+
 ### `DOTFILES_DISABLE_UPDATE`
 
 Set `DOTFILES_DISABLE_UPDATE=true` in the environment or in `~/.commonrc_local` to skip the interactive fetch / behind-origin prompt path (agents, CI, or slow links).
@@ -57,36 +59,47 @@ Set `DOTFILES_DISABLE_UPDATE=true` in the environment or in `~/.commonrc_local` 
 
 ## Stow and unstow (selective)
 
-| Goal | Command |
-|------|---------|
-| Stow everything (see package list note below) | `make stow` |
-| Stow specific packages | `make stow CONFIGS="git shell ssh"` |
-| Stow one path to a custom target under `$HOME` | `make stow-with-target TOOL_PATH="ai/cursor-tech-team" TARGET_NAME=".cursor"` |
-| Unstow all | `make unstow` |
-| Unstow specific packages | `make unstow CONFIGS="git shell"` |
+| Goal                                           | Command                                                                       |
+| ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| Stow everything (see package list note below)  | `make stow`                                                                   |
+| Stow specific packages                         | `make stow CONFIGS="git shell ssh"`                                           |
+| Stow one path to a custom target under `$HOME` | `make stow-with-target TOOL_PATH="ai/cursor/tech-team" TARGET_NAME=".cursor"` |
+| Unstow all                                     | `make unstow`                                                                 |
+| Unstow specific packages                       | `make unstow CONFIGS="git shell"`                                             |
 
 **Package list note:** Full `stow` walks **immediate subdirectories** of the active dotfiles root and stows each package name, except **`ai`** and **`scripts`** (those are excluded from the default loop). Add new top-level packages by adding a new directory; no hard-coded package list in `make`.
 
+### AI agent packs (`ai/`)
+
+The **`ai/`** tree holds Cursor / Gemini (and related) **packs** applied with **`stow_with_target`** / `make stow-with-target`, not with the default `make stow` loop. Typical layout:
+
+- **`ai/<tool>/<pack>/`** — tracked in this repo (for example `ai/cursor/tech-team/` → `~/.cursor`).
+- **`ai/private-teams/`** — **git submodule** ([`ai-teams`](https://github.com/akshay-na/ai-teams)); private editorial or org packs under `ai/private-teams/<tool>/<pack>/`. Initialize with `git submodule update --init ai/private-teams` when you need it, or run **`./scripts/DotMate.sh sync_submodules`** to sync **all** submodules in **`.gitmodules`** (remote advance requires **`branch=`** per submodule).
+
+Use **`switch_ai_team`** (`scripts/.local/bin/switch_ai_team`) for an interactive or scripted switcher; it discovers whatever packs exist on disk (public paths and submodule paths). See **`ai/private-teams/README.md`** for submodule setup and examples.
+
+**`ai-brain/`** is merged into **`~/ai-brain/`** as part of the same `stow_with_target` path when applying AI packs (see `scripts/DotMate.sh` and `ai/ai-brain/README.md`).
+
 ---
 
-## `bootstrap-local` and the two-root contract
+## `bootstrap_local` and the two-root contract
 
 Use a **second** git repository for overrides (default path `~/dotfiles-local`).
 
 ### Rules
 
-1. **Run `make bootstrap-local` from the upstream clone** (or pass an explicit canonical root). The Makefile sets `DOTMATE_CANONICAL_ROOT` to the directory containing this `Makefile` (`abspath` of `Makefile`’s directory), not your shell `pwd`, so `make -f ~/dotfiles/Makefile bootstrap-local` still points at the real upstream tree.
+1. **Run `make bootstrap_local` from the upstream clone** (or pass an explicit canonical root). The Makefile sets `DOTMATE_CANONICAL_ROOT` to the directory containing this `Makefile` (`abspath` of `Makefile`’s directory), not your shell `pwd`, so `make -f ~/dotfiles/Makefile bootstrap_local` still points at the real upstream tree.
 2. **`bootstrap_local` copies only from `DOTMATE_CANONICAL_ROOT`** (`scripts/DotMate.sh`, `Makefile`, `.stowrc`). It must **not** copy from the operational `DOTFILES_DIR` when that points at the local tree, or you would self-copy stale files.
-3. Manual script use without Make must export **`DOTMATE_CANONICAL_ROOT`** to that upstream path, or the script exits with:  
-   `Run via \`make bootstrap-local\` from upstream clone or set \`DOTMATE_CANONICAL_ROOT\`.`
+3. Manual script use without Make must export **`DOTMATE_CANONICAL_ROOT`** to that upstream path, or the script exits with:
+   `Run via \`make bootstrap_local\` from upstream clone or set \`DOTMATE_CANONICAL_ROOT\`.`
 
 **Optional environment**
 
-| Variable | Purpose |
-|----------|---------|
-| `LOCAL_DIR` | Target tree (default `~/dotfiles-local`). Example: `make bootstrap-local LOCAL_DIR=~/src/dotfiles-local` |
-| `SKIP_GIT_INIT=1` | Skip `git init -b main` (CI or hosts without Git). Default runs `git init` when `git` is on `PATH`. |
-| `DOTMATE_CANONICAL_ROOT` | Normally set by Make; required for direct `./scripts/DotMate.sh bootstrap_local`. |
+| Variable                 | Purpose                                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `LOCAL_DIR`              | Target tree (default `~/dotfiles-local`). Example: `make bootstrap_local LOCAL_DIR=~/src/dotfiles-local` |
+| `SKIP_GIT_INIT=1`        | Skip `git init -b main` (CI or hosts without Git). Default runs `git init` when `git` is on `PATH`.      |
+| `DOTMATE_CANONICAL_ROOT` | Normally set by Make; required for direct `./scripts/DotMate.sh bootstrap_local`.                        |
 
 **Git version:** `git init -b main` needs Git **2.28+**. Older Git: set `SKIP_GIT_INIT=1` and initialize manually.
 
@@ -98,7 +111,7 @@ Use a **second** git repository for overrides (default path `~/dotfiles-local`).
 
 `scripts/DotMate.sh` resolves **`DOTFILES_DIR`** as:
 
-1. The **`DOTFILES_DIR` environment variable** if set, or  
+1. The **`DOTFILES_DIR` environment variable** if set, or
 2. The directory containing **`scripts/DotMate.sh`** (repository root of the script you invoked).
 
 Sourcing `shell/.functions` from that tree is equivalent to trusting that directory like a git checkout. Before sourcing, the script checks that the directory is **owned by your current euid** and is **not world-writable**; otherwise it logs and exits. Point `DOTFILES_DIR` only at trees you trust.
@@ -119,8 +132,8 @@ Backs up files that would be replaced under `$HOME` into a timestamped directory
 
 There is **no** `make uninstall` target. Use:
 
-- `make unstow` / `make unstow CONFIGS="…"` to drop symlinks managed by Stow  
-- `make clean` to remove broken symlinks under `$HOME` and common config paths  
+- `make unstow` / `make unstow CONFIGS="…"` to drop symlinks managed by Stow
+- `make clean` to remove broken symlinks under `$HOME` and common config paths
 
 Review `~/dotfiles_backup/` manually when reclaiming disk space.
 
@@ -128,13 +141,13 @@ Review `~/dotfiles_backup/` manually when reclaiming disk space.
 
 ## Troubleshooting
 
-| Symptom | Suggestion |
-|---------|------------|
-| Broken symlinks after removals | `make clean` |
-| Stow conflicts between two trees | Stow **disjoint** packages where possible; stow order matters when both trees own the same path |
-| Permission errors on SSH/GPG dirs | `make install` (prep) adjusts repo-side `ssh/` and `gnupg/` permissions; ensure `~/.ssh` / `~/.gnupg` modes are 700 / 600 as needed |
-| `bootstrap-local` refuses to copy | Confirm you are in the **canonical** clone or set `DOTMATE_CANONICAL_ROOT` |
-| Update path errors after trimming repo | Missing `shell/.functions` is allowed; `check_dotfiles_update` is optional |
+| Symptom                                | Suggestion                                                                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Broken symlinks after removals         | `make clean`                                                                                                                        |
+| Stow conflicts between two trees       | Stow **disjoint** packages where possible; stow order matters when both trees own the same path                                     |
+| Permission errors on SSH/GPG dirs      | `make install` (prep) adjusts repo-side `ssh/` and `gnupg/` permissions; ensure `~/.ssh` / `~/.gnupg` modes are 700 / 600 as needed |
+| `bootstrap_local` refuses to copy      | Confirm you are in the **canonical** clone or set `DOTMATE_CANONICAL_ROOT`                                                          |
+| Update path errors after trimming repo | Missing `shell/.functions` is allowed; `check_dotfiles_update` is optional                                                          |
 
 ---
 
@@ -142,17 +155,17 @@ Review `~/dotfiles_backup/` manually when reclaiming disk space.
 
 These paths are **created empty on first bootstrap** under your **local** repo if missing (same layout under `$HOME` after you `stow` that tree). Tracked upstream configs merge them as shown.
 
-| Local repo path (under `LOCAL_DIR`) | Merged from (tracked) |
-|------------------------------------|------------------------|
-| `shell/.commonrc_local` | `shell/.commonrc` |
-| `shell/.functions_local` | `shell/.functions` |
-| `shell/.aliases_local` | `shell/.aliases` |
-| `shell/.zshrc_local` | `shell/.zshrc` |
-| `shell/.bashrc_local` | `shell/.bashrc` |
-| `shell/.tmux_local.conf` | `shell/.tmux.conf` (loads `~/.tmux_local.conf`) |
-| `git/.gitconfig_local` | `git/.gitconfig` (`include.path`) |
-| `ssh/.ssh/config_local` | `ssh/.ssh/config` (`Include`) |
-| `utilities/.taskrc_local` | `utilities/.taskrc` (`include`) |
+| Local repo path (under `LOCAL_DIR`) | Merged from (tracked)                           |
+| ----------------------------------- | ----------------------------------------------- |
+| `shell/.commonrc_local`             | `shell/.commonrc`                               |
+| `shell/.functions_local`            | `shell/.functions`                              |
+| `shell/.aliases_local`              | `shell/.aliases`                                |
+| `shell/.zshrc_local`                | `shell/.zshrc`                                  |
+| `shell/.bashrc_local`               | `shell/.bashrc`                                 |
+| `shell/.tmux_local.conf`            | `shell/.tmux.conf` (loads `~/.tmux_local.conf`) |
+| `git/.gitconfig_local`              | `git/.gitconfig` (`include.path`)               |
+| `ssh/.ssh/config_local`             | `ssh/.ssh/config` (`Include`)                   |
+| `utilities/.taskrc_local`           | `utilities/.taskrc` (`include`)                 |
 
 **Starship:** There is no `*_local` merge file. Use a branch, `STARSHIP_CONFIG`, or a separate stow tree.
 
@@ -177,7 +190,7 @@ The verifier uses a temp `HOME` snapshot for `stow -n` only; your real `$HOME` d
 
 ## `make help`
 
-Targets are documented in the `Makefile` `help` target. After changes, keep README and `make help` aligned (`bootstrap-local`, `stow`, `unstow`, `backup`, `update`, `install`, `clean`, `stow-with-target`, `help`).
+Targets are documented in the `Makefile` `help` target. After changes, keep README and `make help` aligned (`bootstrap_local`, `stow`, `unstow`, `backup`, `update`, `install`, `clean`, `stow-with-target`, `help`).
 
 ---
 

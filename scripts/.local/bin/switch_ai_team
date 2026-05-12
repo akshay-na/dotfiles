@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 # Interactive or non-interactive AI pack switcher via DotMate stow.
-# Tools are discovered from ai/<pack>: pack names must start with "<tool>-" (tool = first segment
-# before the first hyphen), except legacy "ai/.gemini" which maps to tool "gemini".
+#
+# Layout (discovered dynamically, nested only):
+#   ai/<tool>/<team>/                 - public packs (e.g. ai/cursor/tech-team)
+#   ai/private-teams/<tool>/<team>/   - submodule; listed when present
 #
 # Usage:
-#   switch_ai_team                          # interactive menus
+#   switch_ai_team                                          # interactive menus
 #   switch_ai_team apply  <tool> <team-basename>
-#   switch_ai_team ensure <tool> <team-basename>   # no-op if already active
+#   switch_ai_team ensure <tool> <team-basename>            # no-op if already active
+#
+# Team argument:
+#   Basename only (no slashes), e.g. switch_ai_team apply cursor content-team
 #
 # Env:
-#   DOTFILES_ROOT or DOTFILES_DIR — dotfiles repo (default: ~/dotfiles)
-#   SUBSCRIPTION_EXHUSTED=true — after a cursor switch, set agent model: lines to inherit (optional)
+#   DOTFILES_ROOT or DOTFILES_DIR - dotfiles repo (default: ~/dotfiles)
+#   SUBSCRIPTION_EXHUSTED=true - after a cursor switch, set agent model: lines to inherit (optional)
 
 set -euo pipefail
 
@@ -29,7 +34,10 @@ die() {
 
 usage() {
   echo "Usage: switch_ai_team | switch_ai_team apply|ensure <tool> <team-basename>" >&2
-  echo "  <tool> is the stow target ~/.<tool> (derived from pack name: cursor-tech → cursor)." >&2
+  echo "  <tool> is the stow target ~/.<tool> (cursor, gemini, ...)." >&2
+  echo "  Examples:" >&2
+  echo "    switch_ai_team apply cursor content-team" >&2
+  echo "      (resolves under ai/<tool>/ or ai/private-teams/<tool>/)" >&2
   exit 0
 }
 
@@ -41,69 +49,148 @@ ai_dir="$dotfiles_dir/ai"
 dotfiles_real="$(cd "$dotfiles_dir" && pwd -P)"
 ai_prefix="${dotfiles_real}/ai/"
 
-# Map ai/<basename> → tool for ~/.<tool> (must match DotMate stow_with_target logic).
-tool_from_pkg_basename() {
+# Map pack path relative to ai/ (no leading ai/) -> tool id. Single-segment paths are invalid (no legacy flat packs).
+tool_from_pack_relpath() {
   case "$1" in
-  .gemini) printf '%s\n' gemini ;;
-  ai-brain) printf '%s\n' ai-brain ;;
+  private-teams/*/*)
+    local sub="${1#private-teams/}"
+    printf '%s\n' "${sub%%/*}"
+    ;;
+  */*)
+    printf '%s\n' "${1%%/*}"
+    ;;
   *)
-    if [[ "$1" == *-* ]]; then
-      printf '%s\n' "${1%%-*}"
-    else
-      printf '%s\n' "$1"
-    fi
+    die "pack path '${1}' must be nested (tool/team or private-teams/tool/team), not a single top-level segment"
     ;;
   esac
+}
+
+# From path under ai/ (rest of realpath after .../ai/), derive the stow pack directory path relative to ai/.
+extract_pack_relpath_from_rest() {
+  local rest="$1" seg1 r t tm
+  seg1="${rest%%/*}"
+  if [[ "$seg1" == "private-teams" ]]; then
+    r="${rest#private-teams/}"
+    t="${r%%/*}"
+    r="${r#*/}"
+    tm="${r%%/*}"
+    if [[ -z "$tm" ]]; then
+      printf '%s\n' "$seg1"
+    else
+      printf '%s\n' "private-teams/$t/$tm"
+    fi
+    return
+  fi
+  if [[ "$rest" == "$seg1"/* ]]; then
+    r="${rest#*/}"
+    tm="${r%%/*}"
+    printf '%s\n' "$seg1/$tm"
+    return
+  fi
+  printf '%s\n' "$seg1"
 }
 
 assert_pack_belongs_to_tool() {
   local tool="$1" pack="$2"
   local implied
-  implied="$(tool_from_pkg_basename "$pack")"
+  implied="$(tool_from_pack_relpath "$pack")"
   [[ "$implied" == "$tool" ]] || die "pack '${pack}' maps to tool '${implied}', not '${tool}'"
 }
 
-# Print sorted unique tool names (excluding ai-brain).
+# Print sorted unique tool names (excluding ai-brain). Only tools that have at least one pack on disk.
 collect_tools() {
-  local raw=() dir_path dir_bn tool
-  while IFS= read -r -d '' dir_path; do
-    dir_bn="$(basename "$dir_path")"
-    [[ "$dir_bn" == "ai-brain" || "$dir_bn" == "ai-teams" ]] && continue
-    tool="$(tool_from_pkg_basename "$dir_bn")"
-    [[ "$tool" == "ai-brain" ]] && continue
-    raw+=("$tool")
+  local raw=() d bn
+  if [[ -d "$ai_dir/private-teams" ]]; then
+    while IFS= read -r -d '' d; do
+      bn="$(basename "$d")"
+      [[ "$bn" == ".git" || "$bn" == "."* || "$bn" == "ai-teams" ]] && continue
+      if find "$d" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null | grep -q .; then
+        raw+=("$bn")
+      fi
+    done < <(find -L "$ai_dir/private-teams" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  fi
+  while IFS= read -r -d '' d; do
+    bn="$(basename "$d")"
+    [[ "$bn" == "ai-brain" || "$bn" == "private-teams" || "$bn" == "ai-teams" ]] && continue
+    [[ "$bn" == *-* ]] && continue
+    if find "$d" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null | grep -q .; then
+      raw+=("$bn")
+    fi
   done < <(find -L "$ai_dir" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
   ((${#raw[@]} > 0)) || return 0
   printf '%s\n' "${raw[@]}" | LC_ALL=C sort -u
 }
 
-# Print sorted pack basenames for a tool (directory names under ai/).
+# Print sorted pack paths relative to ai/ (no ai/ prefix) for a tool.
 list_packs_for_tool() {
   local want="$1"
-  local packs=() dir_path dir_bn
-  while IFS= read -r -d '' dir_path; do
-    dir_bn="$(basename "$dir_path")"
-    [[ "$dir_bn" == "ai-brain" ]] && continue
-    [[ "$(tool_from_pkg_basename "$dir_bn")" == "$want" ]] || continue
-    packs+=("$dir_bn")
-  done < <(find "$ai_dir" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  local packs=() d bn
+  if [[ -d "$ai_dir/$want" ]]; then
+    while IFS= read -r -d '' d; do
+      bn="$(basename "$d")"
+      [[ "$bn" == "."* ]] && continue
+      packs+=("$want/$bn")
+    done < <(find "$ai_dir/$want" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  fi
+  if [[ -d "$ai_dir/private-teams/$want" ]]; then
+    while IFS= read -r -d '' d; do
+      bn="$(basename "$d")"
+      [[ "$bn" == "."* ]] && continue
+      packs+=("private-teams/$want/$bn")
+    done < <(find "$ai_dir/private-teams/$want" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  fi
   ((${#packs[@]} > 0)) || return 0
   printf '%s\n' "${packs[@]}" | LC_ALL=C sort
 }
 
-# Print active pack directory basename under ai/ (e.g. cursor-content-team), or empty.
+# Last segment of pack path under ai/ (for menus); e.g. cursor/tech-team -> tech-team.
+pack_rel_basename() {
+  printf '%s\n' "${1##*/}"
+}
+
+# Resolve a team directory basename to the unique pack path under ai/ for this tool.
+resolve_pack_rel_for_tool() {
+  local tool="$1" want_base="$2"
+  local matches=() pack base
+  if [[ "$want_base" == */* ]]; then
+    die "team basename must not contain '/'; pass basename only (e.g. content-team), not a path"
+  fi
+  if [[ "$want_base" == ai/* ]]; then
+    die "team basename must not start with 'ai/'; pass basename only (e.g. content-team)"
+  fi
+  while IFS= read -r pack; do
+    [[ -z "$pack" ]] && continue
+    base="$(pack_rel_basename "$pack")"
+    [[ "$base" == "$want_base" ]] && matches+=("$pack")
+  done < <(list_packs_for_tool "$tool")
+  if ((${#matches[@]} == 0)); then
+    die "no pack with team basename '${want_base}' for tool '${tool}' (under ai/${tool}/ or ai/private-teams/${tool}/)"
+  fi
+  if ((${#matches[@]} > 1)); then
+    local msg="ambiguous team basename '${want_base}' for tool '${tool}' - matches:"
+    local m
+    for m in "${matches[@]}"; do
+      msg+=$'\n'"  - $m"
+    done
+    die "$msg"
+  fi
+  printf '%s\n' "${matches[0]}"
+}
+
+# Print active pack path under ai/ (e.g. cursor/tech-team), or empty.
 detect_active_team() {
-  # Split locals: same-line `local tool="$1" root="$HOME/.$tool"` can expand
-  # `$tool` before `tool` is assigned (bash + set -u → "unbound variable").
-  local tool="$1"
-  local root="$HOME/.$tool" path ref_real rest
+  local want="$1"
+  local root="$HOME/.$want" path ref_real rest pack implied
   [[ -d "$root" ]] || { printf '\n'; return 0; }
   while IFS= read -r path; do
     [[ -e "$path" ]] || continue
     ref_real="$(realpath "$path" 2>/dev/null || true)"
     [[ -n "$ref_real" && "$ref_real" == "$ai_prefix"* ]] || continue
     rest="${ref_real#"$ai_prefix"}"
-    printf '%s\n' "${rest%%/*}"
+    pack="$(extract_pack_relpath_from_rest "$rest")"
+    implied="$(tool_from_pack_relpath "$pack")"
+    [[ "$implied" == "$want" ]] || continue
+    printf '%s\n' "$pack"
     return 0
   done < <(find "$root" \( -type f -o -type l \) -maxdepth 8 2>/dev/null | head -n 500)
   printf '\n'
@@ -112,7 +199,7 @@ detect_active_team() {
 run_stow() {
   local selected_tool="$1" selected_path="$2"
   echo
-  echo -e "${YELLOW}Applying selection…${NC}"
+  echo -e "${YELLOW}Applying selection...${NC}"
   echo -e "  ${DIM}Tool${NC}   ${BOLD}${CYAN}$selected_tool${NC}"
   echo -e "  ${DIM}Path${NC}   ${BOLD}$selected_path${NC}"
   echo -e "  ${DIM}Target${NC} ${CYAN}~/${NC}${BOLD}.$selected_tool${NC}"
@@ -120,9 +207,9 @@ run_stow() {
   if (cd "$dotfiles_dir" && make stow-with-target TOOL_PATH="$selected_path" TARGET_NAME=".$selected_tool"); then
     maybe_rewrite_cursor_models "$selected_tool"
     echo
-    echo -e "${GREEN}Done:${NC} switched ${CYAN}$selected_tool${NC} → ${BOLD}${selected_path#ai/}${NC}."
+    echo -e "${GREEN}Done:${NC} switched ${CYAN}$selected_tool${NC} -> ${BOLD}$selected_path${NC}."
     if [[ "$selected_tool" == "cursor" ]]; then
-      echo -e "${YELLOW}Reload Cursor to pick up agents/rules:${NC} Command Palette → Reload Window"
+      echo -e "${YELLOW}Reload Cursor to pick up agents/rules:${NC} Command Palette -> Reload Window"
     fi
   else
     echo
@@ -151,38 +238,38 @@ maybe_rewrite_cursor_models() {
 }
 
 cmd_apply() {
-  local tool="$1" team="$2"
-  [[ -n "$team" ]] || die "team basename required"
-  [[ -d "$dotfiles_dir/ai/$team" ]] || die "no pack at ${CYAN}$dotfiles_dir/ai/$team${NC}"
-  assert_pack_belongs_to_tool "$tool" "$team"
-  run_stow "$tool" "ai/$team"
+  local tool="$1" pack_rel
+  pack_rel="$(resolve_pack_rel_for_tool "$tool" "$2")"
+  [[ -n "$pack_rel" ]] || die "pack path under ai/ required"
+  [[ -d "$dotfiles_dir/ai/$pack_rel" ]] || die "no pack at ${CYAN}$dotfiles_dir/ai/$pack_rel${NC}"
+  assert_pack_belongs_to_tool "$tool" "$pack_rel"
+  run_stow "$tool" "ai/$pack_rel"
 }
 
 cmd_ensure() {
-  local tool="$1" team="$2"
-  [[ -n "$team" ]] || die "team basename required"
-  [[ -d "$dotfiles_dir/ai/$team" ]] || die "no pack at ${CYAN}$dotfiles_dir/ai/$team${NC}"
-  assert_pack_belongs_to_tool "$tool" "$team"
-  local active
+  local tool="$1" pack_rel active
+  pack_rel="$(resolve_pack_rel_for_tool "$tool" "$2")"
+  [[ -n "$pack_rel" ]] || die "pack path under ai/ required"
+  [[ -d "$dotfiles_dir/ai/$pack_rel" ]] || die "no pack at ${CYAN}$dotfiles_dir/ai/$pack_rel${NC}"
+  assert_pack_belongs_to_tool "$tool" "$pack_rel"
   read -r active < <(detect_active_team "$tool")
-  if [[ "$active" == "$team" ]]; then
-    echo -e "${DIM}switch_ai_team:${NC} $tool already on ${BOLD}$team${NC}, skip."
+  if [[ "$active" == "$pack_rel" ]]; then
+    echo -e "${DIM}switch_ai_team:${NC} $tool already on ${BOLD}$pack_rel${NC}, skip."
     exit 0
   fi
-  run_stow "$tool" "ai/$team"
+  run_stow "$tool" "ai/$pack_rel"
 }
 
 interactive() {
-  local selected_tool selected_team selected_path
-  local tools=() teams=() team_paths=()
-  local tool_choice team_choice
-  local pack i
+  local selected_tool selected_path
+  local tools=() pack_rels=() team_paths=() team_display=()
+  local tool_choice team_choice pack i j base dup idx
 
   while IFS= read -r pack; do
     [[ -n "$pack" ]] && tools+=("$pack")
   done < <(collect_tools)
 
-  ((${#tools[@]} > 0)) || die "No tool teams found under '${CYAN}$ai_dir${NC}' (expected ai/<tool>-… packs)."
+  ((${#tools[@]} > 0)) || die "No tool teams found under '${CYAN}$ai_dir${NC}'."
 
   echo
   echo -e "${BOLD}${CYAN}AI Team Switcher${NC}"
@@ -199,44 +286,63 @@ interactive() {
   printf "%bEnter tool number:%b " "$BOLD" "$NC"
   if [[ -r /dev/tty ]]; then read -r tool_choice < /dev/tty; else read -r tool_choice; fi
   [[ -n "$tool_choice" && "$tool_choice" =~ ^[0-9]+$ ]] || die "Invalid selection. Enter a valid number."
-  ((tool_choice >= 1 && tool_choice <= ${#tools[@]})) || die "Out of range. Pick ${DIM}1${NC}–${DIM}${#tools[@]}${NC}."
+  ((tool_choice >= 1 && tool_choice <= ${#tools[@]})) || die "Out of range. Pick ${DIM}1${NC}-${DIM}${#tools[@]}${NC}."
   selected_tool="${tools[$((tool_choice - 1))]}"
 
   local active_team=""
   read -r active_team < <(detect_active_team "$selected_tool")
 
-  teams=()
+  pack_rels=()
   team_paths=()
   while IFS= read -r pack; do
     [[ -z "$pack" ]] && continue
-    [[ "$pack" == "$active_team" ]] && teams+=("$pack [ACTIVE]") || teams+=("$pack")
+    pack_rels+=("$pack")
     team_paths+=("ai/$pack")
   done < <(list_packs_for_tool "$selected_tool")
 
-  ((${#teams[@]} > 0)) || die "No teams found for tool '${CYAN}$selected_tool${NC}'."
+  ((${#pack_rels[@]} > 0)) || die "No teams found for tool '${CYAN}$selected_tool${NC}'."
+
+  team_display=()
+  for pack in "${pack_rels[@]}"; do
+    base="$(pack_rel_basename "$pack")"
+    dup=0
+    for p2 in "${pack_rels[@]}"; do
+      [[ "$p2" == "$pack" ]] && continue
+      [[ "$(pack_rel_basename "$p2")" == "$base" ]] && dup=1 && break
+    done
+    if [[ "$dup" -eq 0 ]]; then
+      team_display+=("$base")
+    else
+      if [[ "$pack" == private-teams/* ]]; then
+        team_display+=("$base (private)")
+      else
+        team_display+=("$base (public)")
+      fi
+    fi
+  done
 
   echo
-  echo -e "${YELLOW}Available teams for${NC} ${BOLD}${CYAN}$selected_tool${NC}${YELLOW}:${NC}"
+  echo -e "${YELLOW}Available packs for${NC} ${BOLD}${CYAN}$selected_tool${NC}${YELLOW}:${NC}"
   echo
   i=1
-  for pack in "${teams[@]}"; do
-    if [[ "$pack" == *" [ACTIVE]" ]]; then
-      printf "%b%2d)%b %b%s%b %b[ACTIVE]%b\n" "$DIM" "$i" "$NC" "$BOLD" "${pack% \[ACTIVE\]}" "$NC" "$GREEN" "$NC"
+  for j in "${!pack_rels[@]}"; do
+    pack="${pack_rels[j]}"
+    if [[ "$pack" == "$active_team" ]]; then
+      printf "%b%2d)%b %b%s%b %b[ACTIVE]%b\n" "$DIM" "$i" "$NC" "$BOLD" "${team_display[j]}" "$NC" "$GREEN" "$NC"
     else
-      printf "%b%2d)%b %b%s%b\n" "$DIM" "$i" "$NC" "$BOLD" "$pack" "$NC"
+      printf "%b%2d)%b %b%s%b\n" "$DIM" "$i" "$NC" "$BOLD" "${team_display[j]}" "$NC"
     fi
     i=$((i + 1))
   done
   echo
-  printf "%bEnter team number:%b " "$BOLD" "$NC"
+  printf "%bEnter pack number:%b " "$BOLD" "$NC"
   if [[ -r /dev/tty ]]; then read -r team_choice < /dev/tty; else read -r team_choice; fi
   [[ -n "$team_choice" && "$team_choice" =~ ^[0-9]+$ ]] || die "Invalid selection. Enter a valid number."
-  ((team_choice >= 1 && team_choice <= ${#teams[@]})) || die "Out of range. Pick ${DIM}1${NC}–${DIM}${#teams[@]}${NC}."
+  ((team_choice >= 1 && team_choice <= ${#pack_rels[@]})) || die "Out of range. Pick ${DIM}1${NC}-${DIM}${#pack_rels[@]}${NC}."
 
-  selected_team="${teams[$((team_choice - 1))]}"
-  selected_team="${selected_team% \[ACTIVE\]}"
-  selected_path="${team_paths[$((team_choice - 1))]}"
-  [[ -n "$selected_path" ]] || selected_path="ai/$selected_team"
+  idx=$((team_choice - 1))
+  selected_path="${team_paths[idx]}"
+  [[ -n "$selected_path" ]] || selected_path="ai/${pack_rels[idx]}"
 
   run_stow "$selected_tool" "$selected_path"
 }

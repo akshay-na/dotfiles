@@ -27,8 +27,8 @@ Singleton adversarial loop for **Remotion + Skia + ffmpeg** plans authored by **
 
 ## Cross-references
 
-- Org **`cro-loop`** skill: `ai/cursor-tech-team/skills/cro-loop/SKILL.md`
-- Planning gate: `ai/cursor-tech-team/skills/remotion-builder-planning-gate/SKILL.md`
-- Execution gate: `ai/cursor-tech-team/skills/remotion-builder-execution-gate/SKILL.md`
-- Governance: `ai/cursor-tech-team/rules/remotion-builder-governance.mdc`
+- Org **`cro-loop`** skill: `ai/cursor/tech-team/skills/cro-loop/SKILL.md`
+- Planning gate: `ai/cursor/tech-team/skills/remotion-builder-planning-gate/SKILL.md`
+- Execution gate: `ai/cursor/tech-team/skills/remotion-builder-execution-gate/SKILL.md`
+- Governance: `ai/cursor/tech-team/rules/remotion-builder-governance.mdc`
 - **`subagent-response-protocol`**: `~/.cursor/rules/subagent-response-protocol.mdc`
