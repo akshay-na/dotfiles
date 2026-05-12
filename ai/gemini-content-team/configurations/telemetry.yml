@@ -1,6 +1,0 @@
-[38;2;220;223;228m# Gemini pack — telemetry configuration (stub)[0m
-[38;2;220;223;228m# Cursor: hooks.json + hooks/telemetry-*.sh stream under ~/.cursor/logs/telemetry/[0m
-[38;2;220;223;228m# Gemini: map to settings.json "hooks" + NDJSON per docs/runbooks/gemini-hooks-parity.md and gemini-observability-fallback.md[0m
-[38;2;220;223;228menabled: false[0m
-[38;2;220;223;228mnotes: |[0m
-[38;2;220;223;228m  Hook-based NDJSON aligns with agent-observability skill; CLI-native telemetry per Gemini docs — single narrative in runbooks.[0m
