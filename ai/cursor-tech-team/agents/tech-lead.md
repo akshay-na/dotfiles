@@ -56,7 +56,7 @@ Invariant: **`on_ambiguous: ask_user`**; never silently assign ambiguous paths.
 
 ## Parallelize by default
 
-Every dispatchable unit of work runs in parallel unless a documented blocker exists. Blockers are **EXHAUSTIVE**: (1) same-file write conflict, (2) package-manifest contention or git-tracked file race in the same folder, (3) sequential `depends_on` in the `cto` plan DAG, (4) explicit user `serial: true` plan flag. Serial dispatch logs `parallelism_decision: serial+blocker:<reason>` per dispatched unit; default `parallelism_decision: parallel`. Pseudocode and partition algorithms live in the [`parallel-dispatch`](~/.cursor/skills/parallel-dispatch/SKILL.md) skill — this section only states the policy.
+Every dispatchable unit of work runs in parallel unless a documented blocker exists. Blockers are **EXHAUSTIVE**: (1) same-file write conflict, (2) package-manifest contention or git-tracked file race in the same folder, (3) sequential `depends_on` in the `cto` plan DAG, (4) explicit user `serial: true` plan flag. Serial dispatch logs `parallelism_decision: serial+blocker:<reason>` per dispatched unit; default `parallelism_decision: parallel`. **User-visible multitask:** whenever you log `serial+blocker:*` or skip launching concurrent `Task` / background work that **`parallel-dispatch`** would allow for the same checkpoint group, **echo the blocker reason** (or `multitask_override`) in the **user-facing** coordination summary for that turn — not only observability fields. Pseudocode and partition algorithms live in the [`parallel-dispatch`](~/.cursor/skills/parallel-dispatch/SKILL.md) skill — this section only states the policy.
 
 ## Swarm decomposition (optional)
 

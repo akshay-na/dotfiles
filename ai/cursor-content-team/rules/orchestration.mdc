@@ -32,3 +32,7 @@ Publishing / CMS remains **after** human approval; agents stop at pushed drafts.
 ## Automation gate signals
 
 Automation (**`execution_mode: automation`**) honors **plan-declared structured signals only** — PR merge, approval webhook, or **idempotency-keyed** payload field (e.g. `correction_enqueue_mode`, `push_after_commit`). **Never** infer approval from silence or generic affirmations. Plans must enumerate the gate event for each automated stage.
+
+## Multitask default
+
+**`cco`** / **`content-lead`** default to **parallel internal work** (dispatches, pipeline lanes) when paths, skills, and predicates allow. **If** forcing **strictly serial** execution when additional safe parallel work was feasible under the plan DAG and disjoint paths, state a **one-line reason in operator-visible output** (chat / run summary) in that step — not only internal logs.

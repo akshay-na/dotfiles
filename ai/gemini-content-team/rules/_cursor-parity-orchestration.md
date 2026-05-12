@@ -1,36 +1,29 @@
-# Content orchestration (n8n)
+# Cursor ↔ Gemini orchestration parity
 
-## Payload (typical JSON fields)
+Canonical **payload**, **phase DAG**, **automation gates**, and **n8n / git** behavior live in:
 
-- `workspace_root`, `brief`, `task_id`, `idempotency_key` — **`workspace_root`** must be the **content corpus** git root; **`cco`** writes plans under `{workspace_root}/.gemini/docs/plans/` only (not under dotfiles org-pack paths).
-- Canonical automation metadata when available: `post_id`, `post_version`, `parent_post_id`, `correction_of`, `channel`, `content_type`, `workflow`, `target_schema_version`, `media_discovery_mode`, `correction_enqueue_mode`.
-- `execution_mode`: `automation` | `interactive`  
-- `correction_brief`, `target_paths[]` (correction runs)  
-- Git: `git_branch`, `git_remote`, `pull_before` (default true), `push_after_commit` (default true for automation), `commit_template_path` (default `$HOME/.gitmessage`), `create_branch` (optional)  
-- **SSH** remote assumed working — no token setup in agents.
+- **`agent-orchestration.md`** — entrypoints, execution approval, brain, tool boundaries, swarm / multitask pointers.
+- **`orchestration.md`** — parallelism first, phase ids, METRICS_READ, automation gate signals, failure classes.
 
-## Flow
+This file records **deltas** between Cursor IDE workflows and **Gemini CLI**, plus a maintainer checklist so the two packs do not drift.
 
-Automation: sync → **`cco`** (plan) → **`content-lead`** (generate + **commit/push**). Human reviews on GitHub after push. Correction: narrow `target_paths[]` + **`correction_brief`**, repeat git tail.
+## Path and mechanism deltas
 
-## n8n content artifact contract
+| Topic | Cursor (content tech path) | This pack (Gemini) |
+|--------|------------------------------|---------------------|
+| Plan on disk | `<project>/.cursor/docs/plans/` | `<project>/.gemini/docs/plans/` |
+| Child invoke | Cursor **`Task`** tool | **`dispatch`** (Gemini CLI agent delegation per **`mode-auto-selection.md`**) |
 
-- Automation handoff artifact is `content-post-artifact-v1` (schema at `contracts/schemas/content-post-artifact.schema.json`).
-- Stable IDs are mandatory: `post.post_id` + `post.version`; no repeated generation loop inside one workflow execution.
-- Obsidian/content-foundry vault artifact paths are source-of-truth for automation state (`obsidian.note_rel`, `paths.manifest_path`, `paths.audit_log_path`).
-- Approval/rejection behavior is async: approval path merges media and proceeds to archival/upload, rejection path creates separate correction workflow enqueue with idempotency and dead-letter fallback.
-
-## Human gate
-
-Publishing / CMS remains **after** human approval; agents stop at pushed drafts.
+**Artifact contract** (`content-post-artifact-v1`): schema at **`contracts/schemas/content-post-artifact.schema.json`**; operational fields summarized in **`../agents/content-lead.md`** § Automation output contract — do not duplicate field lists here.
 
 ## Gemini vs Cursor telemetry
 
-Gemini CLI has **no** Cursor JSONL hook telemetry substrate (`~/.cursor/hooks/telemetry-*.sh` is **Cursor-only**). Coordinators rely on **`agent-observability`** metrics + brain ledger writes; append **`swarm_override_reason`** to **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** when applicable (same cross-pack sink as tech pack).
+Gemini CLI has **no** Cursor JSONL hook telemetry substrate (`~/.cursor/hooks/telemetry-*.sh` is **Cursor-only**). Coordinators rely on **`agent-observability`** metrics + brain ledger writes; append **`swarm_override_reason`** / optional **`multitask_override_reason`** to **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** when applicable (same cross-pack sink as tech pack).
 
 ## Parity checklist (orchestration)
 
 - ☑ Automation gate signals mirrored (`rules/orchestration.md`).
-- ☑ Corpus boundary pointer mirrored (`rules/agent-orchestration.md`).
-- ☑ Cross-pack swarm audit + `dispatch-audit.md` pointer mirrored.
+- ☑ Corpus boundary + entrypoints mirrored (`rules/agent-orchestration.md`).
+- ☑ Cross-pack swarm audit + `dispatch-audit.md` pointer mirrored (`agent-orchestration.md` § Swarm audit).
 - ☑ Gemini hook/telemetry gap documented (§ Gemini vs Cursor telemetry).
+- ☑ Multitask default + user-visible serial justification mirrored (`rules/orchestration.md`, `rules/agent-orchestration.md`, tech pack § Multitask default).

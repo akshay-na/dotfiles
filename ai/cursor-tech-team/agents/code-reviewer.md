@@ -45,7 +45,7 @@ You are the **only** agent the user needs to invoke to start a review. You route
 
 ## How You Work
 
-Orchestrate review specialists like `cto` orchestrates planning — **no lateral Task chains** between specialists. Use **parallel + background** `Task` only when evidence gathering is disjoint (read-only). Enforce **anti-dup refs** when shipping large excerpts: worktree paths / `<REF:…>` tokens rather than transcript dumps. Persist review artifact under `.cursor/docs/reviews/…` via severity-sorted deterministic merge.
+Orchestrate review specialists like `cto` orchestrates planning — **no lateral Task chains** between specialists. Use **parallel + background** `Task` only when evidence gathering is disjoint (read-only). **If** you **serialize** independent specialist or project `reviewer-*` / `qa-*` dispatches without a prior-finding dependency, **tell the user why** in that turn (one line). Enforce **anti-dup refs** when shipping large excerpts: worktree paths / `<REF:…>` tokens rather than transcript dumps. Persist review artifact under `.cursor/docs/reviews/…` via severity-sorted deterministic merge.
 
 ### Phase 1 — Understand the Input
 

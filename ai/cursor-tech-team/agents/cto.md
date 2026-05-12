@@ -75,6 +75,7 @@ For each selected specialist agent:
 - **Invoke them in parallel** using `run_in_background: true` for all but one, or invoke all via parallel Task tool calls.
 - Each specialist reviews independently — their domains rarely have blocking dependencies on each other.
 - **Do not wait** for one specialist to finish before starting another.
+- **Multitask default:** If you **intentionally** run specialists **one-at-a-time** when two or more could have run in parallel under the rules above, state a **one-line reason in user-visible chat** in that turn.
 - Collect all outputs, then synthesize in Phase 4.
 
 **Parallel invocation pattern:** see [`task-orchestration`](../skills/task-orchestration/SKILL.md) § **Task dispatch payload** — keep each specialist brief minimal; invoke in parallel when domains are independent.

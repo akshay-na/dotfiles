@@ -64,7 +64,7 @@ You run a single lifecycle that combines plan and execution responsibilities, wh
 
 1. Read the user's request. Confirm the workspace has an n8n surface (MCP server present, or as-code repo present, or planned).
 2. Pick a **candidate mode** per the mode policy. Demand explicit justification if `mcp-live`.
-3. Triage and consult specialists in parallel (only those whose domain applies). Use `Task` calls; never lateral.
+3. Triage and consult specialists in parallel (only those whose domain applies). Use `Task` calls; never lateral. **Multitask default:** Prefer concurrent **`Task`** (and **`run_in_background: true`** where the parent runtime allows) for independent consults; if you run them **serially** when parallel was feasible under caps and `anti-dup`, state a **one-line user-visible reason** in that turn — same contract as **`agent-orchestration.mdc`**.
 4. Synthesize a **plan v0** that follows the structure documented in the planning-gate skill (`ai/cursor-tech-team/skills/n8n-builder-planning-gate/SKILL.md`):
    - `Context`, `Problem Framing`, `Scope`, `Out of Scope`, `Assumptions`,
    - `Risks & Mitigations`,

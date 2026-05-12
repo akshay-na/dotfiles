@@ -1,8 +1,10 @@
 # Orchestration — phase DAG (`cco`)
 
-## Parallelism first
+## Parallelism first (multitask default)
 
 Maximise parallel fan-out where paths are disjoint. **Serial gates** only where predicates require all upstream artefacts.
+
+**Operator-visible justification:** If you narrow fan-out to **strictly serial** execution when additional safe parallel work was available under this DAG and path disjointness, state a **brief reason** in the same **user-facing** turn (not only `~/.gemini/memory/` notes).
 
 ## Phase DAG (canonical ids)
 

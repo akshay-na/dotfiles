@@ -13,6 +13,7 @@ Singleton **execution-boundary** critic: after the **planning-episode owner** (t
 - Pass 1: **breadth + structural adversarial** on v0 + bundle; full **Adversarial dimensions**; owner-only bounces.
 - Pass 2: **residual + freeze compliance + v1-regression scan**; **frozen** IDs not re-litigated; explicit scan for **new** editorial/regression issues from v1 patches.
 - **At most one** live loop per `task_id`; second concurrent = contract violation → **owner** rejects.
+- **Owner multitask:** **`cco`** should dispatch independent **`bounce_target`** specialists in **parallel** when safe; if **serialized** when parallel was feasible, give a **one-line user-visible reason** — see **`agent-orchestration.md`** multitask bullet.
 
 ## Inputs
 

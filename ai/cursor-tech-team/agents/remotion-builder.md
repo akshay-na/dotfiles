@@ -88,7 +88,7 @@ Comparable to **`n8n-builder`**: all-in-one planner + executor for this domain. 
 ### Stage A — Planning
 
 1. Confirm corpus has (or will have) **`tools/remotion/`** (or plan-declared root) with pinned **`remotion`** / **`@remotion/skia`** / **`@shopify/react-native-skia`**.
-2. Consult specialists in parallel when applicable; minimal briefs; **`subagent-response-protocol`** envelopes.
+2. Consult specialists in parallel when applicable; minimal briefs; **`subagent-response-protocol`** envelopes. **Multitask default:** Prefer concurrent **`Task`** for independent consults; if **serial-only** when parallel was feasible under caps and `anti-dup`, state a **one-line user-visible reason** in that turn — **`agent-orchestration.mdc`**.
 3. Write **plan v0** per **`remotion-builder-planning-gate`** → **`<project>/.cursor/docs/plans/YYYY-MM-DD-remotion-<slug>.md`**.
 4. **Post–v0 edit round:** ask **once** whether to add/remove/change anything; revise until satisfied. **No** `approve v0 for CRO` phrase.
 

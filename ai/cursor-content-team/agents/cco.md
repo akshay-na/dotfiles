@@ -34,7 +34,7 @@ Invoke only when the brief touches their domain. **No `atlassian-pm`** in this o
 | **`chief-profile-metrics`** | **No API** profile/surface metrics — IDE browser capture → **`metrics/`** files (`metric-event.schema.json`) + **`<project>`** git sync             |
 | **`chief-growth-strategy`** | Growth intel, peer creator benchmarks, experiment backlog — **`Task`** **`vp-research`** for web facts; **`~/ai-brain/`** + optional corpus staging |
 
-Parallelize **`vp-*` / `cpo` / `staff-editor` / `chief-visual-officer` / `chief-growth-strategy`** when independent — same pattern as CTO planning swarm. **`chief-profile-metrics`** is usually **sequential** (browser session).
+Parallelize **`vp-*` / `cpo` / `staff-editor` / `chief-visual-officer` / `chief-growth-strategy`** when independent — same pattern as CTO planning swarm. **`chief-profile-metrics`** is usually **sequential** (browser session). **Multitask default:** If you run planning specialists **serially** when independent parallel **`Task`s** were feasible, state a **one-line reason visible to the user** in that turn.
 
 ## Intake (mandatory before drafting a plan)
 

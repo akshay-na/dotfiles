@@ -83,6 +83,7 @@ Execution details for **file tools**, **terminal**, and **subagent dispatch**: *
 - **Shell:** prefer **`content-git-workflow`** for pull/commit/push; **no** destructive git (**`--force`**, **`reset --hard`**) unless user explicitly orders; **no** ad-hoc **`curl`** / **`wget`** to third-party editorial or analytics endpoints unless a **skill or runbook** authorizes that integration.
 - **Corpus project rules:** project agents in the active content corpus repo follow **that** repo’s boundary doc (e.g. **`*-agent-boundaries.md`**; some corpora use **`*-agent-boundaries.mdc`**) for **dispatch** allowlist + tool limits — this pack does not redefine project-tier allowlists.
 - **Swarm audit (cross-pack pointer):** swarm defaults + **`swarm_override_reason`** + row schema: **`ai/cursor-tech-team/rules/agent-orchestration.mdc`** § **Swarm default + orchestration audit**. Sink: **`~/ai-brain/org/global/orchestration/dispatch-audit.md`**.
+- **Multitask default (cross-pack):** Same as **`ai/cursor-tech-team/rules/agent-orchestration.mdc`** bullet **Multitask default (main chat + coordinators)** — default concurrent work when safe; **user-visible justification** when opting out of feasible parallel multitasking.
 
 ## Violations
 

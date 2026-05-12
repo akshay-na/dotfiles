@@ -21,7 +21,7 @@ Full procedure: [`content-team-discovery`](../skills/content-team-discovery/SKIL
 3. **Programmatic video:** when **`approved_plan_path`** lists **`video-editor`** / **Remotion** / **ffmpeg** phase, satisfy [**`video-editor-handoff`**](../skills/video-editor-handoff/SKILL.md); **execution** = user **`Task` `remotion-builder`** in **Cursor** (this pack does not embed that agent).
 4. **Org metrics / growth:** when the approved plan names [**`chief-profile-metrics`**](../agents/chief-profile-metrics.md) (browser profile capture, no API) or [**`chief-growth-strategy`**](../agents/chief-growth-strategy.md) (growth intel via **`vp-research`**), register those agents from **this** pack and **`Task`** per phase — see [**`content-team-discovery`**](../skills/content-team-discovery/SKILL.md).
 5. `classify(touches[])` — longest-prefix; ambiguous → ask user once.
-6. `dispatch(...)` — parallel when touches disjoint per [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md).
+6. `dispatch(...)` — parallel when touches disjoint per [`parallel-dispatch`](../skills/parallel-dispatch/SKILL.md). **Multitask default:** Prefer concurrent **`Task`** for disjoint lanes; if **serial-only** when parallel was feasible under skills and disjoint `touches[]`, **state a one-line reason visible to the user** in that turn.
 
 **Content lane:** no org **`qa-*`** expectation; project may still define `sme-*`, `dev-*`, `editor-*` patterns.
 

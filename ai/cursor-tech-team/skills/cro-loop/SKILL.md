@@ -13,6 +13,7 @@ Encodes the **singleton, execution-boundary** plan-critic loop for **any plannin
 - Pass 1: **breadth + structural adversarial** review of complete plan v0 + specialist bundle; apply **Adversarial dimensions** checklist; non-null **`bounce_target`** → **owner MUST `Task`** within caps (**automatic** = mandatory owner queue). **`cro` MAY** issue **≤2** read-only clarification **`Task`s** per pass to **`ciso`**, **`sre-lead`**, or **`staff-engineer`** only; **`cro` MUST NOT** `Task` **`vp-*`**. After pass 1, **`cro` appends** **`## CRO pass 1`** to persisted `plan_path` (append-only).
 - Pass 2: **residual risk + freeze compliance + v1-regression scan** on plan v1 + ledger; **frozen** finding IDs MUST NOT be re-raised; same **`bounce_target` / clarification / `vp-*` ban / plan-append** rules; **`cro` appends** **`## CRO pass 2`** after pass 2.
 - Singleton invariant: one live loop per planning episode `task_id`; second concurrent invocation = contract violation → **owner** rejects.
+- **Owner multitask:** Dispatch **independent** **`bounce_target`** `Task`s **in parallel** when caps allow and **Bounce vs shard precedence** (below) does not force serialization; if you **serialize** when parallel was feasible, give a **one-line user-visible reason** — **`agent-orchestration.mdc`** multitask default.
 
 ## Inputs
 
