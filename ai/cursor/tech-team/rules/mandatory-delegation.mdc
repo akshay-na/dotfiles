@@ -1,0 +1,103 @@
+---
+description: "Coordinators must delegate substantive work; minimum sub-agent floor; recursive delegation; below-floor justification"
+alwaysApply: true
+---
+
+# Mandatory delegation (coordinators)
+
+**Applies to:** coordinator agents — `cto`, `tech-lead`, `code-reviewer`, `cco`, `content-lead`, `cio`, `trading-lead`, `n8n-builder`, `remotion-builder`, `atlassian-pm`, `editorial-ops-lead`.
+
+## Hard rules
+
+1. **No substantive inline work.** Coordinators **MUST NOT** perform substantive implementation work inline.
+
+   **Substantive** means any action that produces **more than 50 lines** of new/changed content, touches **more than 2 files**, or requires **domain-specialist** knowledge the coordinator is not chartered to own alone.
+
+2. **Delegate via `Task`.** Coordinators **MUST** `Task` sub-agents for:
+
+   - All implementation work
+   - All specialist analysis
+   - All research/docs lookups (**via `vp-research`** per `vp-research.mdc`)
+   - All review work (**via `code-reviewer`** → specialists, when in tech review flow)
+
+3. **Coordinator-allowed inline actions** (exceptions):
+
+   - Reading files for context to build `Task` payloads (**read-only discovery**)
+   - Writing plan documents under `<project>/.cursor/docs/plans/` (or pack-documented plan paths)
+   - Writing `~/ai-brain/` session/KB entries (**bounded** touch-writes per `brain-conventions.mdc`)
+   - Synthesizing sub-agent results into **user-facing** summaries (**no new facts** beyond merged child output)
+   - Orchestration bookkeeping (**dispatch-audit**, ledger updates, correlation ids)
+
+4. **Recursive delegation.** Sub-agents **MAY** invoke further sub-agents when their own task would exceed **context budget** (proxy: see **`context-budget-guard`** skill — **>40%** heuristic band on estimated cumulative load). **Depth cap:** 3 levels (coordinator → sub-agent → sub-sub-agent).
+
+5. **Violation = routing failure.** Stop, admit the miss, re-dispatch via `Task`. Do not substitute main-chat execution for a missing child.
+
+---
+
+## Minimum sub-agent floor (hard gate)
+
+6. **Floor and target.** Every coordinator invocation **MUST** dispatch a **minimum of 6** sub-agents (**hard floor**). **Target** is **8** sub-agents when independent shards allow.
+
+   **Rationale:** distributing work across 6–8 sub-agents keeps each agent’s context lean, reduces hallucination risk, and maximizes parallelization where policy allows.
+
+   **Decomposition** (non-exhaustive) to reach the floor:
+
+   - **DOMAIN** — one sub-agent per specialist domain (e.g. `vp-architecture`, `ciso`, `vp-engineering`, `sre-lead`, `staff-engineer`, `vp-platform`).
+   - **FILE GROUP** — disjoint `touches[]` partitions.
+   - **PHASE** — independent phases in parallel when the plan allows.
+   - **CONCERN** — research, implementation, review, testing, documentation, observability as natural shards.
+   - **Baseline trio** often includes: `vp-research` (docs), a **brain-memory-kb** writer where policy allows, and a **review/validation** agent; remaining shards come from domain/file/phase splits.
+
+7. **Below-floor justification** (**MANDATORY** when **< 6** sub-agents):
+
+   If a coordinator cannot reach **6** sub-agents, it **MUST**:
+
+   a. Emit a **`below_floor_justification`** block in **user-visible** chat **before** proceeding with fewer sub-agents.
+
+   b. The block **MUST** include:
+
+   - `dispatched_count`: actual number dispatched  
+   - `floor`: **6** (unless this coordinator’s row in the table below sets a different **Min direct**)  
+   - `reason`: one of:
+     - `atomic_task` — genuinely indivisible (**single file**, **single function**, **<20 lines** changed)
+     - `platform_cap_hit` — platform max concurrent sub-agents **<** policy floor (cite **`max_concurrent_subagents`** / **`floor.min_subagents_per_coordinator`** from **`~/.cursor/configurations/orchestration-policies/subagent-caps.yml`**)
+     - `depth_cap_hit` — already at depth **3**, cannot delegate further
+     - `no_independent_shards` — work is strictly serial with **data dependencies** between every step
+   - `attempted_decomposition`: brief description of how the coordinator tried to decompose before concluding **< 6** was unavoidable
+
+   c. Log the same fields in **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** (append row; join keys per `agent-orchestration.mdc` / verification gates when present).
+
+   d. If `reason` is **none** of the above → **violation.** Stop, re-decompose, or escalate to the user.
+
+8. **Recursive tree counts.** Sub-agents invoked by sub-agents **count** toward the coordinator’s **effective** delegation tree. Example: coordinator dispatches **3** sub-agents, each dispatches **2** more → **9** effective agents (meets floor **if** policy allows depth). **Direct** dispatch count from the coordinator **must still be ≥ 3** (**half-floor**) when using this recursive pattern.
+
+9. **Per-coordinator minimum direct / target**
+
+   | Coordinator | Min direct | Target | Typical decomposition |
+   |---------------|------------|--------|-------------------------|
+   | `cto` (planning) | 6 | 8 | `vp-architecture` + `ciso` + `vp-engineering` + `sre-lead` + `staff-engineer` + `vp-platform` + `vp-research` + `cro` |
+   | `tech-lead` (exec) | 6 | 8 | `dev-*` per phase/file-group + `qa-*` + `reviewer-*` + brain-writer |
+   | `code-reviewer` | 6 | 8 | `staff-engineer` + `ciso` + `vp-engineering` + `sre-lead` + `vp-architecture` + `vp-platform` + `vp-research` |
+   | `cco` (content) | 6 | 8 | `content-lead` + channel SMEs + `chief-visual-officer` + `reviewer-editorial` + `vp-research` + planner shards per plan |
+   | `content-lead` | 6 | 8 | per-channel SMEs + CVO + `remotion-builder` (when gated) + `reviewer-editorial` + promote + brain-writer |
+   | `cio` (trading) | 6 | 8 | `vp-quant-research` + `vp-risk-management` + `vp-market-intelligence` + `cfo-trading` + `trading-lead` + `vp-research` + brain-writer |
+   | `trading-lead` | 6 | 8 | `dev-*` + `qa-*` + `sme-*` + brain-writer |
+   | `remotion-builder` | 4 | 6 | plan + render + audio (`kokoro-audio-builder` when applicable) + QA + reviewer + brain-writer |
+   | `n8n-builder` | 4 | 6 | plan + per-workflow workers + QA + reviewer + brain-writer |
+
+   **Overrides:** `remotion-builder` and `n8n-builder` use **min direct 4** / **target 6** (more serial typical flows). All other coordinators in this table keep **min 6** / **target 8**. Canonical YAML: **`coordinator_overrides`** in **`subagent-caps.yml`** (single row per coordinator id — no duplicate keys).
+
+---
+
+## Platform caps + floor (canonical YAML)
+
+- **Stowed path (Cursor):** **`~/.cursor/configurations/orchestration-policies/subagent-caps.yml`**
+- **DotMate source:** **`ai/cursor/tech-team/configurations/orchestration-policies/subagent-caps.yml`**
+- **Contains:** per-**`platforms`** max concurrent sub-agents, depth, session totals; global **`floor`** (default min **6**, target **8**, half-floor **3**); **`defaults`** (parallel-first, serial justification, **`fan_out_minimum`**); **`coordinator_overrides`** for **`remotion-builder`** and **`n8n-builder`** (**min** **4**, **target** **6**).
+- Coordinators **MUST** load caps **before** planning waves; if the active platform’s **`max_concurrent_subagents`** is **less than** the YAML **`floor.min_subagents_per_coordinator`**, use **batched waves** (dispatch up to cap, await completion, dispatch next wave) per **`parallel-dispatch`** until the effective tree meets policy — log **`platform_cap_hit`** + wave plan in **`below_floor_justification`** when a **single** wave cannot satisfy floor alone.
+
+## Cross-references
+
+- Orchestration sink + swarm audit rows: **`agent-orchestration.mdc`**
+- Context proxy heuristics (40% / 80% bands): **[`context-budget-guard`](../skills/context-budget-guard/SKILL.md)**
+- Prompt/cache discipline (stable prefix, payloads): **[`context-cache-discipline`](../skills/context-cache-discipline/SKILL.md)**

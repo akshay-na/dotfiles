@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Agent orchestration and escalation
 
+- **Mandatory delegation (coordinators):** follow **[`mandatory-delegation`](./mandatory-delegation.mdc)** — substantive work via **`Task`**, minimum sub-agent floor, **`below_floor_justification`** when below floor, recursive depth limits, per-coordinator overrides. **Context load proxies:** **[`context-budget-guard`](../skills/context-budget-guard/SKILL.md)**. **Caps + floors (canonical YAML, when present):** **`~/.cursor/configurations/orchestration-policies/subagent-caps.yml`** after stow (source: **`ai/cursor/tech-team/configurations/orchestration-policies/subagent-caps.yml`**).
+
 - **User-requested agent = real dispatch, not persona:** When the user explicitly asks to **use / invoke / run / call / Task** a named agent, the parent assistant **must** **`Task`** that agent (see **`mode-auto-selection.mdc`** — explicit invocation gate). **Never** substitute in-chat imitation of that agent’s output style for a missing **`Task`**.
 
 - **Task-first tool contract (parent chat — non-negotiable):** When **`mode-auto-selection`** says the user **invoked** an agent (including **delegate / assign / hand off / orchestrate with** patterns), the **parent** session **must** emit **`Task`** with matching **`subagent_type`** **before** any **mutating** tool on workspace repos for that request. **Violations** (implementing P1–Pn, “I'll handle this phase,” or editing product paths **before** dispatch) are **routing failures** — **stop**, **admit the miss**, **`Task`** the named agent with the original brief, **do not** duplicate the child’s owned work in parallel prose. **Entrypoints** (`cto`, `tech-lead`, `code-reviewer`, `n8n-builder`, `remotion-builder`, `atlassian-pm`, `cro-loop` targets, etc.) **never** get main-chat **substitute execution**.
@@ -105,6 +107,7 @@ alwaysApply: true
 - **Workspace team naming, discovery, lean loading:** [`team-discovery`](../skills/team-discovery/SKILL.md).
 - **Swarm/routing, Task payload discipline, toolkit composition, CTO phase-DAG reference:** [`task-orchestration`](../skills/task-orchestration/SKILL.md).
 - **Token/cache discipline (when to load which skill):** [`context-cache-discipline`](../skills/context-cache-discipline/SKILL.md).
+- **Context budget (proxy heuristics):** [`context-budget-guard`](../skills/context-budget-guard/SKILL.md).
 - **Memory namespaces (`~/ai-brain/`), KB interface:** [`brain-memory-kb`](../skills/brain-memory-kb/SKILL.md).
 - **Plans/runbooks paths:** `docs-and-decisions` rule; **`<project>`** = repo being planned, not `~/.cursor/docs/`.
 - **Metrics / optional `token_stats`:** [`agent-observability`](../skills/agent-observability/SKILL.md).

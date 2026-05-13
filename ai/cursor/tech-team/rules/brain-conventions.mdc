@@ -12,6 +12,13 @@ alwaysApply: true
 - Tracked skeleton: `_schema/`, `_templates/`, `README.md`, `.gitignore`.
 - Local runtime content: `projects/`, `org/`, `session/`, `.meta/`, `Home.md`, `.obsidian/graph.json`.
 
+## Cross-tool mandate (Cursor + Gemini)
+
+- **Single source of truth:** All durable agent state (decisions, constraints, risks, session ledgers, promoted KB) lives under the **brain root** — canonical **`~/ai-brain/`** on disk. Do **not** maintain a second “shadow” vault for the same facts in pack-local trees unless documented migration mirrors or symlinks into the same store (no split-brain).
+- **Cursor pack** (`~/.cursor`, stowed from `dotfiles/ai/cursor/tech-team/`): agents use **`brain-memory-kb`** + normal workspace file tools against **`$HOME/ai-brain`** on allowed paths only.
+- **Gemini pack** (`~/.gemini`, stowed from `dotfiles/ai/private-teams/gemini/*/`): agents MUST follow the same writer policy and skeleton read-only rules; use **`rules/brain-write-bridge.md`** for the runtime write path (**Option A** native FS vs **Option B** structured **`memory_writes[]`** + coordinator persist — see **`brain-memory-kb`** skill).
+- **Handoff agents** (`code-reviewer`, `cro`, `senior-dev`): unchanged — **no** direct brain FS writes; populate **`memory_writes[]`** for the owning entrypoint to persist.
+
 ## Operating Model
 
 - **Memory lane (RAM-like):** short-lived orchestration context and quick recall.
@@ -27,7 +34,7 @@ alwaysApply: true
 
 ## Writer Policy
 
-- C-suite agents (`cto`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`) and `tech-lead` may perform bounded touch-writes to memory and KB. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
+- C-suite agents (`cto`, `cco`, `cio`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`, `cfo-trading`, `vp-quant-research`, `vp-risk-management`, `vp-market-intelligence`, `vp-audience-engineering`, and other org **`vp-*`** when policy grants touch-writes) and `tech-lead` may perform bounded touch-writes to memory and KB. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
 - Excluded from KB/memory writes for dedup control: `code-reviewer`, `senior-dev`, `cro`.
 - All other agents are read/query only for brain (`~/ai-brain/`) and must not write memory or KB.
 - Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
@@ -56,6 +63,12 @@ After stow, those paths are the same files as:
 - **Strictly forbidden** everywhere (files, commits, persisted logs, operator profile): **passwords**, **passphrases**, **API keys**, **OAuth / access / refresh tokens**, **private keys** (SSH, GPG, TLS), **session cookies**, **MFA seeds**, full **payment** or **bank account** numbers, **secret-bearing** `.env` or config dumps. Use **`<REDACTED>`** or a pointer (“**stored in secrets manager**”) — never the raw value.
 - **Do not** copy brain or vault PII into **public** repos, pastebins, or untrusted tool payloads. If a sync target becomes public, human must strip PII first.
 - Agents with brain read access should **consult** **`org/global/operator-profile/`** (below) before guessing stable preferences.
+
+## Cross-tool ai-brain mandate (Cursor + Gemini)
+
+- **Single durable root:** **`~/ai-brain/``** is the canonical knowledge + session store for **all** agent runtimes (Cursor IDE agents, Gemini CLI / pack agents, automation) unless a project ADR documents a **read-only** exception. Do **not** treat tool-local scratch paths as a substitute for durable brain writes when **`brain-conventions`** KB duty applies.
+- **Parity:** Content-org **`cco` / `content-lead`**, trading-org **`cio` / `trading-lead`**, and tech **`cto` / `tech-lead`** follow the same **gradual** write rhythm; only **writer policy** and **skeleton** rules differ by role — not **whether** to persist cross-session facts.
+- **Gemini bridge:** When the Gemini runtime lacks direct filesystem write tools, follow **`brain-write-bridge.md`** in the active Gemini pack (Option **B** — structured **`memory_writes[]`** handoff). When writes are available, use **Option A** — native paths under **`~/ai-brain/`** per this file and **`brain-memory-kb`**.
 
 ## Operator profile
 
@@ -87,11 +100,17 @@ Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). *
 
 Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspace (see **`agent-orchestration.mdc`**). **Goal:** build **`~/ai-brain/`** per project **incrementally** — not ad-hoc “sometimes” dumps. Use **`brain-memory-kb`** + **`kb-identity`**.
 
-- **Who (writes):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`** when they are the invoked entrypoint; org roles already allowed **touch-writes** above (**`vp-*`**, **`ciso`**, **`sre-lead`**, **`staff-engineer`**, **`vp-platform`**, **`vp-onboarding`**) when executing their routed work. **Who (handoff only):** **`code-reviewer`**, **`cro`**, **`senior-dev`** — **no** direct brain filesystem writes; they **must** populate **`memory_writes[]`** / structured findings so the **owning entrypoint** (**`cto`**, **`tech-lead`**, or parent orchestrator) persists (or the user runs promotion).
+- **Who (writes):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`** when they are the invoked entrypoint; cross-tool **content / trading coordinators** **`cco`**, **`cio`**, **`content-lead`**, **`trading-lead`** when executing routed orchestration for their pack; org roles already allowed **touch-writes** above (**`vp-*`**, **`ciso`**, **`sre-lead`**, **`staff-engineer`**, **`vp-platform`**, **`vp-onboarding`**, **`cfo-trading`**, **`vp-quant-research`**, **`vp-risk-management`**, **`vp-market-intelligence`**, **`vp-audience-engineering`**) when executing their routed work. **Who (handoff only):** **`code-reviewer`**, **`cro`**, **`senior-dev`** — **no** direct brain filesystem writes; they **must** populate **`memory_writes[]`** / structured findings so the **owning entrypoint** (**`cto`**, **`tech-lead`**, **`cco`**, **`cio`**, or parent orchestrator) persists (or the user runs promotion).
 - **Per-repo scope:** For **each** distinct **`workspace_root`** in the invocation (multi-root = **each** folder), resolve **`kb-identity`** → **`~/ai-brain/projects/<slug>/`**. Do **not** collapse several repos into one project node.
 - **Start of run:** **`memory` / `kb-query`** via **`brain-memory-kb`** — L0/L1 on **`projects/<slug>/`**, **`session/`**, relevant **`org/`** before drafting plans or execution.
-- **Gradual persistence:** At **every** phase boundary, swarm merge, critic pass, or user checkpoint: **at least one** bounded write — append **`session/`** ledger, patch **one** durable KB file, or **one** **`promote`** — **not** only a pile of files at the end. Default **≤ 3** new/changed paths under **`~/ai-brain/projects/<slug>/`** (or **`org/`**) per checkpoint unless the plan explicitly lists **`touches[]`** for brain. **Dedupe:** update existing nodes; mark **`supersedes`**; avoid orphan duplicates.
-- **Git-backed `~/ai-brain`:** If **`~/ai-brain`** is a git repo per **§ below**: **`pull --rebase` before first brain write** in the task; after material writes, **path-scoped** **`add` / `commit` / `push`** per signing rules — keep the remote **in sync**; on conflict **stop** and surface (no blind force-push).
+- **Strengthened KB duty (every touch, not end-of-task dump):**
+  1. **Read** **`~/ai-brain/projects/<slug>/`** (and relevant **`session/`** / **`org/`**) at **task start** — L0/L1 query minimum before substantive planning or execution.
+  2. **Write** at **every** phase boundary, swarm merge, critic pass, user checkpoint, or **substantive decision** — not only when the task ends.
+  3. **Minimum:** **≥ 1** bounded brain persistence action per **coordinator turn** that **mutates workspace product files** (repo working trees for the active project(s), excluding brain-only or pure `.cursor` doc bookkeeping if the turn truly touched **zero** product paths — then still append **`session/`** or **`org/`** when the turn produced any **new durable orchestration fact**). “Bounded” = append **`session/`** ledger, patch **one** durable KB node, **one** **`promote`**, or flush **`memory_writes[]`** from handoff agents — same caps as below.
+  4. **Types:** decisions, constraints, risks, session ledger lines, metric snapshots — per **`agent-observability`** / project metrics policy where applicable.
+  5. **Dedupe:** update existing nodes; mark **`supersedes`**; avoid orphan duplicates.
+  6. **Git-backed `~/ai-brain`:** **`pull --rebase` before first write** in the episode; after material writes, path-scoped **`add` / `commit` / `push`** per signing rules below.
+- **Gradual persistence (caps):** In addition to **(2–3)** above: default **≤ 3** new/changed paths under **`~/ai-brain/projects/<slug>/`** (or **`org/`**) per checkpoint unless the plan explicitly lists **`touches[]`** for brain. On conflict during **`pull --rebase`**, **stop** and surface (no blind force-push).
 - **Fail-closed:** Do not end an entrypoint episode that created **new** durable facts (decisions, constraints, risks, checkpoints) with **zero** persistence unless **`degraded`** is recorded in **`session/`** or the subagent envelope and the user is told.
 
 ## `~/ai-brain` as a git repository (optional)

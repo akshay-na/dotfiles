@@ -44,6 +44,27 @@ Promote when item is:
 
 - Canonical interface is `brain-memory-kb`.
 
+## Cross-tool bridge (Cursor + Gemini)
+
+**Goal:** Same persistence contract whether the runtime is **Cursor** or **Google Gemini** — all durable writes land under the brain root per **`brain-conventions.mdc`** (skeleton paths remain read-only).
+
+### Option A — Native brain writes (DEFAULT)
+
+- Use when the runtime exposes **file / patch tools** that can write to **`$HOME/ai-brain/`** on **allowed** paths only (`projects/`, `org/`, `session/`, `.meta/`, etc. — never **`_schema/`** or **`_templates/`**).
+- Follow **Modes** and **Entrypoint rhythm** in this skill the same as Cursor.
+- **Gemini packs:** load **`rules/brain-write-bridge.md`** as the local checklist (mirrors this section).
+
+### Option B — Automatic fallback (`memory_writes[]`)
+
+- Use when **native writes** to the brain root are **not** available (no FS tool, sandbox, or policy blocks direct `~/ai-brain` access).
+- The agent MUST still persist facts: emit structured **`memory_writes[]`** (each item: target path under brain root or repo-relative brain path, operation, and content summary / payload per parent contract) inside the **`subagent-response-protocol`** YAML envelope or another **structured block** the parent orchestrator documents for that pipeline.
+- The **invoking coordinator** (e.g. **`cto`**, **`tech-lead`**, **`cco`**, **`cio`**, or any parent with FS access to **`~/ai-brain`**) MUST **flush** every **`memory_writes[]`** entry using this skill or scoped filesystem writes **in the same coordination episode** before claiming completion. **No user confirmation** to pick Option A vs B — detect and degrade automatically.
+- **Fail-closed:** Durable facts MUST NOT live only in chat; if Option B applies and the coordinator cannot flush, record **`degraded`** in **`session/`** and stop per **`brain-conventions.mdc`**.
+
+### Coordinator minimum (cross-tool)
+
+- Align with **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty`**: **≥ 1** bounded brain action per coordinator turn that **mutates product repo files**, or **`session/`** / **`org/`** append when the turn produced new durable orchestration facts without product-tree edits.
+
 ## Entrypoint rhythm (orchestrators)
 
 When **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** applies: **lookup first**, then **one bounded write set per checkpoint** (session append, single KB patch, or **`promote`**); **pull `--rebase`** on git-backed **`~/ai-brain`** before first write; **commit/push** after material changes. **No** “only at end” batch unless the plan’s **`touches[]`** says otherwise.
