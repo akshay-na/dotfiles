@@ -111,3 +111,24 @@ Given phase **P**, role **R**, and `touches[] = [t1..tk]`:
 - **Per-phase intra-role fan-out:** **maximum 8** instances per role per phase (see Level-3).
 - **Global safety net:** **12** concurrent in-flight `Task` calls per orchestrator session (across all groups and fan-outs).
 - **Rate-limit backoff:** On **3 consecutive HTTP 429** (or equivalent rate-limit signals), **halve** effective concurrency for **60 seconds**, then reassess.
+
+## Platform caps + delegation floor (YAML)
+
+**Canonical file (stowed):** **`~/.cursor/configurations/orchestration-policies/subagent-caps.yml`**  
+**Repo source:** [`../../configurations/orchestration-policies/subagent-caps.yml`](../../configurations/orchestration-policies/subagent-caps.yml)
+
+| Key | Cursor (policy default) | Gemini (policy default) |
+|-----|-------------------------|-------------------------|
+| `platforms.*.max_concurrent_subagents` | **10** | **5** |
+| `platforms.*.max_depth` | **3** | **2** |
+| `platforms.*.max_total_per_session` | **50** | **30** |
+| `floor.min_subagents_per_coordinator` | **6** (unless `coordinator_overrides`) | same file |
+| `floor.target_subagents` | **8** | same |
+| `floor.half_floor_recursive` | **3** min **direct** `Task`s when using recursive fan-out | same |
+| `defaults.fan_out_minimum` | **2** — if **≥2** independent shards exist, parallelize | same |
+
+**`coordinator_overrides`:** **`remotion-builder`** and **`n8n-builder`** → **`min_subagents_direct: 4`**, **`target_subagents: 6`** (single map entry each).
+
+**Floor vs platform cap:** When **`max_concurrent_subagents` < floor.min_subagents_per_coordinator`** for the active platform row, **do not** drop the floor silently — run **batched waves**: wave-1 = up to **`max_concurrent_subagents`** parallel **`Task`s**, await all envelopes + merges, wave-2+ until **effective** dispatched count (including recursive tree per **`mandatory-delegation.mdc`**) meets floor or a valid **`below_floor_justification`** is emitted. Log each wave in **`dispatch-audit.md`** with `parallelism: partial` when caps force sequencing across waves.
+
+**Serial fallback:** When choosing serial over parallel and **`defaults.serial_requires_justification: true`**, write **user-visible** reason **and** append **`swarm_override_reason`** / serial justification per **`agent-orchestration.mdc`** audit row.

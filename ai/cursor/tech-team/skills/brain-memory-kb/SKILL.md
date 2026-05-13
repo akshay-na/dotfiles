@@ -61,6 +61,11 @@ Promote when item is:
 - The **invoking coordinator** (e.g. **`cto`**, **`tech-lead`**, **`cco`**, **`cio`**, or any parent with FS access to **`~/ai-brain`**) MUST **flush** every **`memory_writes[]`** entry using this skill or scoped filesystem writes **in the same coordination episode** before claiming completion. **No user confirmation** to pick Option A vs B — detect and degrade automatically.
 - **Fail-closed:** Durable facts MUST NOT live only in chat; if Option B applies and the coordinator cannot flush, record **`degraded`** in **`session/`** and stop per **`brain-conventions.mdc`**.
 
+### Detection (Gemini vs Cursor)
+
+- **Option A:** runtime exposes **`write_file`** / patch / equivalent **and** writes to **`$HOME/ai-brain/`** succeed on allowed paths (probe append under **`session/`** when unsure).
+- **Option B:** no FS tool, sandbox denies **`~/ai-brain`**, or writes fail — emit **`memory_writes[]`** and let the parent coordinator persist.
+
 ### Coordinator minimum (cross-tool)
 
 - Align with **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty`**: **≥ 1** bounded brain action per coordinator turn that **mutates product repo files**, or **`session/`** / **`org/`** append when the turn produced new durable orchestration facts without product-tree edits.

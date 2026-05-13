@@ -1,0 +1,36 @@
+# Platform sub-agent limits + delegation floor defaults.
+# Stow: DotMate tech-team → ~/.cursor/configurations/orchestration-policies/subagent-caps.yml
+# Coordinators MUST read this file (or pack-local mirror) before large parallel dispatches.
+#
+# Values are policy defaults — verify against actual host limits when they differ.
+
+platforms:
+  cursor:
+    max_concurrent_subagents: 10
+    max_depth: 3
+    max_total_per_session: 50
+  gemini:
+    max_concurrent_subagents: 5
+    max_depth: 2
+    max_total_per_session: 30
+
+floor:
+  min_subagents_per_coordinator: 6
+  target_subagents: 8
+  half_floor_recursive: 3
+  below_floor_requires: justification
+
+defaults:
+  prefer_parallel: true
+  serial_requires_justification: true
+  fan_out_minimum: 2
+
+# Per-coordinator direct-dispatch floor overrides (see mandatory-delegation.mdc table).
+# Single entry per id — do not duplicate keys.
+coordinator_overrides:
+  remotion-builder:
+    min_subagents_direct: 4
+    target_subagents: 6
+  n8n-builder:
+    min_subagents_direct: 4
+    target_subagents: 6
