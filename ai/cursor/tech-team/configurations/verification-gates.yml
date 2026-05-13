@@ -462,3 +462,89 @@ swarm_orchestration:
       - event_outcome
       - attempt
     audit_ledger: ~/ai-brain/org/global/orchestration/subagent-audit-log.jsonl
+
+# Delegation + sub-agent floor compliance (P6)
+# Enforced at runtime by coordinator / agent-observability conventions — NOT git hooks.
+delegation_floor_compliance:
+  enforcement: runtime_agent_audit
+  not_enforced_by:
+    - git_pre_commit
+    - git_pre_push
+  references:
+    dispatch_audit: ~/ai-brain/org/global/orchestration/dispatch-audit.md
+    floor_violations: ~/ai-brain/org/global/orchestration/floor-violations.md
+    weekly_floor_report_on_demand: ~/ai-brain/org/global/orchestration/floor-compliance-weekly.md
+    subagent_audit_jsonl: ~/ai-brain/org/global/orchestration/subagent-audit-log.jsonl
+  dispatch_audit_row_pattern:
+    description: >-
+      Append-only markdown/TSV row per coordinator turn; must be joinable to
+      swarm_orchestration.subagent_audit JSONL via trace_id, task_id, dispatch_id.
+    required_metrics:
+      - delegation_count
+      - delegation_floor_met
+    optional_metrics:
+      - below_floor_justification
+      - inline_work_detected
+      - brain_writes_count
+      - parallel_vs_serial_ratio
+      - effective_delegation_tree_size
+    aliases:
+      floor_met: delegation_floor_met
+  gates:
+    - id: delegation_dispatch_audit_row
+      when: runtime_coordinator_turn
+      blocking: true
+      description: >-
+        Coordinator entrypoints append a dispatch-audit row with delegation_count
+        and delegation_floor_met (or floor_met alias); missing row is fail-closed for policy.
+      check_protocol: |
+        Before ending a coordinator turn:
+        1. Append or update dispatch-audit.md row for this task_id/trace_id.
+        2. Include delegation_count and delegation_floor_met (see delegation_floor_compliance.dispatch_audit_row_pattern).
+        3. If delegation_floor_met is false, include valid below_floor_justification per mandatory-delegation.
+      pass_criteria: Row present with required_metrics; violations escalated to floor-violations.md when hard-fail
+      failure_pattern: delegation-floor-missing-audit
+
+    - id: delegation_floor_justification_or_count
+      when: runtime_coordinator_turn
+      blocking: true
+      description: >-
+        If delegation_count is below org floor, below_floor_justification MUST be present
+        and valid; else append incident to floor-violations.md.
+      check_protocol: |
+        If delegation_floor_met == false:
+        1. Verify below_floor_justification block exists with allowed reason codes.
+        2. If missing/invalid, append incident to floor-violations.md with task_id, trace_id, coordinator id, timestamp.
+      pass_criteria: Floor met OR valid justification recorded
+      failure_pattern: delegation-floor-without-justification
+
+    - id: delegation_no_inline_substantive_work
+      when: runtime_coordinator_turn
+      blocking: true
+      description: >-
+        Coordinators must not substitute substantive implementation for Task dispatch;
+        set inline_work_detected and log if violation.
+      check_protocol: |
+        Review coordinator turn: substantive edits or owned deliverables without matching Task dispatches => inline_work_detected true => floor-violations.md incident.
+      pass_criteria: inline_work_detected false OR out-of-scope trivial edit documented
+      failure_pattern: delegation-inline-work-violation
+
+    - id: delegation_brain_writes_convention
+      when: runtime_coordinator_turn
+      blocking: false
+      description: >-
+        brain_writes_count is advisory convention-only (cro-017); no hook verifies ~/ai-brain writes.
+      check_protocol: |
+        When KB duty applies, coordinators SHOULD report brain_writes_count on the dispatch-audit row; gaps are advisory, not CI-blocking.
+      pass_criteria: N/A advisory
+      failure_pattern: null
+
+    - id: delegation_weekly_report_on_demand
+      when: on_demand_user_or_entrypoint
+      blocking: false
+      description: >-
+        Generate floor-compliance-weekly.md only when explicitly requested (e.g. generate delegation report).
+      check_protocol: |
+        Aggregate dispatch-audit.md + floor-violations.md (+ optional JSONL) into ~/ai-brain/org/global/orchestration/floor-compliance-weekly.md; do not auto-schedule from repo.
+      pass_criteria: Report written when requested
+      failure_pattern: null

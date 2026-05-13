@@ -102,6 +102,38 @@ For `cto`, `tech-lead`, and `code-reviewer`, the following fields are mandatory 
 - `pipeline`, `stage_id`, `workspace_root`
 - `event_type`, `event_outcome`, `attempt`
 
+## Delegation and sub-agent floor observability
+
+Policy source: `mandatory-delegation` rule + `agent-orchestration` / `parallel-dispatch`. These signals are **convention and runtime audit** — **not** enforced by git pre-commit (hooks cannot see `Task` dispatches or agent tool graphs).
+
+### Coordinator-turn metrics (emit per coordinator invocation)
+
+| Field | Type | Meaning |
+|-------|------|--------|
+| `delegation_count` | number | Direct `Task` dispatches from this coordinator in this turn (policy floor typically ≥ 6 unless justified; half-floor / overrides per mandatory-delegation). |
+| `delegation_floor_met` | boolean | `true` when `delegation_count` (and any declared recursive / override rule) satisfies the active floor; `false` requires a valid `below_floor_justification`. |
+| `below_floor_justification` | object \| null | Structured block when below floor: reason codes (e.g. `atomic_task`, `platform_cap_hit`), scope, timestamp. Omit or `null` when `delegation_floor_met` is `true`. |
+| `inline_work_detected` | boolean | `true` if substantive work ran inline in coordinator chat instead of delegated `Task` (policy violation). |
+| `brain_writes_count` | number | Count of durable `~/ai-brain/` touch-writes attributed to this turn when KB duty applies. **Convention-only:** no repo hook counts brain FS writes (cro-017); agents self-report or ledger manually. Not runtime-enforced. |
+| `parallel_vs_serial_ratio` | number | Ratio of parallel sibling dispatches to serial-forced dispatches in the session slice (0..1 or parallel ÷ (parallel+serial); document which convention you use in the audit row). |
+| `effective_delegation_tree_size` | number | Total agents in the recursive tree for this episode (coordinator + descendants through completed `Task`s), used to validate recursive-delegation patterns. |
+
+### Runtime audit (where to record)
+
+1. **Dispatch audit (append-only rows)** — `~/ai-brain/org/global/orchestration/dispatch-audit.md`  
+   Each coordinator turn SHOULD add or join a row carrying at least `task_id`, `trace_id` / `dispatch_id` (when known), `delegation_count`, `delegation_floor_met` (synonym in rows: `floor_met` is acceptable if already used elsewhere), `parallel_vs_serial_ratio`, `effective_delegation_tree_size`, `inline_work_detected`, and `brain_writes_count` when entrypoint KB duty applies.
+
+2. **Floor violations (incidents)** — `~/ai-brain/org/global/orchestration/floor-violations.md`  
+   Hard violation: `delegation_count` below floor **and** missing or invalid `below_floor_justification`, or `inline_work_detected: true` for substantive scope. Append-only incident lines; do not rewrite history.
+
+3. **Weekly / on-demand floor compliance report** — `~/ai-brain/org/global/orchestration/floor-compliance-weekly.md`  
+   Generated **on demand** when the user or an entrypoint requests a delegation report (e.g. “generate delegation report”). Aggregate from `dispatch-audit.md` + `floor-violations.md` + optional `subagent-audit-log.jsonl` join keys (`trace_id`, `task_id`, `dispatch_id`). **Not** auto-scheduled in-repo; path is runtime-only under `~/ai-brain/`.
+
+### How this differs from git hooks
+
+- **Git pre-commit / pre-push:** validate **repository files** (lint, secrets patterns, etc.). They do **not** see Cursor `Task` dispatches, parallel shard decisions, or `~/ai-brain/` writes.
+- **Runtime delegation audit:** coordinators and observability flows log the fields above into brain orchestration paths **during** the session. Treat missing rows for entrypoint turns as a policy gap, not a CI failure.
+
 ### Optional `token_stats` / `token_estimate` (cache discipline)
 
 - Subagent YAML envelope (`templates/subagent-response.yml.tmpl`) may include advisory **`token_stats`** when the runtime provides estimates — use for **before/after** or A/B comparisons of dispatch cost, not as billing truth.
@@ -273,6 +305,7 @@ Agents must write metrics at these events:
 | Intra-role fan-out spawned | `parent_agent`, `instance_id`, `partition_basis`, `dispatch_level=L4` | Per-instance dispatch |
 | Serial dispatch | `target_agent`, `parallelism_decision=serial+blocker:<reason>` | When parallelize-by-default is overridden |
 | Subagent dispatch | `trace_id`, `dispatch_id`, `parent_agent`, `target_agent`, `event_type=dispatch` | Immediately before subagent invocation |
+| Coordinator turn closes | `delegation_count`, `delegation_floor_met`, `below_floor_justification`, `inline_work_detected`, `brain_writes_count` (advisory), `parallel_vs_serial_ratio`, `effective_delegation_tree_size` + dispatch-audit row | End of coordinator turn; see **Delegation and sub-agent floor observability** |
 | Subagent started/completed | `agent_run_id`, `event_type`, `event_outcome`, `duration_ms` | At lifecycle transitions |
 | Subagent timeout/retry | `event_type=timeout_or_retry`, `attempt`, `error_code` | On timeout/retry handling |
 | Protocol degraded path | `event_type=protocol_malformed_or_secret_redaction`, `event_outcome=degraded` | When parse contract enforcement degrades |
