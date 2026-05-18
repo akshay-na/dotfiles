@@ -83,7 +83,7 @@ When **any** trigger holds: plan has **≥2** implementation phases or non-trivi
 | Security / compliance-adjacent | `security`, `supply-chain` |
 | Domain / coverage | specialist bounce **or** `coverage` with evidence ref |
 
-**Trivial single-step, low-blast, non-prod, non-destructive, non-security:** no artificial minimum count; proportional depth only.
+**Small single-step, low-blast, non-prod, non-destructive, non-security:** no artificial minimum count; **proportional constructive critique still required** (see [`cro`](../../agents/cro.md) **Accountability and constructive criticism**). Empty findings only with per-axis ledger/pass “checked / N/A + why” — not because the plan was short.
 
 ## Caps and degradation
 

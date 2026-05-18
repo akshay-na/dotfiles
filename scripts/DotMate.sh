@@ -151,10 +151,10 @@ install() {
 # Create symlinks for dotfiles using stow
 stow_dotfiles() {
   echo_with_color "$GREEN" "Stowing dotfiles..."
-  EXCLUDED_DIRS=("ai" "scripts")
+  EXCLUDED_DIRS=("ai")
   for dir in "$DOTFILES_DIR"/*/; do
     if [[ ! " ${EXCLUDED_DIRS[@]} " =~ " $(basename "$dir") " ]]; then
-      stow --no-folding --override=$dir -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+      stow --no-folding -R --override="$dir" -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
     fi
   done
   chmod +x ~/.local/bin/*
