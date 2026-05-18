@@ -395,7 +395,7 @@ Session metrics live in `session.current/` during execution. Promote to project-
 ### Promoted Location
 
 ```
-~/.cursor/memory/projects/{project_name}/metrics/
+~/ai-brain/projects/{project_name}/metrics/
 ```
 
 **File naming:** `metric-{task_id}-{date}.md`
@@ -407,8 +407,24 @@ Session metrics live in `session.current/` during execution. Promote to project-
 Maintain an index for efficient queries:
 
 ```
-~/.cursor/memory/projects/{project_name}/metrics/_index.md
+~/ai-brain/projects/{project_name}/metrics/_index.md
 ```
+
+## Brain audit events (`log_brain_event`)
+
+Append structured lines to `~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl` (or org-global sink when project slug unknown).
+
+| Event type | When |
+|------------|------|
+| `kb_query` | After `brain-memory-kb` lookup (include `ladder_depth`: L0–L3) |
+| `kb_promote` | After promotion |
+| `kb_demote` | After demotion (or advisory intent when contract not yet live) |
+| `session_flag` | `fresh_eyes`, `clear_stale_trap`, etc. |
+| `stale_trap` | Coordinator triggered stale-trap recovery |
+
+**Required join keys** (mirror `verification-gates.yml` → `swarm_orchestration.brain_audit`): `trace_id`, `task_id`, optional `dispatch_id`.
+
+**Human-readable sinks** (append-only under `~/ai-brain/org/global/orchestration/`): `brain-efficiency-audit.md`, `brain-stale-traps.md`, `memory-demotion-audit.md`.
 
 **Index format:**
 ```yaml

@@ -60,7 +60,7 @@ whitespace-and-separator-insensitive regex for the secret patterns listed
 above, plus a Shannon-entropy ≥ 4.0 heuristic (with UUID v4 and hex-40 SHA
 allowlist). On match: (a) quarantine the raw response to
 `~/ai-brain/projects/<name>/explore-dumps/<task-id>.md` when that root exists,
-else `~/.cursor/memory/projects/<name>/explore-dumps/<task-id>.md`, (b) rewrite the
+overflow path is `~/ai-brain/projects/<name>/explore-dumps/<task-id>.md` only; (b) rewrite the
 envelope to `status: malformed` with
 `degraded_reason: "suspected_secret_in_output"`, and (c) record the incident
 in the runbook. Treat the raw match as already leaked for incident-response

@@ -104,12 +104,12 @@ For important architectural or process decisions, record:
 
 Link these decisions from memory entries (`org.global` or `project.<name>`) instead of duplicating full text.
 
-## Memory integration
+## Brain integration
 
-- **Memory** (`~/.cursor/memory/`): Cross-session knowledge, decisions, constraints — persists across worktrees and sessions
+- **Brain** (`~/ai-brain/`): Cross-session knowledge, decisions, constraints — canonical durable vault (see `brain-conventions.mdc`)
 - **Docs** (**`<project>/.cursor/docs/`**): Plans, runbooks, decisions, reviews — **project-local**, optionally git-tracked (see **Where project artifacts live** above)
 
-Use memory for quick lookups and knowledge persistence. Use docs for detailed write-ups that benefit from version control or sharing.
+Use `brain-memory-kb` for lookups and persistence. Use docs for detailed write-ups that benefit from version control or sharing.
 
 ## Keeping docs current
 

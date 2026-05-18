@@ -15,13 +15,11 @@
 #
 #   Global (user-level):
 #     $HOME/.cursor/docs/**      — user docs (includes knowledge-base vault)
-#     $HOME/.cursor/memory/**    — user memory
 #     $HOME/ai-brain/**         — unified ai-brain vault (org/projects/session)
 #     $HOME/.cursor/ai-brain/** — legacy/alternate brain location (symlink or copy)
 #
 #   Global stow source (dotfiles repo — same files via symlink):
 #     $HOME/dotfiles/ai/cursor/tech-team/docs/**
-#     $HOME/dotfiles/ai/cursor/tech-team/memory/**
 #     $HOME/dotfiles/ai/ai-brain/**
 #
 #   Workspace / project-level:
@@ -90,22 +88,18 @@ canonical="$(realpath -q "$path" 2>/dev/null || printf '%s' "$path")"
 
 # Build the set of trusted-zone prefixes (literal and canonicalized).
 HOME_DOCS="$HOME/.cursor/docs"
-HOME_MEM="$HOME/.cursor/memory"
 HOME_BRAIN="$HOME/ai-brain"
 HOME_BRAIN_CURSOR="$HOME/.cursor/ai-brain"
 STOW_DOCS="$HOME/dotfiles/ai/cursor/tech-team/docs"
-STOW_MEM="$HOME/dotfiles/ai/cursor/tech-team/memory"
 STOW_BRAIN="$HOME/dotfiles/ai/ai-brain"
 WS_CURSOR="$workspace_root/.cursor"
 
 # Also compute the canonical form of each zone so that when an agent edits via
 # a symlink that points back into dotfiles, the canonical check still matches.
 HOME_DOCS_R="$(realpath -q "$HOME_DOCS" 2>/dev/null || printf '%s' "$HOME_DOCS")"
-HOME_MEM_R="$(realpath -q "$HOME_MEM" 2>/dev/null || printf '%s' "$HOME_MEM")"
 HOME_BRAIN_R="$(realpath -q "$HOME_BRAIN" 2>/dev/null || printf '%s' "$HOME_BRAIN")"
 HOME_BRAIN_CURSOR_R="$(realpath -q "$HOME_BRAIN_CURSOR" 2>/dev/null || printf '%s' "$HOME_BRAIN_CURSOR")"
 STOW_DOCS_R="$(realpath -q "$STOW_DOCS" 2>/dev/null || printf '%s' "$STOW_DOCS")"
-STOW_MEM_R="$(realpath -q "$STOW_MEM" 2>/dev/null || printf '%s' "$STOW_MEM")"
 STOW_BRAIN_R="$(realpath -q "$STOW_BRAIN" 2>/dev/null || printf '%s' "$STOW_BRAIN")"
 WS_CURSOR_R="$(realpath -q "$WS_CURSOR" 2>/dev/null || printf '%s' "$WS_CURSOR")"
 
@@ -118,11 +112,9 @@ approve() {
 # Literal-path match
 case "$path" in
 "$HOME_DOCS"/*) approve "~/.cursor/docs" ;;
-"$HOME_MEM"/*) approve "~/.cursor/memory" ;;
 "$HOME_BRAIN"/*) approve "~/ai-brain" ;;
 "$HOME_BRAIN_CURSOR"/*) approve "~/.cursor/ai-brain" ;;
 "$STOW_DOCS"/*) approve "dotfiles docs stow source" ;;
-"$STOW_MEM"/*) approve "dotfiles memory stow source" ;;
 "$STOW_BRAIN"/*) approve "dotfiles ai-brain stow source" ;;
 "$WS_CURSOR"/*) approve "workspace .cursor" ;;
 esac
@@ -130,11 +122,9 @@ esac
 # Canonical-path match (handles symlinked paths)
 case "$canonical" in
 "$HOME_DOCS_R"/*) approve "~/.cursor/docs (canonical)" ;;
-"$HOME_MEM_R"/*) approve "~/.cursor/memory (canonical)" ;;
 "$HOME_BRAIN_R"/*) approve "~/ai-brain (canonical)" ;;
 "$HOME_BRAIN_CURSOR_R"/*) approve "~/.cursor/ai-brain (canonical)" ;;
 "$STOW_DOCS_R"/*) approve "dotfiles docs stow source (canonical)" ;;
-"$STOW_MEM_R"/*) approve "dotfiles memory stow source (canonical)" ;;
 "$STOW_BRAIN_R"/*) approve "dotfiles ai-brain stow source (canonical)" ;;
 "$WS_CURSOR_R"/*) approve "workspace .cursor (canonical)" ;;
 esac

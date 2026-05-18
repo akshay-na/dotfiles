@@ -1,0 +1,2 @@
+{"trace_id":"ai-brain-demotion-2026-05-18-exec","task_id":"ai-brain-demotion-2026-05-18","event_type":"kb_query","ladder_depth":"L1","ts":"2026-05-18T12:00:00Z"}
+{"trace_id":"ai-brain-demotion-2026-05-18-exec","task_id":"ai-brain-demotion-2026-05-18","event_type":"kb_demote","ladder_depth":"L2","ts":"2026-05-18T12:00:01Z"}

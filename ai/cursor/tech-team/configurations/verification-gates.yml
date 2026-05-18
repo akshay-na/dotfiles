@@ -462,6 +462,21 @@ swarm_orchestration:
       - event_outcome
       - attempt
     audit_ledger: ~/ai-brain/org/global/orchestration/subagent-audit-log.jsonl
+  brain_audit:
+    enabled: true
+    fail_closed_for_entrypoints: true
+    entrypoint_agents: [cto, tech-lead, code-reviewer]
+    required_event_types: [kb_query, kb_demote, session_flag, stale_trap]
+    required_fields:
+      - trace_id
+      - task_id
+      - event_type
+      - ladder_depth
+    audit_ledger: ~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl
+    e2e_fixture: ~/ai-brain/projects/dotfiles/observability/fixtures/brain-audit-join-sample.jsonl
+    check_protocol: |
+      jq -s 'group_by(.task_id) | map(select(length >= 2))' on fixture must return non-empty
+      before claiming G2 brain-audit gate complete.
 
 # Delegation + sub-agent floor compliance (P6)
 # Enforced at runtime by coordinator / agent-observability conventions — NOT git hooks.

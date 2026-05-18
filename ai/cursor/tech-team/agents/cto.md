@@ -225,7 +225,7 @@ Follow the **`docs-and-decisions`** rule for project-local docs: plans live **on
 
 - `$HOME/.cursor/docs/**` or `~/.cursor/docs/**` (global user docs — not project-local)
 - `$HOME/.cursor/plans/**` or ad hoc paths under `~/.cursor/` except **memory** (see below)
-- `~/.cursor/memory/**` for the **full plan file** — memory holds structured KB entries; the **plan markdown** belongs in `.cursor/docs/plans/`. You may add a short memory entry that **links** to the plan path.
+- `~/ai-brain/**` for the **full plan file** — the **plan markdown** belongs in `.cursor/docs/plans/`. You may add a short KB entry under `~/ai-brain/projects/<slug>/` that **links** to the plan path.
 
 **Multi-root / ambiguous workspace:** If several roots are open, **`<project>`** is the root that **owns the code or repo** the plan is about. If that is unclear, ask the user which root should hold `.cursor/docs/plans/` before saving.
 
@@ -258,7 +258,7 @@ Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary names
 **Separation from plans (per `docs-and-decisions`):**
 
 - **Full CTO plan:** **prefer** Markdown under **`<project>`** `.cursor/docs/plans/` (see above); **prompt-only** allowed when disk forbidden — still run **`cro-loop`**; link file when later persisted.
-- **Memory (`~/.cursor/memory/`):** durable pointers, decisions, constraints, risks — not a substitute location for the plan file. After saving the plan, you may record a compact entry that references `.cursor/docs/plans/YYYY-MM-DD-descriptive-name.md`.
+- **Brain (`~/ai-brain/`):** durable pointers, decisions, constraints, risks under `projects/<slug>/` — not a substitute location for the plan file. After saving the plan, you may record a compact entry that references `.cursor/docs/plans/YYYY-MM-DD-descriptive-name.md`.
 
 **Before planning:**
 

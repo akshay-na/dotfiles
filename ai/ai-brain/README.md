@@ -10,6 +10,19 @@ For a durable **private** model of the user (identity prefs, working style, prom
 
 `dotfiles/ai/ai-brain/` is merged **into** `~/ai-brain/` with **`-t $HOME/ai-brain`** (never `-t $HOME`). The whole **`ai/`** tree is excluded from default `make stow`; **`ai-brain` is applied whenever you run `stow_with_target`** on any package under **`ai/`** except **`ai-brain`** itself (see `DotMate.sh`).
 
+## Query ladder (L0–L3)
+
+Canonical definitions live in **`org/global/config/memory-demotion.yml`** (stowed to `~/ai-brain/org/global/config/`):
+
+| Depth | Scope | Typical paths |
+|-------|--------|----------------|
+| **L0** | Compass + lists | `Home.md`, `org/global/_index.md` |
+| **L1** | Summaries | `projects/<slug>/_index.md`, `session/*/memory.index.yaml` |
+| **L2** | Full node body | `decisions/`, `constraints/`, … — escalation only |
+| **L3** | Deep graph | `.meta/manifest.json`, `graph.json` — ≤1/coordinator turn unless `fresh_eyes` |
+
+**Single vault:** durable memory/KB I/O is **`~/ai-brain/`** only. **`~/.cursor/memory`** and **`~/.gemini/memory`** are forbidden (`storage.forbidden_paths` in policy).
+
 ## If `~/ai-brain` is already a git repo
 
 That is normal. Stow does **not** replace the directory or remove `.git`. It only creates symlinks **inside** `~/ai-brain` for paths shipped by this package (e.g. `_schema/`, `_templates/`, `README.md`, `.gitignore` from dotfiles).

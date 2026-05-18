@@ -46,6 +46,7 @@ token_stats:               # advisory only; parent-measured is authoritative (D2
   tool_calls: 0
 open_questions:            # caveman-ultra
   - "<caveman>"
-memory_writes:             # namespaces touched
+memory_writes:             # namespaces touched; op may include demote (handoff to entrypoint)
   - "projects/<name>/<ns>/"
+  # op: demote — target path, reason_code from memory-demotion.yml enum; entrypoint persists
 degraded_reason: ""        # non-empty only when status=malformed or suspected secret

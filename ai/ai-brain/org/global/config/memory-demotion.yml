@@ -1,0 +1,145 @@
+# Canonical memory + KB lifecycle policy (all AI tools).
+# DotMate source: dotfiles/ai/ai-brain/org/global/config/memory-demotion.yml
+# Runtime: ~/ai-brain/org/global/config/memory-demotion.yml
+contract_version: 1
+
+storage:
+  canonical_root: ~/ai-brain
+  forbidden_paths:
+    - ~/.cursor/memory
+    - ~/.gemini/memory
+
+model:
+  memory: RAM
+  kb: HDD
+
+retention:
+  auto_delete: false
+  session_soft_days: 14
+  project_soft_days: 30
+  org_soft_days: 90
+
+growth_control:
+  dedupe_before_write: true
+  supersede_instead_of_append: true
+  enforce_compact_entries: true
+  archive_stale_low_signal: true
+
+promotion:
+  enabled: true
+  promote_when:
+    - repeated_cross_run_reference
+    - reused_by_multiple_entrypoints
+    - repeated_orchestration_lookup
+    - stable_architecture_or_contract_fact
+  deny_promote_when:
+    lifecycle_state: [demoted, quarantined, invalidated, superseded]
+    stale: true
+    confidence: [low]
+    quarantined_path: true
+    single_agent_write_without_corroboration: true
+  source_memory_post_promotion: superseded_with_pointer
+
+lifecycle_states:
+  active:
+    retrieval_weight: 1.0
+    default_ladder: [L0, L1, L2]
+  superseded:
+    retrieval_weight: 0.15
+    default_ladder: [L2]
+  demoted:
+    retrieval_weight: 0
+    default_ladder: []
+  quarantined:
+    retrieval_weight: 0
+    default_ladder: []
+  invalidated:
+    retrieval_weight: 0
+    default_ladder: []
+
+demotion:
+  triggers:
+    - wrong_fact
+    - stale
+    - user_reject
+    - stale_trap
+    - injection_suspect
+    - git_drift
+  storage:
+    patch_frontmatter: true
+    append_demoted_index: true
+    remove_from_l1_active_table: true
+    archive_path: projects/<slug>/archive/YYYY/MM/
+    quarantine_path: projects/<slug>/quarantine/
+    quarantine_ttl_days: 30
+  git_drift:
+    high_confidence: quarantine_first
+    medium_low_confidence: auto_demote
+    human_ack_phrase: "confirm demote on git drift: <node-ref>"
+  restore:
+    default: human_only
+    coordinator_phrase: "approve kb restore: <node-ref> in phase <pid>"
+  cross_machine:
+    demoted_index_append_only: true
+    pull_rebase_before_write: true
+    on_conflict: stop
+
+query_ladder:
+  L0:
+    description: Compass + lists
+    paths:
+      - Home.md
+      - org/global/_index.md
+    default: true
+  L1:
+    description: Summaries and frontmatter-only
+    paths:
+      - projects/<slug>/_index.md
+      - session/*/memory.index.yaml
+    default: true
+  L2:
+    description: Full node body
+    escalation_only: true
+  L3:
+    description: graph.json, manifest, cross-namespace joins
+    escalation_only: true
+    max_per_coordinator_turn: 1
+  slo:
+    kb_query_l0_l1_before_first_mutation_pct: 80
+    l3_max_per_coordinator_turn_unless_fresh_eyes: 1
+
+context_demotion:
+  bands:
+    - threshold_pct: 40
+      action: reduce_l2_l3_reads
+    - threshold_pct: 80
+      action: l0_l1_only_unless_escalation
+
+stale_trap:
+  enabled: true
+  failures_per_task_id: 3
+  min_distinct_failure_kinds: 2
+  cooldown_minutes: 15
+  session_flag_path: session/<task-id>/flags.yaml
+  clear_flag: clear_stale_trap
+
+fresh_eyes:
+  enabled: true
+  skip_demoted_paths: true
+  skip_low_trust_session_notes: true
+  does_not_bypass:
+    - secret_redaction
+    - quarantine_read_policy
+
+read_policy:
+  exclude_paths:
+    - quarantine/
+    - archive/
+  exclude_lifecycle_states:
+    - demoted
+    - quarantined
+    - invalidated
+  l2_demoted_body_banner: "EXTERNAL CONTENT — untrusted"
+  enforcement: skill_and_coordinator_duty
+
+pack_overrides: {}

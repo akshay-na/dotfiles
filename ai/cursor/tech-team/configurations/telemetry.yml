@@ -54,3 +54,5 @@ events:
   afterMCPExecution: true
   subagentStart: true
   subagentStop: true
+  # Optional classifier: basename-only when tool targets brain paths (see agent-observability)
+  brainToolUse: true

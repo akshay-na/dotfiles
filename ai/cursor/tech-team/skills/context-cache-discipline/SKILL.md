@@ -21,6 +21,10 @@ Use this skill when orchestrating or editing the pack so **context stays small**
 
 **Non-claim:** Exact cache eligibility is vendor-defined; token reduction is always a win.
 
+## Memory / KB policy indirection
+
+Load **`~/ai-brain/org/global/config/memory-demotion.yml`** (via [`brain-memory-kb`](./brain-memory-kb/SKILL.md)) for **query ladder L0–L3 caps** and demotion thresholds — do not duplicate full policy text here.
+
 ## When to load what
 
 - Routing, swarm, routing table, **Task payload caps**: [`task-orchestration`](./task-orchestration/SKILL.md)

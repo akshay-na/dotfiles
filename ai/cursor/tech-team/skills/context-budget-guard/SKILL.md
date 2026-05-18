@@ -47,6 +47,15 @@ If you cannot estimate **`W`**, use the **large-file shortcut** + **40%/80%** as
 2. Before **merging** many sub-agent envelopes, ensure parent is not also holding full duplicates of child artifacts — cite paths, merge verbatim fields only (see **`subagent-response-protocol`**).
 3. On **80%** crossing, **do not** “finish inline” — split remaining work across new **`Task`s** with smaller payloads.
 
+## Context demotion bands (policy-linked)
+
+When **`estimated_units`** crosses bands defined in **`memory-demotion.yml`** → `context_demotion` (40% / 80% proxies aligned with this skill):
+
+- **>40% of notional `W`:** reduce L2/L3 KB reads; prefer L0/L1 + delegation.
+- **>80%:** L0/L1 only unless explicit escalation or `fresh_eyes` session flag.
+
+Load ladder details from [`brain-memory-kb`](./brain-memory-kb/SKILL.md); do not invent parallel retention integers in this skill.
+
 ## Calibration
 
 Thresholds are **initial**. Prefer **`agent-observability`** + org observability phases to compare **proxy `U`** vs **observed** session behavior and **tune `W`** / multipliers — **no false precision**.

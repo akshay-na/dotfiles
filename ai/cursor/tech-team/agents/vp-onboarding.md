@@ -1123,13 +1123,11 @@ Outside any per-workspace folder loop: at the **start** of this agent run, idemp
    dispatch_latency_p95 < 30s; cascade_rate < 5% monthly; fallback_rate < 15%; cleanup_failure_rate = 0
    ```
 
-2. `~/ai-brain/org/global/agent-demotion-pattern.md`
+2. `~/ai-brain/org/global/agent-demotion-pattern.md` — copy from stowed `~/ai-brain/_templates/org/agent-demotion-pattern.md` when missing (do not overwrite existing).
 
-   ```markdown
-   # Agent demotion pattern (vp-onboarding seed)
+3. **Canonical KB policy:** ensure `~/ai-brain/org/global/config/memory-demotion.yml` exists via dotfiles stow (`ai/ai-brain`); do not overwrite. On inventory, require `projects/<name>/.meta/manifest.json` includes `schema_versions.memory_demotion` matching `contract_version` in that YAML (default `1`).
 
-   Principle: org-tier promotion fits roles that coordinate **multiple workspace roots** and shared org routing. **Demotion** revisit when scope shrinks below **two** workspace roots **and** project `dev-*` / `sme-*` / `reviewer-*` teams are stable without a global orchestration hub — prefer moving residual responsibility into project-tier roles and documenting in an ADR.
-   ```
+4. Optional drift gate (dotfiles): `scripts/check-memory-demotion-contract.sh` — asserts `contract_version` consistency between stowed policy and tech-team `memory-lifecycle.yml` stub.
 
 Create parent directories as needed. Do not overwrite existing files.
 

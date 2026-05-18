@@ -36,7 +36,45 @@
     "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
     "stale": { "type": "boolean" },
     "aliases": { "type": "array", "items": { "type": "string" } },
-    "node_version": { "type": "integer", "minimum": 1 }
+    "node_version": { "type": "integer", "minimum": 1 },
+    "lifecycle_state": {
+      "type": "string",
+      "enum": ["active", "superseded", "demoted", "quarantined", "invalidated"]
+    },
+    "retrieval_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+    "valid_at": { "type": "string", "format": "date-time" },
+    "invalid_at": { "type": "string", "format": "date-time" },
+    "superseded_by": { "type": "string" },
+    "contradicted_by": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string" },
+        "ref": { "type": "string" },
+        "at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "invalidated_by": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["git", "node", "human"] },
+        "ref": { "type": "string" },
+        "at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "demoted_at": { "type": "string", "format": "date-time" },
+    "demotion_reason": {
+      "type": "string",
+      "enum": [
+        "wrong_fact",
+        "stale",
+        "user_reject",
+        "stale_trap",
+        "injection_suspect",
+        "git_drift"
+      ]
+    },
+    "source_session": { "type": "string" },
+    "corroboration_count": { "type": "integer", "minimum": 0 }
   },
   "additionalProperties": true
 }

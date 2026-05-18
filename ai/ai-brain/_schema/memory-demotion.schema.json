@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dotmate.local/ai-brain/memory-demotion.schema.json",
+  "title": "memory-demotion.yml policy contract",
+  "type": "object",
+  "required": ["contract_version", "storage", "model", "retention", "query_ladder", "stale_trap"],
+  "properties": {
+    "contract_version": { "type": "integer", "minimum": 1 },
+    "storage": {
+      "type": "object",
+      "required": ["canonical_root", "forbidden_paths"],
+      "properties": {
+        "canonical_root": { "type": "string" },
+        "forbidden_paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "memory": { "type": "string" },
+        "kb": { "type": "string" }
+      }
+    },
+    "retention": { "type": "object" },
+    "growth_control": { "type": "object" },
+    "promotion": { "type": "object" },
+    "lifecycle_states": { "type": "object" },
+    "demotion": { "type": "object" },
+    "query_ladder": { "type": "object" },
+    "context_demotion": { "type": "object" },
+    "stale_trap": {
+      "type": "object",
+      "required": ["enabled", "failures_per_task_id"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "failures_per_task_id": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "fresh_eyes": { "type": "object" },
+    "read_policy": { "type": "object" },
+    "pack_overrides": { "type": "object" }
+  },
+  "additionalProperties": true
+}

@@ -1,23 +1,7 @@
+# DEPRECATED — canonical policy moved to ai-brain vault.
+# One-release stub; do not duplicate retention integers here.
 schema_version: 1
+canonical_policy: ~/ai-brain/org/global/config/memory-demotion.yml
+contract_version: 1
 enabled: true
-model:
-  memory: RAM
-  kb: HDD
-retention:
-  auto_delete: false
-  session_soft_days: 14
-  project_soft_days: 30
-  org_soft_days: 90
-growth_control:
-  dedupe_before_write: true
-  supersede_instead_of_append: true
-  enforce_compact_entries: true
-  archive_stale_low_signal: true
-promotion:
-  enabled: true
-  promote_when:
-    - repeated_cross_run_reference
-    - reused_by_multiple_entrypoints
-    - repeated_orchestration_lookup
-    - stable_architecture_or_contract_fact
-  source_memory_post_promotion: superseded_with_pointer
+# Load lifecycle, demotion, query_ladder, and storage.forbidden_paths from canonical_policy only.

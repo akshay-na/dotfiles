@@ -44,5 +44,5 @@ If the parent retries with "reformat only": re-wrap the prior answer in the
 protocol envelope. Do not redo work. No new tool calls.
 
 Envelope size cap: 8 KB total. `findings[]` <=20, `artifacts[]` <=50. Overflow
-goes to `~/.cursor/memory/projects/<name>/explore-dumps/<task-id>.md` with a
+goes to `~/ai-brain/projects/<name>/explore-dumps/<task-id>.md` with a
 single ref entry in `artifacts[]`.

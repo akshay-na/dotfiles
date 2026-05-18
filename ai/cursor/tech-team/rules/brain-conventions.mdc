@@ -40,6 +40,13 @@ alwaysApply: true
 - All other agents are read/query only for brain (`~/ai-brain/`) and must not write memory or KB.
 - Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
 
+### Demotion writer policy (KB nodes)
+
+- **Who may demote:** same roles as **touch-writes** above; **`code-reviewer`**, **`cro`**, **`senior-dev`** hand off via **`memory_writes[]`** with `op: demote` — entrypoint persists.
+- **Policy source:** `~/ai-brain/org/global/config/memory-demotion.yml` (`contract_version`); never write to `storage.forbidden_paths` (`~/.cursor/memory`, `~/.gemini/memory`).
+- **Fail-closed:** demotion without audit (`kb_demote` event) after brain-audit contract is live is a policy violation; advisory demote allowed only during rollout window documented in plan.
+- **Human restore:** `approve kb restore: <node-ref> in phase <pid>` per policy; coordinators record in audit.
+
 ### Vault skeleton (tracked stow — no agent writes)
 
 **Hard rule:** no agent writes to the **ai-brain skeleton** shipped from dotfiles. Canonical source tree (edit only by humans / dotfiles maintainers, not automation):

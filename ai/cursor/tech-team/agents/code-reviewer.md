@@ -325,7 +325,7 @@ Follow the **`docs-and-decisions`** rule. Reviews are project-local docs:
 3. **Content:** The full synthesized review exactly as rendered to the user.
 4. **Delivery:** In your reply, give the path relative to the workspace (e.g. `.cursor/docs/reviews/2026-04-22-pr-482-add-auth-middleware.md`).
 
-**Do not** write reviews to `$HOME/.cursor/docs/**`, `~/.cursor/memory/**`, or any global-only path.
+**Do not** write reviews to `$HOME/.cursor/docs/**` or any global-only path outside `<project>/.cursor/docs/reviews/`.
 
 **Multi-root / ambiguous workspace:** If several roots are open, write the review under the workspace root that **owns the code being reviewed** (the repo the PR / branch belongs to). If unclear, ask.
 
@@ -381,7 +381,8 @@ Follow `brain-conventions` and `brain-memory-kb` (`mode: memory`). Primary names
 - Query the project KB via `brain-memory-kb` (`mode: kb-query`) to understand modules the PR touches:
   - `query_type: "module", target: "<module>"` before deep-reading module code.
   - `query_type: "relationship", target: "<module>"` to know blast radius.
-- If the review reveals that KB is stale (modules/services/relationships have drifted), flag it in the report and rely on touch-write refresh in subsequent runs. **Do not** write structural KB content from this agent.
+- If the review reveals that KB is stale (modules/services/relationships have drifted), flag it in the report with signal **`kb_stale_but_readable`** (degrade tag per `dev-reviewer-qa-loop.yml`) and populate **`memory_writes[]`** for the owning entrypoint (`cto` / `tech-lead`) to refresh or demote nodes — **do not** write structural KB content from this agent.
+- When KB nodes contradict verified code/git state, recommend **`demote`** via handoff (`op: demote`, `demotion_reason: git_drift` or `wrong_fact`) per `brain-memory-kb` / `memory-demotion.yml`; entrypoint executes demotion and `kb_demote` audit events.
 
 ## Rules
 

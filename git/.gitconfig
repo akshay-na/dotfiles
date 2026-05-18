@@ -195,3 +195,9 @@
 # name       = YOUR_GITLAB_USERNAME # Set user name for GitLab
 # email      = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
 # signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
