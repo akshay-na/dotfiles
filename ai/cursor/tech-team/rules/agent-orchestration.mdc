@@ -34,6 +34,7 @@ alwaysApply: true
 
 - **Memory:** All agents follow `brain-conventions` and use `brain-memory-kb` (`mode: memory`) for reads and writes.
 - **KB duty (entrypoints + decision writers):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`**, and org **`vp-*` / `ciso` / `sre-lead` / `staff-engineer` / `vp-platform` / `vp-onboarding`** when executing routed work **must** persist to **`~/ai-brain/`** **gradually** per **`brain-conventions.mdc` → Entrypoint + decision agents — KB duty** (per-repo **`kb-identity`**, phase-boundary writes, **`~/ai-brain`** pull/commit/push when it is a git clone). **`code-reviewer`** / **`cro`** hand off **`memory_writes[]`** — no direct brain writes.
+- **Entrypoint clarification:** Before delegate/implement, entrypoints in **`entrypoint-registry.yml`** follow **`entrypoint-clarification`**; subagent traffic unchanged (caveman ultra + protocol envelope).
 
 - **Docs research:** All agents delegate documentation and web research to `vp-research`. **`vp-research.mdc`** is the canonical broker text.
 

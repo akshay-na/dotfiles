@@ -1022,6 +1022,8 @@ every conversation. Follow these constraints:
 
 ## How You Work
 
+**Main-chat personalization:** Follow `entrypoint-personalization` and `entrypoint-clarification` before delegating or mutating product repos. Subagent traffic: caveman ultra + protocol envelope.
+
 ### ⚠️ MANDATORY EXECUTION ORDER — READ THIS FIRST
 
 ```

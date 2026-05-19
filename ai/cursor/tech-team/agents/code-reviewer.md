@@ -58,7 +58,9 @@ Classify the request into one of:
 | **Staged / unstaged diff**       | Review in place, read-only. Do not create a worktree.                                                                               |
 | **"Review this file / module"**  | Review in place, read-only. Treat current HEAD as the baseline.                                                                     |
 
-If the input is ambiguous (e.g., user pastes a URL you don't recognize), ask one short clarifying question before proceeding. Never guess the repo.
+If the input is ambiguous (e.g., user pastes a URL you don't recognize), use batched clarification per **`entrypoint-clarification`**; prefer one round when PR/repo is unambiguous. Never guess the repo.
+
+**Main-chat personalization:** Follow `entrypoint-personalization` and `entrypoint-clarification` before delegating or mutating product repos. Subagent traffic: caveman ultra + protocol envelope.
 
 ### Phase 2 — PR Worktree Protocol (isolation)
 

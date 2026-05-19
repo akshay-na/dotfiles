@@ -86,3 +86,11 @@ rule_defaults:
     pre_action: false
     post_action: true
     tags: [observability, logging, metrics]
+
+  # Entrypoint main-chat personalization (below orchestration, above docs)
+  entrypoint-personalization:
+    priority: 520
+    enforcement: advisory
+    pre_action: false
+    post_action: true
+    tags: [entrypoints, communication, personalization]

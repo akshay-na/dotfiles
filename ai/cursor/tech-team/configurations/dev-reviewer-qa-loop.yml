@@ -34,6 +34,12 @@ background_auto_requires:
   - disjoint_touches_preflight_pass
   - no_pending_user_clarification
   - shared_write_conflict: false
+entrypoint_clarification:
+  session_ledger_field: user_clarification_state
+  allowed_values: [unresolved, resolved]
+  note: >-
+    Entrypoints set resolved when entrypoint-clarification stop conditions are met;
+    tech-lead must not background_auto implementers while unresolved.
 nested_loop_policy:
   stage_retry_cap: 3
   closed_loop_cap: 3

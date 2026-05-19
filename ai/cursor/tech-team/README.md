@@ -144,6 +144,9 @@ After stow it surfaces as `~/ai-brain/`.
 
 ## Quick verification checklist
 
+- Entrypoint personalization (after stow): `test -f ~/.cursor/rules/entrypoint-personalization.mdc`
+- `test -f ~/.cursor/configurations/entrypoint-personalization.yml`
+- `test -f ~/.cursor/skills/entrypoint-clarification/SKILL.md`
 - `hooks.json` points only to scripts that exist in `hooks/`.
 - `templates/onboarding/_index.yml` paths resolve to real template files.
 - `mcp.json` remains valid JSON and matches intended server set.

@@ -563,3 +563,15 @@ delegation_floor_compliance:
         Aggregate dispatch-audit.md + floor-violations.md (+ optional JSONL) into ~/ai-brain/org/global/orchestration/floor-compliance-weekly.md; do not auto-schedule from repo.
       pass_criteria: Report written when requested
       failure_pattern: null
+
+    - id: entrypoint_clarification_resolved
+      when: entrypoint_episode_before_background_auto
+      blocking: false
+      description: >-
+        Advisory gate for entrypoint sessions: user_clarification_state should be resolved
+        in session ledger before tech-lead background_auto implementer dispatch.
+      check_protocol: |
+        See configurations/dev-reviewer-qa-loop.yml entrypoint_clarification and
+        skills/entrypoint-clarification/SKILL.md stop conditions.
+      pass_criteria: Ledger shows resolved or episode exempt (approved plan checkpoint)
+      failure_pattern: null

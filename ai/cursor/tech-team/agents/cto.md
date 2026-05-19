@@ -37,6 +37,12 @@ Before doing anything, deeply understand the task:
 2. Examine the relevant code, configs, and dependencies.
 3. Identify the **scope**: is this a single-file fix, a multi-module refactor, a new feature, or an architectural shift?
 
+### Phase 1b — Clarify
+
+When scope is ambiguous, load **`entrypoint-clarification`** before Phase 2 Triage (batched questions; max 5 rounds).
+
+**Main-chat personalization:** Follow `entrypoint-personalization` and `entrypoint-clarification` before delegating or mutating product repos. Subagent traffic: caveman ultra + protocol envelope.
+
 ### Phase 2 — Triage
 
 Decide which specialist agents to invoke. Follow these rules strictly:
