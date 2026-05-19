@@ -254,3 +254,42 @@ style             = "bold fg:#5881D8"
 format            = '[$symbol($output)]($style) '
 symbol            = " "
 detect_extensions = ["clj", "cljs", "cljc"]
+
+[custom.git-town]
+command = '''
+pending=$(git town status --pending 2>/dev/null)
+if [[ "$pending" != "No branches are pending" && -n "$pending" ]]; then
+  echo "󰼧 $pending"
+fi
+'''
+format = "[$output]($style)"
+style = "bold fg:yellow"
+require_repo = true
+when = "command -v git-town"
+
+[custom.git-town-topology]
+command = '''
+branch=$(git branch --show-current 2>/dev/null)
+
+# Ignore detached HEAD
+[[ -z "$branch" || "$branch" == "main" || "$branch" == "master" ]] && exit 0
+
+# Check if branch has a parent
+parent=$(git-town config get-parent 2>/dev/null)
+if [[ -z "$parent" ]]; then
+  echo -e "\033[31m⚠ orphan\033[0m"
+  exit 0
+fi
+
+echo -e "\033[35m $parent\033[0m"
+
+# Detect lineage inconsistencies:
+merge_base=$(git merge-base "$branch" "$parent" 2>/dev/null)
+if [[ -z "$merge_base" ]]; then
+  echo -e "\033[31m⚠ topology\033[0m"
+  exit 0
+fi
+
+'''
+require_repo = true
+when = "command -v git-town"

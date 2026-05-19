@@ -65,6 +65,7 @@ install_common() {
     fzf
     gcc
     git-delta
+    git-town
     git
     gnupg
     gpg

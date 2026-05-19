@@ -60,6 +60,11 @@ if [[ $- == *i* ]]; then
     eval "$(direnv hook bash)"
   fi
 
+  # git-town for managing git branches
+  if command -v git-town >/dev/null 2>&1; then
+    source <(git town completions bash)
+  fi
+
   # ---------------------------------------------------------------
   # Interactive Shell Switching
   # ---------------------------------------------------------------

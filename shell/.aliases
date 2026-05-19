@@ -60,40 +60,51 @@ if command -v logdy &>/dev/null; then
   alias logdy="logdy --no-updates --no-analytics"
 fi
 
+if command -v git-town &>/dev/null; then
+  alias gt="git-town"
+  alias gts="git-town sync"
+  alias gtsp="git-town set-parent"
+  alias gtsp="git-town diff-parent"
+  alias gtsr="git-town status reset"
+  alias gtss="git-town status show"
+fi
+
 # ---------------------------------------------------------------
 # Kubectl Aliases
 # ---------------------------------------------------------------
-alias k=kubectl
-alias kca='kubectl --all-namespaces' # Use across all namespaces
-alias kaf='kubectl apply -f'         # Apply resources
-alias keti='kubectl exec -t -i'      # Execute in pod
-alias kcuc='kubectl config use-context'
-alias kgs='kubectl get svc'
-alias kgp='kubectl get pods'
-alias kl='kubectl logs'
-alias kpf="kubectl port-forward"
-alias kgi='kubectl get ingress'
-alias kgcm='kubectl get configmaps'
-alias kgsec='kubectl get secret'
-alias kgd='kubectl get deployment'
-alias kgss='kubectl get statefulset'
-alias kgno='kubectl get nodes'
-alias kgpvc='kubectl get pvc'
-alias kgds='kubectl get daemonset'
-alias kgcj='kubectl get cronjob'
-alias kgj='kubectl get job'
-alias kgns='kubectl get namespaces'
+if command -v kubectl &>/dev/null; then
+  alias k=kubectl
+  alias kca='kubectl --all-namespaces' # Use across all namespaces
+  alias kaf='kubectl apply -f'         # Apply resources
+  alias keti='kubectl exec -t -i'      # Execute in pod
+  alias kcuc='kubectl config use-context'
+  alias kgs='kubectl get svc'
+  alias kgp='kubectl get pods'
+  alias kl='kubectl logs'
+  alias kpf="kubectl port-forward"
+  alias kgi='kubectl get ingress'
+  alias kgcm='kubectl get configmaps'
+  alias kgsec='kubectl get secret'
+  alias kgd='kubectl get deployment'
+  alias kgss='kubectl get statefulset'
+  alias kgno='kubectl get nodes'
+  alias kgpvc='kubectl get pvc'
+  alias kgds='kubectl get daemonset'
+  alias kgcj='kubectl get cronjob'
+  alias kgj='kubectl get job'
+  alias kgns='kubectl get namespaces'
 
-# Specialized Kubectl commands with options
-alias kgpa='kubectl get pods --all-namespaces'
-alias kgpwide='kubectl get pods -o wide'
-alias kgswide='kubectl get svc -o wide'
-alias kga='kubectl get all'
-alias kgaa='kubectl get all --all-namespaces'
-alias klf='kubectl logs -f' # Follow logs
-alias kl1h='kubectl logs --since 1h'
-alias kl1m='kubectl logs --since 1m'
-alias klf1h='kubectl logs --since 1h -f'
+  # Specialized Kubectl commands with options
+  alias kgpa='kubectl get pods --all-namespaces'
+  alias kgpwide='kubectl get pods -o wide'
+  alias kgswide='kubectl get svc -o wide'
+  alias kga='kubectl get all'
+  alias kgaa='kubectl get all --all-namespaces'
+  alias klf='kubectl logs -f' # Follow logs
+  alias kl1h='kubectl logs --since 1h'
+  alias kl1m='kubectl logs --since 1m'
+  alias klf1h='kubectl logs --since 1h -f'
+fi
 
 # ---------------------------------------------------------------
 # Git Aliases

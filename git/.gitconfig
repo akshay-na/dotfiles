@@ -5,7 +5,6 @@
   last        = log -1 HEAD  # Show the latest commit
   save        = "!f() { git stash save \"🚀 WIP $*\"; }; f"  # Stash current changes with a WIP message
   unstage     = reset HEAD --  # Unstage changes without affecting working directory
-  sync        = "!f() { git pull origin \"$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')\"; }; f"
   ignore      = update-index --assume-unchanged  # Ignore the files from the version on local repo
   include     = update-index --no-assume-unchanged # Include the files from the version on local repo
   revert-file = "!f() { git checkout -- \"$1\"; }; f"  # Reset a single file to HEAD (restore last committed version)
@@ -179,6 +178,46 @@
 [url "git@bitbucket.org:"]
     pushInsteadOf = https://bitbucket.org/
 
+[git-town]
+    # General behavior
+    auto-sync = true           # Sync branches automatically after each command
+    auto-resolve = true        # Auto-resolve merge conflicts when possible
+    detached = false           # Keep branches checked out (no detached HEAD)
+    ignore-uncommitted = false # Block commands when working tree is dirty
+    interactive = false        # Non-interactive mode (script/agent friendly)
+    stash = false              # Do not stash uncommitted changes before operations
+
+    # UI
+    display-types = "all"                 # Show all branch types in listings
+    order = asc                           # Sort branches ascending within stacks
+    proposal-breadcrumb = stacks          # Show stack hierarchy in proposal views
+    proposal-breadcrumb-direction = down  # Stack breadcrumb flows parent → child
+
+    # Branch naming & classification
+    branch-prefix = feature/            # Default prefix for new branches
+    new-branch-type = observed             # Default type when creating branches
+    feature-regex = ^feature/.+           # Feature branches (stack children)
+    contribution-regex = ^(contribute/.*|develop(ment)?$)   # Branches contributing to others' work or named 'develop'/'development'
+    observed-regex = ^observe/.+        # Read-only branches you track
+    perennial-branches = main master  # Long-lived branches (never ship/delete)
+    unknown-branch-type = observed        # Treat unrecognized branches as observed
+
+    # Push & remotes
+    push-branches = true       # Push local branches to origin during sync
+    push-hook = true           # Run pre-push hooks when pushing
+    share-new-branches = no    # Do not publish new branches to the team on create
+    sync-upstream = true       # Fetch and integrate upstream before syncing stack
+
+    # Sync strategies
+    sync-feature-strategy = merge   # Merge feature branches onto their parent
+    sync-perennial-strategy = ff-only  # Fast-forward perennial branches only
+    sync-prototype-strategy = rebase   # Rebase prototype branches onto their parent
+    sync-tags = true             # Sync tags with the remote during sync
+
+    # Ship
+    ship-delete-tracking-branch = true  # Delete remote tracking branch after ship
+    ship-strategy = api                 # Merge via hosting API (GitHub/GitLab PR)
+
 ############################################################## CHANGES BASED ON SYSTEM ############################################################
 
 
@@ -195,9 +234,4 @@
 # name       = YOUR_GITLAB_USERNAME # Set user name for GitLab
 # email      = YOUR_GITLAB_EMAIL@users.noreply.gitlab.com # Set email for GitLab
 # signingkey = YOUR_GITLAB_GPG_KEY # Set GPG signing key for GitLab
-[credential "https://github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
-[credential "https://gist.github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
+

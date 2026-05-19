@@ -104,6 +104,29 @@ if [[ -o interactive ]]; then
 
   source "${ZINIT_HOME}/zinit.zsh"
 
+  # -------------------------------------------------------------------------------
+  # Function: _zn_bindkey
+  # Purpose: Bind a ZLE widget using terminfo capability names and/or literal key sequences
+  # Usage: _zn_bindkey <widget> <key_or_sequence> ...
+  # -------------------------------------------------------------------------------
+  _zn_bindkey() {
+    emulate -L zsh
+    local widget=$1 key
+    shift
+    if ((!$+terminfo)); then
+      zmodload zsh/terminfo 2>/dev/null
+    fi
+    for key in "$@"; do
+      if (($+terminfo)) && ((${+terminfo[$key]})) && [[ -n ${terminfo[$key]} ]]; then
+        bindkey -- "${terminfo[$key]}" "$widget"
+      elif [[ $key =~ '^[a-zA-Z_][a-zA-Z0-9_]*$' ]]; then
+        continue # terminfo capability name but unavailable in this TERM
+      else
+        bindkey -- "$key" "$widget"
+      fi
+    done
+  }
+
   # ---------------------------------------------------------------
   # Zinit Plugin Loads
   # ---------------------------------------------------------------
@@ -123,7 +146,7 @@ if [[ -o interactive ]]; then
 
   # Load history-substring-search before syntax highlighting to avoid conflicts
   # Set up keybindings after plugin loads to prevent recursion issues
-  zinit wait lucid light-mode atload"bindkey '\e[A' history-substring-search-up; bindkey '\e[B' history-substring-search-down" for \
+  zinit wait lucid light-mode atload'_zn_bindkey history-substring-search-up kcuu1 "^[[A" "^[OA"; _zn_bindkey history-substring-search-down kcud1 "^[[B" "^[OB"' for \
     zsh-users/zsh-history-substring-search
 
   # Load syntax highlighting last to avoid conflicts
@@ -131,18 +154,6 @@ if [[ -o interactive ]]; then
   zinit wait lucid light-mode for \
     zdharma-continuum/fast-syntax-highlighting \
     OMZP::command-not-found
-
-  # Load the omz aws plugin when AWS is usable on this host. The plugin only
-  # needs shell files (it reads profiles from ~/.aws/config and
-  # ~/.aws/credentials), so gate on the `aws` CLI being on PATH OR the
-  # presence of an AWS config/credentials file. This avoids a missing `_asp`
-  # completion when `aws` is installed via a shim (mise/asdf/pipx/venv) that
-  # isn't yet active when this block runs.
-  if command -v aws >/dev/null 2>&1 ||
-    [[ -r "$HOME/.aws/config" ]] ||
-    [[ -r "$HOME/.aws/credentials" ]]; then
-    zinit wait lucid light-mode for OMZP::aws
-  fi
 
   # Load Oh My Zsh plugin snippets only when their corresponding commands exist
   typeset -a _zn_omzp_plugins=(
@@ -173,6 +184,10 @@ if [[ -o interactive ]]; then
     fi
   done
 
+  if command -v git-town >/dev/null 2>&1; then
+    source <(git town completions zsh)
+  fi
+
   unset _zn_entry _zn_omzp_plugins plugin_cmd plugin_snippet
 
   # Replay Zinit's plugin history after the first prompt
@@ -197,23 +212,23 @@ if [[ -o interactive ]]; then
   autoload -Uz edit-command-line
   zle -N edit-command-line
 
-  bindkey '^Xe' edit-command-line      # Ctrl+X/Cmd+X, e: edit command line in external editor
-  bindkey '^p' history-search-backward # Ctrl+P/Cmd+P: search history backward
-  bindkey '^n' history-search-forward  # Ctrl+N/Cmd+N: search history forward
-  bindkey '^[b' backward-word          # Alt+B/Cmd+B: move word backward
-  bindkey '^[f' forward-word           # Alt+F/Cmd+F: move word forward
-  bindkey '^[^[[D' backward-word       # Alt+Left/Cmd+Left: move word backward
-  bindkey '^[^[[C' forward-word        # Alt+Right/Cmd+Right: move word forward
-  bindkey '^[^?' backward-kill-word    # Alt+Backspace/Cmd+Backspace: delete word backward
-  bindkey '^[d' kill-word              # Alt+D/Cmd+D: delete word forward
-  bindkey '^[w' kill-region            # Alt+W/Cmd+W: kill region
-  bindkey '^[l' down-case-word         # Alt+L/Cmd+L: lowercase word
-  bindkey '^[u' up-case-word           # Alt+U/Cmd+U: uppercase word
-  bindkey '^[c' capitalize-word        # Alt+C/Cmd+C: capitalize word
-  bindkey '^[t' transpose-words        # Alt+T/Cmd+T: transpose words
-  bindkey '^[m' copy-prev-word         # Alt+M/Cmd+M: copy previous word
-  bindkey '^[[Z' reverse-menu-complete # Shift+Tab: reverse menu completion
-  bindkey '^[^I' expand-or-complete    # Alt+Tab/Cmd+Tab: expand or complete
+  _zn_bindkey edit-command-line '^Xe'                      # Ctrl+X/Cmd+X, e: edit command line in external editor
+  _zn_bindkey history-search-backward '^p'                 # Ctrl+P/Cmd+P: search history backward
+  _zn_bindkey history-search-forward '^n'                  # Ctrl+N/Cmd+N: search history forward
+  _zn_bindkey backward-word '^[b' $'\eb'                   # Alt+B/Cmd+B: move word backward
+  _zn_bindkey forward-word '^[f' $'\ef'                    # Alt+F/Cmd+F: move word forward
+  _zn_bindkey backward-word '^[^[[D' $'\e[1;3D' $'\e[1;9D' # Alt+Left/Cmd+Left: move word backward
+  _zn_bindkey forward-word '^[^[[C' $'\e[1;3C' $'\e[1;9C'  # Alt+Right/Cmd+Right: move word forward
+  _zn_bindkey backward-kill-word '^[^?' $'\e\x7f'          # Alt+Backspace/Cmd+Backspace: delete word backward
+  _zn_bindkey kill-word '^[d' $'\ed'                       # Alt+D/Cmd+D: delete word forward
+  _zn_bindkey kill-region '^[w' $'\ew'                     # Alt+W/Cmd+W: kill region
+  _zn_bindkey down-case-word '^[l' $'\el'                  # Alt+L/Cmd+L: lowercase word
+  _zn_bindkey up-case-word '^[u' $'\eu'                    # Alt+U/Cmd+U: uppercase word
+  _zn_bindkey capitalize-word '^[c' $'\ec'                 # Alt+C/Cmd+C: capitalize word
+  _zn_bindkey transpose-words '^[t' $'\et'                 # Alt+T/Cmd+T: transpose words
+  _zn_bindkey copy-prev-word '^[m' $'\em'                  # Alt+M/Cmd+M: copy previous word
+  _zn_bindkey reverse-menu-complete kcbt '^[[Z'            # Shift+Tab: reverse menu completion
+  _zn_bindkey expand-or-complete '^[^I'                    # Alt+Tab/Cmd+Tab: expand or complete
 
   # ---------------------------------------------------------------
   # Zsh Options & History Settings (Interactive Only)
