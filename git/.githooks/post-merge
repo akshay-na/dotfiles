@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+source ~/.githooks/shared.sh
+
+info "🔀 Post-merge triggered"
+
+# squash merge indicator
+SQUASH="$1"
+
+if [ "$SQUASH" = "1" ]; then
+  warn "Squash merge detected"
+fi
+
+# --------------------------------------------------
+# Dependency drift detection
+# --------------------------------------------------
+
+changed_files=$(git diff-tree \
+  -r \
+  --name-only \
+  --no-commit-id \
+  ORIG_HEAD HEAD)
+
+if echo "$changed_files" | grep -Eq \
+  'package.json|pnpm-lock.yaml|yarn.lock|package-lock.json'; then
+  warn "Node dependency files changed"
+fi
+
+if echo "$changed_files" | grep -Eq \
+  'requirements.txt|poetry.lock|pyproject.toml'; then
+  warn "Python dependency files changed"
+fi
+
+if echo "$changed_files" | grep -Eq \
+  'pom.xml|build.gradle|build.gradle.kts|settings.gradle|settings.gradle.kts|gradle\.properties|build.xml|ivy.xml'; then
+  warn "Java dependency files changed"
+fi
+
+if echo "$changed_files" | grep -Eq \
+  'deps.edn|project.clj|build.boot'; then
+  warn "Clojure dependency files changed"
+fi
+
+dispatch_hook post-merge
+
+success "Post-merge checks passed"

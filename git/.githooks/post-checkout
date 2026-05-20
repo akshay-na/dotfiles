@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+source ~/.githooks/shared.sh
+
+OLD_REF="$1"
+NEW_REF="$2"
+CHECKOUT_TYPE="$3"
+
+branch=$(current_branch)
+root=$(repo_root)
+
+info "🔀 Post-checkout triggered"
+
+# --------------------------------------------------
+# File checkout vs branch checkout
+# --------------------------------------------------
+
+# 1 = branch checkout
+# 0 = file checkout
+
+if [ "$CHECKOUT_TYPE" = "0" ]; then
+  info "File checkout detected"
+
+  dispatch_hook post-checkout
+
+  exit 0
+fi
+
+# --------------------------------------------------
+# Toolchain refresh
+# --------------------------------------------------
+
+if has_command mise && [ -f "$root/.mise.toml" ]; then
+  info "Refreshing mise toolchain"
+
+  mise install >/dev/null 2>&1 ||
+    warn "mise install failed"
+fi
+
+# --------------------------------------------------
+# direnv awareness
+# --------------------------------------------------
+
+if has_command direnv && [ -f "$root/.envrc" ]; then
+  info "Reloading direnv"
+
+  direnv reload >/dev/null 2>&1 ||
+    warn "direnv reload failed"
+fi
+
+# --------------------------------------------------
+# Dependency drift detection
+# --------------------------------------------------
+
+changed_files=$(git diff \
+  --name-only \
+  "$OLD_REF" "$NEW_REF" \
+  2>/dev/null || true)
+
+if echo "$changed_files" | grep -Eq \
+  'package.json|pnpm-lock.yaml|package-lock.json|yarn.lock'; then
+  warn "Node dependency files changed across checkout"
+fi
+
+if echo "$changed_files" | grep -Eq \
+  'requirements.txt|poetry.lock|pyproject.toml'; then
+  warn "Python dependency files changed across checkout"
+fi
+
+if echo "$changed_files" | grep -Eq \
+  'pom.xml|build.gradle|build.gradle.kts|settings.gradle|settings.gradle.kts|gradle\.properties|build.xml|ivy.xml'; then
+  warn "Java dependency files changed across checkout"
+fi
+
+if echo "$changed_files" | grep -Eq \
+  'deps.edn|project.clj|build.boot'; then
+  warn "Clojure dependency files changed across checkout"
+fi
+
+# --------------------------------------------------
+# Repo-local/ecosystem hooks
+# --------------------------------------------------
+
+dispatch_hook post-checkout
+
+success "Post-checkout checks passed"

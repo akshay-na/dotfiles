@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+source ~/.githooks/shared.sh
+
+info "🔍 Pre-commit triggered"
+
+# Merge conflict markers
+# Only check staged files for merge conflict markers
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -vE '(githook|hook|pre-commit|commit-msg|lefthook|\.husky|\.pre-commit-config\.yml|\.lefthook\.yml)')
+if [ -n "$STAGED_FILES" ]; then
+  if grep -E '<<<<<<<|=======|>>>>>>>' $STAGED_FILES >/dev/null 2>&1; then
+    error "Merge conflict markers detected in staged files"
+  fi
+fi
+
+dispatch_hook pre-commit
+
+success "Pre-commit checks passed"

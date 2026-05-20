@@ -158,6 +158,7 @@ stow_dotfiles() {
     fi
   done
   chmod +x ~/.local/bin/*
+  chmod +x ~/.githooks/*
 }
 
 # Remove symlinks created by stow, including ai directory

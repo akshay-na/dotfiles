@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+source ~/.githooks/shared.sh
+
+MSG_FILE="$1"
+
+msg=$(head -n1 "$MSG_FILE")
+
+info "📝 Validating commit message"
+
+# --------------------------------------------------
+# Empty message
+# --------------------------------------------------
+
+if [ -z "$msg" ]; then
+  error "Empty commit message"
+fi
+
+# --------------------------------------------------
+# Garbage commits
+# --------------------------------------------------
+
+if echo "$msg" | grep -Eiq \
+  '^(wip|tmp|temp|asdf|test|fix|stuff)$'; then
+
+  error "Low-quality commit message rejected"
+fi
+
+# --------------------------------------------------
+# Length check
+# --------------------------------------------------
+
+length=${#msg}
+
+if [ "$length" -gt 72 ]; then
+  warn "Commit title exceeds 72 chars"
+fi
+
+# --------------------------------------------------
+# Conventional commits
+# --------------------------------------------------
+
+if ! echo "$msg" | grep -Eq \
+  '^(feat|fix|refactor|docs|test|build|ci|chore)(\(.+\))?: '; then
+
+  error "Commit message must follow conventional commits"
+fi
+
+# --------------------------------------------------
+# Strip AI/IDE/bot attribution trailers and body credit lines
+# --------------------------------------------------
+
+strip_ai_attribution "$MSG_FILE"
+
+success "Commit message checks passed"

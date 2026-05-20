@@ -262,7 +262,7 @@ if [[ "$pending" != "No branches are pending" && -n "$pending" ]]; then
   echo "󰼧 $pending"
 fi
 '''
-format = "[$output]($style)"
+format = "[$output]($style) "
 style = "bold fg:yellow"
 require_repo = true
 when = "command -v git-town"
@@ -277,19 +277,18 @@ branch=$(git branch --show-current 2>/dev/null)
 # Check if branch has a parent
 parent=$(git-town config get-parent 2>/dev/null)
 if [[ -z "$parent" ]]; then
-  echo -e "\033[31m⚠ orphan\033[0m"
+  echo -e "\033[31m⚠ orphans \033[0m"
   exit 0
 fi
 
-echo -e "\033[35m $parent\033[0m"
+echo -e "\033[35m $parent \033[0m"
 
 # Detect lineage inconsistencies:
 merge_base=$(git merge-base "$branch" "$parent" 2>/dev/null)
 if [[ -z "$merge_base" ]]; then
-  echo -e "\033[31m⚠ topology\033[0m"
+  echo -e "\033[31m⚠ topology \033[0m"
   exit 0
 fi
-
 '''
 require_repo = true
 when = "command -v git-town"

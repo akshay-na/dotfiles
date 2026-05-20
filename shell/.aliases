@@ -55,20 +55,6 @@ if command -v fd &>/dev/null; then
   export FD_IGNORE_FILE="$HOME/.config/fd/ignore"
 fi
 
-# Check if 'logdy' exists before aliasing
-if command -v logdy &>/dev/null; then
-  alias logdy="logdy --no-updates --no-analytics"
-fi
-
-if command -v git-town &>/dev/null; then
-  alias gt="git-town"
-  alias gts="git-town sync"
-  alias gtsp="git-town set-parent"
-  alias gtsp="git-town diff-parent"
-  alias gtsr="git-town status reset"
-  alias gtss="git-town status show"
-fi
-
 # ---------------------------------------------------------------
 # Kubectl Aliases
 # ---------------------------------------------------------------

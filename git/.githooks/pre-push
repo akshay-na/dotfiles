@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+source ~/.githooks/shared.sh
+
+branch=$(current_branch)
+
+info "🚀 Pre-push triggered for: $branch"
+
+# Gitleaks
+if has_command gitleaks; then
+  info "🔐 Running gitleaks"
+
+  gitleaks protect --staged --redact ||
+    error "Potential secret leak detected"
+else
+  error "gitleaks is required for push checks. Please install gitleaks: https://github.com/gitleaks/gitleaks"
+fi
+
+# Large push detection
+changed_files=$(git diff --cached --name-only | wc -l)
+
+if [ "$changed_files" -gt 100 ]; then
+  warn "Large push detected: $changed_files files"
+fi
+
+dispatch_hook pre-push
+
+success "Pre-push checks passed"

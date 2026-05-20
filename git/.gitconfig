@@ -27,7 +27,27 @@
         git remote -v; \
         echo; \
     }; f"
-
+	# --- TOWN Aliases (custom git extensions/scripts) ---
+	append       = town append         # Append changes to an existing stack or patch
+	compress     = town compress       # Compress or squash a stack of changes
+	continue     = town continue       # Continue an interrupted town operation
+	contribute   = town contribute     # Push or share your proposed changes for review
+	down         = town down           # Move to a child/descendant changeset
+	hack         = town hack           # Start a new changeset/branch to work on something
+	observe      = town observe        # Watch or follow a changeset's progress/changes
+	feature      = town feature        # Create a new feature branch
+	park         = town park           # Temporarily park (set aside) a stack or branch
+	prepend      = town prepend        # Prepend changes at the base of a stack
+	propose      = town propose        # Make a proposal/PR from your current branch
+	rename       = town rename         # Rename a changeset or stack
+	repo         = town repo           # Show info or interact with the current repo in town
+	set-parent   = town set-parent     # Set the parent of a stack/branch
+	delete       = town delete         # Delete a changeset or stack
+	diff-parent  = town diff-parent    # Show diff between a stack/branch and its parent
+	ship         = town ship           # Land/merge a completed stack/changeset
+	sync         = town sync           # Synchronize with upstream (fetch/rebase/etc)
+	up           = town up             # Move up to the parent stack/branch
+	undo         = town undo           # undo the git town operations
 
 [branch]
   sort = -committerdate        # Sort branches by most recent commit date (descending)
@@ -48,6 +68,7 @@
   deltaBaseCacheLimit = 512M  # Increase delta base cache limit for large repositories
   excludesfile        = ~/.gitignore_global  # Add a global gitignore file
   attributesfile      = ~/.gitattributes_global  # Add a global gitattributes file
+  hooksPath           = ~/.githooks  # Add a global git hooks path
   fileMode            = false  # Ignore file permission changes
   fscache             = true  # Enable file system cache to improve performance
   gitproxy            = auto  # Automatically select the appropriate proxy
@@ -186,11 +207,12 @@
     ignore-uncommitted = false # Block commands when working tree is dirty
     interactive = false        # Non-interactive mode (script/agent friendly)
     stash = false              # Do not stash uncommitted changes before operations
+    tags = false                # Disable tags for git town
 
     # UI
     display-types = "all"                 # Show all branch types in listings
     order = asc                           # Sort branches ascending within stacks
-    proposal-breadcrumb = stacks          # Show stack hierarchy in proposal views
+    proposal-breadcrumb = none            # Show stack hierarchy in proposal views
     proposal-breadcrumb-direction = down  # Stack breadcrumb flows parent → child
 
     # Branch naming & classification
@@ -209,7 +231,7 @@
     sync-upstream = true       # Fetch and integrate upstream before syncing stack
 
     # Sync strategies
-    sync-feature-strategy = merge   # Merge feature branches onto their parent
+    sync-feature-strategy = ff-only   # Fast-forward feature branches onto their parent
     sync-perennial-strategy = ff-only  # Fast-forward perennial branches only
     sync-prototype-strategy = rebase   # Rebase prototype branches onto their parent
     sync-tags = true             # Sync tags with the remote during sync
