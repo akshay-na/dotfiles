@@ -7,6 +7,16 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
+DEBUG_HOOKS=${DEBUG_HOOKS:-0}
+
+hooks_debug_enabled() {
+  local v
+  v=$(printf '%s' "$DEBUG_HOOKS" | tr '[:upper:]' '[:lower:]')
+  case "$v" in
+    1 | true | yes | on) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 info() {
   echo -e "${BLUE}$1${NC}"
@@ -26,7 +36,9 @@ error() {
 }
 
 debug() {
-  [[ "$DEBUG_HOOKS" == "1" ]] && echo "DEBUG: $1"
+  if hooks_debug_enabled; then
+    echo "DEBUG: $1" >&2
+  fi
 }
 
 repo_root() {
@@ -88,7 +100,8 @@ run_husky_hook() {
 
   if [ -f "$root/.husky/$hook" ]; then
     debug "🐶 Husky: $hook"
-    (cd "$root" && bash ".husky/$hook")
+    cd "$root"
+    bash ".husky/$hook"
   fi
 }
 
@@ -98,7 +111,8 @@ run_precommit_hook() {
 
   if [ -f "$root/.pre-commit-config.yaml" ] && has_command pre-commit; then
     debug "🐍 pre-commit: $hook"
-    (cd "$root" && pre-commit run --hook-stage "$hook")
+    cd "$root"
+    pre-commit run --hook-stage "$hook"
   fi
 }
 
@@ -108,7 +122,8 @@ run_lefthook_hook() {
 
   if [ -f "$root/lefthook.yml" ] && has_command lefthook; then
     debug "🪝 Lefthook: $hook"
-    (cd "$root" && lefthook run "$hook")
+    cd "$root"
+    lefthook run "$hook"
   fi
 }
 
@@ -121,8 +136,8 @@ run_repo_local_hook() {
   #detect worktree
   if [ -f "$root/.git" ]; then
     cd "$root"
-    is_worktree_config_enabled=$(git config --bool extensions.worktreeconfig)
-    if [ "$is_worktree_config_enabled" == "true" ]; then
+    is_worktree_config_enabled=$(git config --bool extensions.worktreeconfig 2>/dev/null || echo false)
+    if [ "$is_worktree_config_enabled" = "true" ]; then
       root=$(git rev-parse --git-dir)
     else
       root=$(git rev-parse --git-common-dir)
@@ -141,7 +156,9 @@ dispatch_hook() {
   [ -z "$root" ] && return 0
 
   run_husky_hook "$hook" "$root"
-  run_precommit_hook "$hook" "$root"
+  if [[ $hook = 'pre-commit' ]]; then
+    run_precommit_hook "$hook" "$root"
+  fi
   run_lefthook_hook "$hook" "$root"
   run_repo_local_hook "$hook" "$root"
 }
