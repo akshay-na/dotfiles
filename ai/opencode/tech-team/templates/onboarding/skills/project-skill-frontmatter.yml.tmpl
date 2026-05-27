@@ -1,0 +1,34 @@
+---
+name: <skill-name>
+description: <When to use this skill>
+version: 1
+template_id: onboarding/skills/project-skill-frontmatter
+template_version: 2026.05.07
+input_schema:
+  required:
+    - name: <required-input>
+      type: string | string[] | number | boolean | object
+      description: <What this input is>
+  optional:
+    - name: <optional-input>
+      type: string
+      description: <What this input is>
+      default: <default-value>
+output_schema:
+  required:
+    - name: <required-output>
+      type: string
+      description: <What this output is>
+  optional:
+    - name: <optional-output>
+      type: string
+      description: <What this output is>
+pre_checks:
+  - description: "<What to validate before execution>"
+    validation: "<How to validate>"
+post_checks:
+  - description: "<What to validate after execution>"
+    validation: "<How to validate>"
+cacheable: false # true if outputs are deterministic
+cache_ttl_minutes: 0 # Cache lifetime if cacheable
+---

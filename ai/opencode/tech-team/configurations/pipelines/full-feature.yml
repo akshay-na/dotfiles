@@ -1,0 +1,104 @@
+name: full-feature
+description: Complete feature implementation with design review, security check, implementation, and quality review
+version: 2
+max_retries: 5
+
+stages:
+  - id: plan
+    agent: cto
+    mode: plan
+    execution_mode: plan_only
+    fanout_policy: parallel_independent_specialists
+    partition_basis: specialist_domain
+    instance_cap: 6
+    merge_contract_id: deterministic-lex-by-task-id
+    determinism_key: plan-shard-order
+    dispatch_mode: foreground
+    payload_budget: 4096
+    result_ref_required: true
+    caveman_level: ultra
+    description: Create phased implementation plan
+    inputs: [task_description]
+    outputs: [implementation_plan]
+    requires_approval: true
+    timeout_minutes: 30
+
+  - id: architecture_review
+    agent: vp-architecture
+    mode: plan
+    description: Review architectural impact and component boundaries
+    inputs: [implementation_plan]
+    outputs: [architecture_review]
+    condition: "complexity == 'high'"
+    timeout_minutes: 20
+
+  - id: security_review
+    agent: ciso
+    mode: plan
+    description: Review security implications
+    inputs: [implementation_plan]
+    outputs: [security_review]
+    condition: "task_type == 'security' or 'ciso' in always_include"
+    timeout_minutes: 20
+
+  - id: implement
+    agent: tech-lead
+    mode: agent
+    execution_gate: explicit_user_invoke_tech_lead_after_cto_checkpoint
+    fanout_policy: parallel_when_disjoint_project_agents
+    partition_basis: workspace_root
+    instance_cap: 8
+    merge_contract_id: deterministic-lex-by-task-id
+    dispatch_mode: background_auto
+    payload_budget: 4096
+    result_ref_required: true
+    caveman_level: ultra
+    description: Execute the implementation plan (tech-lead coordinates project agents)
+    inputs: [implementation_plan, architecture_review, security_review]
+    outputs: [code_changes]
+    requires_approval: true
+    timeout_minutes: 60
+    retry:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay_seconds: 5
+    rollback:
+      strategy: git_revert
+      description: "Revert all commits from this stage"
+    skill: closed-loop-execution
+
+  - id: verify
+    agent: code-reviewer
+    mode: agent
+    description: Mandatory review+QA gate. Reuse CI checks when sufficient; run local tests when checks are missing, stale, or failed.
+    inputs: [code_changes]
+    outputs: [verification_results]
+    timeout_minutes: 15
+    retry:
+      max_attempts: 2
+      backoff: fixed
+      initial_delay_seconds: 3
+    skill: closed-loop-execution
+
+  - id: observability_review
+    agent: sre-lead
+    mode: plan
+    description: Review operational readiness
+    inputs: [code_changes, verification_results]
+    outputs: [observability_review, feedback_items]
+    condition: "complexity in ['high', 'medium']"
+    timeout_minutes: 15
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2
+
+  - id: quality_review
+    agent: staff-engineer
+    mode: plan
+    description: Review code quality and maintainability
+    inputs: [code_changes, observability_review, verification_results]
+    outputs: [quality_review, feedback_items]
+    timeout_minutes: 15
+    feedback_loop:
+      target_stage: implement
+      max_iterations: 2

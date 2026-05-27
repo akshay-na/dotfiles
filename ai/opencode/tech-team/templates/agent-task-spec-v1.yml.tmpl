@@ -1,0 +1,17 @@
+# agent_task_spec_v1 — orchestrator dispatch brief (YAML handoff fragment)
+schema_version: 1
+task_id: "<stable slug>"
+requested_agent: "<subagent>"
+execution_mode: plan | mixed | exec
+dispatch_mode: foreground | background_auto
+fanout_policy: none | homogeneous | heterogeneous
+partition_basis: touches | subsystem | bounded_token
+instance_cap: 8
+merge_contract_id: deterministic-lex-by-task-id
+determinism_key: "<sha256 of inputs excluding volatile>"
+partition_touches_globs:
+  - "<glob>"
+depends_on_tasks: []
+payload_budget_chars: 4000
+result_ref_required: true
+caveman_level_dispatch: ultra

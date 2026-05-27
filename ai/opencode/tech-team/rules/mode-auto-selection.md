@@ -1,0 +1,42 @@
+
+# Mode auto-selection from user prompts
+
+- **External docs / HTTP / web:** only **`vp-research`** may fetch; see **`vp-research.md`**. This rule does not restate the broker contract.
+
+- **Respect agent defaults**: Never override explicit mode instructions in agent definitions (for example `cto` in plan mode, `senior-dev` in Agent mode). This rule only guides which mode to switch into when the current assistant has a choice.
+
+- **Explicit agent invocation (hard gate — overrides heuristics below)**:
+  - Triggers include the user **naming** an org or project agent and asking to **use**, **invoke**, **run**, **call**, **dispatch**, **open**, **with**, **via**, **`@...`**, or equivalent (e.g. “use cto”, “invoke code-reviewer”, “run tech-lead”, “Task staff-engineer”).
+  - **Delegation language (same gate):** also treat as invocation when the user uses **assign**, **delegate**, **hand off to**, **have … implement / handle / do**, **get … to**, **let … take this**, **through the … agent**, **orchestrate with …**, **with … agent** — whenever an **agent id** from **`~/.config/opencode/agents/`** or **`<workspace>/.opencode/agents/*.md`** is clearly the **executor** (not merely mentioned as a topic).
+  - **Dispatch primitive (Cursor only):** real agent runs use the **`Task`** tool with `subagent_type` matching the agent id (**`~/.config/opencode/agents/`**, **`<workspace>/.opencode/agents/*.md`**, pack routing). No other tool counts as dispatch.
+  - **Required:** the **first** substantive step is that **`Task`** (same matching rules). Payload = user goal, constraints, workspace roots, checkpoints, and any parent **`Task`** correlation ids the orchestration skill requires.
+  - **Tool-order (strict):** **before** the first successful **`Task`** dispatch for that user intent, **do not** use **`Write`**, **`StrReplace`**, **`Delete`**, notebook **`edit`**, **`apply_patch`**, or **Shell** that **mutates** git state / workspace files **for that intent**. **Allowed first:** read-only discovery (**`Read`**, **`Grep`**, **`Glob`**, **`SemanticSearch`**) solely to build the **`Task`** prompt or verify the agent id exists.
+  - **Orchestration driver:** if the user names **`tech-lead`**, **`cto`**, **`code-reviewer`**, **`n8n-builder`**, **`remotion-builder`**, or another **entrypoint** as the party that should **run / implement / orchestrate**, **`Task`** **that** agent first with the full brief — **never** simulate multi-phase execution or cross-repo work **in main chat** as a substitute.
+  - **Zero-gap subagent chain (orchestrators and parents):** any work product **owned** by agent **B** (plan section, review finding synthesis, implementer diff, specialist memo) **must** come from a **`Task`** to **B** — **not** from the parent typing B’s deliverable. **Forbidden gaps:** (a) narrating “here is what **B** would say” without a completed **`Task` B**; (b) **staging** B’s output in parent prose then “confirming” it without dispatch; (c) **split-brain** — half the work via tools, half as impersonation; (d) **double execution** — parent implements **`touches[]`** assigned to a child while a child **`Task`** is also in flight for the same scope. Between hops: **parse or fail** per **`subagent-response-protocol`** — **no** user-facing synthesis that assumes child success if the envelope is missing, malformed after one reformat retry, or **`blocked`/`error`**. Next hop **`Task`** only after valid merge or explicit degraded stub per protocol.
+  - **Forbidden:** answering **as** that agent in main chat (CTO-style plans, reviewer-style writeups, VP-style memos, **or any other “styled” substitute**) **without** dispatching **`Task`**.
+  - **Forbidden:** clarifying questions **before** that **`Task`** unless the user message has **zero** actionable substance (then **at most one** minimal clarification).
+  - **Router vs entrypoint clarification:** Limits in this bullet apply to the **router/parent** that has not yet completed the required **`Task`** dispatch. They **do not** cap clarification by the **invoked entrypoint** in its own session; entrypoints follow **`entrypoint-clarification`** (up to 5 rounds per `entrypoint-personalization.yml`).
+  - **If `Task` fails** (tool error, missing subagent, repeated envelope malformed): **stop** after one retry; **tell the user** dispatch failed; **do not** silently become the substitute implementer for a **named entrypoint** — offer to retry dispatch or ask for a narrower brief.
+  - **Not an invocation:** generic “plan this” or “review this” **without** naming an entrypoint agent — normal routing in **`agent-orchestration.md`** still applies.
+  - **Not an invocation:** user **asks about** an agent (**what does X do?**, **when to use X?**) with **no** request that X **act** — answer in Ask mode; **no** `Task` unless they ask to run it.
+
+- **Ask mode (explanation / reading)**:
+  - Use Ask mode when the user is primarily asking for explanations, walkthroughs, or conceptual help (e.g. "explain", "what does this do?", "how does X work?") and is not requesting code changes.
+  - Stay read-only: do not edit files or run commands unless the user then asks for changes.
+
+- **Debug mode (errors, failures, broken behavior)**:
+  - If the user pastes an error message, stack trace, test failure output, or clearly describes broken behavior ("this crashes", "tests are failing", "getting 500s"), switch to Debug mode.
+  - Prioritize understanding and reproducing the issue first; propose or apply fixes only after identifying a likely root cause.
+
+- **Agent (implementation) mode (changes, updates, implementation)**:
+  - If the user mentions updating, implementing, adding, creating, refactoring, fixing, or otherwise changing code or configuration, use Agent mode for implementation work.
+  - Treat phrases like "update this", "implement X", "add Y", "refactor", "fix this" as strong signals for Agent mode, even when the user provides existing code.
+
+- **Plan mode (architecture, multi-step, or ambiguous scope)**:
+  - For large, multi-step, or high-impact tasks (architecture, security, performance, observability, infra, migrations), or when the user explicitly asks for a plan or design, switch to Plan mode before implementation.
+  - When users invoke org-level agents other than `senior-dev`, assume plan mode as their default, in line with their agent definitions.
+
+- **User intent and conflicts**:
+  - If multiple signals appear (for example, an error message plus a request to redesign a feature), prefer Debug mode first to stabilize behavior, then Plan/Agent as appropriate.
+  - If the user explicitly names a mode or asks not to switch modes, honor the user instruction over these heuristics, as long as it does not conflict with agent-specific mode requirements.
+

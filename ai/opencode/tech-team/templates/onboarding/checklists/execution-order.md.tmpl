@@ -1,0 +1,19 @@
+---
+template_id: onboarding/checklists/execution-order
+template_version: 2026.05.07
+---
+
+# Strict Execution Order
+
+| Rule | Enforcement |
+| ---- | ----------- |
+| Step 1 (Memory) is mandatory | Complete Step 1 before any other work. |
+| Step 2 (Knowledge spine) default-required | Run Step 2 after Step 1 unless user explicitly skips KB spine. |
+| Step 3 depends on Step 2 outcome | Start Step 3 only after Step 1 complete and Step 2 completed or explicitly skipped/recorded. |
+| Order is fixed | Always `Step 1 -> Step 2 -> Step 3`. |
+
+## Skip Handling
+
+1. Refuse Step 1 skip requests.
+2. Step 2 can be skipped only with explicit user request.
+3. Record Step 2 skip as memory `decision`.

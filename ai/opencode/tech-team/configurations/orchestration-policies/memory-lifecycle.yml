@@ -1,0 +1,7 @@
+# DEPRECATED — canonical policy moved to ai-brain vault.
+# One-release stub; do not duplicate retention integers here.
+schema_version: 1
+canonical_policy: ~/ai-brain/org/global/config/memory-demotion.yml
+contract_version: 1
+enabled: true
+# Load lifecycle, demotion, query_ladder, and storage.forbidden_paths from canonical_policy only.

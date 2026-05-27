@@ -1,0 +1,56 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "sequential-thinking": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@2025.12.18"
+      ],
+      "timeout": 5000
+    },
+    "fetch": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "mcp-server-fetch-typescript@0.1.1"
+      ],
+      "timeout": 5000
+    },
+    "time": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@mcpcentral/mcp-time@0.0.3"
+      ],
+      "timeout": 5000
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  },
+  "instructions": [
+    "~/.config/opencode/rules/base.md",
+    "~/.config/opencode/rules/agent-orchestration.md",
+    "~/.config/opencode/rules/brain-conventions.md",
+    "~/.config/opencode/rules/caveman.md",
+    "~/.config/opencode/rules/docs-and-decisions.md",
+    "~/.config/opencode/rules/entrypoint-personalization.md",
+    "~/.config/opencode/rules/error-handling-and-security.md",
+    "~/.config/opencode/rules/mandatory-delegation.md",
+    "~/.config/opencode/rules/mcp-usage.md",
+    "~/.config/opencode/rules/mode-auto-selection.md",
+    "~/.config/opencode/rules/observability.md",
+    "~/.config/opencode/rules/subagent-response-protocol.md",
+    "~/.config/opencode/rules/testing.md",
+    "~/.config/opencode/rules/trusted-opencode-edit-zones.md",
+    "~/.config/opencode/rules/vp-research.md",
+    "~/.config/opencode/rules/n8n-builder-governance.md",
+    "~/.config/opencode/rules/remotion-builder-governance.md",
+    "~/.config/opencode/rules/kokoro-audio-builder-governance.md"
+  ]
+}

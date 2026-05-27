@@ -1,0 +1,122 @@
+
+# Brain Conventions
+
+## Canonical Root
+
+- Root: `~/ai-brain/`
+- Integrated namespace (no top-level KB/memory split).
+- Tracked skeleton: `_schema/`, `_templates/`, `README.md`, `.gitignore`.
+- Local runtime content: `projects/`, `org/`, `session/`, `.meta/`, `Home.md`, `.obsidian/graph.json`.
+
+## Cross-tool mandate (Cursor + Gemini)
+
+- **Single source of truth:** All durable agent state (decisions, constraints, risks, session ledgers, promoted KB) lives under the **brain root** — canonical **`~/ai-brain/`** on disk. Do **not** maintain a second “shadow” vault for the same facts in pack-local trees unless documented migration mirrors or symlinks into the same store (no split-brain).
+- **Cursor pack** (`~/.cursor`, stowed from `dotfiles/ai/opencode/tech-team/`): agents use **`brain-memory-kb`** + normal workspace file tools against **`$HOME/ai-brain`** on allowed paths only.
+- **Gemini pack** (`~/.gemini`, stowed from `dotfiles/ai/private-teams/gemini/*/`): agents MUST follow the same writer policy and skeleton read-only rules; use **`rules/brain-write-bridge.md`** for the runtime write path (**Option A** native FS vs **Option B** structured **`memory_writes[]`** + coordinator persist — see **`brain-memory-kb`** skill).
+- **Coordinator parity:** **`cco` / `content-lead`**, **`cio` / `trading-lead`**, **`cto` / `tech-lead`** share the same **gradual** KB rhythm; only role-specific **writer policy** rows differ — not **whether** durable facts land under **`~/ai-brain/`**.
+- **Handoff agents** (`code-reviewer`, `cro`, `senior-dev`, **`editorial-cro`** where pack policy names it): unchanged — **no** direct brain FS writes; populate **`memory_writes[]`** for the owning entrypoint to persist.
+
+## Operating Model
+
+- **Memory lane (RAM-like):** short-lived orchestration context and quick recall.
+- **Knowledge lane (HDD-like):** durable, canonical structural and decision knowledge.
+- **Promotion path:** memory -> KB when reused/stable/high-signal.
+
+## Query and Token Discipline
+
+- Lookup-first, body-later.
+- Escalate query depth only when needed.
+- Prefer compact summaries and reference pointers.
+- Avoid duplicate payload transfer between subagents and orchestrators.
+
+## Writer Policy
+
+- C-suite agents (`cto`, `cco`, `cio`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`, `cfo-trading`, `vp-quant-research`, `vp-risk-management`, `vp-market-intelligence`, `vp-audience-engineering`, and other org **`vp-*`** when policy grants touch-writes) and `tech-lead` may perform bounded touch-writes to memory and KB. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
+- Excluded from KB/memory writes for dedup control: `code-reviewer`, `senior-dev`, `cro`.
+- All other agents are read/query only for brain (`~/ai-brain/`) and must not write memory or KB.
+- Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
+
+### Demotion writer policy (KB nodes)
+
+- **Who may demote:** same roles as **touch-writes** above; **`code-reviewer`**, **`cro`**, **`senior-dev`** hand off via **`memory_writes[]`** with `op: demote` — entrypoint persists.
+- **Policy source:** `~/ai-brain/org/global/config/memory-demotion.yml` (`contract_version`); never write to `storage.forbidden_paths` (`~/.config/opencode/memory`, `~/.gemini/memory`).
+- **Fail-closed:** demotion without audit (`kb_demote` event) after brain-audit contract is live is a policy violation; advisory demote allowed only during rollout window documented in plan.
+- **Human restore:** `approve kb restore: <node-ref> in phase <pid>` per policy; coordinators record in audit.
+
+### Vault skeleton (tracked stow — no agent writes)
+
+**Hard rule:** no agent writes to the **ai-brain skeleton** shipped from dotfiles. Canonical source tree (edit only by humans / dotfiles maintainers, not automation):
+
+- `dotfiles/ai/ai-brain/_schema/**`
+- `dotfiles/ai/ai-brain/_templates/**`
+- `dotfiles/ai/ai-brain/README.md`, `dotfiles/ai/ai-brain/.gitignore`
+
+After stow, those paths are the same files as:
+
+- `~/ai-brain/_schema/**`, `~/ai-brain/_templates/**`, and the root `README.md` / `.gitignore` that point at the stow target
+
+**Read-only for every agent** (including C-suite, `tech-lead`, subagents, and orchestrators): do **not** create, delete, move, or patch anything under those paths during onboarding, memory promotion, project KB work, plans, or any other automation. **Query and cite** skeleton files when defining structure; put durable content under `projects/`, `org/`, `session/`, `.meta/` (under projects), `Home.md` content you own per policy, etc.
+
+**Exception:** the **human** explicitly requests dotfiles / schema-template maintenance, or a normal reviewed git change to `dotfiles/ai/ai-brain/`. Agents must **not** self-initiate skeleton edits.
+
+## Private vault context (PII vs secrets)
+
+**Assumption:** **`~/ai-brain`** and **private** project vaults (e.g. personal content corpus) are **not** world-readable — **private** git remotes and/or **local-only** trees.
+
+- **PII allowed** when the human wants personalization: e.g. **name**, **postal address**, **email**, **phone**, employer or public **role**, and similar fields the user **explicitly** shares or approves for drafting, scheduling, or continuity.
+- **Strictly forbidden** everywhere (files, commits, persisted logs, operator profile): **passwords**, **passphrases**, **API keys**, **OAuth / access / refresh tokens**, **private keys** (SSH, GPG, TLS), **session cookies**, **MFA seeds**, full **payment** or **bank account** numbers, **secret-bearing** `.env` or config dumps. Use **`<REDACTED>`** or a pointer (“**stored in secrets manager**”) — never the raw value.
+- **Do not** copy brain or vault PII into **public** repos, pastebins, or untrusted tool payloads. If a sync target becomes public, human must strip PII first.
+- Agents with brain read access should **consult** **`org/global/operator-profile/`** (below) before guessing stable preferences.
+
+## Operator profile
+
+- **Path:** **`~/ai-brain/org/global/operator-profile/`** (or the active brain root per local migration docs).
+- **Layout:** read **`~/ai-brain/_templates/operator-profile.md`**; **write only** under **`operator-profile/`**, never patch **`_templates/`** from automation.
+- **Who may write:** roles allowed **touch-writes** under **Writer Policy** above. Prefer **append** + **dated** entries for inferred material; separate **user-stated** vs **`inferred`** facts in **`prompt-signals.md`** / **`predicted-needs.md`**.
+- **Prompt analysis:** update profile from **main prompts** only when patterns are **clear and recurring**; **never** store secrets or guess credentials. Low confidence → omit or ask once.
+
+## Git commits — signing
+
+- **DotMate / dotfiles repository** (the **git root** of this configuration source tree — the repo you **`make stow`** from): **OpenPGP-sign every commit** (`commit.gpgsign=true` for that repo or globally). **Do not** use **`--no-gpg-sign`** or **`git -c commit.gpgsign=false`** when committing **here** — **including commits created by agents or automation** in this repo. Use **`git commit -S`** when signing is not already implied by config. Merge commits follow the same rule when signing is enabled. **Hook:** from this repo’s root run **`git config core.hooksPath git/githooks`** so **`git/githooks/commit-msg`** removes injected **`Co-authored-by`** / **`AI-authored`** / **`Generated-by`** lines that violate **Attribution** below.
+- **All other repositories** (workspace projects, **`~/ai-brain`** when agents or automation commit, any non-dotfiles clone): use **`git commit --no-gpg-sign`** or **`git -c commit.gpgsign=false commit`** so unattended automation does not block on passphrase prompts, unless a **project ADR** overrides.
+
+## Commit message format (`~/.gitmessage` + Conventional Commits)
+
+Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). **Dotfiles repo:** **`git commit -t "$HOME/.gitmessage"`** (or **`--file`**) **with signing** as above. **Other agent-driven commits:** add **`--no-gpg-sign`** to the same invocation pattern.
+
+1. **Subject (first line):** [Conventional Commits](https://www.conventionalcommits.org/) — **`type[(optional-scope)]: imperative summary`**. Common **`type`**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`, `style`. Keep the summary portion **≤ ~72 characters** when practical; **no trailing period** before any hostname suffix; summary in **imperative** mood (*add*, not *added*).
+2. **Body: stay short.** Optional **bullet list** with **at most 2–3** bullets. **`Context:`** and **`Impact:`** — **one line each** unless the change truly needs two short lines; **no long narratives** (put detail in PRs, plans, or KB).
+3. **`Notes:`** — optional **brief** operational refs only (e.g. `Task-ID`, ticket keys) where the project already uses them.
+4. **Attribution — forbidden in commit messages (default):** **`Co-authored-by:`** for AI/IDE/bots, **`AI-authored`**, **`Generated-by:`**, “written by AI”, or vendor tool credit in **body** or trailers — **do not** add these on **workspace projects**, **content corpus**, **dotfiles**, or any repo **except** **item 6** (**git-backed `~/ai-brain`**, **one** AI **`Co-authored-by`** trailer only). Commits stay normal project history unless **item 6** applies.
+5. **`~/ai-brain` as a git repo — hostname in subject (mandatory):** When **`git commit`** targets the **brain git root** (see **§ `~/ai-brain` as a git repository** — typically **`git -C "$HOME/ai-brain"`**; same rule if your layout uses **`~/.config/opencode/ai-brain`** or **`~/.gemini/ai-brain`** as that root), the **subject (first line)** **must** end with **` from <short-hostname>`** so multi-machine history is obvious. Resolve **`<short-hostname>`** at commit time: prefer **`hostname -s`** (POSIX); on macOS if empty use **`scutil --get LocalHostName`**; otherwise **`HOSTNAME`**, **`COMPUTERNAME`**, or documented org default. **Pattern:** **`type[(scope)]: <imperative summary> from <short-hostname>`** — use **`(scope)`** = **`kb-identity`** / project slug (e.g. **`content-foundry`**) when the change is project-scoped. **Example:** `docs(content-foundry): update KB decision on promotion from studio-mac`. **Agents/automation** must inject the real hostname string, not a placeholder. The hostname suffix **overrides** strict ~72-char caps for the full first line.
+6. **`~/ai-brain` git repo — `Co-authored-by` which AI (mandatory for agent/automation commits):** When **`git commit`** targets that **same brain git root** and the committer is an **agent or automation** (not a human-only manual commit), append **exactly one** trailer line after the body / **`Notes:`**:
+   - **Format:** **`Co-authored-by: <Product> <synthetic-email>`** — Git trailer syntax; **`<Product>`** must match the assistant used (e.g. **`Cursor Agent`**, **`Google Gemini`**, **`GitHub Copilot`**). **`<synthetic-email>`** must be a **non-secret** placeholder only — use **`ai@local.invalid`** (RFC 2606) or an org-documented vendor **noreply**; **never** a human’s real address or any secret.
+   - **Still forbidden** on brain commits: **`AI-authored:`**, **`Generated-by:`**, and “written by AI” **prose** in the body — only the single **`Co-authored-by`** trailer is allowed for AI credit.
+   - **Hook warning:** **Do not** point **`~/ai-brain`**’s **`core.hooksPath`** at DotMate **`git/githooks`** — that **`commit-msg`** hook **strips** AI **`Co-authored-by`** lines and would remove this trailer.
+
+## Entrypoint + decision agents — KB duty (gradual, mandatory)
+
+Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspace (see **`agent-orchestration.md`**). **Goal:** build **`~/ai-brain/`** per project **incrementally** — not ad-hoc “sometimes” dumps. Use **`brain-memory-kb`** + **`kb-identity`**.
+
+- **Who (writes):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`** when they are the invoked entrypoint; cross-tool **content / trading coordinators** **`cco`**, **`cio`**, **`content-lead`**, **`trading-lead`** when executing routed orchestration for their pack; org roles already allowed **touch-writes** above (**`vp-*`**, **`ciso`**, **`sre-lead`**, **`staff-engineer`**, **`vp-platform`**, **`vp-onboarding`**, **`cfo-trading`**, **`vp-quant-research`**, **`vp-risk-management`**, **`vp-market-intelligence`**, **`vp-audience-engineering`**) when executing their routed work. **Who (handoff only):** **`code-reviewer`**, **`cro`**, **`senior-dev`** — **no** direct brain filesystem writes; they **must** populate **`memory_writes[]`** / structured findings so the **owning entrypoint** (**`cto`**, **`tech-lead`**, **`cco`**, **`cio`**, or parent orchestrator) persists (or the user runs promotion).
+- **Per-repo scope:** For **each** distinct **`workspace_root`** in the invocation (multi-root = **each** folder), resolve **`kb-identity`** → **`~/ai-brain/projects/<slug>/`**. Do **not** collapse several repos into one project node.
+- **Start of run:** **`memory` / `kb-query`** via **`brain-memory-kb`** — L0/L1 on **`projects/<slug>/`**, **`session/`**, relevant **`org/`** before drafting plans or execution.
+- **Strengthened KB duty (every touch, not end-of-task dump):**
+  1. **Read** **`~/ai-brain/projects/<slug>/`** (and relevant **`session/`** / **`org/`**) at **task start** — L0/L1 query minimum before substantive planning or execution.
+  2. **Write** at **every** phase boundary, swarm merge, critic pass, user checkpoint, or **substantive decision** — not only when the task ends.
+  3. **Minimum:** **≥ 1** bounded brain persistence action per **coordinator turn** that **mutates workspace product files** (repo working trees for the active project(s), excluding brain-only or pure `.cursor` doc bookkeeping if the turn truly touched **zero** product paths — then still append **`session/`** or **`org/`** when the turn produced any **new durable orchestration fact**). “Bounded” = append **`session/`** ledger, patch **one** durable KB node, **one** **`promote`**, or flush **`memory_writes[]`** from handoff agents — same caps as below.
+  4. **Types:** decisions, constraints, risks, session ledger lines, metric snapshots — per **`agent-observability`** / project metrics policy where applicable.
+  5. **Dedupe:** update existing nodes; mark **`supersedes`**; avoid orphan duplicates.
+  6. **Git-backed `~/ai-brain`:** **`pull --rebase` before first write** in the episode; after material writes, path-scoped **`add` / `commit` / `push`** per signing rules below.
+- **Gradual persistence (caps):** In addition to **(2–3)** above: default **≤ 3** new/changed paths under **`~/ai-brain/projects/<slug>/`** (or **`org/`**) per checkpoint unless the plan explicitly lists **`touches[]`** for brain. On conflict during **`pull --rebase`**, **stop** and surface (no blind force-push).
+- **Fail-closed:** Do not end an entrypoint episode that created **new** durable facts (decisions, constraints, risks, checkpoints) with **zero** persistence unless **`degraded`** is recorded in **`session/`** or the subagent envelope and the user is told.
+
+## `~/ai-brain` as a git repository (optional)
+
+**Layouts, detect, pull/rebase, path-scoped add/commit/push, skip-when-clean:** full narrative in [`brain-memory-kb`](../skills/brain-memory-kb/SKILL.md) § Git-backed vault sync (same pack). **Do not** `git init` or force-push brain on machines meant to stay local-only.
+
+## Retention and Growth
+
+- Do not auto-delete memory.
+- Keep memory bounded via dedupe/supersede/archive and compact entries.
+- Promote stable decisions/constraints/risks/principles into durable KB nodes.

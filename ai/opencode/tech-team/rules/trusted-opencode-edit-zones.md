@@ -1,0 +1,48 @@
+
+# Trusted OpenCode edit zones (review policy)
+
+## Auto-accepted zones (no user approval required)
+
+Any agent may **create, update, move, or delete** files under the paths below **without** user approval, regardless of whether the path is a symlink, a stow/dotfiles source, or a plain real directory. This policy is enforced programmatically by the `preToolUse` hook `~/.config/opencode/hooks/cursor-zone-writes.sh` (declared in `~/.config/opencode/hooks.json`), which matches on both the literal path AND the `realpath`-resolved canonical form.
+
+| Scope                           | Path pattern                  | Covers                                                             |
+| ------------------------------- | ----------------------------- | ------------------------------------------------------------------ |
+| Global user docs                | `$HOME/.config/opencode/docs/**`       | Knowledge Base vault, vp-research caches, any other user docs      |
+| Unified ai-brain                | `$HOME/ai-brain/**`           | Org memory, `projects/`, `session/`, `.meta/`, templates skeleton via stow |
+| Legacy brain path               | `$HOME/.config/opencode/ai-brain/**`   | Same vault if linked or mirrored under `~/.cursor`               |
+| Dotfiles stow (same inode)      | `$HOME/dotfiles/ai/opencode/tech-team/docs/**`, `$HOME/dotfiles/ai/ai-brain/**` | Tracked source for stowed symlinks                    |
+| Workspace / project Cursor tree | `<workspace_root>/.opencode/**` | Project rules, agents, skills, docs, memory, hooks, configurations |
+
+**Why this is safe:** the files under these zones are Cursor-agent artifacts by design — rules, agents, skills, memory, documentation, hook scripts, KB docs, and the ai-brain vault (`brain-conventions`). They are not the working tree of the product being built; they are the configuration and memory that shape how Cursor behaves. Routine review-for-writes inside these zones is high-friction and low-value, so the policy is to auto-accept and rely on source control (`git status` / `git diff` / PR review) and brain dedupe policy as the audit trail.
+
+## Out-of-scope (normal approval still applies)
+
+- Writes to a project's **working tree** (anything not under `<workspace>/.opencode/`)
+- Writes under `~/.config/opencode/` **outside** `docs/` and `ai-brain/` (for example `~/.config/opencode/agents/`, `~/.config/opencode/skills/`, `~/.config/opencode/rules/`, `~/.config/opencode/hooks/`, `~/.config/opencode/mcp.json` — still require explicit approval unless the resolved path is the dotfiles stow target for those files)
+- Shell commands outside the read-only allowlist in `~/.config/opencode/hooks/safe-shell.sh` (mutating `git` subcommands, `rm`, `mv`, `sed -i`, shell redirection `>`/`>>`, pipes, command substitution, etc. still prompt the user)
+- Destructive operations, secret handling, and anything explicitly covered by other always-applied rules (e.g. `hardcoded-credentials-block`, `data-and-storage-security`) — those rules still govern even inside the auto-accepted zones
+
+## Stow / dotfiles guidance (editing practice, not approval gate)
+
+The auto-accept policy removes the approval friction for writes, but it does not change the **editing best practice** for stowed files. When edits land under paths like `$HOME/dotfiles/ai/opencode/tech-team/**` or `$HOME/dotfiles/ai/ai-brain/**`:
+
+- Prefer editing the tracked source in the dotfiles repo (that's what stow symlinks point at — both `~/ai-brain/foo` and `~/dotfiles/ai/ai-brain/foo` are the same file when stowed).
+- Commit and push via the dotfiles repo's normal git workflow.
+- Re-run `make stow CONFIGS=ai` only when adding brand-new files or changing the stow structure.
+
+Editing either path works; the hook approves both; the realpath matcher makes them indistinguishable to Cursor.
+
+## How the hooks fit in
+
+Two project-level hooks live in this dotfiles repo (deployed to `~/.config/opencode/hooks.json` and `~/.config/opencode/hooks/` via stow):
+
+- `ai/opencode/tech-team/hooks/cursor-zone-writes.sh` — `preToolUse` hook for `Write|Edit|StrReplace|MultiEdit|Delete`. Auto-approves writes inside the zones above.
+- `ai/opencode/tech-team/hooks/safe-shell.sh` — `beforeShellExecution` hook. Auto-approves a narrow allowlist of read-only shell commands (`git status|log|diff|...`, `cd`, `head`, `tail`, `cat`, `ls`, `pwd`, `wc`, `readlink`, `realpath`, `find` without `-exec`/`-delete`, `sha256sum`/`shasum`, `grep`/`rg`/`fd`, `sed`/`awk` without in-place flags).
+
+Both hooks are **grant-only** (`failClosed: false`) — they only ever emit `{"permission":"allow"}` for whitelisted operations, never `deny`. Anything outside the allowlist is silently passed through to the default Cursor approval flow.
+
+## Summary
+
+- **Auto-accepted, no user prompt:** writes under `$HOME/.config/opencode/docs/**`, `$HOME/ai-brain/**`, `$HOME/.config/opencode/ai-brain/**`, `<workspace>/.opencode/**`, and their stow sources under `$HOME/dotfiles/ai/` (`.cursor` + `ai-brain`).
+- **Auto-accepted, no user prompt:** the narrow read-only shell allowlist in `safe-shell.sh`.
+- **Normal approval flow:** everything else (project working tree, other home-dir paths, mutating shell commands).

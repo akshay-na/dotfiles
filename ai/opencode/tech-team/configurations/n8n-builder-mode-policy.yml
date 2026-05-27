@@ -1,0 +1,190 @@
+# n8n-builder mode policy.
+# Authoritative file for selecting between `mcp-live`, `as-code`, and `hybrid`.
+# Consumed by the n8n-builder agent and the execution-gate skill.
+
+version: 1
+
+modes:
+  as_code:
+    id: as-code
+    description: |
+      Workflow changes happen as edits to repository artifacts (n8n-as-code
+      files), reviewed by `code-reviewer` and validated by QA before being
+      applied to the live instance. Auditable, diffable, reversible by
+      `git revert`. This is the default mode.
+    source_of_truth: repo
+    sync_direction: code_to_live
+    review_required: true
+    qa_required: true
+    audit_required: true
+    worker_cap: 8
+    allowed_envs: [dev, staging, prod]
+    typical_use_cases:
+      - planned workflow changes
+      - new workflow creation
+      - workflow refactor
+      - cross-environment promotion
+    constraints:
+      - Every change must land as a git commit before being applied to a live instance.
+      - Live application is a separate phase from the code change.
+      - Reviewer + QA pass is mandatory before completion.
+
+  mcp_live:
+    id: mcp-live
+    description: |
+      Workflow changes happen directly against a live n8n instance through the
+      n8n MCP server. Operationally bounded; intended for incident response,
+      urgent patches, exploratory probes, or environments without a code
+      source.
+    source_of_truth: live_instance
+    sync_direction: live_to_code
+    review_required: false
+    qa_required: false
+    audit_required: true
+    worker_cap: 4
+    allowed_envs: [dev, staging]
+    prod_allowed_only_with: [explicit_user_approval, incident_runbook_reference]
+    typical_use_cases:
+      - incident response patch
+      - urgent dev-environment debug
+      - throwaway sandbox exploration
+      - environments with no code repo
+    constraints:
+      - Pre-snapshot of affected workflow ids is mandatory.
+      - Post-snapshot must be captured for diff and rollback.
+      - Live change must be captured back into as-code source within the same
+        phase or as the next sequential phase, unless the environment has no
+        code source (declared in plan).
+      - Smoke trigger only allowed on non-production envs unless plan and
+        explicit user approval authorize a production smoke test.
+
+  hybrid:
+    id: hybrid
+    description: |
+      A mixed phase that touches both the live instance and the as-code repo
+      for the same workflow ids. Allowed only when the plan declares the
+      authoritative source for each affected workflow id and the sync
+      direction; never both directions on the same workflow id in the same
+      phase.
+    source_of_truth: plan_declared
+    sync_direction: plan_declared
+    review_required: true
+    qa_required: true
+    audit_required: true
+    worker_cap: 4
+    allowed_envs: [dev, staging]
+    constraints:
+      - "Plan metadata MUST declare authoritative_source as live or code per affected workflow id."
+      - "Plan metadata MUST declare sync_direction as live_to_code or code_to_live per affected workflow id."
+      - "No workflow id may have both directions in a single phase."
+      - "Reviewer + QA gates apply to the code side; live side gets the mcp-live audit and snapshot rules."
+
+# Mode selection criteria. Evaluated top-to-bottom; first match wins.
+selection_rules:
+  - id: explicit_mode_in_plan
+    condition: plan.metadata.mode IS DEFINED
+    decision: plan.metadata.mode
+    note: |
+      Explicit declaration in the plan or per-phase metadata always wins.
+      The execution-gate skill must reject any phase missing a declared mode.
+
+  - id: incident_signal
+    condition:
+      any_of:
+        - user_input.contains: "incident"
+        - user_input.contains: "outage"
+        - user_input.contains: "urgent patch"
+        - user_input.contains: "rollback live"
+    decision: mcp-live
+    requires_user_approval: true
+    note: |
+      Even with an incident signal, the user must explicitly approve mcp-live
+      with the phrase `approve mode change to mcp-live for phase <pid>`.
+
+  - id: no_code_repo_in_workspace
+    condition: workspace.has_n8n_as_code_repo == false
+    decision: mcp-live
+    note: |
+      If there is no n8n-as-code repo in the workspace, default to mcp-live;
+      the plan must call out the absence of a code source and any planned
+      capture-back strategy.
+
+  - id: default
+    condition: always
+    decision: as-code
+    note: Default to as-code for any auditable, reviewable workflow development.
+
+# Hybrid-mode constraints and conflict resolution.
+hybrid_constraints:
+  required_plan_metadata:
+    - authoritative_source
+    - sync_direction
+    - affected_workflow_ids
+  conflict_resolution:
+    - rule: same_workflow_two_directions_in_one_phase
+      action: reject_plan
+      escalate_to: n8n-builder
+      message: |
+        Cannot sync the same workflow id in both directions in the same phase.
+        Split into two sequential phases or pick one authoritative source.
+    - rule: code_change_without_live_audit
+      action: require_audit_addendum
+      escalate_to: n8n-builder
+    - rule: live_change_without_capture_back
+      action: require_followup_phase
+      escalate_to: n8n-builder
+
+# Environment guardrails.
+environment_guardrails:
+  default_env: dev
+  allowed_envs: [dev, staging, prod]
+  prod_requires:
+    - explicit_phase_metadata: "env: prod"
+    - named_user_approval: "approve env: prod for phase <pid>"
+    - destructive_actions_listed: true
+    - rollback_artifact_present: true
+  cross_env_promotion:
+    must_be_separate_phase: true
+    must_capture_pre_post_snapshots: true
+
+# Mode-aware policy hooks consumed by the execution-gate skill.
+execution_hooks:
+  on_phase_start:
+    - validate_mode_declared
+    - validate_env_declared
+    - validate_credential_alias_matches_env
+    - validate_destructive_actions_pre_approved
+  on_phase_complete:
+    - run_review_if_required_by_mode
+    - run_qa_if_required_by_mode
+    - append_audit_row_if_live_mutation
+    - capture_back_if_live_only_change
+
+# Test matrix (used by the verification step in P2b acceptance).
+# Each row enumerates a representative task class and the mode the policy
+# selects when the user does not override.
+test_matrix:
+  - task_class: "new workflow in repo"
+    plan_mode: null
+    user_input: "build me an n8n workflow that..."
+    expected_mode: as-code
+  - task_class: "incident patch on prod webhook"
+    plan_mode: null
+    user_input: "incident: live webhook is failing, patch ASAP"
+    expected_mode: mcp-live
+    requires_user_approval: true
+  - task_class: "no-code-repo workspace"
+    plan_mode: null
+    workspace: { has_n8n_as_code_repo: false }
+    expected_mode: mcp-live
+  - task_class: "explicit hybrid plan"
+    plan_mode: hybrid
+    plan_metadata:
+      authoritative_source: code
+      sync_direction: code_to_live
+      affected_workflow_ids: ["wf_123"]
+    expected_mode: hybrid
+  - task_class: "explicit user override to as-code"
+    plan_mode: as-code
+    user_input: "use n8n-builder, as-code"
+    expected_mode: as-code

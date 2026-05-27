@@ -1,0 +1,96 @@
+# Rule Priority Configuration
+# Defines defaults, priority bands, and rule-specific settings for enforcement
+
+version: 1
+
+defaults:
+  priority: 500
+  enforcement: advisory
+  pre_action: false
+  post_action: true
+
+priority_bands:
+  critical:
+    range: [900, 1000]
+    description: Security, error handling - must never be violated
+  standard:
+    range: [400, 600]
+    description: Conventions, style - should be followed
+  informational:
+    range: [0, 200]
+    description: Suggestions, best practices - nice to have
+
+# Project-local override relationships (e.g. local-overrides -> conventions) live in
+# rule-priorities-dotfiles.yml or .opencode/configurations/rule-priorities-local.yml
+overrides: []
+
+rule_defaults:
+  # Critical rules - security and error handling
+  error-handling-and-security:
+    priority: 900
+    enforcement: strict
+    pre_action: true
+    post_action: true
+    tags: [security, error-handling, critical]
+
+  # High priority - orchestration and memory
+  agent-orchestration:
+    priority: 800
+    enforcement: strict
+    pre_action: false
+    post_action: true
+    tags: [orchestration, agents]
+
+  memory:
+    priority: 700
+    enforcement: strict
+    pre_action: false
+    post_action: true
+    tags: [memory, context]
+
+  vp-research:
+    priority: 650
+    enforcement: strict
+    pre_action: false
+    post_action: true
+    tags: [documentation, research, mcp-broker]
+
+  # Mode selection - important for agent behavior
+  mode-auto-selection:
+    priority: 600
+    enforcement: advisory
+    pre_action: true
+    post_action: false
+    tags: [modes, agents, workflow]
+
+  # Documentation rules
+  docs-and-decisions:
+    priority: 400
+    enforcement: advisory
+    pre_action: false
+    post_action: true
+    tags: [core, assistants]
+
+  # Testing rules
+  testing:
+    priority: 500
+    enforcement: advisory
+    pre_action: false
+    post_action: true
+    tags: [testing, quality]
+
+  # Observability rules
+  observability:
+    priority: 500
+    enforcement: advisory
+    pre_action: false
+    post_action: true
+    tags: [observability, logging, metrics]
+
+  # Entrypoint main-chat personalization (below orchestration, above docs)
+  entrypoint-personalization:
+    priority: 520
+    enforcement: advisory
+    pre_action: false
+    post_action: true
+    tags: [entrypoints, communication, personalization]

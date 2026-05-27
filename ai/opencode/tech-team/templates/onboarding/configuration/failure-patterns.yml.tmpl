@@ -1,0 +1,46 @@
+# template_id: onboarding/configuration/failure-patterns
+# template_version: 2026.05.07
+version: 1
+extends: org # Inherit all org patterns
+
+patterns:
+  - id: <framework>-error
+    signals: ["<framework-specific-error-message>"]
+    strategy: analyze_then_fix
+    description: "<How to handle this framework error>"
+    max_auto_retries: 2
+    auto_fixable: false
+
+  - id: <domain>-validation
+    signals: ["<domain-validation-error>"]
+    strategy: context_expand
+    description: "Read domain rules, fix validation"
+    max_auto_retries: 2
+
+  - id: <tool>-config-error
+    signals: ["<tool-config-message>"]
+    strategy: auto_fix
+    description: "Run <tool> config fix command"
+    max_auto_retries: 1
+    auto_fixable: true
+    fix_command: "<tool-fix-command>"
+
+strategies:
+  project_specific_fix:
+    description: "<Custom recovery for this project>"
+    steps:
+      - "<Step 1>"
+      - "<Step 2>"
+      - "<Retry>"
+
+success_criteria:
+  feature:
+    - "Feature works as specified"
+    - "Tests pass"
+    - "Linter clean"
+    - "<Project-specific criterion>"
+
+  config_change:
+    - "Config valid"
+    - "<Project tool> loads without error"
+    - "<Project-specific verification>"

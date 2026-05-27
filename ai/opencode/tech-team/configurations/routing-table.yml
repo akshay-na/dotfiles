@@ -1,0 +1,318 @@
+version: 1
+
+# Explicit pipeline override syntax
+pipeline_override:
+  patterns:
+    - "use pipeline: {name}"
+    - "pipeline: {name}"
+  validation: pipeline must exist in entrypoints[], configurations/pipelines/, or match a registered entrypoint id
+
+# Org entrypoints (agent definitions under agents/).
+entrypoints:
+  - id: n8n-builder
+    agent: n8n-builder
+    scope: org
+    all_in_one: true
+    parallelizable: false
+    description: |
+      All-in-one n8n workflow planner + executor. Single entrypoint per planning
+      episode. Plans, gates with mandatory CRO loop, then executes with optional
+      worker fan-out. Supports `mcp-live` and `as-code` modes; default `as-code`.
+    invocation_phrases:
+      - "use n8n-builder"
+      - "n8n-builder"
+      - "build n8n workflow"
+      - "design n8n workflow"
+      - "implement n8n workflow"
+
+  - id: remotion-builder
+    agent: remotion-builder
+    scope: org
+    all_in_one: true
+    parallelizable: false
+    description: |
+      All-in-one Remotion + Skia + ffmpeg programmatic video planner + executor.
+      User-invoked or content-plan-gated (video-editor-handoff). Tech CRO loop
+      before execution. Does not auto-replace generic content or feature routing.
+    invocation_phrases:
+      - "use remotion-builder"
+      - "remotion-builder"
+      - "render remotion video"
+      - "programmatic video remotion"
+
+# Multi-repo workspace support
+workspace:
+  # Detect which repo a task belongs to
+  repo_detection:
+    - Check file paths mentioned in task for repo membership
+    - Check current working directory
+    - Check @-mentioned files/folders
+
+  # Isolation rules
+  isolation:
+    - Each repo may have its own project agents (`dev-*`, `sme-*`, `qa-*`, `devops`); `tech-lead` is org-tier and serves all repos.
+    - Never mix agents from different repos in same task
+    - If task spans multiple repos, split into separate tasks per repo
+
+  # Agent resolution per repo
+  agent_resolution:
+    executor: tech-lead # Primary executor (project-level)
+    fallback: vp-onboarding # Bootstrap project team (dev-*/qa-*/devops/sme-*) when project agents are absent and the task requires execution. tech-lead always exists at the org tier.
+    org_agents:
+      [
+        cto,
+        vp-architecture,
+        vp-engineering,
+        vp-platform,
+        ciso,
+        sre-lead,
+        staff-engineer,
+        vp-research,
+      ]
+    last_resort: staff-engineer
+
+classification:
+  # tech-lead is org-tier post-2026-04-30; resolves to ~/.config/opencode/agents/tech-lead.md.
+  task_types:
+    bug_fix:
+      signals:
+        [
+          "fix",
+          "bug",
+          "error",
+          "broken",
+          "crash",
+          "failing",
+          "regression",
+          "issue",
+        ]
+      default_pipeline: bug-fix
+      default_agents: [tech-lead]
+      complexity: low
+      requires_plan: false
+
+    feature:
+      signals:
+        ["add", "implement", "create", "build", "new", "feature", "introduce"]
+      default_pipeline: full-feature
+      default_agents: [cto, tech-lead]
+      complexity: high
+      requires_plan: true
+
+    refactor:
+      signals:
+        [
+          "refactor",
+          "rename",
+          "restructure",
+          "simplify",
+          "clean up",
+          "extract",
+          "reorganize",
+        ]
+      default_pipeline: refactor
+      default_agents: [staff-engineer, tech-lead]
+      complexity: medium
+      requires_plan: true
+
+    security:
+      signals:
+        [
+          "auth",
+          "secret",
+          "permission",
+          "vulnerability",
+          "CVE",
+          "encrypt",
+          "token",
+          "credential",
+        ]
+      default_pipeline: security-review
+      default_agents: [ciso, tech-lead]
+      complexity: high
+      requires_plan: true
+      always_include: [ciso]
+
+    performance:
+      signals:
+        [
+          "slow",
+          "latency",
+          "throughput",
+          "optimize",
+          "bottleneck",
+          "cache",
+          "memory",
+          "CPU",
+        ]
+      default_pipeline: performance
+      default_agents: [vp-engineering, tech-lead]
+      complexity: medium
+      requires_plan: true
+
+    architecture:
+      signals:
+        [
+          "design",
+          "architecture",
+          "service",
+          "boundary",
+          "migration",
+          "schema",
+          "system",
+        ]
+      default_pipeline: full-feature
+      default_agents: [cto, vp-architecture, tech-lead]
+      complexity: high
+      requires_plan: true
+
+    planning:
+      signals: ["plan", "planning", "design first", "cto plan", "architecture plan"]
+      default_pipeline: ceo-planning
+      default_agents: [cto]
+      complexity: medium
+      requires_plan: true
+
+    documentation:
+      signals:
+        ["document", "README", "explain", "clarify", "API docs", "comment"]
+      default_pipeline: null
+      default_agents: [vp-research, tech-lead]
+      complexity: low
+      requires_plan: false
+
+    config_change:
+      signals: ["config", "setting", "environment", "dotfile", "alias", "shell"]
+      default_pipeline: bug-fix
+      default_agents: [tech-lead]
+      complexity: low
+      requires_plan: false
+
+    n8n_workflow:
+      signals:
+        - "n8n"
+        - "n8n workflow"
+        - "n8n node"
+        - "n8n trigger"
+        - "n8n credential"
+        - "as-code n8n"
+        - "n8n-as-code"
+        - "n8n mcp"
+      default_pipeline: n8n-builder
+      default_agents: [n8n-builder]
+      complexity: high
+      requires_plan: true
+      requires_cro: true
+      single_entrypoint: true
+      description: |
+        n8n workflow design / build / refactor / migration. Routes to
+        `n8n-builder` as the all-in-one planner+executor with mandatory CRO gate
+        before execution. Other entrypoints must not preempt this routing
+        unless the user names them explicitly.
+
+    remotion_programmatic_video:
+      signals:
+        - "remotion"
+        - "@remotion"
+        - "remotion render"
+        - "skia canvas remotion"
+        - "@remotion/skia"
+        - "programmatic video"
+        - "headless render video"
+        - "ffmpeg remotion"
+      default_pipeline: remotion-builder
+      default_agents: [remotion-builder]
+      complexity: high
+      requires_plan: true
+      requires_cro: true
+      single_entrypoint: true
+      description: |
+        Remotion + Skia + ffmpeg programmatic video in the content corpus.
+        Routes to `remotion-builder` when signals match. Must not be implied
+        from generic editorial/content tasks without explicit Remotion/handoff
+        context; tech-pack peers must not Task `remotion-builder`. Content org
+        dispatches only per `video-editor-handoff` / explicit user invoke rules.
+
+  fallback:
+    pipeline: bug-fix
+    agents: [tech-lead]
+    requires_plan: false
+
+  compound_rules:
+    - if: ["feature", "security"]
+      then:
+        pipeline: full-feature
+        always_include: [ciso]
+    - if: ["refactor", "performance"]
+      then:
+        pipeline: refactor
+        always_include: [vp-engineering]
+    - if: ["feature", "architecture"]
+      then:
+        pipeline: full-feature
+        always_include: [vp-architecture]
+    - if: ["n8n_workflow", "security"]
+      then:
+        pipeline: n8n-builder
+        always_include: [ciso]
+        require_named_approval: destructive_action
+    - if: ["n8n_workflow", "architecture"]
+      then:
+        pipeline: n8n-builder
+        always_include: [vp-architecture]
+    - if: ["n8n_workflow", "performance"]
+      then:
+        pipeline: n8n-builder
+        always_include: [vp-engineering]
+    - if: ["n8n_workflow", "documentation"]
+      then:
+        pipeline: n8n-builder
+        always_include: [vp-research]
+
+swarm_execution_defaults:
+  dispatch_mode: background_auto
+  background_when: disjoint_touches_preflight_ok
+  default_behavior: swarm_first_unless_entrypoint_downgrades_for_safety_or_scope
+  caveman_level: ultra
+  payload_budget_chars: 4096
+  merge_contract_id: deterministic-lex-by-task-id
+  result_ref_required: true
+  fanout_policy: swarm_first_prefer_parallel_if_disjoint
+  instance_cap: 8
+  feedback_configs:
+    implementation_loop: configurations/dev-reviewer-qa-loop.yml
+
+# Task-type routing overrides (execution gates may read these).
+agent_resolution_overrides:
+  n8n_workflow:
+    primary: n8n-builder
+    cro_required: true
+    cro_skill: cro-loop
+    review_required_in_modes: [as-code]
+    qa_required_in_modes: [as-code]
+  remotion_programmatic_video:
+    primary: remotion-builder
+    cro_required: true
+    cro_skill: cro-loop
+
+n8n_builder_execution_defaults:
+  default_mode: as-code
+  allowed_modes: [mcp-live, as-code, hybrid]
+  hybrid_requires_plan_metadata: [authoritative_source, sync_direction]
+  worker_caps:
+    mcp_live_max: 4
+    as_code_max: 8
+  global_concurrent_task_cap: 12
+  cro_required: true
+  cro_skip_override_phrase: "skip CRO loop for this plan"
+  destructive_approval_required: true
+  audit_sink: "~/ai-brain/org/global/orchestration/n8n-builder-audit.md"
+
+remotion_builder_execution_defaults:
+  default_render_mode: ssr_headless_shell
+  allowed_render_modes: [ssr_headless_shell, experimental_csr]
+  experimental_csr_requires_plan_signoff: true
+  cro_required: true
+  cro_skip_override_phrase: "skip CRO loop for this plan"
+  destructive_approval_required: true
+  audit_sink: "~/ai-brain/org/global/orchestration/remotion-builder-audit.md"
