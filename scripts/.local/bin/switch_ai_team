@@ -34,7 +34,7 @@ die() {
 
 usage() {
   echo "Usage: switch_ai_team | switch_ai_team apply|ensure <tool> <team-basename>" >&2
-  echo "  <tool> is the stow target ~/.<tool> (cursor, gemini, ...)." >&2
+  echo "  <tool> is the tool id (cursor, gemini, opencode, ...); home dir may be ~/.<tool> or ~/.config/<tool>." >&2
   echo "  Examples:" >&2
   echo "    switch_ai_team apply cursor content-team" >&2
   echo "      (resolves under ai/<tool>/ or ai/private-teams/<tool>/)" >&2
@@ -48,6 +48,18 @@ ai_dir="$dotfiles_dir/ai"
 
 dotfiles_real="$(cd "$dotfiles_dir" && pwd -P)"
 ai_prefix="${dotfiles_real}/ai/"
+
+# Path under $HOME where a tool's pack is stowed (no leading ~).
+tool_home_relpath() {
+  case "$1" in
+  opencode) printf '%s\n' '.config/opencode' ;;
+  *) printf '%s\n' ".$1" ;;
+  esac
+}
+
+tool_home_dir() {
+  printf '%s\n' "$HOME/$(tool_home_relpath "$1")"
+}
 
 # Map pack path relative to ai/ (no leading ai/) -> tool id. Single-segment paths are invalid (no legacy flat packs).
 tool_from_pack_relpath() {
@@ -180,7 +192,8 @@ resolve_pack_rel_for_tool() {
 # Print active pack path under ai/ (e.g. cursor/tech-team), or empty.
 detect_active_team() {
   local want="$1"
-  local root="$HOME/.$want" path ref_real rest pack implied
+  local root path ref_real rest pack implied
+  root="$(tool_home_dir "$want")"
   [[ -d "$root" ]] || { printf '\n'; return 0; }
   while IFS= read -r path; do
     [[ -e "$path" ]] || continue
@@ -197,14 +210,15 @@ detect_active_team() {
 }
 
 run_stow() {
-  local selected_tool="$1" selected_path="$2"
+  local selected_tool="$1" selected_path="$2" target_relpath
+  target_relpath="$(tool_home_relpath "$selected_tool")"
   echo
   echo -e "${YELLOW}Applying selection...${NC}"
   echo -e "  ${DIM}Tool${NC}   ${BOLD}${CYAN}$selected_tool${NC}"
   echo -e "  ${DIM}Path${NC}   ${BOLD}$selected_path${NC}"
-  echo -e "  ${DIM}Target${NC} ${CYAN}~/${NC}${BOLD}.$selected_tool${NC}"
+  echo -e "  ${DIM}Target${NC} ${CYAN}~/${NC}${BOLD}${target_relpath}${NC}"
   echo
-  if (cd "$dotfiles_dir" && make stow-with-target TOOL_PATH="$selected_path" TARGET_NAME=".$selected_tool"); then
+  if (cd "$dotfiles_dir" && make stow-with-target TOOL_PATH="$selected_path" TARGET_NAME="$target_relpath"); then
     maybe_rewrite_cursor_models "$selected_tool"
     echo
     echo -e "${GREEN}Done:${NC} switched ${CYAN}$selected_tool${NC} -> ${BOLD}$selected_path${NC}."

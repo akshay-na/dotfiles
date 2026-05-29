@@ -195,6 +195,14 @@ stow_multiple_dotfiles() {
   done
 }
 
+# Path under $HOME where an AI tool pack is stowed (no leading ~). Keep in sync with switch_ai_team tool_home_relpath().
+ai_tool_home_relpath() {
+  case "$1" in
+  opencode) printf '%s\n' '.config/opencode' ;;
+  *) printf '%s\n' ".$1" ;;
+  esac
+}
+
 # Tool id for ~/.<tool> from ai package directory basename (hyphenated names strip first segment; .gemini and ai-brain special-cased; nested paths use ai_tool_from_folder_path).
 ai_tool_from_package_name() {
   case "$1" in
@@ -256,7 +264,7 @@ ai_unstow_sibling_packs_for_stow_target() {
 ai_copy_agents_from_ai_pack() {
   local folder_path="$1"
   local app_tool="$2"
-  local target_dir="$HOME/.$app_tool"
+  local target_dir="$HOME/$(ai_tool_home_relpath "$app_tool")"
 
   mkdir -p "$HOME/ai-brain"
   stow --no-folding --override="ai-brain" -d "$DOTFILES_DIR/ai" -t "$HOME/ai-brain" "ai-brain"

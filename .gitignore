@@ -4,5 +4,10 @@
 not a tty
 **/.lsp
 **/.clj-kondo
-
+.opencode
+.cursor
+.gemini
+AGENTS.yaml
+/AGENTS.md
+/GEMINI.md
 !ai/**/*
