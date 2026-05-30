@@ -4,13 +4,23 @@ source ~/.githooks/shared.sh
 
 info "🔍 Pre-commit triggered"
 
-# Merge conflict markers
-# Only check staged files for merge conflict markers
+# Merge conflict markers — scan staged blobs (not the working tree)
 # grep exits 1 when no lines remain; pipefail + set -e would abort the hook
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -vE '(githook|hook|pre-commit|commit-msg|lefthook|\.husky|\.pre-commit-config\.yml|\.lefthook\.yml)' || true)
 if [ -n "$STAGED_FILES" ]; then
-  if grep -E '<<<<<<<|=======|>>>>>>>' $STAGED_FILES >/dev/null 2>&1; then
-    error "Merge conflict markers detected in staged files"
+  CONFLICT_MATCHES=""
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    while IFS= read -r line; do
+      [ -z "$line" ] && continue
+      CONFLICT_MATCHES+="${file}:${line}"$'\n'
+    done < <(git show ":$file" 2>/dev/null | grep -nE '^(<<<<<<< |=======|>>>>>>> )' || true)
+  done <<<"$STAGED_FILES"
+
+  if [ -n "$CONFLICT_MATCHES" ]; then
+    echo -e "${RED}✖ Merge conflict markers detected in staged files:${NC}" >&2
+    printf '%s' "$CONFLICT_MATCHES" | sed '/^$/d' | sed 's/^/  /' >&2
+    exit 1
   fi
 fi
 

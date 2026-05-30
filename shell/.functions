@@ -11,6 +11,19 @@
 # ---------------------------------------------------------------
 
 # -------------------------------------------------------------------------------
+# Function: _if_shell
+# Purpose: Execute a command in the appropriate shell.
+# Usage: _if_shell <zsh_command> <bash_command>
+# -------------------------------------------------------------------------------
+_if_shell() {
+  if [ -n "$ZSH_VERSION" ]; then
+    eval "${1}"
+  elif [ -n "$BASH_VERSION" ]; then
+    eval "${2}"
+  fi
+}
+
+# -------------------------------------------------------------------------------
 # Function: delete_branch
 # Purpose: Delete a specified Git branch both locally and remotely.
 # Usage: delete_branch <branch-name>
@@ -58,13 +71,8 @@ _delete_branches_completions() {
 }
 
 # Enable tab-completion for the delete_branches command
-if [ -n "$BASH_VERSION" ]; then
-  # Bash completion
-  complete -F _delete_branches_completions delete_branches
-elif [ -n "$ZSH_VERSION" ]; then
-  # Zsh completion
-  compdef _delete_branches_completions delete_branches
-fi
+_if_shell "complete -F _delete_branches_completions delete_branches" \
+  "compdef _delete_branches_completions delete_branches"
 
 # -------------------------------------------------------------------------------
 # Function: reload
@@ -72,18 +80,8 @@ fi
 # Usage: reload
 # -------------------------------------------------------------------------------
 reload() {
-  if [ -n "$ZSH_VERSION" ]; then
-    # Reload Zsh configuration
-    source $HOME/.zshrc
-    echo "Zsh configuration reloaded!"
-  elif [ -n "$BASH_VERSION" ]; then
-    # Reload Bash configuration
-    source $HOME/.bashrc
-    echo "Bash configuration reloaded!"
-  else
-    # Fallback for unknown shells
-    echo "Unknown shell. Please reload your configuration manually."
-  fi
+  _if_shell "source $HOME/.zshrc; echo 'Zsh configuration reloaded!'" \
+    "source $HOME/.bashrc; echo 'Bash configuration reloaded!'"
 }
 
 # -------------------------------------------------------------------------------
@@ -192,6 +190,24 @@ store_bws_token() {
 }
 
 # -------------------------------------------------------------------------------
+# Function: evict_secrets
+# Purpose: Remove all sensitive environment variables from the current shell.
+# Usage: evict_secrets
+# -------------------------------------------------------------------------------
+evict_secrets() {
+  unset $@ >/dev/null 2>&1
+  local secret_env_file="${HOME}/.local/share/bws/.bws_secrets_list"
+  if [ -f "$secret_env_file" ]; then
+    while read -r var; do
+      unset "$var"
+    done <"$secret_env_file"
+    echo "✅ Secrets evicted from current shell."
+  else
+    return 1
+  fi
+}
+
+# -------------------------------------------------------------------------------
 # Function: load_secrets
 # Purpose: Load sensitive environment variables from Bitwarden Secret Manager.
 # Usage: load_secrets
@@ -200,29 +216,33 @@ load_secrets() {
   BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt $HOME/.local/share/bws/.bws_access_token.gpg)"
 
   if [ -n "$BWS_ACCESS_TOKEN" ]; then
+    # Export all secrets as env vars
     set -o allexport
-    eval "$(bws secret list --access-token $BWS_ACCESS_TOKEN --output env)"
+    eval "$(bws secret list --access-token "$BWS_ACCESS_TOKEN" --output env)"
     set +o allexport
+
+    # Save the keys to a temp file for passwordless eviction
+    local secret_env_file="${HOME}/.local/share/bws/.bws_secrets_list"
+    bws secret list --access-token "$BWS_ACCESS_TOKEN" --output env | cut -d= -f1 >"$secret_env_file"
+
     echo "✅ Secrets loaded and exported to current shell."
-  else
-    echo "❌ Could not find BWS_ACCESS_TOKEN in Keychain or secret-tool."
-    return 1
-  fi
-}
 
-# -------------------------------------------------------------------------------
-# Function: evict_secrets
-# Purpose: Remove all sensitive environment variables from the current shell.
-# Usage: evict_secrets
-# -------------------------------------------------------------------------------
-evict_secrets() {
-  BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt $HOME/.local/share/bws/.bws_access_token.gpg)"
+    # Automatically evict secrets after 5 minutes (300 seconds) of shell inactivity
+    EVICT_SECRETS_AT=$(($SECONDS + ${EVICT_SECRETS_TIMEOUT:-300}))
 
-  if [ -n "$BWS_ACCESS_TOKEN" ]; then
-    bws secret list --access-token $BWS_ACCESS_TOKEN --output env | cut -d= -f1 | while read -r var; do
-      unset "$var"
-    done
-    echo "✅ Secrets evicted from the current shell."
+    _auto_evict_secrets() {
+      if [[ "$SECONDS" -ge "$EVICT_SECRETS_AT" ]]; then
+        echo "⏰ Inactivity timeout. Evicting secrets..."
+        evict_secrets EVICT_SECRETS_AT BWS_ACCESS_TOKEN
+        unset -f _auto_evict_secrets >/dev/null 2>&1
+        _if_shell "remove-zsh-hook precmd _auto_evict_secrets 2>/dev/null" \
+          "PROMPT_COMMAND=\"\${PROMPT_COMMAND/_auto_evict_secrets;/}\" 2>/dev/null"
+      fi
+    }
+
+    _if_shell "autoload -Uz add-zsh-hook; add-zsh-hook precmd _auto_evict_secrets" \
+      "PROMPT_COMMAND=\"_auto_evict_secrets;\"\$PROMPT_COMMAND"
+
   else
     echo "❌ Could not find BWS_ACCESS_TOKEN in Keychain or secret-tool."
     return 1
@@ -573,13 +593,8 @@ _install_pnpm_completions() {
 }
 
 # Enable autocomplete for install_pnpm function
-if [ -n "$BASH_VERSION" ]; then
-  # Bash completion
-  complete -F _install_pnpm_completions install_pnpm
-elif [ -n "$ZSH_VERSION" ]; then
-  # Zsh completion
-  compdef _install_pnpm_completions install_pnpm
-fi
+_if_shell "complete -F _install_pnpm_completions install_pnpm" \
+  "compdef _install_pnpm_completions install_pnpm"
 
 # -------------------------------------------------------------------------------
 # Function: _vscode_z

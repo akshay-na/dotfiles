@@ -69,7 +69,7 @@ if [[ $- == *i* ]]; then
   # Interactive Shell Switching
   # ---------------------------------------------------------------
   # If zsh is installed and we are not already in zsh, start zsh as a login shell
-  if command -v zsh >/dev/null 2>&1 && [ -z "$ZSH_VERSION" ]; then
+  if command -v zsh >/dev/null 2>&1; then
     exec zsh -l
   fi
 fi
