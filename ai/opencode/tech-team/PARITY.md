@@ -17,7 +17,7 @@ This doc tracks what maps to what.
 | `ai/cursor/tech-team/contracts/` | `ai/opencode/tech-team/contracts/` | Shared |
 | `ai/cursor/tech-team/docs/` | `ai/opencode/tech-team/docs/` | Shared |
 | `ai/cursor/tech-team/templates/` | `ai/opencode/tech-team/templates/` | Shared |
-| `ai/cursor/tech-team/hooks/` | `ai/opencode/tech-team/plugins/` | OpenCode TS plugins |
+| `ai/cursor/tech-team/hooks/` | `ai/opencode/tech-team/plugins/` | OpenCode TS plugins; brain: `plugins/brain-hooks.js` (stub) |
 
 ## File-by-file parity
 
@@ -79,7 +79,7 @@ OpenCode discovers skills from `~/.config/opencode/skills/`.
 | `agent-observability` | Direct copy |
 | `ai-orchestration-prompt-engineering` | Direct copy |
 | `atlassian-hierarchy-discovery` | Direct copy |
-| `brain-memory-kb` | Direct copy |
+| `brain-memory-kb` | G2 live sync (enforced demote) |
 | `caveman` | Direct copy |
 | `clarity-technical-communication` | Direct copy |
 | `closed-loop-execution` | Direct copy |
@@ -129,7 +129,43 @@ Shared markdown — direct copies.
 Path references updated for OpenCode (`~/.config/opencode/` instead of `~/.opencode/`).
 
 ## Hooks → Plugins (`plugins/`)
-> Cursor shell hooks → OpenCode TypeScript plugins
+> Cursor shell hooks (`hooks.json`) → OpenCode TypeScript plugins (auto-loaded from `plugins/` when stowed to `~/.config/opencode/plugins/`). Optional npm plugins via `opencode.jsonc` `"plugin": []` — **not used for brain parity today**.
+
+**OpenCode hook surface (authoritative):** `opencode.jsonc` has **no** `hooks.json` equivalent. Lifecycle is plugin-only: [`session.created`](https://opencode.ai/docs/plugins.md) (and related `session.*` events), [`tool.execute.before`](https://opencode.ai/docs/plugins.md) / `tool.execute.after`, `permission.*`, `event` bus. There is **no** Cursor-style `sessionStart` / `preToolUse` shell hook registry in this pack yet.
+
+### Decision: brain-* parity (2026-06-01)
+
+| Approach | Verdict | Rationale |
+|---|---|---|
+| **Coordinator preflight (always)** | **Active** | Entrypoints **must** run `brain-memory-kb` L0/L1 (`rules/brain-conventions.md`). Complements plugin bootstrap. |
+| **`plugins/brain-session-start.js`** | **Implemented** | `session.created` → `~/ai-brain/scripts/brain-rebuild-session-index.sh` (fallback `dotfiles/ai/ai-brain/scripts/`). Optional `OPENCODE_BRAIN_DELEGATE_CURSOR_HOOK=1` for Cursor hook + telemetry. |
+| **Read-policy plugin** | **Deferred** | Demote **G2 enforced** via coordinators + `brain-memory-kb`. Read|Grep mechanical hook: future `tool.execute.before` plugin; advisory only until then. |
+
+**Enforcement:** coordinators → L0/L1 + audit join when `g2_status: live`. Read-policy: advisory at coordinator layer until read plugin ships (`OPENCODE_BRAIN_READ_POLICY_ENFORCE=1` when implemented).
+
+### Brain hooks — complete mapping
+
+Canonical source (shell + `hooks.json`): `ai/cursor/tech-team/hooks/brain-common.sh`, `brain-session-start.sh`, `brain-read-policy-advisory.sh`.
+
+| Cursor `hooks.json` | Matcher | Shell script | Behavior (fail-open unless noted) | OpenCode target | OpenCode status |
+|---|---|---|---|---|---|
+| `sessionStart` | — | `brain-session-start.sh` | Resolve kb-identity slug; pre-migration guard; `brain-rebuild-session-index.sh` | `session.created` → `plugins/brain-session-start.js` | **Implemented** |
+| `preToolUse` | `Read\|Grep` | `brain-read-policy-advisory.sh` | Policy check; advisory default; enforce via env | `tool.execute.before` (future plugin) | **Coordinator + skill** (G2 demote enforced) |
+| — | — | `brain-common.sh` | Shared: `BRAIN_ROOT`, `contract_version`, slug resolver, L0/migration probes | Imported by shell delegation from plugin `$` | **N/A** (library) |
+
+**Env kill switches (parity names for OpenCode plugin phase):**
+
+| Cursor | OpenCode (planned) |
+|---|---|
+| `CURSOR_BRAIN_BOOTSTRAP_DISABLED=1` | `OPENCODE_BRAIN_BOOTSTRAP_DISABLED=1` |
+| `CURSOR_BRAIN_READ_POLICY_DISABLED=1` | `OPENCODE_BRAIN_READ_POLICY_DISABLED=1` |
+| `CURSOR_BRAIN_READ_POLICY_ENFORCE=1` | `OPENCODE_BRAIN_READ_POLICY_ENFORCE=1` |
+| `CURSOR_BRAIN_READ_POLICY_ENTRYPOINT_ENFORCE=1` | `OPENCODE_BRAIN_READ_POLICY_ENTRYPOINT_ENFORCE=1` |
+| `CURSOR_BRAIN_ROOT` | `OPENCODE_BRAIN_ROOT` (override vault root in tests) |
+
+**Scripts (shared; not hooks):** `ai/ai-brain/scripts/brain-rebuild-session-index.sh`, `migrate-brain-frontmatter.sh`, `materialize-brain-policy.sh` — invoked by `brain-session-start.sh` only when guards pass.
+
+### Non-brain hooks (unchanged)
 
 | Cursor hook | OpenCode equivalent | Status |
 |---|---|---|
@@ -139,6 +175,26 @@ Path references updated for OpenCode (`~/.config/opencode/` instead of `~/.openc
 | `subagent-protocol-inject.sh` | `plugins/subagent-protocol-inject.js` | TODO |
 | `subagent-protocol-lint.sh` | Pre-commit hook (shared) | Same |
 | `telemetry-*.sh` | `plugins/telemetry.js` | TODO |
+| `brain-session-start.sh` + `brain-common.sh` | `plugins/brain-session-start.js` | **Implemented** — `session.created` → `~/ai-brain/scripts/brain-rebuild-session-index.sh`; optional `OPENCODE_BRAIN_DELEGATE_CURSOR_HOOK=1` pipes to Cursor hook for telemetry parity |
+| `brain-read-policy-advisory.sh` | Coordinator + `brain-memory-kb` read policy; future `plugins/brain-read-policy.js` | **Policy live (G2)** — mechanical hook N/A until `tool.execute.before` plugin |
+
+### Brain G2 scripts (shared — not duplicated in pack)
+
+| Script | Purpose |
+|---|---|
+| `~/ai-brain/scripts/brain-rebuild-session-index.sh` | Session `memory.index.yaml` rebuild (plugin + demote post-step) |
+| `~/ai-brain/scripts/brain-rebuild-l1-index.sh` | Project L1 `_index.md` after demote |
+| `~/ai-brain/scripts/brain-audit-synthetic-episode.sh` | G2 synthetic ledger episode |
+| `~/ai-brain/scripts/brain-efficiency-audit-rollup.sh` | SLO rollup append |
+| `~/ai-brain/scripts/brain-sync-home.sh` | `Home.md` regeneration (vp-onboarding step 7) |
+| `~/ai-brain/scripts/check-memory-demotion-contract.sh` | Contract drift (vp-onboarding step 8) |
+
+### Brain runbooks (`docs/runbooks/`)
+
+| Cursor | OpenCode | Status |
+|---|---|---|
+| `brain-demotion.md` | `docs/runbooks/brain-demotion.md` | Adapted (OpenCode read-policy) |
+| `runbook-brain-audit-g2.md` | `docs/runbooks/runbook-brain-audit-g2.md` | Adapted (`~/ai-brain/scripts/`) |
 
 ## How to add a new file
 

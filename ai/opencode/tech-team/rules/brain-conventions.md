@@ -40,7 +40,7 @@
 
 - **Who may demote:** same roles as **touch-writes** above; **`code-reviewer`**, **`cro`**, **`senior-dev`** hand off via **`memory_writes[]`** with `op: demote` — entrypoint persists.
 - **Policy source:** `~/ai-brain/org/global/config/memory-demotion.yml` (`contract_version`); never write to `storage.forbidden_paths` (`~/.config/opencode/memory`, `~/.gemini/memory`).
-- **Fail-closed:** demotion without audit (`kb_demote` event) after brain-audit contract is live is a policy violation; advisory demote allowed only during rollout window documented in plan.
+- **Fail-closed (G2 live):** demotion without a joinable `kb_demote` audit event in the project ledger (`~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl`) is a policy violation for entrypoints (`cto`, `tech-lead`, `code-reviewer`). G2 passed 2026-05-31 (`verification-gates.yml` → `brain_audit.g2_status: live`); enforced demote + `log_brain_event` required. Rollback: set `g2_status: open` and restore advisory demote wording in `brain-memory-kb`.
 - **Human restore:** `approve kb restore: <node-ref> in phase <pid>` per policy; coordinators record in audit.
 
 ### Vault skeleton (tracked stow — no agent writes)
@@ -114,6 +114,10 @@ Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspa
 ## `~/ai-brain` as a git repository (optional)
 
 **Layouts, detect, pull/rebase, path-scoped add/commit/push, skip-when-clean:** full narrative in [`brain-memory-kb`](../skills/brain-memory-kb/SKILL.md) § Git-backed vault sync (same pack). **Do not** `git init` or force-push brain on machines meant to stay local-only.
+
+## Batch scripts (maintenance)
+
+Vault batch ops (migration, index rebuild, policy materialize, G2 audit) live in **`~/ai-brain/scripts/`** (stowed from **`dotfiles/ai/ai-brain/scripts/`**). Catalog and `make` targets: **`~/ai-brain/scripts/README.md`**. Agents use **`brain-memory-kb`** § Batch scripts — do not reimplement or add repo-local copies.
 
 ## Retention and Growth
 

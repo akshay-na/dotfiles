@@ -35,6 +35,7 @@ alwaysApply: true
 - **Agent (implementation) mode (changes, updates, implementation)**:
   - If the user mentions updating, implementing, adding, creating, refactoring, fixing, or otherwise changing code or configuration, use Agent mode for implementation work.
   - Treat phrases like "update this", "implement X", "add Y", "refactor", "fix this" as strong signals for Agent mode, even when the user provides existing code.
+  - **Main chat does not edit files:** route mutations through **`Task`** per **`main-chat-orchestration-boundary.mdc`** — default **`staff-engineer`** when no other entrypoint applies; main chat stays orchestrator/planner only.
 
 - **Plan mode (architecture, multi-step, or ambiguous scope)**:
   - For large, multi-step, or high-impact tasks (architecture, security, performance, observability, infra, migrations), or when the user explicitly asks for a plan or design, switch to Plan mode before implementation.

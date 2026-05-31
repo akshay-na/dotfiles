@@ -1,0 +1,51 @@
+---
+description: Main chat orchestrates and plans; every file mutation goes through Task staff-engineer (or a routed implementer), not inline edits.
+alwaysApply: true
+---
+
+# Main chat orchestration boundary
+
+## Role
+
+- **Main chat** = the default Cursor parent/router session (not running as a **`Task`** subagent).
+- Main chat is an **orchestrator / planner** — **not** an editor or implementer.
+- **Any** create, update, delete, or patch to **any file path** requested from main chat MUST be performed by a dispatched implementer. Default implementer: **`staff-engineer`** via **`Task`**.
+
+## Hard gate (main chat)
+
+For a user intent that requires changing files, main chat **MUST NOT** use **`Write`**, **`StrReplace`**, **`Delete`**, notebook **`EditNotebook`**, **`apply_patch`**, or **Shell** that creates/updates/deletes files or mutates git state **before** a successful implementer **`Task`** for that scope.
+
+1. **`Task`** the implementer (default **`subagent_type: staff-engineer`**) with goal, **`touches[]`**, constraints, and verification.
+2. Merge or synthesize the child result for the user; **do not** re-apply the same edits inline (**split-brain**).
+
+Read-only discovery (**`Read`**, **`Grep`**, **`Glob`**, **`SemanticSearch`**, read-only shell per **`git-safety`** / **`safe-shell`**) is allowed to build the **`Task`** payload.
+
+## Routing (which `Task` first)
+
+| Signal | Dispatch first |
+|--------|----------------|
+| User names an agent | That agent (**`mode-auto-selection`** invoker-wins) |
+| Review / PR / diff | **`code-reviewer`** |
+| Planning / architecture / security / perf / observability / phased work | **`cto`** (or user-named planning entrypoint) |
+| Orchestration signals in **`agent-orchestration`** (CTO plan, project `.cursor/agents/` team, ≥2 workspace roots, user asks to orchestrate) | **`tech-lead`** |
+| Otherwise — localized file change, single root, no phased plan | **`staff-engineer`** |
+
+Entrypoints and coordinators (**`cto`**, **`tech-lead`**, **`code-reviewer`**, builders) perform **their** chartered writes inside **their** **`Task`** sessions (plans, reviews, orchestration docs). Main chat **still** does not mutate files after dispatching them.
+
+## Exemptions
+
+- **Subagent session** — subagent marker / injected contract: follow that agent's charter; implementers may edit directly.
+- **Explicit user override** — user clearly asks to edit inline in main chat or skip delegation for **this** change: honor once; note in summary.
+- **No file mutation** — explanations, chat-only plans, read-only investigation.
+
+**Not** an exemption: **`trusted-cursor-edit-zones`** — auto-accept removes approval friction only; it does **not** let main chat **`Write`** without **`Task` `staff-engineer`** (or a routed implementer).
+
+## Violations
+
+Inline file edit for a user change request = **routing failure**. Stop, admit the miss, **`Task`** the correct implementer with the original brief; do not duplicate the child's diff in parallel.
+
+## Cross-references
+
+- **`mode-auto-selection.mdc`** — named-agent **`Task`**-first tool order
+- **`agent-orchestration.mdc`** — invoker-wins, **`tech-lead`** read-only on product trees
+- **`mandatory-delegation.mdc`** — coordinator delegation floors (entrypoints, not main chat)

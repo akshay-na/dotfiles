@@ -2,9 +2,24 @@
 # Shared helpers for ai-brain batch scripts (P3a).
 set -euo pipefail
 
-BRAIN_LIB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BRAIN_SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BRAIN_PACK_ROOT="$(cd "$BRAIN_SCRIPTS_DIR/.." && pwd)"
 BRAIN_ROOT="${BRAIN_ROOT:-${HOME:?}/ai-brain}"
-POLICY_SOURCE="$BRAIN_LIB_ROOT/ai/ai-brain/org/global/config/memory-demotion.yml"
+POLICY_SOURCE="$BRAIN_PACK_ROOT/org/global/config/memory-demotion.yml"
+
+resolve_dotfiles_root() {
+  if [[ -n "${DOTFILES_DIR:-}" && -d "$DOTFILES_DIR/ai/cursor/tech-team" ]]; then
+    printf '%s\n' "$DOTFILES_DIR"
+    return 0
+  fi
+  local candidate
+  candidate="$(cd "$BRAIN_PACK_ROOT/../../.." 2>/dev/null && pwd || true)"
+  if [[ -n "$candidate" && -d "$candidate/ai/cursor/tech-team" ]]; then
+    printf '%s\n' "$candidate"
+    return 0
+  fi
+  return 1
+}
 
 brain_lib_usage() {
   echo "brain-lib: sourced only" >&2

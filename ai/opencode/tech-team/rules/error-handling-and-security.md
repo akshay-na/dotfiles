@@ -12,6 +12,7 @@
   - Never log secrets, tokens, passwords, or other sensitive fields.
   - Use the project's existing secret management approach (env vars, vault, config files) and do not hardcode secrets in code or tests.
   - Minimize permissions when calling external services or databases; follow least-privilege patterns already in the project.
+  - **Pre-push secrets:** DotMate global hook **`~/.githooks/pre-push`** scans **pushed commits** with **`gitleaks git --log-opts=<range>`** (see **`git-safety.md`**). Never wire pre-push to **`gitleaks protect --staged`** — it skips committed changes.
 
 - **When to involve `ciso`**
   - New or modified auth flows, permission checks, or session/token logic.

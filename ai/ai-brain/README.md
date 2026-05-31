@@ -12,7 +12,33 @@ For a durable **private** model of the user (identity prefs, working style, prom
 
 ## Query ladder (L0–L3)
 
-Canonical definitions live in **`org/global/config/memory-demotion.yml`** (stowed to `~/ai-brain/org/global/config/`):
+Canonical definitions live in **`org/global/config/memory-demotion.yml`**. After stow, that path is often a **symlink** into dotfiles; for a **clone-only** brain git repo (no dotfiles checkout), materialize a **regular file** copy so agents load policy from `~/ai-brain` alone.
+
+### Policy materialization (post-stow)
+
+Dotfiles source (edit here): `dotfiles/ai/ai-brain/org/global/config/memory-demotion.yml`
+
+```bash
+# Preview: no writes (default)
+~/ai-brain/scripts/materialize-brain-policy.sh --dry-run
+# or from dotfiles checkout:
+# ./ai/ai-brain/scripts/materialize-brain-policy.sh --dry-run
+
+# Replace symlink with git-tracked copy in ~/ai-brain
+~/ai-brain/scripts/materialize-brain-policy.sh --apply
+
+# CI / local drift gate (source vs stub; runtime copy when present)
+DOTFILES_DIR=~/dotfiles ~/ai-brain/scripts/check-memory-demotion-contract.sh
+# or: make check-brain-contract
+```
+
+Full script catalog: **`scripts/README.md`** in this package (stows to `~/ai-brain/scripts/README.md`).
+
+See ADR `.cursor/docs/decisions/2026-06-01-brain-portability.md` for the symlink vs copy matrix.
+
+Runtime path: `~/ai-brain/org/global/config/memory-demotion.yml`
+
+Query ladder fields in policy:
 
 | Depth | Scope | Typical paths |
 |-------|--------|----------------|

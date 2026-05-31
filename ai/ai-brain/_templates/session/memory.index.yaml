@@ -1,0 +1,20 @@
+# Sample session L1 index — paths and retrieval metadata only (no bodies).
+# Materialize: ~/ai-brain/session/<task-id>/memory.index.yaml
+# Validate: ai/ai-brain/_schema/memory-index.schema.json
+contract_version: 1
+task_id: cursor-example-session
+project_slug: dotfiles
+generated_at: "2026-06-01T12:00:00Z"
+generated_by: brain-rebuild-session-index.sh
+
+nodes:
+  - path: projects/dotfiles/decisions/example-decision.md
+    lifecycle_state: active
+    retrieval_weight: 1.0
+    title: Example decision
+    type: decision
+  - path: projects/dotfiles/constraints/example-constraint.md
+    lifecycle_state: superseded
+    retrieval_weight: 0.15
+    title: Superseded constraint
+    type: constraint

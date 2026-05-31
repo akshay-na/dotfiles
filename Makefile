@@ -79,3 +79,58 @@ clean: prep ## Clean up broken symlinks
 .PHONY: bootstrap_local
 bootstrap_local: prep ## Scaffold second stow tree (LOCAL_DIR=..., SKIP_GIT_INIT=1 optional)
 	@DOTMATE_CANONICAL_ROOT=$(MAKEFILE_DIR) $(SCRIPT) bootstrap_local $(LOCAL_DIR)
+
+# Brain memory / G2 audit targets (P3c)
+BRAIN_SLUG ?= dotfiles
+BRAIN_FIXTURE := $(MAKEFILE_DIR)/ai/ai-brain/projects/dotfiles/observability/fixtures/brain-audit-join-sample.jsonl
+BRAIN_LEDGER ?= $(HOME)/ai-brain/projects/$(BRAIN_SLUG)/.meta/brain-audit-log.jsonl
+BRAIN_SCRIPTS := $(MAKEFILE_DIR)/ai/ai-brain/scripts
+
+.PHONY: check-brain-contract
+check-brain-contract: ## Assert memory-demotion contract (source + materialized runtime)
+	@chmod +x $(BRAIN_SCRIPTS)/check-memory-demotion-contract.sh
+	@$(BRAIN_SCRIPTS)/check-memory-demotion-contract.sh
+
+.PHONY: validate-brain-audit
+validate-brain-audit: ## jq join on fixture; optional LEDGER= for live ledger
+	@chmod +x $(BRAIN_SCRIPTS)/validate-brain-audit-join.sh
+	@$(BRAIN_SCRIPTS)/validate-brain-audit-join.sh --fixture $(BRAIN_FIXTURE) \
+		$(if $(LEDGER),--ledger $(LEDGER),)
+
+.PHONY: check-g2-ready
+check-g2-ready: ## G2 gate: live ledger must have joinable task_id groups
+	@chmod +x $(BRAIN_SCRIPTS)/validate-brain-audit-join.sh
+	@$(BRAIN_SCRIPTS)/validate-brain-audit-join.sh --ledger $(or $(LEDGER),$(BRAIN_LEDGER)) --ledger-only
+
+.PHONY: materialize-brain-policy
+materialize-brain-policy: ## Dry-run copy of memory-demotion.yml into ~/ai-brain
+	@chmod +x $(BRAIN_SCRIPTS)/materialize-brain-policy.sh
+	@$(BRAIN_SCRIPTS)/materialize-brain-policy.sh --dry-run
+
+.PHONY: brain-migrate-dry-run
+brain-migrate-dry-run: ## Frontmatter migration dry-run (P3a script)
+	@chmod +x $(BRAIN_SCRIPTS)/migrate-brain-frontmatter.sh
+	@$(BRAIN_SCRIPTS)/migrate-brain-frontmatter.sh --dry-run --slug $(BRAIN_SLUG)
+
+.PHONY: brain-rebuild-l1
+brain-rebuild-l1: ## Rebuild project L1 _index.md (P3a script)
+	@chmod +x $(BRAIN_SCRIPTS)/brain-rebuild-l1-index.sh
+	@$(BRAIN_SCRIPTS)/brain-rebuild-l1-index.sh --slug $(BRAIN_SLUG)
+
+.PHONY: brain-sync-home
+brain-sync-home: ## Regenerate ~/ai-brain/Home.md from projects (P4b)
+	@chmod +x $(BRAIN_SCRIPTS)/brain-sync-home.sh
+	@$(BRAIN_SCRIPTS)/brain-sync-home.sh --apply
+
+.PHONY: brain-audit-synthetic
+brain-audit-synthetic: ## Append synthetic kb_query+kb_demote episode to live ledger
+	@chmod +x $(BRAIN_SCRIPTS)/brain-audit-synthetic-episode.sh
+	@$(BRAIN_SCRIPTS)/brain-audit-synthetic-episode.sh --slug $(BRAIN_SLUG) \
+		$(if $(LEDGER),--ledger $(LEDGER),) \
+		$(if $(TASK_ID),--task-id $(TASK_ID),) \
+		$(if $(TRACE_ID),--trace-id $(TRACE_ID),)
+
+.PHONY: brain-efficiency-rollup
+brain-efficiency-rollup: ## Append 7d SLO proxy row to brain-efficiency-audit.md
+	@chmod +x $(BRAIN_SCRIPTS)/brain-efficiency-audit-rollup.sh
+	@$(BRAIN_SCRIPTS)/brain-efficiency-audit-rollup.sh

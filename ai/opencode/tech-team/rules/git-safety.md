@@ -1,0 +1,32 @@
+
+# Git safety (DotMate + org repos)
+
+## Allowed commands
+
+`git fetch`, `git pull`, `git rebase`, `git status`, `git diff`, `git add` (path-scoped), `git commit` (template or `--file` pre-built body), `git push` (no `--force` to repo **default branch** unless break-glass).
+
+## Agent commits — GPG signing
+
+See **`brain-conventions.md`**: **DotMate / dotfiles** git root → **OpenPGP sign** (no **`--no-gpg-sign`**). **Workspace projects**, **`~/ai-brain`**, and other agent commits → **`--no-gpg-sign`** (or **`git -c commit.gpgsign=false commit`**) unless a **project ADR** overrides.
+
+## Pre-push secret scan (gitleaks — global DotMate hook)
+
+Stowed via **`make stow CONFIGS=git`**: **`~/.githooks/pre-push`** (source **`dotfiles/git/.githooks/`**).
+
+- **Scans:** commits being pushed — **not** the staging area.
+- **Command:** `gitleaks git --log-opts=<range> --redact .`; range from pre-push stdin (`remote_sha..local_sha` on branch updates).
+- **Anti-pattern:** `gitleaks protect --staged` on pre-push → **0 commits scanned** when changes are already committed.
+- **Requires:** `gitleaks` on PATH; hook **fail-closed** if missing.
+- **Canonical source:** `dotfiles/git/.githooks/pre-push` — do **not** duplicate per agent pack.
+
+Pre-commit staged scans (if any) may use `--staged`; **pre-push must use commit ranges**.
+
+## Forbidden
+
+- `git push --force` to **`main`**/default without documented break-glass.
+- Committing **secrets**, tokens, `.env`, SSH private keys.
+- `git add -A` when scoped work forbids broad adds.
+
+## Conflicts
+
+On pull/rebase conflict: **stop**; escalate to orchestrator; do not silent-resolve.

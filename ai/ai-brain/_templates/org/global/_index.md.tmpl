@@ -1,0 +1,57 @@
+---
+title: Org Global Compass
+type: overview
+generated_at: {{timestamp}}
+generated_by: entrypoint-touch-write
+lifecycle_state: active
+retrieval_weight: 1.0
+---
+
+# Org Global Compass (L0)
+
+Machine-local org navigation hub. Materialize to `~/ai-brain/org/global/_index.md`.
+
+## Policy
+
+| Artifact | Path |
+|----------|------|
+| Memory + KB lifecycle | `org/global/config/memory-demotion.yml` |
+| Contract version | `contract_version` in YAML ↔ `schema_versions.memory_demotion` in project `.meta/manifest.json` |
+
+## Query ladder (summary)
+
+| Depth | Scope | Paths |
+|-------|--------|-------|
+| **L0** | Compass + lists | `Home.md`, `org/global/_index.md` |
+| **L1** | Summaries + frontmatter | `projects/<slug>/_index.md`, `session/*/memory.index.yaml` |
+| **L2** | Full node body | Escalation only |
+| **L3** | Graph + manifest | ≤1/coordinator turn unless `fresh_eyes` |
+
+**Read exclusions:** `lifecycle_state ∈ {demoted, quarantined, invalidated}`; paths under `quarantine/`, `archive/`.
+
+## Orchestration sinks
+
+| Sink | Path |
+|------|------|
+| Dispatch audit | `org/global/orchestration/dispatch-audit.md` |
+| Subagent audit JSONL | `org/global/orchestration/subagent-audit-log.jsonl` |
+| Brain audit (G2) | `org/global/orchestration/brain-audit-log.jsonl` |
+| Memory demotion audit | `org/global/orchestration/memory-demotion-audit.md` |
+| Brain efficiency audit | `org/global/orchestration/brain-efficiency-audit.md` |
+| Stale traps | `org/global/orchestration/brain-stale-traps.md` |
+| Brain audit dashboard | `org/global/orchestration/brain-audit-dashboard.md` |
+| G2 runbook | `org/global/orchestration/runbook-brain-audit-g2.md` |
+
+## Operator profile
+
+Load path for entrypoint personalization: `org/global/operator-profile/` (see `_templates/operator-profile.md`).
+
+## Projects
+
+{{projects_table}}
+
+## Notes
+
+- Regenerate when adding projects or orchestration sinks.
+- Single vault root: `~/ai-brain/` (`storage.canonical_root` in policy).
+- Forbidden legacy paths: `~/.cursor/memory`, `~/.gemini/memory`.

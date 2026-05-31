@@ -128,14 +128,14 @@ gates:
       - "**/*.yml"
       - "**/tsconfig*.json"
       - "**/package.json"
-      - "**/.opencode/**/*.yml"
-      - "**/.opencode/**/*.yaml"
+      - "**/.cursor/**/*.yml"
+      - "**/.cursor/**/*.yaml"
     check_command:
       by_pattern:
         "tsconfig*.json": "Validate against TypeScript config schema"
         "package.json": "Validate required fields (name, version if publishing)"
-        ".opencode/**/pipelines/*.yml": "Validate pipeline schema (stages, agents, modes)"
-        ".opencode/**/failure-patterns.yml": "Validate pattern schema (id, signals, strategy)"
+        ".cursor/**/pipelines/*.yml": "Validate pipeline schema (stages, agents, modes)"
+        ".cursor/**/failure-patterns.yml": "Validate pattern schema (id, signals, strategy)"
     pass_criteria: "Schema validation passes"
     failure_pattern: config-parse-error
 
@@ -371,7 +371,7 @@ complexity_gates:
       - import_check
 
 # Project-level overrides (referenced by vp-onboarding)
-# Projects extend this by creating .opencode/configurations/verification-gates-local.yml
+# Projects extend this by creating .cursor/configurations/verification-gates-local.yml
 custom_gates:
   schema: |
     version: 1
@@ -463,6 +463,9 @@ swarm_orchestration:
       - attempt
     audit_ledger: ~/ai-brain/org/global/orchestration/subagent-audit-log.jsonl
   brain_audit:
+    g2_status: live
+    g2_passed_at: "2026-05-31T19:12:35Z"
+    g2_synthetic_task_id: g2-flip-20260531
     enabled: true
     fail_closed_for_entrypoints: true
     entrypoint_agents: [cto, tech-lead, code-reviewer]
@@ -473,10 +476,15 @@ swarm_orchestration:
       - event_type
       - ladder_depth
     audit_ledger: ~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl
+    audit_ledger_fallback: ~/ai-brain/org/global/orchestration/brain-audit-log.jsonl
     e2e_fixture: ~/ai-brain/projects/dotfiles/observability/fixtures/brain-audit-join-sample.jsonl
     check_protocol: |
-      jq -s 'group_by(.task_id) | map(select(length >= 2))' on fixture must return non-empty
-      before claiming G2 brain-audit gate complete.
+      G2 LIVE — enforced demote + fail-closed entrypoint audit (P5 flip 2026-05-31).
+      Pre-flip gate (all exit 0): brain-audit-synthetic-episode.sh on live ledger,
+      make validate-brain-audit, make check-g2-ready, make brain-efficiency-rollup.
+      Ongoing: jq -s 'group_by(.task_id) | map(select(length >= 2))' on live ledger
+      must stay non-empty per active project (≥1 joinable task_id/week SLO).
+      Rollback: set g2_status: open; restore advisory demote in brain-memory-kb skill.
 
 # Delegation + sub-agent floor compliance (P6)
 # Enforced at runtime by coordinator / agent-observability conventions — NOT git hooks.

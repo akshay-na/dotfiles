@@ -41,6 +41,13 @@ rule_defaults:
     post_action: true
     tags: [orchestration, agents]
 
+  main-chat-orchestration-boundary:
+    priority: 810
+    enforcement: strict
+    pre_action: true
+    post_action: true
+    tags: [orchestration, agents, main-chat]
+
   memory:
     priority: 700
     enforcement: strict

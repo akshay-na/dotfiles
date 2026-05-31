@@ -33,6 +33,7 @@
   - Required actor fields: `parent_agent`, `target_agent`, `dispatch_level`, `workspace_root`, `pipeline`, and `stage_id`.
   - Missing required swarm audit fields in orchestration entrypoint agents (`cto`, `tech-lead`, `code-reviewer`) is a fail-closed policy violation.
   - Child protocol failures (subagent malformed envelope, suspected secret output) must be logged as explicit audit incidents.
+  - **Brain audit (G2 live):** entrypoints must emit `log_brain_event` JSONL per `agent-observability` with `trace_id`, `task_id`, `event_type`, `ladder_depth`. `kb_demote` must accompany enforced demote disk patches. Gate: `verification-gates.yml` → `brain_audit.g2_status: live`. Runbook: `docs/runbooks/runbook-brain-audit-g2.md`.
 
 - **Feedback loop observability**
   - Pre-execution validation runs must produce pass/fail metrics via `agent-observability`. Track gates run, violations found, and errors caught before write.

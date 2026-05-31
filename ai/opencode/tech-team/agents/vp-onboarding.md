@@ -1130,9 +1130,37 @@ Outside any per-workspace folder loop: at the **start** of this agent run, idemp
 
 3. **Canonical KB policy:** ensure `~/ai-brain/org/global/config/memory-demotion.yml` exists via dotfiles stow (`ai/ai-brain`); do not overwrite. On inventory, require `projects/<name>/.meta/manifest.json` includes `schema_versions.memory_demotion` matching `contract_version` in that YAML (default `1`).
 
-4. Optional drift gate (dotfiles): `scripts/check-memory-demotion-contract.sh` — asserts `contract_version` consistency between stowed policy and tech-team `memory-lifecycle.yml` stub.
+4. **Org L0 compass:** ensure `~/ai-brain/org/global/_index.md` when missing — materialize from stowed `~/ai-brain/_templates/org/global/_index.md.tmpl`: substitute `{{timestamp}}` (ISO8601 UTC), `{{projects_table}}` (markdown table of `projects/<slug>/` hubs discovered on disk). Do not overwrite existing file.
 
-Create parent directories as needed. Do not overwrite existing files.
+5. **`schema_versions.memory_demotion` backfill:** for each `~/ai-brain/projects/*/.meta/manifest.json`, if `schema_versions.memory_demotion` is absent, patch JSON to set it to `contract_version` from policy YAML (default `1`). If key exists but differs from policy → surface mismatch in run summary; do not silently overwrite.
+
+6. **Contract check (dotfiles):** from dotfiles repo root (`$HOME/dotfiles` or workspace root when dotfiles), run `make check-brain-contract`. Non-zero exit → log warning in onboarding summary; continue run (init is fail-open; human fixes contract drift before G2-sensitive work).
+
+7. **Home sync:** run `make brain-sync-home` (wraps `~/ai-brain/scripts/brain-sync-home.sh --apply`) to regenerate `~/ai-brain/Home.md` from project scan. Idempotent.
+
+8. Optional drift gate (dotfiles): `ai/ai-brain/scripts/check-memory-demotion-contract.sh` or `make check-brain-contract` — same assertion as step 6 when Makefile unavailable.
+
+Create parent directories as needed. Do not overwrite existing files (except manifest backfill per step 5 when key absent).
+
+**P7 dry-run verification checklist** (manual or pre-flight; simulates fresh L0 gap):
+
+```bash
+# Optional: simulate missing org compass (backup first)
+test ! -f ~/ai-brain/org/global/_index.md || mv ~/ai-brain/org/global/_index.md{,.bak}
+
+# After run-once init (steps 4–7), expect:
+test -f ~/ai-brain/org/global/_index.md
+grep -q 'Org Global Compass' ~/ai-brain/org/global/_index.md
+make -C "${DOTFILES_ROOT:-$HOME/dotfiles}" check-brain-contract
+make -C "${DOTFILES_ROOT:-$HOME/dotfiles}" brain-sync-home
+test -f ~/ai-brain/Home.md
+
+# Manifest backfill spot-check (per onboarded slug):
+jq -e '.schema_versions.memory_demotion' ~/ai-brain/projects/<slug>/.meta/manifest.json
+
+# Restore backup if used:
+test -f ~/ai-brain/org/global/_index.md.bak && mv ~/ai-brain/org/global/_index.md.bak ~/ai-brain/org/global/_index.md
+```
 
 **Step 1 must complete before Step 3. Step 2 must yield scaffold, warm-full output, OR explicit documented skip.**
 

@@ -132,6 +132,7 @@ Policy source: `mandatory-delegation` rule + `agent-orchestration` / `parallel-d
 ### How this differs from git hooks
 
 - **Git pre-commit / pre-push:** validate **repository files** (lint, secrets patterns, etc.). They do **not** see Cursor `Task` dispatches, parallel shard decisions, or `~/ai-brain/` writes.
+- **Gitleaks pre-push (DotMate):** `~/.githooks/pre-push` → `gitleaks git --log-opts=<range>` on **commits being pushed** (`remote_sha..local_sha`). **Not** `gitleaks protect --staged` (staged-only → 0 commits scanned on push). Canonical: `dotfiles/git/.githooks/pre-push`.
 - **Runtime delegation audit:** coordinators and observability flows log the fields above into brain orchestration paths **during** the session. Treat missing rows for entrypoint turns as a policy gap, not a CI failure.
 
 ### Optional `token_stats` / `token_estimate` (cache discipline)
@@ -412,17 +413,35 @@ Maintain an index for efficient queries:
 
 ## Brain audit events (`log_brain_event`)
 
-Append structured lines to `~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl` (or org-global sink when project slug unknown).
+Append JSONL lines to the project ledger (primary) or org-global fallback when kb-identity fails.
+
+| Ledger path | When |
+|-------------|------|
+| `~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl` | Default — resolve `<slug>` via `kb-identity` from `workspace_root` |
+| `~/ai-brain/org/global/orchestration/brain-audit-log.jsonl` | Fallback when slug resolution fails (log `slug: org-global` in the event) |
 
 | Event type | When |
 |------------|------|
 | `kb_query` | After `brain-memory-kb` lookup (include `ladder_depth`: L0–L3) |
 | `kb_promote` | After promotion |
-| `kb_demote` | After demotion (or advisory intent when contract not yet live) |
+| `kb_demote` | After demotion (G2 live: must accompany disk demote patch) |
 | `session_flag` | `fresh_eyes`, `clear_stale_trap`, etc. |
 | `stale_trap` | Coordinator triggered stale-trap recovery |
 
-**Required join keys** (mirror `verification-gates.yml` → `swarm_orchestration.brain_audit`): `trace_id`, `task_id`, optional `dispatch_id`.
+### Required fields (fail-closed for entrypoints)
+
+Mirror `verification-gates.yml` → `swarm_orchestration.brain_audit.required_fields` on **every** `log_brain_event` line:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `trace_id` | yes | Episode correlation |
+| `task_id` | yes | Join key — ≥2 events per task_id for G2 join |
+| `event_type` | yes | One of `kb_query`, `kb_demote`, `session_flag`, `stale_trap` |
+| `ladder_depth` | yes | e.g. `L0`–`L3` for queries; `L2` typical for demote |
+
+Optional: `dispatch_id`, `ts` (ISO-8601 UTC), `slug`, `workspace_root`.
+
+**Join rule:** at least one `task_id` must appear in ≥2 ledger events (typically `kb_query` + `kb_demote`). Validated by `make check-g2-ready LEDGER=...`.
 
 **Human-readable sinks** (append-only under `~/ai-brain/org/global/orchestration/`): `brain-efficiency-audit.md`, `brain-stale-traps.md`, `memory-demotion-audit.md`.
 

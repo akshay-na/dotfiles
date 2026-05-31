@@ -31,7 +31,11 @@
       "description": "Agent id or touch-writer token (distributed model)."
     },
     "category": { "type": "string", "description": "Memory-style category when overlapping memory layout." },
-    "status": { "type": "string" },
+    "status": {
+      "type": "string",
+      "deprecated": true,
+      "description": "DEPRECATED — legacy retrieval flag. Prefer lifecycle_state only. Do not retain both keys after frontmatter migration (P4a strips status on --apply). Mapping to lifecycle_state: active→active; superseded→superseded; deprecated→superseded; demoted→demoted; quarantined→quarantined; invalidated→invalidated; archived→demoted. Unknown values are migration conflicts (quarantine, no dual-field writes). Post-migration nodes MUST use lifecycle_state only."
+    },
     "source_files": { "type": "array", "items": { "type": "string" } },
     "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
     "stale": { "type": "boolean" },

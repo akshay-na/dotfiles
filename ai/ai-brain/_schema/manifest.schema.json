@@ -35,7 +35,17 @@
       "properties": {
         "frontmatter": { "type": "string" },
         "graph": { "type": "string" },
-        "manifest": { "type": "string" }
+        "manifest": { "type": "string" },
+        "memory_demotion": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Must match contract_version in org/global/config/memory-demotion.yml (canonical policy)."
+        },
+        "kb": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional KB engine / onboarding contract version."
+        }
       },
       "additionalProperties": true
     },

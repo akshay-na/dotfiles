@@ -6,6 +6,11 @@
         "command": "./hooks/telemetry-session-start.sh",
         "failClosed": false,
         "timeout": 5
+      },
+      {
+        "command": "./hooks/brain-session-start.sh",
+        "failClosed": false,
+        "timeout": 5
       }
     ],
     "sessionEnd": [
@@ -34,6 +39,12 @@
         "matcher": "Task",
         "failClosed": false,
         "enabled": true,
+        "timeout": 5
+      },
+      {
+        "command": "./hooks/brain-read-policy-advisory.sh",
+        "matcher": "Read|Grep",
+        "failClosed": false,
         "timeout": 5
       },
       {
