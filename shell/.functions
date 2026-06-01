@@ -71,8 +71,8 @@ _delete_branches_completions() {
 }
 
 # Enable tab-completion for the delete_branches command
-_if_shell "complete -F _delete_branches_completions delete_branches" \
-  "compdef _delete_branches_completions delete_branches"
+_if_shell "compdef _delete_branches_completions delete_branches" \
+  "complete -F _delete_branches_completions delete_branches"
 
 # -------------------------------------------------------------------------------
 # Function: reload
@@ -593,8 +593,8 @@ _install_pnpm_completions() {
 }
 
 # Enable autocomplete for install_pnpm function
-_if_shell "complete -F _install_pnpm_completions install_pnpm" \
-  "compdef _install_pnpm_completions install_pnpm"
+_if_shell "compdef _install_pnpm_completions install_pnpm" \
+  "complete -F _install_pnpm_completions install_pnpm"
 
 # -------------------------------------------------------------------------------
 # Function: _vscode_z
