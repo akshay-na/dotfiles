@@ -59,6 +59,9 @@ bindings = [
   { key = "F11", action = "ToggleFullscreen" },
   { key = "F12", action = "SpawnNewInstance" },
 
+  # Shift+Enter: ESC+CR so OpenCode/tmux see shift+return (not bare LF). See shell/.zshrc
+  { key = "Return", mods = "Shift", chars = "\u001b\r" },
+
   # Clear screen
   { key = "L", mods = "Control", action = "ClearLogNotice" },
 ]

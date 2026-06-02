@@ -285,6 +285,26 @@ if [[ -o interactive ]]; then
     }
     add-zsh-hook -Uz precmd _zn_auto_tmux_attach
   fi
+
+  # Shift+Enter: terminal sends CSI u (\e[13;2u) or LF (^J); insert newline, do not submit.
+  # self-insert would dump the escape sequence literally; use a small ZLE widget instead.
+  _dotfiles_insert_newline() {
+    LBUFFER+=$'\n'
+    CURSOR=$#LBUFFER
+  }
+  zle -N _dotfiles_insert_newline
+  _dotfiles_bind_multiline_input() {
+    bindkey '^J' _dotfiles_insert_newline
+    bindkey $'\e\r' _dotfiles_insert_newline
+    bindkey $'\e[13;2u' _dotfiles_insert_newline
+  }
+  _dotfiles_bind_multiline_input
+  _dotfiles_multiline_rebind_once() {
+    _dotfiles_bind_multiline_input
+    add-zsh-hook -d precmd _dotfiles_multiline_rebind_once
+  }
+  autoload -Uz add-zsh-hook 2>/dev/null || true
+  add-zsh-hook precmd _dotfiles_multiline_rebind_once
 fi
 
 # ---------------------------------------------------------------

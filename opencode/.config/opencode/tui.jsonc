@@ -7,6 +7,9 @@
   },
   "diff_style": "auto",
   "mouse": true,
+  "keybinds": {
+    "input_newline": "shift+return,ctrl+return,alt+return,ctrl+j"
+  },
   "attention": {
     "enabled": true,
     "notifications": true,

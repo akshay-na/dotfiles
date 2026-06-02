@@ -1,6 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "share": "disabled",
+  "lsp": true,
+  "reference": {
+    "opencode": { "path": ".opencode" },
+    "cursor": { "path": ".cursor" },
+    "gemini": { "path": ".gemini" }
+  },
   "permission": {
     "*": "allow"
   },

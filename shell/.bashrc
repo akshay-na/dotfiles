@@ -36,6 +36,11 @@ if [[ $- == *i* ]]; then
   shopt -s checkwinsize # Check window size after each command
   shopt -s extglob      # Enable extended globbing
 
+  # Shift+Enter: Alacritty sends ESC+CR (and CSI u fallback); readline inserts newline.
+  bind '"\e\r": "\C-v\C-j"'
+  bind '"\e[13;2u": "\C-v\C-j"'
+  bind '"\n": "\C-v\C-j"'
+
   # ---------------------------------------------------------------
   # Interactive Tool Initializations
   # ---------------------------------------------------------------
