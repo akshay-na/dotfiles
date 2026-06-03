@@ -15,16 +15,13 @@ $git_status\
 $git_state\
 $git_metrics\
 $custom\
-$all
+$all\
+$fill\
+$time
 $os\
 $shell\
 $character
 """
-
-# right_format = """\
-# $battery
-# $nodejs
-# """
 
 [aws]
 disabled      = false                                        # Keep the module active
@@ -147,6 +144,18 @@ ssh_symbol = "🌐 "
 trim_at    = ""
 style      = "bold yellow"
 disabled   = true
+
+[fill]
+symbol = ' '
+
+[line_break]
+disabled = false
+
+[time]
+disabled    = false
+format      = '[$time]($style) '
+time_format = '%d %b %H:%M'
+style       = 'bold dimmed white'
 
 [username]
 show_always = true
