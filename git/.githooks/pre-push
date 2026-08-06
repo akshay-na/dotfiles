@@ -4,6 +4,7 @@ source ~/.githooks/shared.sh
 
 branch=$(current_branch)
 zero_sha="0000000000000000000000000000000000000000"
+remote_name="${1:-origin}"
 
 info "🚀 Pre-push triggered for: $branch"
 
@@ -16,6 +17,49 @@ gitleaks_scan_range() {
 
   gitleaks git --log-opts="$range" --redact . ||
     error "Potential secret leak detected in commits being pushed"
+}
+
+# Resolve the remote default branch (e.g. refs/remotes/origin/main).
+remote_default_ref() {
+  local remote="$1"
+  local head_ref candidate
+
+  head_ref=$(git symbolic-ref --quiet "refs/remotes/${remote}/HEAD" 2>/dev/null || true)
+  if [ -n "$head_ref" ]; then
+    printf '%s\n' "$head_ref"
+    return 0
+  fi
+
+  for candidate in "refs/remotes/${remote}/main" "refs/remotes/${remote}/master"; do
+    if git rev-parse --verify --quiet "$candidate" >/dev/null; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+# Commits unique to local_sha vs the remote default branch.
+new_branch_scan_range() {
+  local local_sha="$1"
+  local remote="$2"
+  local base_ref merge_base
+
+  base_ref=$(remote_default_ref "$remote" || true)
+  if [ -z "$base_ref" ]; then
+    debug "No remote default for ${remote}; scanning tip commit only"
+    printf '%s\n' "$local_sha^!"
+    return 0
+  fi
+
+  merge_base=$(git merge-base "$local_sha" "$base_ref" 2>/dev/null || true)
+  if [ -n "$merge_base" ]; then
+    printf '%s\n' "${merge_base}..${local_sha}"
+  else
+    debug "No merge-base with ${base_ref}; scanning tip commit only"
+    printf '%s\n' "$local_sha^!"
+  fi
 }
 
 # Scan commits being pushed (pre-push stdin), not the staging area.
@@ -32,9 +76,10 @@ if has_command gitleaks; then
     fi
 
     if [ "$remote_sha" = "$zero_sha" ]; then
-      range="$local_sha $(git for-each-ref --format='^%(refname)' refs/remotes/ 2>/dev/null || true)"
-      range="${range%" "}"
+      # New branch: only commits ahead of the remote default, not every remote ref.
+      range=$(new_branch_scan_range "$local_sha" "$remote_name")
     else
+      # Existing branch: only commits being pushed on this ref.
       range="${remote_sha}..${local_sha}"
     fi
 
@@ -52,7 +97,7 @@ if has_command gitleaks; then
         debug "No unpushed commits vs ${upstream}; skipping gitleaks"
       fi
     else
-      gitleaks_scan_range "HEAD" "${branch:-HEAD}"
+      gitleaks_scan_range "HEAD^!" "${branch:-HEAD}"
     fi
   fi
 else
