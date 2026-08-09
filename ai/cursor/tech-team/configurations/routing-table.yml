@@ -40,6 +40,22 @@ entrypoints:
       - "render remotion video"
       - "programmatic video remotion"
 
+  - id: bug-bot
+    agent: bug-bot
+    scope: org
+    all_in_one: true
+    parallelizable: false
+    description: |
+      User-invoked bug/regression hunter for a specified change set. Writes
+      `.cursor/docs/bugs/` reports. Does not steal bug_fix / feature / review
+      classification defaults; pipelines must not auto-Task bug-bot.
+    invocation_phrases:
+      - "use bug-bot"
+      - "bug-bot"
+      - "hunt bugs"
+      - "find hidden bugs"
+      - "find regressions in this branch"
+
 # Multi-repo workspace support
 workspace:
   # Detect which repo a task belongs to
@@ -68,6 +84,7 @@ workspace:
         sre-lead,
         staff-engineer,
         vp-research,
+        bug-bot,
       ]
     last_resort: staff-engineer
 

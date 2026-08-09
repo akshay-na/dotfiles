@@ -9,7 +9,7 @@ This rule applies **only** when you are running as a subagent under a parent
 agent (detect the `<system_reminder>You are running as a subagent ...` marker
 supplied by the `Task` tool, or the parent-injected contract block at the top
 of your prompt). It does **not** apply to main-chat turns or to user-facing
-synthesis turns in `cto` / `code-reviewer`.
+synthesis turns in `cto` / `code-reviewer` / `bug-bot`.
 
 ## Sources of truth
 
@@ -122,9 +122,9 @@ degraded child for scoping/triage reasons, tag the user-facing synthesis with
 
 - Main-chat (user-facing) turns do NOT follow this protocol. `caveman: lite`
   prose per the `caveman` rule applies instead.
-- Synthesis turns in `cto` / `code-reviewer` that render output directly to
-  the user are exempt. Those agents strip the envelope, remove `_marker`, and
-  write `caveman: lite` prose.
+- Synthesis turns in `cto` / `code-reviewer` / `bug-bot` that render output
+  directly to the user are exempt. Those agents strip the envelope, remove
+  `_marker`, and write `caveman: lite` prose.
 
 ## Rule-version drift protection
 

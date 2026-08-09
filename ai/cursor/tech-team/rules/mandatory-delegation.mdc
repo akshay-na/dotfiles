@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Mandatory delegation (coordinators)
 
-**Applies to:** coordinator agents — `cto`, `tech-lead`, `code-reviewer`, `cco`, `content-lead`, `cio`, `trading-lead`, `n8n-builder`, `remotion-builder`, `atlassian-pm`, `editorial-ops-lead`.
+**Applies to:** coordinator agents — `cto`, `tech-lead`, `code-reviewer`, `bug-bot`, `cco`, `content-lead`, `cio`, `trading-lead`, `n8n-builder`, `remotion-builder`, `atlassian-pm`, `editorial-ops-lead`.
 
 ## Hard rules
 
@@ -48,26 +48,28 @@ alwaysApply: true
    - **CONCERN** — research, implementation, review, testing, documentation, observability as natural shards.
    - **Baseline trio** often includes: `vp-research` (docs), a **brain-memory-kb** writer where policy allows, and a **review/validation** agent; remaining shards come from domain/file/phase splits.
 
-7. **Below-floor justification** (**MANDATORY** when **< 6** sub-agents):
+7. **Below-floor justification** (**MANDATORY** when **dispatched_count < Min direct** for that coordinator; default Min direct **6** unless the table below overrides):
 
-   If a coordinator cannot reach **6** sub-agents, it **MUST**:
+   If a coordinator cannot reach its **Min direct** floor, it **MUST**:
 
    a. Emit a **`below_floor_justification`** block in **user-visible** chat **before** proceeding with fewer sub-agents.
 
    b. The block **MUST** include:
 
-   - `dispatched_count`: actual number dispatched  
-   - `floor`: **6** (unless this coordinator’s row in the table below sets a different **Min direct**)  
+   - `dispatched_count`: actual number dispatched (may be **0**)  
+   - `floor`: this coordinator’s **Min direct** from the table below (default **6**)  
    - `reason`: one of:
      - `atomic_task` — genuinely indivisible (**single file**, **single function**, **<20 lines** changed)
      - `platform_cap_hit` — platform max concurrent sub-agents **<** policy floor (cite **`max_concurrent_subagents`** / **`floor.min_subagents_per_coordinator`** from **`~/.cursor/configurations/orchestration-policies/subagent-caps.yml`**)
      - `depth_cap_hit` — already at depth **3**, cannot delegate further
      - `no_independent_shards` — work is strictly serial with **data dependencies** between every step
-   - `attempted_decomposition`: brief description of how the coordinator tried to decompose before concluding **< 6** was unavoidable
+   - `attempted_decomposition`: brief description of how the coordinator tried to decompose before concluding under-floor was unavoidable
 
-   c. Log the same fields in **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** (append row; join keys per `agent-orchestration.mdc` / verification gates when present).
+   c. Log the same fields in **`~/ai-brain/org/global/orchestration/dispatch-audit.md`** (append row; join keys per `agent-orchestration.mdc` / verification gates when present). **No skip:** under-floor always audits — including **solo / zero child `Task`s**.
 
    d. If `reason` is **none** of the above → **violation.** Stop, re-decompose, or escalate to the user.
+
+   e. **`bug-bot` under-floor (hard):** when Applies-to includes **`bug-bot`** and **`dispatched_count < 3`**, **always** emit **`below_floor_justification`** **and** append a **`dispatch-audit.md`** row — **including zero child Tasks**. Solo hunts are eligible **only** when **`atomic_task`** criteria hold (single file / single function / **<20 lines** changed in the hunt scope card, or equivalently a single-commit / clear local defect inside those bounds). There is **no** “skip audit when solo / zero Tasks” exemption.
 
 8. **Recursive tree counts.** Sub-agents invoked by sub-agents **count** toward the coordinator’s **effective** delegation tree. Example: coordinator dispatches **3** sub-agents, each dispatches **2** more → **9** effective agents (meets floor **if** policy allows depth). **Direct** dispatch count from the coordinator **must still be ≥ 3** (**half-floor**) when using this recursive pattern.
 
@@ -84,8 +86,9 @@ alwaysApply: true
    | `trading-lead` | 6 | 8 | `dev-*` + `qa-*` + `sme-*` + brain-writer |
    | `remotion-builder` | 4 | 6 | plan + render + audio (`kokoro-audio-builder` when applicable) + QA + reviewer + brain-writer |
    | `n8n-builder` | 4 | 6 | plan + per-workflow workers + QA + reviewer + brain-writer |
+   | `bug-bot` | 3 | 5 | optional specialist fan-out for hunt (`staff-engineer`, `ciso`, `vp-engineering`, `sre-lead`, `vp-research`, …); solo **only** if `atomic_task` |
 
-   **Overrides:** `remotion-builder` and `n8n-builder` use **min direct 4** / **target 6** (more serial typical flows). All other coordinators in this table keep **min 6** / **target 8**. Canonical YAML: **`coordinator_overrides`** in **`subagent-caps.yml`** (single row per coordinator id — no duplicate keys).
+   **Overrides:** `remotion-builder` and `n8n-builder` use **min direct 4** / **target 6** (more serial typical flows). **`bug-bot`** uses **min direct 3** / **target 5** (thin investigator; under-floor always justifies + audits, including zero child Tasks). All other coordinators in this table keep **min 6** / **target 8**. Canonical YAML: **`coordinator_overrides`** in **`subagent-caps.yml`** (single row per coordinator id — no duplicate keys).
 
 ---
 
@@ -93,7 +96,7 @@ alwaysApply: true
 
 - **Stowed path (Cursor):** **`~/.cursor/configurations/orchestration-policies/subagent-caps.yml`**
 - **DotMate source:** **`ai/cursor/tech-team/configurations/orchestration-policies/subagent-caps.yml`**
-- **Contains:** per-**`platforms`** max concurrent sub-agents, depth, session totals; global **`floor`** (default min **6**, target **8**, half-floor **3**); **`defaults`** (parallel-first, serial justification, **`fan_out_minimum`**); **`coordinator_overrides`** for **`remotion-builder`** and **`n8n-builder`** (**min** **4**, **target** **6**).
+- **Contains:** per-**`platforms`** max concurrent sub-agents, depth, session totals; global **`floor`** (default min **6**, target **8**, half-floor **3**); **`defaults`** (parallel-first, serial justification, **`fan_out_minimum`**); **`coordinator_overrides`** for **`remotion-builder`** and **`n8n-builder`** (**min** **4**, **target** **6**) and **`bug-bot`** (**min** **3**, **target** **5**).
 - Coordinators **MUST** load caps **before** planning waves; if the active platform’s **`max_concurrent_subagents`** is **less than** the YAML **`floor.min_subagents_per_coordinator`**, use **batched waves** (dispatch up to cap, await completion, dispatch next wave) per **`parallel-dispatch`** until the effective tree meets policy — log **`platform_cap_hit`** + wave plan in **`below_floor_justification`** when a **single** wave cannot satisfy floor alone.
 
 ## Cross-references

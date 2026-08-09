@@ -97,7 +97,7 @@ if [ "$enforce_all" = true ]; then
   should_block=true
 elif [ "$enforce_entrypoint" = true ]; then
   case "$agent_id" in
-    cto | tech-lead | code-reviewer | cco | cio | content-lead | trading-lead | n8n-builder | remotion-builder | atlassian-pm)
+    cto | tech-lead | code-reviewer | bug-bot | cco | cio | content-lead | trading-lead | n8n-builder | remotion-builder | atlassian-pm)
       should_block=true
       ;;
   esac

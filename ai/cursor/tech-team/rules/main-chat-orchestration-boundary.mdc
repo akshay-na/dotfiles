@@ -25,12 +25,13 @@ Read-only discovery (**`Read`**, **`Grep`**, **`Glob`**, **`SemanticSearch`**, r
 | Signal | Dispatch first |
 |--------|----------------|
 | User names an agent | That agent (**`mode-auto-selection`** invoker-wins) |
-| Review / PR / diff | **`code-reviewer`** |
+| User names **`bug-bot`** / explicit bug-hunt (“find hidden bugs”, “hunt regressions in these commits”) | **`bug-bot`** |
+| Review / PR / diff (generic — no `bug-bot` / bug-hunt naming) | **`code-reviewer`** |
 | Planning / architecture / security / perf / observability / phased work | **`cto`** (or user-named planning entrypoint) |
 | Orchestration signals in **`agent-orchestration`** (CTO plan, project `.cursor/agents/` team, ≥2 workspace roots, user asks to orchestrate) | **`tech-lead`** |
 | Otherwise — localized file change, single root, no phased plan | **`staff-engineer`** |
 
-Entrypoints and coordinators (**`cto`**, **`tech-lead`**, **`code-reviewer`**, builders) perform **their** chartered writes inside **their** **`Task`** sessions (plans, reviews, orchestration docs). Main chat **still** does not mutate files after dispatching them.
+Entrypoints and coordinators (**`cto`**, **`tech-lead`**, **`code-reviewer`**, **`bug-bot`**, builders) perform **their** chartered writes inside **their** **`Task`** sessions (plans, reviews, bug reports, orchestration docs). Main chat **still** does not mutate files after dispatching them.
 
 ## Exemptions
 

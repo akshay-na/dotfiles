@@ -34,3 +34,6 @@ coordinator_overrides:
   n8n-builder:
     min_subagents_direct: 4
     target_subagents: 6
+  bug-bot:
+    min_subagents_direct: 3
+    target_subagents: 5

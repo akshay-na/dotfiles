@@ -31,6 +31,7 @@ When spawning subagents via Task tool, include role-appropriate prompt:
 | ----------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **cto, vp-architecture, vp-engineering, vp-platform** | lite  | `Caveman: lite. Full sentences for trade-off analysis. Keep precision on risks/phases.`                                                        |
 | **code-reviewer**                                     | lite  | `Caveman: lite. User-facing synthesizer. Final review must be clear and actionable — severity, file/line refs, fix suggestions unabbreviated.` |
+| **bug-bot**                                           | lite  | `Caveman: lite. User-facing synthesizer. Final bug report must be clear and actionable — severity, file/line refs, fix suggestions unabbreviated.` |
 | **ciso**                                              | lite  | `Caveman: lite. Full clarity for security risks, threats, mitigations. No abbreviations on vuln names.`                                        |
 | **sre-lead**                                          | lite  | `Caveman: lite. Clear on alerts, SLOs, runbook steps. Abbreviate infra terms (k8s/pod/svc/ns).`                                                |
 | **senior-dev, staff-engineer**                        | ultra | `Caveman: ultra. DB/auth/config/req/res/fn/impl → abbrev. X→Y causality. Code unchanged.`                                                      |

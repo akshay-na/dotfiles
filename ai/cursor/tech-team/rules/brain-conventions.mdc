@@ -18,7 +18,7 @@ alwaysApply: true
 - **Cursor pack** (`~/.cursor`, stowed from `dotfiles/ai/cursor/tech-team/`): agents use **`brain-memory-kb`** + normal workspace file tools against **`$HOME/ai-brain`** on allowed paths only.
 - **Gemini pack** (`~/.gemini`, stowed from `dotfiles/ai/private-teams/gemini/*/`): agents MUST follow the same writer policy and skeleton read-only rules; use **`rules/brain-write-bridge.md`** for the runtime write path (**Option A** native FS vs **Option B** structured **`memory_writes[]`** + coordinator persist — see **`brain-memory-kb`** skill).
 - **Coordinator parity:** **`cco` / `content-lead`**, **`cio` / `trading-lead`**, **`cto` / `tech-lead`** share the same **gradual** KB rhythm; only role-specific **writer policy** rows differ — not **whether** durable facts land under **`~/ai-brain/`**.
-- **Handoff agents** (`code-reviewer`, `cro`, `senior-dev`, **`editorial-cro`** where pack policy names it): unchanged — **no** direct brain FS writes; populate **`memory_writes[]`** for the owning entrypoint to persist.
+- **Handoff agents** (`code-reviewer`, `bug-bot`, `cro`, `senior-dev`, **`editorial-cro`** where pack policy names it): unchanged — **no** direct brain FS writes; populate **`memory_writes[]`** for the owning entrypoint to persist.
 
 ## Operating Model
 
@@ -36,13 +36,13 @@ alwaysApply: true
 ## Writer Policy
 
 - C-suite agents (`cto`, `cco`, `cio`, `vp-onboarding`, `vp-architecture`, `vp-engineering`, `ciso`, `sre-lead`, `staff-engineer`, `vp-platform`, `atlassian-pm`, `cfo-trading`, `vp-quant-research`, `vp-risk-management`, `vp-market-intelligence`, `vp-audience-engineering`, and other org **`vp-*`** when policy grants touch-writes) and `tech-lead` may perform bounded touch-writes to memory and KB. **Not** to the vault skeleton paths in **Vault skeleton (tracked stow — no agent writes)** below.
-- Excluded from KB/memory writes for dedup control: `code-reviewer`, `senior-dev`, `cro`.
+- Excluded from KB/memory writes for dedup control: `code-reviewer`, `bug-bot`, `senior-dev`, `cro`.
 - All other agents are read/query only for brain (`~/ai-brain/`) and must not write memory or KB.
 - Project agents (`dev-*`, `sme-*`, `qa-*`, `reviewer-*`, `devops`) are read/query only.
 
 ### Demotion writer policy (KB nodes)
 
-- **Who may demote:** same roles as **touch-writes** above; **`code-reviewer`**, **`cro`**, **`senior-dev`** hand off via **`memory_writes[]`** with `op: demote` — entrypoint persists.
+- **Who may demote:** same roles as **touch-writes** above; **`code-reviewer`**, **`bug-bot`**, **`cro`**, **`senior-dev`** hand off via **`memory_writes[]`** with `op: demote` — entrypoint persists.
 - **Policy source:** `~/ai-brain/org/global/config/memory-demotion.yml` (`contract_version`); never write to `storage.forbidden_paths` (`~/.cursor/memory`, `~/.gemini/memory`).
 - **Fail-closed (G2 live):** demotion without a joinable `kb_demote` audit event in the project ledger (`~/ai-brain/projects/<slug>/.meta/brain-audit-log.jsonl`) is a policy violation for entrypoints (`cto`, `tech-lead`, `code-reviewer`). G2 passed 2026-05-31 (`verification-gates.yml` → `brain_audit.g2_status: live`); enforced demote + `log_brain_event` required. Rollback: set `g2_status: open` and restore advisory demote wording in `brain-memory-kb`.
 - **Human restore:** `approve kb restore: <node-ref> in phase <pid>` per policy; coordinators record in audit.
@@ -102,7 +102,7 @@ Use **`$HOME/.gitmessage`** when stowed (DotMate: `dotfiles/git/.gitmessage`). *
 
 Applies whenever an **entrypoint** or **decision** agent runs for a repo/workspace (see **`agent-orchestration.mdc`**). **Goal:** build **`~/ai-brain/`** per project **incrementally** — not ad-hoc “sometimes” dumps. Use **`brain-memory-kb`** + **`kb-identity`**.
 
-- **Who (writes):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`** when they are the invoked entrypoint; cross-tool **content / trading coordinators** **`cco`**, **`cio`**, **`content-lead`**, **`trading-lead`** when executing routed orchestration for their pack; org roles already allowed **touch-writes** above (**`vp-*`**, **`ciso`**, **`sre-lead`**, **`staff-engineer`**, **`vp-platform`**, **`vp-onboarding`**, **`cfo-trading`**, **`vp-quant-research`**, **`vp-risk-management`**, **`vp-market-intelligence`**, **`vp-audience-engineering`**) when executing their routed work. **Who (handoff only):** **`code-reviewer`**, **`cro`**, **`senior-dev`** — **no** direct brain filesystem writes; they **must** populate **`memory_writes[]`** / structured findings so the **owning entrypoint** (**`cto`**, **`tech-lead`**, **`cco`**, **`cio`**, or parent orchestrator) persists (or the user runs promotion).
+- **Who (writes):** **`cto`**, **`tech-lead`**, **`n8n-builder`**, **`remotion-builder`**, **`atlassian-pm`** when they are the invoked entrypoint; cross-tool **content / trading coordinators** **`cco`**, **`cio`**, **`content-lead`**, **`trading-lead`** when executing routed orchestration for their pack; org roles already allowed **touch-writes** above (**`vp-*`**, **`ciso`**, **`sre-lead`**, **`staff-engineer`**, **`vp-platform`**, **`vp-onboarding`**, **`cfo-trading`**, **`vp-quant-research`**, **`vp-risk-management`**, **`vp-market-intelligence`**, **`vp-audience-engineering`**) when executing their routed work. **Who (handoff only):** **`code-reviewer`**, **`bug-bot`**, **`cro`**, **`senior-dev`** — **no** direct brain filesystem writes; they **must** populate **`memory_writes[]`** / structured findings so the **owning entrypoint** (**`cto`**, **`tech-lead`**, **`cco`**, **`cio`**, or parent orchestrator) persists (or the user runs promotion).
 - **Per-repo scope:** For **each** distinct **`workspace_root`** in the invocation (multi-root = **each** folder), resolve **`kb-identity`** → **`~/ai-brain/projects/<slug>/`**. Do **not** collapse several repos into one project node.
 - **Start of run:** **`memory` / `kb-query`** via **`brain-memory-kb`** — L0/L1 on **`projects/<slug>/`**, **`session/`**, relevant **`org/`** before drafting plans or execution.
 - **Strengthened KB duty (every touch, not end-of-task dump):**

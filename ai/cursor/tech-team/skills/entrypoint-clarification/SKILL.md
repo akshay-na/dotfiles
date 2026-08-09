@@ -35,6 +35,7 @@ Set `user_clarification_state: resolved` in session ledger when met (`dev-review
 | `cto` | Change type + affected systems + plan vs execute intent |
 | `tech-lead` | Plan ref or phase id + workspace root(s) |
 | `code-reviewer` | Diff/PR/branch target |
+| `bug-bot` | Diff/PR/branch/commits target + hunt scope (regression vs latent) |
 | `n8n-builder` | Mode (`as-code`/`mcp-live`), env, workflow scope |
 | `remotion-builder` | Handoff path or corpus target + audio/render constraints |
 | `atlassian-pm` | Interactive checklist (writes); broker `read-only-context` → no user dialogue |

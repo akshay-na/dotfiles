@@ -1,0 +1,152 @@
+# Bug hunt report — `<slug>`
+
+<!--
+  Artifact path: <project>/.cursor/docs/bugs/YYYY-MM-DD-<slug>.md
+  Agent: bug-bot (org). Distinct from code-reviewer reviews/ and vendor bugbot.
+
+  SECRETS / REDACTION (fail-closed):
+  - Never write raw secrets, tokens, passwords, private keys, session cookies,
+    MFA seeds, or secret-bearing .env dumps into this report.
+  - Before write: scan with the subagent-response-protocol pattern library.
+  - Replace matches with <REDACTED:TYPE> (e.g. <REDACTED:API_KEY>).
+  - Suspected leak → do not publish body; status blocked/malformed path per skill;
+    record incident under project runbook (subagent-protocol or agreed security path).
+  - Env var / credential *names* OK; values never.
+
+  FORBIDDEN SECTIONS (do not add — keeps shape distinct from review template):
+  - Verdict / Approve / Approve with comments / Request changes / Block
+  - Style Compliance
+  - Optimization Opportunities
+-->
+
+**Date:** `<YYYY-MM-DD>`  
+**Status:** `ok` | `warn` | `blocked`  
+**Investigator:** `bug-bot`  
+**Task id:** `<task-id>`
+
+---
+
+## Summary
+
+Short paragraph: what was hunted, whether defects were found, top severity hits.
+Empty-but-valid diff → state zero findings; **do not** widen history.
+
+---
+
+## Scope
+
+Fill `scope_card` fields (YAML block preferred for machine join; prose OK if blocked).
+
+```yaml
+scope_card:
+  mode: commits | last_n | range | pr_url | uncommitted   # ScopeClass
+  base: "<ref-or-sha>"
+  head: "<ref-or-sha>"
+  merge_base: "<sha-or-null>"
+  file_count: 0
+  line_count: "+A / -D"
+  languages: []
+  risk_tags: []
+  worktree_path: "<path-or-null>"   # PR/remote only; cleaned unless user keep
+  last_n: null                      # when mode=last_n
+  degrade_notes: ""                 # e.g. worktree fail → gh pr diff
+```
+
+- **Input resolved from:** `<user phrase / URL / SHAs>`
+- **Empty-valid:** yes/no
+- **Blocked reason:** `<if status=blocked; no invented range>`
+
+---
+
+## Findings by severity
+
+Stable schema per item. Empty hunt → leave subsections with `_None._`
+
+### Critical
+
+- **id:** `BUG-001`
+  **File:** `path/to/file.ext`  **Line:** `42`
+  **Category:** `<correctness|regression|concurrency|data-loss|security|…>`
+  **Issue:** `<what is wrong>`
+  **Impact:** `<why it matters>`
+  **Confidence:** `high` | `medium` | `low`
+  **Reported by:** `self` | `<specialist-id>`
+
+### High
+
+(same schema)
+
+### Medium
+
+(same schema)
+
+### Low
+
+(same schema; keep brief)
+
+---
+
+## Repro notes
+
+Steps, preconditions, and observables that make each finding (or the empty result) reproducible.
+
+| Finding id | Preconditions | Steps | Observed | Expected |
+|---|---|---|---|---|
+| `BUG-001` | … | … | … | … |
+
+Suite / test-signal: default **skipped**. If user asked and cmds ran, list allowlisted cmds only (no free-form shell output dumps; redact stdout).
+
+---
+
+## Suggested fixes
+
+One concrete fix per finding id. **Suggest only — do not implement** in this hunt.
+
+| Finding id | Fix (concrete) | Effort | Notes |
+|---|---|---|---|
+| `BUG-001` | `<verbatim suggestion; paths/code unchanged>` | `trivial` \| `moderate` \| `significant` | … |
+
+---
+
+## Truncation / caps meta
+
+Record what the investigation cut short so readers trust coverage bounds.
+
+| Cap | Limit | Hit? | Effect |
+|---|---|---|---|
+| Deep files | ≤40 | yes/no | … |
+| Symbols tracked | ≤25 | yes/no | … |
+| Callgraph hops | ≤2 | yes/no | … |
+| Defect packs | ≤3 | yes/no | packs used: … |
+| Wall clock | ~35m hard | yes/no | … |
+| last_n / commit range | last_n≤20; range recommend ≤50 | yes/no | … |
+| Specialist Tasks | override floor 3 / target 5 | count: N | skipped: … |
+
+- **truncated:** true/false
+- **skip_set / watch_set notes:** …
+- **below_floor_justification:** `<if dispatched_count < 3; always when under floor incl. solo>`
+
+---
+
+## Open questions
+
+Genuine blockers or ambiguities for the author / next implementer.
+
+- …
+
+---
+
+## Next steps
+
+Handoff to an **implementer** (`staff-engineer` / `tech-lead` / project `dev-*`) — **not** a merge verdict.
+
+1. User invokes implementer with finding ids + this report path.
+2. Prefer fix order: critical → high → medium → low.
+3. Add/adjust regression tests for fixed defects.
+4. Optional: promote durable constraints via entrypoint brain handoff (`memory_writes[]` from this hunt).
+
+**No Approve / Request changes / Block line.** This artifact is a bug hunt report, not a code-review verdict.
+
+---
+
+<!-- Footer: redact-before-write fail-closed. Prefer <REDACTED:TYPE>. No secrets in chat, ledger, or this file. -->

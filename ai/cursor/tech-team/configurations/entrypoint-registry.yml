@@ -35,4 +35,8 @@ entrypoints:
     agent: vp-onboarding
     main_chat_personalization: true
 
+  - id: bug-bot
+    agent: bug-bot
+    main_chat_personalization: true
+
 # Excluded from registry (subagents / internal critics): cro, vp-*, ciso, dev-*, sme-*, qa-*
