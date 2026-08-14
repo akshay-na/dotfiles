@@ -45,6 +45,9 @@ help:
 	@echo "  bootstrap_local - Scaffold ~/dotfiles-local (or LOCAL_DIR=...) for per-host overrides"
 	@echo "                Run from upstream clone; copies DotMate.sh, Makefile, .stowrc from canonical root."
 	@echo "  help        - Show this help message"
+	@echo "  compile-forge - Compile Forge CLIs in scripts/forge to scripts/forge/dist/"
+	@echo "  install-forge - Copy compiled Forge binaries from scripts/forge/dist/ to ~/.local/bin"
+	@echo "                Can replace stowed shell scripts of the same name."
 
 # Targets
 
@@ -134,3 +137,27 @@ brain-audit-synthetic: ## Append synthetic kb_query+kb_demote episode to live le
 brain-efficiency-rollup: ## Append 7d SLO proxy row to brain-efficiency-audit.md
 	@chmod +x $(BRAIN_SCRIPTS)/brain-efficiency-audit-rollup.sh
 	@$(BRAIN_SCRIPTS)/brain-efficiency-audit-rollup.sh
+
+.PHONY: compile-forge
+compile-forge: ## Compile Forge CLIs into scripts/forge/dist/
+	@echo "${GREEN}Compiling Forge CLIs...${RESET}"
+	@cd "$(MAKEFILE_DIR)/scripts/forge" && pnpm compile
+
+.PHONY: install-forge
+install-forge: ## Copy compiled Forge binaries to ~/.local/bin (can replace stowed shell scripts of the same name)
+	@echo "${GREEN}Installing Forge CLIs to ~/.local/bin...${RESET}"
+	@mkdir -p "$(HOME)/.local/bin"
+	@copied=0; \
+	for f in "$(MAKEFILE_DIR)/scripts/forge/dist"/*; do \
+		[ -f "$$f" ] || continue; \
+		case "$$(basename "$$f")" in .gitkeep) continue ;; esac; \
+		dest="$(HOME)/.local/bin/$$(basename "$$f")"; \
+		rm -f "$$dest"; \
+		cp "$$f" "$$dest"; \
+		chmod +x "$$dest"; \
+		copied=1; \
+		echo "${GREEN}Installed $$(basename "$$f")${RESET}"; \
+	done; \
+	if [ "$$copied" -eq 0 ]; then \
+		echo "${YELLOW}No compiled binaries in dist/; run make compile-forge first${RESET}"; \
+	fi

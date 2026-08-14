@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strict": true
+  },
+  "nodeModulesDir": "manual",
+  "lint": {
+    "include": ["utils/", "apps/"],
+    "exclude": ["node_modules/", "dist/"]
+  },
+  "imports": {
+    "#utils/": "./utils/"
+  }
+}

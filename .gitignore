@@ -11,3 +11,5 @@ AGENTS.yaml
 /AGENTS.md
 /GEMINI.md
 !ai/**/*
+scripts/forge/node_modules
+scripts/forge/dist

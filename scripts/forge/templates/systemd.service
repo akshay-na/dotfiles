@@ -1,0 +1,17 @@
+[Unit]
+Description={{description}}
+After=network.target
+
+[Service]
+Type=simple
+User={{user}}
+WorkingDirectory={{workdir}}
+{{environment}}
+ExecStart={{exec_start}}
+Restart=always
+RestartSec=5
+StandardOutput=append:{{log}}
+StandardError=append:{{log}}
+
+[Install]
+WantedBy=multi-user.target

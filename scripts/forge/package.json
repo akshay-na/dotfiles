@@ -1,0 +1,72 @@
+{
+  "name": "@akshay-na/forge",
+  "version": "0.1.0",
+  "description": "Forge turns personal shell scripts into compiled CLI binaries. Shared utils (log, process, ssh, tmux, git) and templates/ assets live here; each executable is apps/<name>/main.ts.",
+  "keywords": [
+    "cli",
+    "deno",
+    "dotfiles",
+    "forge",
+    "tmux",
+    "ssh",
+    "git",
+    "personal-tools"
+  ],
+  "homepage": "https://github.com/akshay-na/dotfiles/tree/main/scripts/forge",
+  "bugs": {
+    "url": "https://github.com/akshay-na/dotfiles/issues"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": {
+    "name": "Akshay N A",
+    "url": "https://github.com/akshay-na"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshay-na/dotfiles.git",
+    "directory": "scripts/forge"
+  },
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=26.0.0",
+    "pnpm": ">=9.12.0"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "directories": {
+    "lib": "utils",
+    "bin": "dist"
+  },
+  "files": [
+    "apps",
+    "utils",
+    "templates",
+    "deno.json"
+  ],
+  "exports": {
+    "./utils/*": "./utils/*"
+  },
+  "imports": {
+    "#utils/*": "./utils/*"
+  },
+  "scripts": {
+    "check": "deno check utils/*.ts",
+    "compile": "mkdir -p dist; found=0; for main in apps/*/main.ts; do [ -f \"$main\" ] || continue; found=1; deno compile -A --include templates -o \"dist/$(basename \"$(dirname \"$main\")\")\" \"$main\" || exit $?; done; if [ \"$found\" -eq 0 ]; then echo '[INFO] no apps to compile'; fi",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.8.1",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.9.6",
+    "typescript-eslint": "8.67.0"
+  }
+}

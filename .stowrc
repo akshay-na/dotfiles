@@ -11,3 +11,4 @@
 --ignore='agents'
 --ignore='README.md'
 --ignore='verify-bootstrap-local'
+--ignore='^forge$'
