@@ -1,0 +1,119 @@
+# One Dark Pro skin for k9s
+# Palette: Atom / VS Code One Dark Pro
+#   bg #282c34 | darker #21252b | selection #3e4451
+#   fg #abb2bf | muted #5c6370
+#   red #e06c75 | green #98c379 | yellow #e5c07b
+#   blue #61afef | magenta #c678dd | cyan #56b6c2 | orange #d19a66
+
+k9s:
+  body:
+    fgColor: "#abb2bf"
+    bgColor: "#282c34"
+    logoColor: "#61afef"
+
+  prompt:
+    fgColor: "#abb2bf"
+    bgColor: "#21252b"
+    suggestColor: "#61afef"
+
+  info:
+    fgColor: "#56b6c2"
+    sectionColor: "#c678dd"
+
+  help:
+    fgColor: "#abb2bf"
+    bgColor: "#282c34"
+    keyColor: "#61afef"
+    numKeyColor: "#c678dd"
+
+  frame:
+    border:
+      fgColor: "#5c6370"
+      focusColor: "#61afef"
+    menu:
+      fgColor: "#abb2bf"
+      keyColor: "#61afef"
+      numKeyColor: "#c678dd"
+    crumbs:
+      fgColor: "#282c34"
+      bgColor: "#61afef"
+      activeColor: "#c678dd"
+    status:
+      newColor: "#61afef"
+      modifyColor: "#e5c07b"
+      addColor: "#98c379"
+      pendingColor: "#d19a66"
+      errorColor: "#e06c75"
+      highlightColor: "#56b6c2"
+      killColor: "#e06c75"
+      completedColor: "#5c6370"
+    title:
+      fgColor: "#abb2bf"
+      bgColor: "#282c34"
+      highlightColor: "#c678dd"
+      counterColor: "#61afef"
+      filterColor: "#e5c07b"
+
+  views:
+    charts:
+      bgColor: "#282c34"
+      chartBgColor: "#21252b"
+      dialBgColor: "#21252b"
+      defaultDialColors:
+        - "#61afef"
+        - "#e06c75"
+      defaultChartColors:
+        - "#61afef"
+        - "#e06c75"
+      resourceColors:
+        cpu:
+          - "#61afef"
+          - "#e06c75"
+        mem:
+          - "#c678dd"
+          - "#e06c75"
+        gpu:
+          - "#56b6c2"
+          - "#e5c07b"
+
+    table:
+      fgColor: "#abb2bf"
+      bgColor: "#282c34"
+      cursorFgColor: "#282c34"
+      cursorBgColor: "#61afef"
+      markColor: "#e5c07b"
+      header:
+        fgColor: "#abb2bf"
+        bgColor: "#21252b"
+        sorterColor: "#56b6c2"
+
+    xray:
+      fgColor: "#abb2bf"
+      bgColor: "#282c34"
+      cursorColor: "#61afef"
+      graphicColor: "#c678dd"
+      showColor: "#98c379"
+
+    yaml:
+      keyColor: "#61afef"
+      colonColor: "#5c6370"
+      valueColor: "#abb2bf"
+
+    logs:
+      fgColor: "#abb2bf"
+      bgColor: "#282c34"
+      indicator:
+        fgColor: "#abb2bf"
+        bgColor: "#21252b"
+        toggleOnColor: "#98c379"
+        toggleOffColor: "#5c6370"
+
+  dialog:
+    fgColor: "#abb2bf"
+    bgColor: "#21252b"
+    buttonFgColor: "#282c34"
+    buttonBgColor: "#5c6370"
+    buttonFocusFgColor: "#282c34"
+    buttonFocusBgColor: "#61afef"
+    labelFgColor: "#e5c07b"
+    fieldFgColor: "#abb2bf"

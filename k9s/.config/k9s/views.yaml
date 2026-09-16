@@ -1,0 +1,66 @@
+# k9s custom column views
+# Docs: https://k9scli.io/topics/columns/
+
+views:
+  # Tighter pod table: readiness + restarts front-and-center
+  v1/pods:
+    columns:
+      - NAMESPACE
+      - NAME
+      - READY
+      - STATUS
+      - RESTARTS
+      - CPU
+      - MEM
+      - IP|W
+      - NODE|W
+      - AGE
+
+  # Deployments: replicas + age first
+  apps/v1/deployments:
+    columns:
+      - NAMESPACE
+      - NAME
+      - READY
+      - UP-TO-DATE
+      - AVAILABLE
+      - CPU
+      - MEM
+      - AGE
+
+  # Nodes: capacity / pressure focused
+  v1/nodes:
+    columns:
+      - NAME
+      - STATUS
+      - ROLE
+      - VERSION
+      - PODS
+      - CPU
+      - MEM
+      - AGE
+
+  v1/services:
+    columns:
+      - NAMESPACE
+      - NAME
+      - TYPE
+      - CLUSTER-IP
+      - EXTERNAL-IP|W
+      - PORT(S)
+      - AGE
+
+  v1/configmaps:
+    columns:
+      - NAMESPACE
+      - NAME
+      - DATA
+      - AGE
+
+  v1/secrets:
+    columns:
+      - NAMESPACE
+      - NAME
+      - TYPE
+      - DATA
+      - AGE

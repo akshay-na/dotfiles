@@ -1,0 +1,69 @@
+# k9s custom hotkeys
+# Docs: https://k9scli.io/topics/hotkeys/
+
+hotKeys:
+  shift-0:
+    shortCut: Shift-0
+    description: View namespaces
+    command: namespaces
+
+  shift-1:
+    shortCut: Shift-1
+    description: View pods
+    command: pods
+
+  shift-2:
+    shortCut: Shift-2
+    description: View deployments
+    command: deployments
+
+  shift-3:
+    shortCut: Shift-3
+    description: View services
+    command: services
+
+  shift-4:
+    shortCut: Shift-4
+    description: View ingresses
+    command: ingresses
+
+  shift-5:
+    shortCut: Shift-5
+    description: View configmaps
+    command: configmaps
+
+  shift-6:
+    shortCut: Shift-6
+    description: View secrets
+    command: secrets
+
+  shift-7:
+    shortCut: Shift-7
+    description: View nodes
+    command: nodes
+
+  shift-8:
+    shortCut: Shift-8
+    description: View jobs
+    command: jobs
+
+  shift-9:
+    shortCut: Shift-9
+    description: View contexts
+    command: contexts
+
+  # Status filters (slash filter applied after opening pods)
+  f2:
+    shortCut: F2
+    description: Running pods
+    command: pods /Running
+
+  f3:
+    shortCut: F3
+    description: Failed pods
+    command: pods /Failed
+
+  f4:
+    shortCut: F4
+    description: Pending pods
+    command: pods /Pending

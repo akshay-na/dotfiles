@@ -1,0 +1,102 @@
+# k9s plugins — optional shortcuts that shell out to local tools
+# Docs: https://k9scli.io/topics/plugins/
+# All plugins below use only kubectl (no extra binaries). Enable as needed.
+
+plugins:
+  # Dive into a resource with kubectl explain
+  explain:
+    shortCut: Shift-E
+    description: kubectl explain this resource
+    scopes:
+      - all
+    command: kubectl
+    background: false
+    args:
+      - explain
+      - $RESOURCE_NAME
+
+  # Dry-run delete for safety (prints what would be deleted)
+  dry-run-delete:
+    shortCut: Shift-D
+    confirm: true
+    description: Dry-run delete selected resource
+    scopes:
+      - all
+    command: kubectl
+    background: false
+    args:
+      - delete
+      - $RESOURCE_NAME
+      - $NAME
+      - -n
+      - $NAMESPACE
+      - --dry-run=client
+      - -o
+      - yaml
+
+  # Get YAML via kubectl (same as built-in `y`, handy on older views)
+  get-yaml:
+    shortCut: Shift-Y
+    description: kubectl get -o yaml
+    scopes:
+      - all
+    command: kubectl
+    background: false
+    args:
+      - get
+      - $RESOURCE_NAME
+      - $NAME
+      - -n
+      - $NAMESPACE
+      - -o
+      - yaml
+
+  # Describe in an external pager-friendly dump
+  describe:
+    shortCut: Shift-Q
+    description: kubectl describe
+    scopes:
+      - all
+    command: kubectl
+    background: false
+    args:
+      - describe
+      - $RESOURCE_NAME
+      - $NAME
+      - -n
+      - $NAMESPACE
+
+  # Follow previous container logs (crash loops)
+  previous-logs:
+    shortCut: Shift-P
+    description: Previous container logs
+    scopes:
+      - po
+      - pods
+    command: kubectl
+    background: false
+    args:
+      - logs
+      - -f
+      - -p
+      - $NAME
+      - -n
+      - $NAMESPACE
+      - --all-containers
+      - --tail=200
+
+  # Events for the selected namespace (or cluster if none)
+  ns-events:
+    shortCut: Shift-V
+    description: Events in namespace
+    scopes:
+      - namespaces
+      - ns
+    command: kubectl
+    background: false
+    args:
+      - get
+      - events
+      - -n
+      - $NAME
+      - --sort-by=.lastTimestamp

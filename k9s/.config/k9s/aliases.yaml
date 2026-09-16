@@ -1,0 +1,43 @@
+# k9s aliases — short resource names
+# Docs: https://k9scli.io/topics/aliases/
+
+aliases:
+  # Core workloads
+  dp: deployments
+  deploy: deployments
+  ds: daemonsets
+  sts: statefulsets
+  rs: replicasets
+  cj: cronjobs
+  job: jobs
+
+  # Networking
+  svc: services
+  ep: endpoints
+  ing: ingresses
+  netpol: networkpolicies
+
+  # Config / storage
+  cm: configmaps
+  sec: secrets
+  pvc: persistentvolumeclaims
+  pv: persistentvolumes
+  sc: storageclasses
+
+  # Cluster / RBAC
+  ns: namespaces
+  no: nodes
+  sa: serviceaccounts
+  cr: clusterroles
+  crb: clusterrolebindings
+  ro: roles
+  rb: rolebindings
+
+  # Apps / batch
+  po: pods
+  hpa: horizontalpodautoscalers
+  pdb: poddisruptionbudgets
+
+  # Ops
+  ctx: contexts
+  user: users

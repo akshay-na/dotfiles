@@ -25,6 +25,7 @@ export HISTSIZE=10000                                                # Shell his
 export PODMAN_SYSTEMD_UNIT="enabled"                                 # Enable systemd unit for podman
 export PODMAN_USERNS=keep-id                                         # Keep user namespaces for podman
 export GPG_TTY=$(tty)                                                # Set GPG TTY for GPG agent
+export K9S_CONFIG_DIR="$HOME/.config/k9s"                            # K9s configuration directory
 
 # Create logs directory if it doesn't exist
 if [ ! -d "$HOME/logs" ]; then
@@ -107,12 +108,12 @@ fi
 # Interactive-Only Configurations
 # ---------------------------------------------------------------
 # Interactive TTY + local (not SSH) + optional opt-out via DOTFILES_DISABLE_UPDATE
-if [[ -t 0 ]] \
-  && [[ ( -n "$ZSH_VERSION" && -o interactive ) || ( -n "$BASH_VERSION" && $- == *i* ) ]] \
-  && [[ "$DOTFILES_DISABLE_UPDATE" != "true" ]] \
-  && [[ -z "$SSH_CONNECTION" ]] \
-  && [[ -z "$SSH_TTY" ]] \
-  && [[ -n "$PS1" ]]; then
+if [[ -t 0 ]] &&
+  [[ (-n "$ZSH_VERSION" && -o interactive) || (-n "$BASH_VERSION" && $- == *i*) ]] &&
+  [[ "$DOTFILES_DISABLE_UPDATE" != "true" ]] &&
+  [[ -z "$SSH_CONNECTION" ]] &&
+  [[ -z "$SSH_TTY" ]] &&
+  [[ -n "$PS1" ]]; then
   # Network connectivity check for background operations
   PING_RESULT=false
 

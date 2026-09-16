@@ -1,0 +1,54 @@
+# k9s configuration
+# Docs: https://k9scli.io/topics/config/
+# Skin: skins/one-dark-pro.yaml (One Dark Pro)
+
+k9s:
+  liveViewAutoRefresh: true
+  screenDumpDir: /tmp/k9s-screens
+  refreshRate: 2
+  maxConnRetry: 5
+  readOnly: false
+  noExitOnCtrlC: false
+  portForwardAddress: localhost
+  skipLatestRevCheck: false
+  disablePodCounting: false
+
+  ui:
+    enableMouse: true
+    headless: false
+    logoless: false
+    crumbsless: false
+    reactive: true
+    noIcons: false
+    defaultsToFullScreen: false
+    skin: one-dark-pro
+
+  # Ephemeral debug/shell pod spawned via `s` / shell helpers
+  shellPod:
+    image: busybox:1.36.1
+    namespace: default
+    limits:
+      cpu: 100m
+      memory: 100Mi
+
+  imageScans:
+    enable: false
+    exclusions:
+      namespaces: []
+      labels: {}
+
+  logger:
+    tail: 200
+    buffer: 5000
+    sinceSeconds: -1
+    textWrap: false
+    showTime: true
+    disableAutoscroll: false
+
+  thresholds:
+    cpu:
+      critical: 90
+      warn: 70
+    memory:
+      critical: 90
+      warn: 70
