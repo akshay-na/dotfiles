@@ -26,6 +26,7 @@ export PODMAN_SYSTEMD_UNIT="enabled"                                 # Enable sy
 export PODMAN_USERNS=keep-id                                         # Keep user namespaces for podman
 export GPG_TTY=$(tty)                                                # Set GPG TTY for GPG agent
 export K9S_CONFIG_DIR="$HOME/.config/k9s"                            # K9s configuration directory
+export STERNCONFIG="$HOME/.config/stern/config.yaml"                 # stern config (multi-pod log tail)
 
 # Create logs directory if it doesn't exist
 if [ ! -d "$HOME/logs" ]; then

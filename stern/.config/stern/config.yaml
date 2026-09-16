@@ -1,0 +1,47 @@
+# stern — productive defaults
+# Docs: https://github.com/stern/stern#config-file
+# Flag names == YAML keys. CLI flags always override these.
+# Path: ~/.config/stern/config.yaml (STERNCONFIG)
+
+# Recent context only — avoid dumping full container history on attach
+tail: 200
+since: 1h
+
+# Incident-friendly timestamps
+timestamps: short
+timezone: Local
+
+# Readable multi-pod / multi-container streams
+color: always
+diff-container: true
+pod-colors: "91,92,93,94,95,96"
+container-colors: "32,33,34,35,36,37"
+
+# Namespace + colored pod/container prefix (works well with -A)
+template: '{{.Namespace}}/{{color .PodColor .PodName}} {{color .ContainerColor .ContainerName}} {{.Message}}{{"\n"}}'
+
+# Day-to-day: live workloads only
+# Crash forensics: stern --container-state=all --since=30m <query>
+container-state:
+  - running
+
+# Common sidecar noise
+exclude-container:
+  - '^(istio-proxy|linkerd-proxy|vault-agent|cloudsql-proxy|telegraf)$'
+
+# Probe / favicon spam
+exclude:
+  - '(?i)/healthz|/readyz|/livez|favicon\.ico'
+
+# Surface failures in the stream
+highlight:
+  - '(?i)error|exception|panic|fatal'
+  - '(?i)timeout|deadline exceeded'
+  - '(?i)oomkilled|crashloop'
+
+# Init rarely needed for live tails; include via --init-containers
+init-containers: false
+ephemeral-containers: true
+
+# Concurrent log streams (cluster-friendly; raise for huge fleets)
+max-log-requests: 50

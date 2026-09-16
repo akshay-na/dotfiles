@@ -93,6 +93,18 @@ if command -v kubectl &>/dev/null; then
 fi
 
 # ---------------------------------------------------------------
+# stern (multi-pod / multi-container log tail)
+# Defaults: ~/.config/stern/config.yaml via STERNCONFIG
+# ---------------------------------------------------------------
+if command -v stern &>/dev/null; then
+  alias s=stern
+  alias sa='stern -A'                                          # all namespaces
+  alias sfail='stern --container-state=all --since=30m'        # include terminated/waiting (crash forensics)
+  alias serr='stern -i "(?i)error|exception|panic|fatal"'      # error lines only
+  alias sjson='stern -o ppextjson'                             # pretty JSON when logs are JSON
+fi
+
+# ---------------------------------------------------------------
 # Git Aliases
 # ---------------------------------------------------------------
 alias g='git'
