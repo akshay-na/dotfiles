@@ -28,6 +28,13 @@ export GPG_TTY=$(tty)                                                # Set GPG T
 export K9S_CONFIG_DIR="$HOME/.config/k9s"                            # K9s configuration directory
 export STERNCONFIG="$HOME/.config/stern/config.yaml"                 # stern config (multi-pod log tail)
 
+# Add SSH keys to the agent
+for key in ~/.ssh/id_*; do
+  [[ -f "$key" ]] || continue
+  [[ "$key" =~ \.(pub|pem)$ ]] && continue
+  ssh-add "$key"
+done
+
 # Create logs directory if it doesn't exist
 if [ ! -d "$HOME/logs" ]; then
   mkdir -p $HOME/logs
