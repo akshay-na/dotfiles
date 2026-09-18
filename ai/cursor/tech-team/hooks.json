@@ -113,6 +113,13 @@
         "failClosed": false,
         "timeout": 5
       }
+    ],
+    "stop": [
+      {
+        "command": "./hooks/agent-completion-notify.sh",
+        "failClosed": false,
+        "timeout": 15
+      }
     ]
   }
 }

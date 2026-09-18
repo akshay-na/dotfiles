@@ -3,7 +3,7 @@
 # notify — Apprise notification wrapper
 # Usage: notify <title> [detail]
 # Title is passed through. Body is always: hostname · date
-# Destinations come from APPRISE_URLS (all configured services).
+# Destinations come from APPRISE_URLS filtered by Apprise tag notify-script.
 # This wrapper does not pass URL argv or --config / -c.
 
 set -eu
@@ -48,16 +48,20 @@ FORMAT:
              [detail]
 
 ENVIRONMENT VARIABLES:
-    APPRISE_URLS          Required. Apprise URLs to notify (all of them).
+    APPRISE_URLS          Required. Apprise URLs to notify.
                           Whitespace and/or comma-delimited.
+                          URLs must include tag notify-script (query or
+                          config) so -g notify-script matches.
                           This wrapper never prints the value; logs list
                           inferred platform names only (slack, discord, …).
 
 NOTES:
     - Title is required; body is hostname · date (optional detail is extra)
-    - Sends to every URL in APPRISE_URLS (no platform filter)
+    - Filters APPRISE_URLS to entries with tag=notify-script (Apprise -g is
+      ignored when APPRISE_URLS is set, so filtering is done in this wrapper)
     - Backend: Apprise (https://github.com/caronc/apprise)
-    - Does not pass --config / -c (that would override APPRISE_URLS)
+    - Does not pass --config / -c
+    - Requires python3 for tag filtering
     - Never logs tokens or webhook URLs
 EOF
 }
@@ -155,8 +159,50 @@ format_body() {
 send_apprise() {
   title=$1
   body=$2
+  tag=notify-script
 
-  apprise -t "$title" -b "$body"
+  # Apprise ignores -g/--tag when APPRISE_URLS is set — filter URLs ourselves.
+  if ! command -v python3 >/dev/null 2>&1; then
+    error "python3 is required to filter APPRISE_URLS by tag"
+    return 1
+  fi
+
+  filtered="$(
+    TAG="$tag" python3 - <<'PY'
+import os, re
+from urllib.parse import urlparse, parse_qs
+
+want = os.environ.get("TAG", "")
+raw = os.environ.get("APPRISE_URLS", "")
+parts = [p for p in re.split(r"[\s,;]+", raw.strip()) if p]
+kept = []
+for u in parts:
+    q = parse_qs(urlparse(u).query)
+    tags = []
+    for key in ("tag", "tags"):
+        for v in q.get(key, []):
+            tags.extend(t.strip() for t in v.split(",") if t.strip())
+    if want in tags:
+        kept.append(u)
+print("\n".join(kept), end="")
+PY
+  )"
+
+  if [ -z "$filtered" ]; then
+    error "No APPRISE_URLS entries tagged '${tag}'"
+    return 1
+  fi
+
+  set --
+  while IFS= read -r u; do
+    [ -n "$u" ] || continue
+    set -- "$@" "$u"
+  done <<EOF
+$filtered
+EOF
+
+  # Drop APPRISE_URLS so only the filtered argv URLs are notified.
+  APPRISE_URLS= apprise -t "$title" -b "$body" "$@"
 }
 
 main() {

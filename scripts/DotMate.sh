@@ -389,6 +389,7 @@ bootstrap_local_main() {
 # Tags to set on urls:
 #   platform: slack, discord
 #   reserved: always
+#   routing: notify-script (scripts/.local/bin/notify), agent-alert (Cursor stop hook)
 #   title-types: ALERT, NOTIFICATION, STATUS_UPDATE, WARNING, ERROR,
 #     SUCCESS, INFO, MAINTENANCE, BACKUP, DEPLOYMENT
 #
@@ -400,6 +401,10 @@ bootstrap_local_main() {
 # Docs: https://appriseit.com/services/slack/
 #       https://appriseit.com/services/discord/
 # Tags: https://appriseit.com/qa/tag-matching/
+#
+# CLI examples:
+#   notify "deploy done"                 # apprise -g notify-script
+#   apprise -g agent-alert -t title -b body
 
 version: 1
 
@@ -410,9 +415,9 @@ urls: []
 #   - slack://<oauth-token>/#alerts:
 #       tag: slack,always,ALERT,ERROR,WARNING
 #   - slack://<oauth-token>/#notify:
-#       tag: slack,NOTIFICATION,STATUS_UPDATE,INFO,MAINTENANCE,BACKUP,DEPLOYMENT,SUCCESS
+#       tag: slack,NOTIFICATION,STATUS_UPDATE,INFO,MAINTENANCE,BACKUP,DEPLOYMENT,SUCCESS,notify-script
 #   - discord://<webhook-id>/<webhook-token>/:
-#       tag: discord,always,ALERT,NOTIFICATION,STATUS_UPDATE,WARNING,ERROR,INFO,MAINTENANCE,BACKUP,DEPLOYMENT,SUCCESS
+#       tag: discord,always,ALERT,NOTIFICATION,STATUS_UPDATE,WARNING,ERROR,INFO,MAINTENANCE,BACKUP,DEPLOYMENT,SUCCESS,notify-script,agent-alert
 EOF
   fi
 
