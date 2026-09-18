@@ -347,7 +347,7 @@ bootstrap_local_main() {
   }
 
   echo_with_color "$GREEN" "Bootstrapping local dotfiles tree: $local_dir"
-  mkdir -p "$local_dir/shell" "$local_dir/git" "$local_dir/ssh/.ssh" "$local_dir/utilities" "$local_dir/scripts"
+  mkdir -p "$local_dir/shell" "$local_dir/git" "$local_dir/ssh/.ssh" "$local_dir/utilities/.config" "$local_dir/scripts"
 
   cp -n "$CANON/scripts/DotMate.sh" "$local_dir/scripts/DotMate.sh"
   cp -n "$CANON/Makefile" "$local_dir/Makefile"
@@ -372,6 +372,49 @@ bootstrap_local_main() {
   _bootstrap_scaffold_if_missing "$local_dir/git/.gitconfig_local"
   _bootstrap_scaffold_if_missing "$local_dir/ssh/.ssh/config_local"
   _bootstrap_scaffold_if_missing "$local_dir/utilities/.taskrc_local"
+  if [ ! -e "$local_dir/utilities/.config/apprise.local.yaml" ]; then
+    cat >"$local_dir/utilities/.config/apprise.local.yaml" <<'EOF'
+# Local Apprise URLs (secrets). Stow target: ~/.config/apprise.local.yaml
+# Included from ~/.config/apprise.yaml. Do not copy tokens into the canonical repo.
+# Uncomment the example `urls` block, replace angle-bracket placeholders, then
+# delete the live `urls: []` key so Apprise uses your endpoints.
+#
+# CLI:
+#   apprise -g slack -t title -b body
+#   apprise -g ALERT -t title -b body
+#   apprise -t title -b body
+#     (untagged URLs + reserved tag `always` only; other tagged URLs stay silent)
+# Notify type is CLI -n info|success|warning|failure (no YAML notify_type map).
+#
+# Tags to set on urls:
+#   platform: slack, discord
+#   reserved: always
+#   title-types: ALERT, NOTIFICATION, STATUS_UPDATE, WARNING, ERROR,
+#     SUCCESS, INFO, MAINTENANCE, BACKUP, DEPLOYMENT
+#
+# URL shapes (comments only — do not leave live placeholders):
+#   slack bot: slack://<oauth-token>/#channel   (# required; missing channel → #general)
+#   slack webhook triple: slack://<id-a>/<id-b>/<id-c>
+#   extra channel only on slack://<id-a>/<id-b>/<id-c>/#channel
+#   discord: discord://<webhook-id>/<webhook-token>/
+# Docs: https://appriseit.com/services/slack/
+#       https://appriseit.com/services/discord/
+# Tags: https://appriseit.com/qa/tag-matching/
+
+version: 1
+
+urls: []
+
+# Example (uncomment, fill placeholders, remove `urls: []` above):
+# urls:
+#   - slack://<oauth-token>/#alerts:
+#       tag: slack,always,ALERT,ERROR,WARNING
+#   - slack://<oauth-token>/#notify:
+#       tag: slack,NOTIFICATION,STATUS_UPDATE,INFO,MAINTENANCE,BACKUP,DEPLOYMENT,SUCCESS
+#   - discord://<webhook-id>/<webhook-token>/:
+#       tag: discord,always,ALERT,NOTIFICATION,STATUS_UPDATE,WARNING,ERROR,INFO,MAINTENANCE,BACKUP,DEPLOYMENT,SUCCESS
+EOF
+  fi
 
   if [ ! -f "$local_dir/.gitignore" ]; then
     cat >"$local_dir/.gitignore" <<'EOF'

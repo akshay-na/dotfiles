@@ -7,7 +7,7 @@ export function isoTimestamp(date = new Date()): string {
   return date.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
-/** Local `YYYY-MM-DD HH:MM:SS` (pingme.sh / rfc-style logs). */
+/** Local `YYYY-MM-DD HH:MM:SS` (notify / rfc-style logs). */
 export function localTimestamp(date = new Date()): string {
   return [
     `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,

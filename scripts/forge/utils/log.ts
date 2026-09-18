@@ -60,7 +60,7 @@ export function header(title: string): void {
   console.log(bar);
 }
 
-/** Print a timestamped line, matching pingme.sh. */
+/** Print a timestamped line, matching notify. */
 export function timestamped(message: string): void {
   console.log(line(paint(BLUE, `[${localTimestamp()}]`), message));
 }

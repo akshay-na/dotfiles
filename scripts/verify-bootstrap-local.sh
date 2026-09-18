@@ -56,6 +56,8 @@ assert_file "$LOCAL_DIR/shell/.tmux_local.conf"
 assert_file "$LOCAL_DIR/git/.gitconfig_local"
 assert_file "$LOCAL_DIR/ssh/.ssh/config_local"
 assert_file "$LOCAL_DIR/utilities/.taskrc_local"
+assert_file "$LOCAL_DIR/utilities/.config/apprise.local.yaml"
+[ -s "$LOCAL_DIR/utilities/.config/apprise.local.yaml" ] || die "apprise.local.yaml is empty"
 
 if [ "${SKIP_GIT_INIT:-0}" != "1" ] && command -v git >/dev/null 2>&1; then
   assert_file "$LOCAL_DIR/.git/HEAD"

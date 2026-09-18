@@ -1,0 +1,200 @@
+#!/bin/sh
+
+# notify — Apprise notification wrapper
+# Usage: notify <title> [detail]
+# Title is passed through. Body is always: hostname · date
+# Destinations come from APPRISE_URLS (all configured services).
+# This wrapper does not pass URL argv or --config / -c.
+
+set -eu
+
+SCRIPT_NAME="$(basename "$0")"
+
+log() {
+  echo "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+}
+
+error() {
+  echo "${RED}[ERROR]${NC} $1" >&2
+}
+
+success() {
+  echo "${GREEN}[SUCCESS]${NC} $1"
+}
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+show_help() {
+  cat <<EOF
+${SCRIPT_NAME} - Notification wrapper (Apprise backend)
+
+USAGE:
+    ${SCRIPT_NAME} <title> [detail]
+
+ARGUMENTS:
+    title    Notification title (passed to apprise -t), e.g. "✅ Deployment Complete"
+    detail   Optional extra line appended under the hostname · date body
+
+EXAMPLES:
+    ${SCRIPT_NAME} "✅ Deployment Complete"
+    ${SCRIPT_NAME} "❌ Backup failed" "disk full"
+
+FORMAT:
+    Title    <title>
+    Body     <hostname> · <date>
+             [detail]
+
+ENVIRONMENT VARIABLES:
+    APPRISE_URLS          Required. Apprise URLs to notify (all of them).
+                          Whitespace and/or comma-delimited.
+                          This wrapper never prints the value; logs list
+                          inferred platform names only (slack, discord, …).
+
+NOTES:
+    - Title is required; body is hostname · date (optional detail is extra)
+    - Sends to every URL in APPRISE_URLS (no platform filter)
+    - Backend: Apprise (https://github.com/caronc/apprise)
+    - Does not pass --config / -c (that would override APPRISE_URLS)
+    - Never logs tokens or webhook URLs
+EOF
+}
+
+check_dependencies() {
+  if ! command -v apprise >/dev/null 2>&1; then
+    error "Apprise CLI is not installed or not in PATH"
+    error "Installation options:"
+    error "  1. Homebrew: brew install apprise"
+    error "  2. pip: pip install apprise"
+    error "  3. uv: uv tool install apprise"
+    error "  4. Docs: https://github.com/caronc/apprise"
+    exit 1
+  fi
+}
+
+check_apprise_urls() {
+  if [ -z "${APPRISE_URLS:-}" ]; then
+    error "APPRISE_URLS is empty or unset"
+    error "Set APPRISE_URLS to one or more Apprise URLs"
+    return 1
+  fi
+}
+
+# Map one URL to a platform name. Never print the URL.
+platform_from_url() {
+  url=$1
+  case "$url" in
+  slack://* | https://hooks.slack.com/* | http://hooks.slack.com/*)
+    echo slack
+    ;;
+  discord://* | https://discord.com/api/webhooks/* | https://discordapp.com/api/webhooks/*)
+    echo discord
+    ;;
+  mailto://* | mailtos://*)
+    echo email
+    ;;
+  tgram://* | telegram://*)
+    echo telegram
+    ;;
+  *://*)
+    printf '%s\n' "${url%%://*}"
+    ;;
+  *)
+    echo unknown
+    ;;
+  esac
+}
+
+# Dissect APPRISE_URLS into unique platform names. Never echo URL values.
+platforms_from_apprise_urls() {
+  raw=$(printf '%s' "${APPRISE_URLS:-}" | tr ',;' ' ')
+  platforms=""
+
+  set -f
+  # shellcheck disable=SC2086
+  for url in $raw; do
+    set +f
+    [ -z "$url" ] && continue
+    p=$(platform_from_url "$url")
+    [ -z "$p" ] && continue
+    case " $platforms " in
+    *" $p "*) ;;
+    *)
+      if [ -z "$platforms" ]; then
+        platforms="$p"
+      else
+        platforms="$platforms $p"
+      fi
+      ;;
+    esac
+  done
+  set +f
+
+  if [ -z "$platforms" ]; then
+    echo unknown
+    return 0
+  fi
+
+  # comma-separate for logs
+  printf '%s\n' "$platforms" | tr ' ' ',' | sed 's/,/, /g'
+}
+
+# Body: "<hostname> · <date>" matching e.g. MacBook-Air.local · Sat Sep 19 02:16:06 IST 2026
+format_body() {
+  detail=$1
+  line="$(hostname) · $(date)"
+  if [ -n "$detail" ]; then
+    printf '%s\n%s\n' "$line" "$detail"
+  else
+    printf '%s\n' "$line"
+  fi
+}
+
+send_apprise() {
+  title=$1
+  body=$2
+
+  apprise -t "$title" -b "$body"
+}
+
+main() {
+  case "${1:-}" in
+  -h | --help)
+    show_help
+    exit 0
+    ;;
+  esac
+
+  if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    error "Usage: ${SCRIPT_NAME} <title> [detail]"
+    error "Run '${SCRIPT_NAME} --help' for more information."
+    exit 1
+  fi
+
+  title=$1
+  detail=${2:-}
+  body=$(format_body "$detail")
+
+  check_dependencies
+  if ! check_apprise_urls; then
+    exit 1
+  fi
+
+  platforms=$(platforms_from_apprise_urls)
+
+  log "Sending notification to: $platforms"
+  log "Title: $title"
+  log "Body: $body"
+
+  if send_apprise "$title" "$body"; then
+    success "Notification sent to: $platforms"
+    exit 0
+  else
+    error "Failed to send notification to: $platforms"
+    exit 1
+  fi
+}
+
+main "$@"

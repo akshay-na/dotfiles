@@ -71,7 +71,7 @@ install_common() {
     gpg
     jesseduffield/lazydocker/lazydocker
     jq
-    kha7iq/tap/pingme
+    apprise
     lazydocker
     lazygit
     logrotate

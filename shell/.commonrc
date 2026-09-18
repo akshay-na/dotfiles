@@ -32,7 +32,7 @@ export STERNCONFIG="$HOME/.config/stern/config.yaml"                 # stern con
 for key in ~/.ssh/id_*; do
   [[ -f "$key" ]] || continue
   [[ "$key" =~ \.(pub|pem)$ ]] && continue
-  ssh-add "$key"
+  ssh-add "$key" >/dev/null 2>&1
 done
 
 # Create logs directory if it doesn't exist

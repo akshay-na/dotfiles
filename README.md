@@ -153,19 +153,20 @@ Review `~/dotfiles_backup/` manually when reclaiming disk space.
 
 ## Local override files (Included list)
 
-These paths are **created empty on first bootstrap** under your **local** repo if missing (same layout under `$HOME` after you `stow` that tree). Tracked upstream configs merge them as shown.
+These paths are **created on first bootstrap** under your **local** repo if missing (same layout under `$HOME` after you `stow` that tree). Most are empty files; `utilities/.config/apprise.local.yaml` is a commented YAML skeleton (no secrets). Tracked upstream configs merge them as shown.
 
-| Local repo path (under `LOCAL_DIR`) | Merged from (tracked)                           |
-| ----------------------------------- | ----------------------------------------------- |
-| `shell/.commonrc_local`             | `shell/.commonrc`                               |
-| `shell/.functions_local`            | `shell/.functions`                              |
-| `shell/.aliases_local`              | `shell/.aliases`                                |
-| `shell/.zshrc_local`                | `shell/.zshrc`                                  |
-| `shell/.bashrc_local`               | `shell/.bashrc`                                 |
-| `shell/.tmux_local.conf`            | `shell/.tmux.conf` (loads `~/.tmux_local.conf`) |
-| `git/.gitconfig_local`              | `git/.gitconfig` (`include.path`)               |
-| `ssh/.ssh/config_local`             | `ssh/.ssh/config` (`Include`)                   |
-| `utilities/.taskrc_local`           | `utilities/.taskrc` (`include`)                 |
+| Local repo path (under `LOCAL_DIR`)    | Merged from (tracked)                           |
+| -------------------------------------- | ----------------------------------------------- |
+| `shell/.commonrc_local`                | `shell/.commonrc`                               |
+| `shell/.functions_local`               | `shell/.functions`                              |
+| `shell/.aliases_local`                 | `shell/.aliases`                                |
+| `shell/.zshrc_local`                   | `shell/.zshrc`                                  |
+| `shell/.bashrc_local`                  | `shell/.bashrc`                                 |
+| `shell/.tmux_local.conf`               | `shell/.tmux.conf` (loads `~/.tmux_local.conf`) |
+| `git/.gitconfig_local`                 | `git/.gitconfig` (`include.path`)               |
+| `ssh/.ssh/config_local`                | `ssh/.ssh/config` (`Include`)                   |
+| `utilities/.taskrc_local`              | `utilities/.taskrc` (`include`)                 |
+| `utilities/.config/apprise.local.yaml` | `utilities/.config/apprise.yaml` (`include`)    |
 
 **Starship:** There is no `*_local` merge file. Use a branch, `STARSHIP_CONFIG`, or a separate stow tree.
 
