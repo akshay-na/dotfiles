@@ -131,11 +131,14 @@ format = """\
 """
 
 [kubernetes]
-symbol       = '☸ '
-format       = '[$symbol$context( \($namespace\))]($style) in '
-style        = 'cyan bold'
-disabled     = true
-detect_files = ["k8s", "kustomization.yaml", "helmfile.yaml", "Chart.yaml"]
+symbol   = '⎈ '
+format   = '[$symbol$context( \($namespace\))]($style) '
+style    = 'cyan bold'
+disabled = false
+
+[[kubernetes.contexts]]
+context_pattern = '.+/(.+)$'
+context_alias   = '$1'
 
 [hostname]
 format     = '([$ssh_symbol](#90c0d4)[$hostname]($style)) in '
