@@ -2,7 +2,15 @@
 
 # notify — Apprise notification wrapper
 # Usage: notify <title> [detail]
-# Title is passed through. Body is always: hostname · date
+# Title is bold markdown for apprise -t (**...**); not double-wrapped if already.
+# Body is a markdown fenced code block:
+#   ```
+#   💻 Host
+#   <hostname>
+#
+#   💬 Body
+#   <detail>
+#   ```
 # Destinations come from APPRISE_URLS filtered by Apprise tag notify-script.
 # This wrapper does not pass URL argv or --config / -c.
 
@@ -35,17 +43,22 @@ USAGE:
     ${SCRIPT_NAME} <title> [detail]
 
 ARGUMENTS:
-    title    Notification title (passed to apprise -t), e.g. "✅ Deployment Complete"
-    detail   Optional extra line appended under the hostname · date body
+    title    Notification title (bold markdown to apprise -t), e.g. "✅ Deployment Complete"
+    detail   Optional text under the 💬 Body section (layout kept if empty)
 
 EXAMPLES:
     ${SCRIPT_NAME} "✅ Deployment Complete"
     ${SCRIPT_NAME} "❌ Backup failed" "disk full"
 
 FORMAT:
-    Title    <title>
-    Body     <hostname> · <date>
-             [detail]
+    Title    **<title>**   (skipped wrap if already **...**)
+    Body     \`\`\`
+             💻 Host
+             <hostname>
+
+             💬 Body
+             <detail>
+             \`\`\`
 
 ENVIRONMENT VARIABLES:
     APPRISE_URLS          Required. Apprise URLs to notify.
@@ -56,7 +69,8 @@ ENVIRONMENT VARIABLES:
                           inferred platform names only (slack, discord, …).
 
 NOTES:
-    - Title is required; body is hostname · date (optional detail is extra)
+    - Title is required; wrapped as **...** for apprise -t unless already wrapped
+    - Body is always Host + Body sections (detail may be empty)
     - Filters APPRISE_URLS to entries with tag=notify-script (Apprise -g is
       ignored when APPRISE_URLS is set, so filtering is done in this wrapper)
     - Backend: Apprise (https://github.com/caronc/apprise)
@@ -145,15 +159,23 @@ platforms_from_apprise_urls() {
   printf '%s\n' "$platforms" | tr ' ' ',' | sed 's/,/, /g'
 }
 
-# Body: "<hostname> · <date>" matching e.g. MacBook-Air.local · Sat Sep 19 02:16:06 IST 2026
+# Title for apprise -t: bold markdown **...**; skip if already wrapped.
+format_title() {
+  title=$1
+  case "$title" in
+  \*\**\*\*)
+    printf '%s\n' "$title"
+    ;;
+  *)
+    printf '**%s**\n' "$title"
+    ;;
+  esac
+}
+
+# Body: fenced code block with Host / Body sections (detail may be empty).
 format_body() {
   detail=$1
-  line="$(hostname) · $(date)"
-  if [ -n "$detail" ]; then
-    printf '%s\n%s\n' "$line" "$detail"
-  else
-    printf '%s\n' "$line"
-  fi
+  printf '```\n💻 Host\n%s\n\n💬 Body\n%s\n```\n' "$(hostname)" "$detail"
 }
 
 send_apprise() {
@@ -219,7 +241,7 @@ main() {
     exit 1
   fi
 
-  title=$1
+  title=$(format_title "$1")
   detail=${2:-}
   body=$(format_body "$detail")
 
@@ -232,7 +254,6 @@ main() {
 
   log "Sending notification to: $platforms"
   log "Title: $title"
-  log "Body: $body"
 
   if send_apprise "$title" "$body"; then
     success "Notification sent to: $platforms"
