@@ -22,7 +22,77 @@
       "url": "https://mcp.context7.com/mcp"
     },
     "Plane": {
-      "url": "https://mcp.plane.so/http/mcp"
+      "url": "https://mcp.plane.so/http/api-key/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:MCP_PLANE_PAT}",
+        "x-workspace-slug": "${env:MCP_PLANE_WORKSPACE_SLUG}"
+      }
+    },
+    "atlassian": {
+      "url": "https://mcp.atlassian.com/v2/mcp"
+    },
+    "tailscale": {
+      "command": "npx",
+      "args": ["-y", "@yawlabs/tailscale-mcp@0.23.0"],
+      "env": {
+        "TAILSCALE_API_KEY": "${env:MCP_TAILSCALE_API_KEY}",
+        "TAILSCALE_PROFILE": "core"
+      }
+    },
+    "proxmox": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "proxmox-mcp-server[router]==1.4.4",
+        "proxmox-mcp-server"
+      ],
+      "env": {
+        "PROXMOX_HOST": "${env:MCP_PROXMOX_HOST}",
+        "PROXMOX_USER": "${env:MCP_PROXMOX_USER}",
+        "PROXMOX_TOKEN_NAME": "${env:MCP_PROXMOX_TOKEN_NAME}",
+        "PROXMOX_TOKEN_VALUE": "${env:MCP_PROXMOX_TOKEN_VALUE}",
+        "TOOL_ROUTING": "true"
+      }
+    },
+    "kubernetes": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "kubernetes-mcp-server@0.0.67",
+        "--log-level",
+        "1",
+        "--toolsets",
+        "core"
+      ]
+    },
+    "argocd": {
+      "command": "npx",
+      "args": ["-y", "argocd-mcp@0.9.0", "stdio"],
+      "env": {
+        "ARGOCD_BASE_URL": "${env:MCP_ARGOCD_BASE_URL}",
+        "ARGOCD_API_TOKEN": "${env:MCP_ARGOCD_API_TOKEN}"
+      }
+    },
+    "cloudflare": {
+      "url": "https://mcp.cloudflare.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:MCP_CLOUDFLARE_API_TOKEN}"
+      }
+    },
+    "n8n": {
+      "type": "streamable-http",
+      "url": "${env:MCP_N8N_URL}",
+      "headers": {
+        "Authorization": "Bearer ${env:MCP_N8N_ACCESS_TOKEN}"
+      }
+    },
+    "grafana": {
+      "command": "uvx",
+      "args": ["mcp-grafana==2.1.1"],
+      "env": {
+        "GRAFANA_URL": "${env:MCP_GRAFANA_URL}",
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${env:MCP_GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
     }
   }
 }
