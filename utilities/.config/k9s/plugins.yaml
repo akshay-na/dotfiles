@@ -67,8 +67,9 @@ plugins:
       - $NAMESPACE
 
   # Follow previous container logs (crash loops)
+  # Shift-P conflicts with a built-in binding on k9s 0.51+
   previous-logs:
-    shortCut: Shift-P
+    shortCut: Shift-L
     description: Previous container logs
     scopes:
       - po

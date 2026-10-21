@@ -18,6 +18,7 @@ hs.application.enableSpotlightForNameSearches(true)
 local hyper = {"cmd", "alt", "ctrl", "shift"}
 local super = {"cmd", "alt", "ctrl"}
 local altCtrl = {"alt", "ctrl"}
+local altCtrlShift = {"alt", "ctrl", "shift"}
 
 -- Grid configuration for window snapping
 hs.grid.setGrid('8x4')  -- 8 columns, 4 rows
@@ -182,17 +183,17 @@ local function resizeWindow(dw, dh)
   end
 end
 
--- Arrow keys for window movement (hold shift for fine movement)
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Left", function() moveWindow(-20, 0) end)
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Right", function() moveWindow(20, 0) end)
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Up", function() moveWindow(0, -20) end)
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Down", function() moveWindow(0, 20) end)
+-- Arrow keys for window movement (⌥⌃; hold shift for fine movement)
+hs.hotkey.bind(altCtrl, "Left", function() moveWindow(-20, 0) end)
+hs.hotkey.bind(altCtrl, "Right", function() moveWindow(20, 0) end)
+hs.hotkey.bind(altCtrl, "Up", function() moveWindow(0, -20) end)
+hs.hotkey.bind(altCtrl, "Down", function() moveWindow(0, 20) end)
 
--- Shift + Arrow for fine movement
-hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Left", function() moveWindow(-5, 0) end)
-hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Right", function() moveWindow(5, 0) end)
-hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Up", function() moveWindow(0, -5) end)
-hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Down", function() moveWindow(0, 5) end)
+-- ⌥⌃⇧ + Arrow for fine movement
+hs.hotkey.bind(altCtrlShift, "Left", function() moveWindow(-5, 0) end)
+hs.hotkey.bind(altCtrlShift, "Right", function() moveWindow(5, 0) end)
+hs.hotkey.bind(altCtrlShift, "Up", function() moveWindow(0, -5) end)
+hs.hotkey.bind(altCtrlShift, "Down", function() moveWindow(0, 5) end)
 
 -- ============================================================================
 -- APP LAUNCHER - Quick app switching and launching with fallbacks
@@ -248,7 +249,7 @@ end)
 
 -- ChatGPT
 hs.hotkey.bind(altCtrl, 'h', function()
-  launchAppWithFallback({"Atlas", "ChatGPT"})
+  local success = launchAppWithFallback({"Atlas", "ChatGPT"})
   if not success then
     hs.urlevent.openURL("https://chatgpt.com")
   end
@@ -461,9 +462,9 @@ hs.alert.show("Hammerspoon Config Loaded ✓", 2)
 --   C        - Center
 --   N        - Move to next screen
 --
--- Window Movement (⌘⌥⌃):
+-- Window Movement (⌥⌃):
 --   ← → ↑ ↓  - Move window 20px
---   ⇧←→↑↓    - Move window 5px (fine)
+--   ⇧←→↑↓    - Move window 5px (fine)  [⌥⌃⇧]
 --
 -- Clipboard (⌥⌃):
 --   V        - Show clipboard history
@@ -476,6 +477,7 @@ hs.alert.show("Hammerspoon Config Loaded ✓", 2)
 --   L        - Calendar (Chrome site or Calendar app)
 --   O        - Obsidian (or Chrome site or Notes)
 --   F        - Finder
+--   H        - ChatGPT (Atlas/ChatGPT app, else chatgpt.com)
 --   R        - Reload config
 --   `        - Cycle windows
 --
