@@ -71,6 +71,7 @@
   hooksPath           = ~/.githooks  # Add a global git hooks path
   fileMode            = false  # Ignore file permission changes
   fscache             = true  # Enable file system cache to improve performance
+  ignoreCase          = true  # Ignore case when comparing file names
   gitproxy            = auto  # Automatically select the appropriate proxy
   packedGitLimit      = 256m  # Increase the packed Git limit for handling larger packfiles
   packedGitWindowSize = 64m  # Adjust window size for optimized packfile processing
@@ -201,6 +202,7 @@
 
 [git-town]
     # General behavior
+    main-branch = main         # Set the main branch to main
     auto-sync = true           # Sync branches automatically after each command
     auto-resolve = true        # Auto-resolve merge conflicts when possible
     detached = false           # Keep branches checked out (no detached HEAD)
@@ -225,13 +227,13 @@
     unknown-branch-type = observed        # Treat unrecognized branches as observed
 
     # Push & remotes
-    push-branches = true       # Push local branches to origin during sync
+    push-branches = false       # Push local branches to origin during sync
     push-hook = true           # Run pre-push hooks when pushing
     share-new-branches = no    # Do not publish new branches to the team on create
     sync-upstream = true       # Fetch and integrate upstream before syncing stack
 
     # Sync strategies
-    sync-feature-strategy = ff-only   # Fast-forward feature branches onto their parent
+    sync-feature-strategy = rebase    # Rebase feature branches onto their parent
     sync-perennial-strategy = ff-only  # Fast-forward perennial branches only
     sync-prototype-strategy = rebase   # Rebase prototype branches onto their parent
     sync-tags = true             # Sync tags with the remote during sync

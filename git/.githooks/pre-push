@@ -15,8 +15,9 @@ gitleaks_scan_range() {
   info "🔐 Running gitleaks on ${ref_name}"
   debug "gitleaks range: ${range}"
 
-  gitleaks git --log-opts="$range" --redact . ||
-    error "Potential secret leak detected in commits being pushed"
+  # -v prints per-finding File/Line/RuleID/Commit; --redact keeps secrets masked
+  gitleaks git --log-opts="$range" --redact -v . ||
+    error "Potential secret leak detected in commits being pushed (${ref_name}, range ${range})"
 }
 
 # Resolve the remote default branch (e.g. refs/remotes/origin/main).

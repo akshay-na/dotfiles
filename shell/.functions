@@ -383,14 +383,19 @@ archive() {
 }
 
 # -------------------------------------------------------------------------------
-# Function: gitworktree_add
-# Purpose: Add a Git worktree for a specified branch.
-#          If the branch does not exist remotely, it creates and pushes it.
-# Usage: gitworktree_add <branch-name>
+# Function: git_worktree_add
+# Purpose: Add a Git worktree for a branch. Creates missing local/remote branches
+#          via git-town append (parent = current branch) when installed, else plain git.
+# Usage: git_worktree_add <branch-name>
 # -------------------------------------------------------------------------------
 function git_worktree_add() {
-  # Assign branch name and define the worktree path relative to the current repository root
-  BRANCH_NAME=$1
+  local BRANCH_NAME="$1"
+  if [[ -z "$BRANCH_NAME" ]]; then
+    echo "Usage: git_worktree_add <branch-name>"
+    return 1
+  fi
+
+  local SANITIZED_BRANCH_PATH WORKTREE_PATH GIT_ROOT REMOTE_BRANCH PREV_BRANCH
   SANITIZED_BRANCH_PATH=$(echo "$BRANCH_NAME" | tr '/' '_')
   WORKTREE_PATH="../$SANITIZED_BRANCH_PATH"
 
@@ -405,36 +410,56 @@ function git_worktree_add() {
   esac
 
   # Check if inside a Git repository
-  if [ -z "$GIT_ROOT" ]; then
+  if [[ -z "$GIT_ROOT" ]]; then
     echo "Error: This command must be run inside a Git repository."
     return 1
   fi
 
-  cd "$GIT_ROOT"
+  cd "$GIT_ROOT" || return 1
 
-  # Check if the branch exists on the remote repository
   REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH_NAME")
 
-  if [ -z "$REMOTE_BRANCH" ]; then
-    # Branch does not exist remotely; create a new branch and push it to remote
-    echo "Branch '$BRANCH_NAME' does not exist remotely. Creating a new branch..."
-    git branch "$BRANCH_NAME"
-  else
+  if [[ -n "$REMOTE_BRANCH" ]]; then
     # Branch exists remotely; fetch and set it up locally
     echo "Branch '$BRANCH_NAME' exists remotely. Setting up locally..."
-    git fetch origin "$BRANCH_NAME"
+    git fetch origin "$BRANCH_NAME" || return 1
+  elif git show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
+    # Branch already exists locally; worktree add only
+    echo "Branch '$BRANCH_NAME' exists locally. Adding worktree..."
+  elif command -v git-town >/dev/null 2>&1; then
+    # New branch: Town append keeps parent = current checkout (not always main)
+    PREV_BRANCH=$(git branch --show-current)
+    echo "Branch '$BRANCH_NAME' missing. Creating via git town append (parent: ${PREV_BRANCH:-detached})..."
+    if ! git town append --non-interactive --no-sync "$BRANCH_NAME"; then
+      echo "Error: git town append failed for '$BRANCH_NAME'."
+      return 1
+    fi
+    # Append switches onto the new branch; free it for worktree add
+    if [[ -n "$PREV_BRANCH" ]]; then
+      if ! git switch "$PREV_BRANCH"; then
+        echo "Error: Created '$BRANCH_NAME' but failed to switch back to '$PREV_BRANCH'."
+        return 1
+      fi
+    else
+      echo "Error: Created '$BRANCH_NAME' but previous checkout was detached; cannot free branch for worktree."
+      return 1
+    fi
+  else
+    # Fallback without git-town
+    echo "Branch '$BRANCH_NAME' does not exist remotely. Creating a new branch..."
+    git branch "$BRANCH_NAME" || return 1
   fi
 
   # Add the new worktree based on the specified branch
-  git worktree add --guess-remote "$WORKTREE_PATH" "$BRANCH_NAME"
+  git worktree add --guess-remote "$WORKTREE_PATH" "$BRANCH_NAME" || return 1
   echo "Worktree added for branch '$BRANCH_NAME'."
 
-  if [ -d "./.cursor" ]; then
+  if [[ -d "./.cursor" ]]; then
     echo "Copying .cursor to $WORKTREE_PATH/.cursor"
     cp -rf "./.cursor" "$WORKTREE_PATH/.cursor"
   fi
 
-  cd "$WORKTREE_PATH"
+  cd "$WORKTREE_PATH" || return 1
 }
 
 # -------------------------------------------------------------------------------
