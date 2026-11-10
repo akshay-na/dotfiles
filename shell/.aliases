@@ -15,9 +15,12 @@
 # General Aliases
 alias c='clear'
 alias ls='ls --color -alh'
-alias stowall="cd$HOME/dotfiles && stow *"
+# Expand $HOME/$EDITOR at define time so aliases stay stable after chdir/env churn.
+# shellcheck disable=SC2139
+alias stowall="cd $HOME/dotfiles && stow *"
 alias unstow="stow -D"
 alias stowls="stow --no -v"
+# shellcheck disable=SC2139
 alias vsc="$EDITOR ." # Open current dir in $EDITOR
 alias reset-ssh-agent="rm -rf ~/.ssh/known_hosts ~/.gnupg/sshcontrol && find ~/.ssh/sockets/ -mindepth 1 ! -name '.gitkeep' -delete"
 
@@ -98,10 +101,10 @@ fi
 # ---------------------------------------------------------------
 if command -v stern &>/dev/null; then
   alias s=stern
-  alias sa='stern -A'                                          # all namespaces
-  alias sfail='stern --container-state=all --since=30m'        # include terminated/waiting (crash forensics)
-  alias serr='stern -i "(?i)error|exception|panic|fatal"'      # error lines only
-  alias sjson='stern -o ppextjson'                             # pretty JSON when logs are JSON
+  alias sa='stern -A'                                     # all namespaces
+  alias sfail='stern --container-state=all --since=30m'   # include terminated/waiting (crash forensics)
+  alias serr='stern -i "(?i)error|exception|panic|fatal"' # error lines only
+  alias sjson='stern -o ppextjson'                        # pretty JSON when logs are JSON
 fi
 
 # ---------------------------------------------------------------
@@ -155,22 +158,22 @@ alias npmP='npm publish'
 # ---------------------------------------------------------------
 # Check if running in Git Bash or WSL
 case "$(uname -s)" in
-MINGW* | CYGWIN* | MSYS*)
-  alias new='wt.exe -w 0 -d "$(pwd)"'
-  alias V='wt.exe sp -d "$(pwd)" -V'
-  alias H='wt.exe sp -d "$(pwd)" -H'
-  alias cmd='start "" "C:\\Windows\\system32\\cmd.exe"'
-  alias bash='start "" "C:\\Program Files\\Git\\git-bash.exe"'
-  alias open='explorer .'
-  ;;
-Linux)
-  if grep -qi "WSL" /proc/version 2>/dev/null; then
-    alias new='wt.exe -w 0 -d "$(wslpath -w "$(pwd)")"'
-    alias V='wt.exe sp -d "$(wslpath -w "$(pwd)")" -V'
-    alias H='wt.exe sp -d "$(wslpath -w "$(pwd)")" -H'
+  MINGW* | CYGWIN* | MSYS*)
+    alias new='wt.exe -w 0 -d "$(pwd)"'
+    alias V='wt.exe sp -d "$(pwd)" -V'
+    alias H='wt.exe sp -d "$(pwd)" -H'
+    alias cmd='start "" "C:\\Windows\\system32\\cmd.exe"'
+    alias bash='start "" "C:\\Program Files\\Git\\git-bash.exe"'
     alias open='explorer .'
-  fi
-  ;;
+    ;;
+  Linux)
+    if grep -qi "WSL" /proc/version 2>/dev/null; then
+      alias new='wt.exe -w 0 -d "$(wslpath -w "$(pwd)")"'
+      alias V='wt.exe sp -d "$(wslpath -w "$(pwd)")" -V'
+      alias H='wt.exe sp -d "$(wslpath -w "$(pwd)")" -H'
+      alias open='explorer .'
+    fi
+    ;;
 esac
 
 # Load custom local common configurations, if available

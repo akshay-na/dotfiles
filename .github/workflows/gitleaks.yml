@@ -1,0 +1,30 @@
+name: gitleaks
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  gitleaks:
+    name: gitleaks detect
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so detect can scan commits (aligns with pre-push commit-range philosophy).
+          fetch-depth: 0
+
+      # CLI detect (no gitleaks-action license key). Pin release for reproducibility.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: "8.21.2"
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            -o /tmp/gitleaks.tgz
+          sudo tar -xzf /tmp/gitleaks.tgz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: gitleaks detect
+        run: gitleaks detect --source . --verbose --redact

@@ -4,10 +4,12 @@
 # settings we're about to change
 osascript -e 'tell application "System Preferences" to quit'
 
-# Ask for the administrator password upfront
+# Ask for the administrator password upfront.
+# When launched from macos.sh (DotMate), sudo is already cached + keep-alive'd there;
+# this block still covers direct/standalone runs of this script.
 sudo -v
 
-# Keep-alive: update existing `sudo` time stamp until `.macos` has finished
+# Keep-alive: update existing `sudo` time stamp until this script has finished
 while true; do
   sudo -n true
   sleep 60
@@ -241,6 +243,8 @@ defaults write com.apple.Spotlight MenuItemHidden -bool true
 defaults write com.apple.finder DisableAllAnimations -bool true
 
 # Add User Home, Application Support and Library to favorite
+# Finder sidebar expects the literal "~/" token, not an expanded $HOME path.
+# shellcheck disable=SC2088
 defaults write com.apple.finder SidebarUserListOptions -array-add "~/"
 defaults write com.apple.finder SidebarApplicationSupportFolder -array-add "/Library"
 

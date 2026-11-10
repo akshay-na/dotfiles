@@ -151,10 +151,19 @@ install() {
 # Create symlinks for dotfiles using stow
 stow_dotfiles() {
   echo_with_color "$GREEN" "Stowing dotfiles..."
-  EXCLUDED_DIRS=("ai")
+  local EXCLUDED_DIRS=("ai")
+  local dir base excluded excluded_dir
   for dir in "$DOTFILES_DIR"/*/; do
-    if [[ ! " ${EXCLUDED_DIRS[@]} " =~ " $(basename "$dir") " ]]; then
-      stow --no-folding -R --override="$dir" -d "$DOTFILES_DIR" -t "$HOME" "$(basename "$dir")"
+    base="$(basename "$dir")"
+    excluded=0
+    for excluded_dir in "${EXCLUDED_DIRS[@]}"; do
+      if [[ "$base" == "$excluded_dir" ]]; then
+        excluded=1
+        break
+      fi
+    done
+    if [[ "$excluded" -eq 0 ]]; then
+      stow --no-folding -R --override="$dir" -d "$DOTFILES_DIR" -t "$HOME" "$base"
     fi
   done
   chmod +x ~/.local/bin/*
@@ -198,23 +207,23 @@ stow_multiple_dotfiles() {
 # Path under $HOME where an AI tool pack is stowed (no leading ~). Keep in sync with switch_ai_team tool_home_relpath().
 ai_tool_home_relpath() {
   case "$1" in
-  opencode) printf '%s\n' '.config/opencode' ;;
-  *) printf '%s\n' ".$1" ;;
+    opencode) printf '%s\n' '.config/opencode' ;;
+    *) printf '%s\n' ".$1" ;;
   esac
 }
 
 # Tool id for ~/.<tool> from ai package directory basename (hyphenated names strip first segment; .gemini and ai-brain special-cased; nested paths use ai_tool_from_folder_path).
 ai_tool_from_package_name() {
   case "$1" in
-  .gemini) printf '%s\n' gemini ;;
-  ai-brain) printf '%s\n' ai-brain ;;
-  *)
-    if [[ "$1" == *-* ]]; then
-      printf '%s\n' "${1%%-*}"
-    else
-      printf '%s\n' "$1"
-    fi
-    ;;
+    .gemini) printf '%s\n' gemini ;;
+    ai-brain) printf '%s\n' ai-brain ;;
+    *)
+      if [[ "$1" == *-* ]]; then
+        printf '%s\n' "${1%%-*}"
+      else
+        printf '%s\n' "$1"
+      fi
+      ;;
   esac
 }
 
@@ -222,17 +231,17 @@ ai_tool_from_package_name() {
 ai_tool_from_folder_path() {
   local fp="$1"
   case "$fp" in
-  ai/private-teams/*/*)
-    local sub="${fp#ai/private-teams/}"
-    printf '%s\n' "${sub%%/*}"
-    ;;
-  ai/*/*)
-    local sub="${fp#ai/}"
-    printf '%s\n' "${sub%%/*}"
-    ;;
-  *)
-    ai_tool_from_package_name "$(basename "$fp")"
-    ;;
+    ai/private-teams/*/*)
+      local sub="${fp#ai/private-teams/}"
+      printf '%s\n' "${sub%%/*}"
+      ;;
+    ai/*/*)
+      local sub="${fp#ai/}"
+      printf '%s\n' "${sub%%/*}"
+      ;;
+    *)
+      ai_tool_from_package_name "$(basename "$fp")"
+      ;;
   esac
 }
 
@@ -264,7 +273,8 @@ ai_unstow_sibling_packs_for_stow_target() {
 ai_copy_agents_from_ai_pack() {
   local folder_path="$1"
   local app_tool="$2"
-  local target_dir="$HOME/$(ai_tool_home_relpath "$app_tool")"
+  local target_dir
+  target_dir="$HOME/$(ai_tool_home_relpath "$app_tool")"
 
   mkdir -p "$HOME/ai-brain"
   stow --no-folding --override="ai-brain" -d "$DOTFILES_DIR/ai" -t "$HOME/ai-brain" "ai-brain"
@@ -334,8 +344,8 @@ bootstrap_local_main() {
   local raw="${LOCAL_DIR:-${1:-}}"
   raw="${raw:-$HOME/dotfiles-local}"
   case "$raw" in
-  ~/*) raw="$HOME/${raw#~/}" ;;
-  ~) raw="$HOME" ;;
+    ~/*) raw="$HOME/${raw#~/}" ;;
+    ~) raw="$HOME" ;;
   esac
   mkdir -p "$raw" || {
     echo_with_color "$RED" "Could not create LOCAL_DIR: $raw"
@@ -473,60 +483,60 @@ sync_git_submodules() {
 
 # Main logic to handle arguments
 case "$1" in
-backup)
-  backup_dotfiles
-  ;;
-update)
-  backup_dotfiles
-  if declare -F check_dotfiles_update >/dev/null 2>&1; then
-    DOTMATE_UPDATE_FROM_DOTMATE=1
-    export DOTMATE_UPDATE_FROM_DOTMATE
-    check_dotfiles_update
-    unset DOTMATE_UPDATE_FROM_DOTMATE
-  else
-    echo_with_color "$YELLOW" "check_dotfiles_update not defined; skipping update check."
-  fi
-  stow_dotfiles
-  ;;
-install)
-  backup_dotfiles
-  install
-  ;;
-stow)
-  shift
-  if [ "$#" -gt 0 ]; then
-    stow_multiple_dotfiles "$@"
-  else
+  backup)
+    backup_dotfiles
+    ;;
+  update)
+    backup_dotfiles
+    if declare -F check_dotfiles_update >/dev/null 2>&1; then
+      DOTMATE_UPDATE_FROM_DOTMATE=1
+      export DOTMATE_UPDATE_FROM_DOTMATE
+      check_dotfiles_update
+      unset DOTMATE_UPDATE_FROM_DOTMATE
+    else
+      echo_with_color "$YELLOW" "check_dotfiles_update not defined; skipping update check."
+    fi
     stow_dotfiles
-  fi
-  ;;
-stow_with_target | stow-with-target)
-  shift
-  stow_with_target "$@"
-  ;;
-unstow)
-  shift
-  if [ "$#" -gt 0 ]; then
-    unstow_multiple_dotfiles "$@"
-  else
-    unstow_dotfiles
-  fi
-  clean_symlinks
-  ;;
-clean)
-  clean_symlinks
-  ;;
-bootstrap_local)
-  shift
-  bootstrap_local_main "$@"
-  ;;
-sync_submodules)
-  sync_git_submodules
-  ;;
-*)
-  echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean|bootstrap_local|sync_submodules}"
-  exit 1
-  ;;
+    ;;
+  install)
+    backup_dotfiles
+    install
+    ;;
+  stow)
+    shift
+    if [ "$#" -gt 0 ]; then
+      stow_multiple_dotfiles "$@"
+    else
+      stow_dotfiles
+    fi
+    ;;
+  stow_with_target | stow-with-target)
+    shift
+    stow_with_target "$@"
+    ;;
+  unstow)
+    shift
+    if [ "$#" -gt 0 ]; then
+      unstow_multiple_dotfiles "$@"
+    else
+      unstow_dotfiles
+    fi
+    clean_symlinks
+    ;;
+  clean)
+    clean_symlinks
+    ;;
+  bootstrap_local)
+    shift
+    bootstrap_local_main "$@"
+    ;;
+  sync_submodules)
+    sync_git_submodules
+    ;;
+  *)
+    echo_with_color "$YELLOW" "Usage: $0 {backup|update|install|stow|stow_with_target|unstow|clean|bootstrap_local|sync_submodules}"
+    exit 1
+    ;;
 esac
 
 exit 0

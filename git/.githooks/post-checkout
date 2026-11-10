@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
+# shellcheck source=shared.sh
 source ~/.githooks/shared.sh
 
 OLD_REF="$1"
 NEW_REF="$2"
 CHECKOUT_TYPE="$3"
 
-branch=$(current_branch)
 root=$(repo_root)
 
 info "🔀 Post-checkout triggered"

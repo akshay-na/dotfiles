@@ -33,7 +33,10 @@ run_bootstrap() {
 
 run_bootstrap
 
-die() { echo "verify-bootstrap-local: $*" >&2; exit 1; }
+die() {
+  echo "verify-bootstrap-local: $*" >&2
+  exit 1
+}
 
 assert_file() {
   [ -f "$1" ] || die "missing file: $1"
@@ -67,7 +70,7 @@ fi
 
 # Second run must be idempotent for on-disk content
 checksum_tree() {
-  find "$1" -type f ! -path '*/.git/*' -print0 | LC_ALL=C sort -z | xargs -0 shasum 2>/dev/null || \
+  find "$1" -type f ! -path '*/.git/*' -print0 | LC_ALL=C sort -z | xargs -0 shasum 2>/dev/null ||
     find "$1" -type f ! -path '*/.git/*' -print0 | LC_ALL=C sort -z | xargs -0 cksum
 }
 sum1="$(checksum_tree "$LOCAL_DIR")"
@@ -86,7 +89,7 @@ for d in "$LOCAL_DIR"/*/; do
   [ -d "$d" ] || continue
   base="$(basename "$d")"
   case "$base" in
-  ai | scripts) continue ;;
+    ai | scripts) continue ;;
   esac
   stow_pkgs+=("$base")
 done

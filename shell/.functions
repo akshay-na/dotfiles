@@ -65,8 +65,10 @@ delete_branches() {
 _delete_branches_completions() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   # Retrieve all local branches.
-  local branches=$(git branch --format='%(refname:short)' 2>/dev/null)
+  local branches
+  branches=$(git branch --format='%(refname:short)' 2>/dev/null)
   # Generate completions from the list of local branches.
+  # shellcheck disable=SC2207 # bash completion idiom
   COMPREPLY=($(compgen -W "${branches}" -- "$cur"))
 }
 
@@ -92,17 +94,17 @@ reload() {
 extract() {
   if [ -f "$1" ]; then
     case "$1" in
-    *.tar.bz2) tar xjf "$1" ;; # Extract tar.bz2 archives
-    *.tar.gz) tar xzf "$1" ;;  # Extract tar.gz archives
-    *.bz2) bunzip2 "$1" ;;     # Extract bz2 files
-    *.rar) unrar x "$1" ;;     # Extract rar archives
-    *.gz) gunzip "$1" ;;       # Extract gz files
-    *.tar) tar xf "$1" ;;      # Extract tar archives
-    *.tbz2) tar xjf "$1" ;;    # Extract tbz2 archives
-    *.tgz) tar xzf "$1" ;;     # Extract tgz archives
-    *.zip) unzip "$1" ;;       # Extract zip files
-    *.7z) 7z x "$1" ;;         # Extract 7z archives
-    *) echo "Cannot extract '$1' (unsupported file type)" ;;
+      *.tar.bz2) tar xjf "$1" ;; # Extract tar.bz2 archives
+      *.tar.gz) tar xzf "$1" ;;  # Extract tar.gz archives
+      *.bz2) bunzip2 "$1" ;;     # Extract bz2 files
+      *.rar) unrar x "$1" ;;     # Extract rar archives
+      *.gz) gunzip "$1" ;;       # Extract gz files
+      *.tar) tar xf "$1" ;;      # Extract tar archives
+      *.tbz2) tar xjf "$1" ;;    # Extract tbz2 archives
+      *.tgz) tar xzf "$1" ;;     # Extract tgz archives
+      *.zip) unzip "$1" ;;       # Extract zip files
+      *.7z) 7z x "$1" ;;         # Extract 7z archives
+      *) echo "Cannot extract '$1' (unsupported file type)" ;;
     esac
   else
     echo "'$1' is not a valid file"
@@ -115,7 +117,7 @@ extract() {
 # Usage: mkcd <directory-name>
 # -------------------------------------------------------------------------------
 mkcd() {
-  mkdir -p "$1" && cd "$1"
+  mkdir -p "$1" && cd "$1" || return
 }
 
 # -------------------------------------------------------------------------------
@@ -151,7 +153,7 @@ touchf() {
 fcd() {
   # Quickly navigate to frequently accessed directories using Zoxide
   local dir
-  dir=$(zoxide query -i --exclude "$HOME") && cd "$dir"
+  dir=$(zoxide query -i --exclude "$HOME") && cd "$dir" || return
 }
 
 # -------------------------------------------------------------------------------
@@ -195,7 +197,7 @@ store_bws_token() {
 # Usage: evict_secrets
 # -------------------------------------------------------------------------------
 evict_secrets() {
-  unset $@ >/dev/null 2>&1
+  unset "$@" >/dev/null 2>&1
   local secret_env_file="${HOME}/.local/share/bws/.bws_secrets_list"
   if [ -f "$secret_env_file" ]; then
     while read -r var; do
@@ -255,11 +257,13 @@ load_secrets() {
 # Usage: exec_with_secrets <command>
 # -------------------------------------------------------------------------------
 exec_with_secrets() {
-  local cmd_str="${@}"
-  BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt $HOME/.local/share/bws/.bws_access_token.gpg)"
+  local cmd_str="$*"
+  BWS_ACCESS_TOKEN="$(gpg --quiet --decrypt "$HOME/.local/share/bws/.bws_access_token.gpg")"
 
   if [ -n "$BWS_ACCESS_TOKEN" ]; then
-    bws run --access-token $BWS_ACCESS_TOKEN -- $cmd_str
+    # Intentionally unquoted: command + args from caller string.
+    # shellcheck disable=SC2086
+    bws run --access-token "$BWS_ACCESS_TOKEN" -- $cmd_str
   else
     echo "❌ Could not find BWS_ACCESS_TOKEN in Keychain or secret-tool."
     return 1
@@ -278,7 +282,7 @@ check_dotfiles_update() {
     cd "$DOTFILES_DIR" || return
 
     # Check if the local branch is behind the remote branch
-    BEHIND_COUNT=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0)
+    BEHIND_COUNT=$(git rev-list --count 'HEAD..@{u}' 2>/dev/null || echo 0)
 
     # If there are commits in the remote that aren't in the local branch, prompt the user
     if [ "$BEHIND_COUNT" -gt 0 ]; then
@@ -349,34 +353,34 @@ archive() {
 
   # Create the archive based on the user's selection
   case "$choice" in
-  1)
-    archive_name="${base_name}.tar.bz2"
-    tar cjf "$archive_name" "$@" || return 1
-    ;;
-  2)
-    archive_name="${base_name}.tar.gz"
-    tar czf "$archive_name" "$@" || return 1
-    ;;
-  3)
-    archive_name="${base_name}.tar.xz"
-    tar cJf "$archive_name" "$@" || return 1
-    ;;
-  4)
-    archive_name="${base_name}.tar"
-    tar cf "$archive_name" "$@" || return 1
-    ;;
-  5)
-    archive_name="${base_name}.zip"
-    zip -r "$archive_name" "$@" || return 1
-    ;;
-  6)
-    archive_name="${base_name}.7z"
-    7z a "$archive_name" "$@" || return 1
-    ;;
-  *)
-    echo "Invalid choice. Aborting."
-    return 1
-    ;;
+    1)
+      archive_name="${base_name}.tar.bz2"
+      tar cjf "$archive_name" "$@" || return 1
+      ;;
+    2)
+      archive_name="${base_name}.tar.gz"
+      tar czf "$archive_name" "$@" || return 1
+      ;;
+    3)
+      archive_name="${base_name}.tar.xz"
+      tar cJf "$archive_name" "$@" || return 1
+      ;;
+    4)
+      archive_name="${base_name}.tar"
+      tar cf "$archive_name" "$@" || return 1
+      ;;
+    5)
+      archive_name="${base_name}.zip"
+      zip -r "$archive_name" "$@" || return 1
+      ;;
+    6)
+      archive_name="${base_name}.7z"
+      7z a "$archive_name" "$@" || return 1
+      ;;
+    *)
+      echo "Invalid choice. Aborting."
+      return 1
+      ;;
   esac
 
   echo "Archive created: $archive_name"
@@ -404,9 +408,9 @@ function git_worktree_add() {
 
   # Convert to Unix-style path if running on Windows environments (Git Bash/Cygwin)
   case "$(uname -s)" in
-  MINGW* | CYGWIN*)
-    GIT_ROOT=$(cygpath -u "$GIT_ROOT")
-    ;;
+    MINGW* | CYGWIN*)
+      GIT_ROOT=$(cygpath -u "$GIT_ROOT")
+      ;;
   esac
 
   # Check if inside a Git repository
@@ -504,24 +508,24 @@ function gac() {
   # Use the first argument as the commit shortcut and the rest as the commit message
   SHORTCUT=$1
   shift
-  COMMENT=$@
+  COMMENT="$*"
 
   # Map shortcut to the full commit message prefix
   case "$SHORTCUT" in
-  c) SHORTCUT="chore:" ;;
-  d) SHORTCUT="docs:" ;;
-  f) SHORTCUT="feat:" ;;
-  r) SHORTCUT="refactor:" ;;
-  s) SHORTCUT="style:" ;;
-  t) SHORTCUT="test:" ;;
-  x) SHORTCUT="fix:" ;;
-  p) SHORTCUT="perf:" ;;                    # Performance improvements
-  i) SHORTCUT="ci:" ;;                      # Continuous Integration changes
-  b) SHORTCUT="build:" ;;                   # Build system changes
-  v) SHORTCUT="revert:" ;;                  # Revert previous commits
-  sec) SHORTCUT="security:" ;;              # Security updates
-  l10n) SHORTCUT="localization:" ;;         # Localization updates
-  i18n) SHORTCUT="internationalization:" ;; # Internationalization changes
+    c) SHORTCUT="chore:" ;;
+    d) SHORTCUT="docs:" ;;
+    f) SHORTCUT="feat:" ;;
+    r) SHORTCUT="refactor:" ;;
+    s) SHORTCUT="style:" ;;
+    t) SHORTCUT="test:" ;;
+    x) SHORTCUT="fix:" ;;
+    p) SHORTCUT="perf:" ;;                    # Performance improvements
+    i) SHORTCUT="ci:" ;;                      # Continuous Integration changes
+    b) SHORTCUT="build:" ;;                   # Build system changes
+    v) SHORTCUT="revert:" ;;                  # Revert previous commits
+    sec) SHORTCUT="security:" ;;              # Security updates
+    l10n) SHORTCUT="localization:" ;;         # Localization updates
+    i18n) SHORTCUT="internationalization:" ;; # Internationalization changes
   esac
 
   # Stage all changes
@@ -567,19 +571,19 @@ install_pnpm() {
   # Parse arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --shamefully-hoist)
-      use_shamefully_hoist=true
-      shift
-      ;;
-    --remove-lock)
-      remove_lock=true
-      shift
-      ;;
-    *)
-      echo -e "${RED}Unknown option:${NC} $1"
-      echo "Run 'install_pnpm --help' for usage information."
-      return 1
-      ;;
+      --shamefully-hoist)
+        use_shamefully_hoist=true
+        shift
+        ;;
+      --remove-lock)
+        remove_lock=true
+        shift
+        ;;
+      *)
+        echo -e "${RED}Unknown option:${NC} $1"
+        echo "Run 'install_pnpm --help' for usage information."
+        return 1
+        ;;
     esac
   done
 
@@ -606,13 +610,13 @@ install_pnpm() {
 # Usage: Internal function - automatically used by shell completion
 # -------------------------------------------------------------------------------
 _install_pnpm_completions() {
-  local cur prev opts
+  local cur opts
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD - 1]}"
   opts="--shamefully-hoist --remove-lock --help"
 
   # Provide matching options
+  # shellcheck disable=SC2207 # bash completion idiom
   COMPREPLY=($(compgen -W "$opts" -- "$cur"))
   return 0
 }
@@ -850,8 +854,9 @@ show_current_worktrees() {
     local current_link="$project_dir/current"
 
     if [[ -L "$current_link" ]]; then
-      local target=$(readlink "$current_link")
-      local target_name=$(basename "$target")
+      local target target_name
+      target=$(readlink "$current_link")
+      target_name=$(basename "$target")
       printf "%-${max_proj_len}s -> %s\n" "$proj" "$target_name"
     elif [[ -e "$current_link" ]]; then
       printf "%-${max_proj_len}s -> (not a symlink)\n" "$proj"

@@ -48,6 +48,11 @@ help:
 	@echo "  compile-forge - Compile Forge CLIs in scripts/forge to scripts/forge/dist/"
 	@echo "  install-forge - Copy compiled Forge binaries from scripts/forge/dist/ to ~/.local/bin"
 	@echo "                Can replace stowed shell scripts of the same name."
+	@echo "  lint          - Run shellcheck + shfmt + stylua (mirrors CI shell-lint)"
+	@echo "  lint-shell    - shellcheck + shfmt on scripts/, shell/, git/.githooks/"
+	@echo "  lint-syntax   - bash -n / zsh -n (mirrors CI shell-syntax)"
+	@echo "  lint-nvim     - stylua --check on nvim/"
+	@echo "  (gitleaks)    - CI + git pre-push hook; no local make target"
 
 # Targets
 
@@ -137,6 +142,37 @@ brain-audit-synthetic: ## Append synthetic kb_query+kb_demote episode to live le
 brain-efficiency-rollup: ## Append 7d SLO proxy row to brain-efficiency-audit.md
 	@chmod +x $(BRAIN_SCRIPTS)/brain-efficiency-audit-rollup.sh
 	@$(BRAIN_SCRIPTS)/brain-efficiency-audit-rollup.sh
+
+.PHONY: lint-shell
+lint-shell: ## shellcheck + shfmt (mirrors CI shell-lint; full scripts/, shell/, git/.githooks/)
+	@bash -euo pipefail -c '\
+		mapfile -t scripts < <(find scripts -type f -name "*.sh" ! -path "scripts/forge/*" | sort); \
+		mapfile -t hooks < <(find git/.githooks -type f ! -name ".*" | sort); \
+		shellcheck -s bash --severity=warning "$${scripts[@]}"; \
+		shellcheck -s bash --severity=warning \
+			shell/.aliases shell/.functions shell/.bashrc shell/.commonrc; \
+		shellcheck -s bash --severity=warning "$${hooks[@]}"; \
+		shfmt -d -i 2 -ci "$${scripts[@]}" \
+			shell/.aliases shell/.functions shell/.bashrc shell/.commonrc \
+			"$${hooks[@]}"'
+
+.PHONY: lint-syntax
+lint-syntax: ## bash -n / zsh -n (mirrors CI shell-syntax)
+	@bash -euo pipefail -c '\
+		mapfile -t scripts < <(find scripts -type f -name "*.sh" ! -path "scripts/forge/*" | sort); \
+		mapfile -t hooks < <(find git/.githooks -type f ! -name ".*" | sort); \
+		zsh -n shell/.zshrc; \
+		zsh -n shell/.zstyles; \
+		bash -n "$${scripts[@]}"; \
+		bash -n shell/.aliases shell/.functions shell/.bashrc shell/.commonrc; \
+		bash -n "$${hooks[@]}"'
+
+.PHONY: lint-nvim
+lint-nvim: ## stylua --check on nvim/
+	@stylua --check nvim/
+
+.PHONY: lint
+lint: lint-shell lint-nvim ## Run shell + nvim linters (mirrors CI shell-lint)
 
 .PHONY: compile-forge
 compile-forge: ## Compile Forge CLIs into scripts/forge/dist/

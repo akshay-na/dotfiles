@@ -49,61 +49,10 @@ install_common() {
   fi
 
   # CLI and utilities (common to both macOS and Linux)
-  # List of packages to install
-  BREW_PACKAGES=(
-    asciinema
-    autossh
-    bat
-    btop
-    coreutils
-    curl
-    direnv
-    duf
-    eza
-    figlet
-    fontconfig
-    fzf
-    gcc
-    git-delta
-    git-town
-    git
-    gnupg
-    gpg
-    jesseduffield/lazydocker/lazydocker
-    jq
-    apprise
-    lazydocker
-    lazygit
-    logrotate
-    lolcat
-    lnav
-    lsof
-    make
-    neofetch
-    neovim
-    rsync
-    starship
-    stow
-    tmux
-    topgrade
-    tree
-    unzip
-    uv
-    wget
-    xq
-    xxh
-    yq
-    zoxide
-  )
-
-  for pkg in "${BREW_PACKAGES[@]}"; do
-    if command -v "$pkg" >/dev/null 2>&1; then
-      echo "Already available: $pkg"
-    else
-      echo "Installing with brew: $pkg"
-      brew install "$pkg" || echo "Failed to install: $pkg (continuing...)"
-    fi
-  done
+  _dotfiles_root="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+  brew bundle --no-lock --file="$_dotfiles_root/scripts/resources/Brewfile" ||
+    echo "Failed to install some packages from Brewfile (continuing...)"
+  unset _dotfiles_root
 
   # Configure logrotate
   mkdir -p $HOME/logs
@@ -116,16 +65,16 @@ install_common() {
     BWS_URL=""
 
     case "$OS_NAME" in
-    Darwin)
-      if [ "$ARCH_NAME" = "arm64" ]; then
-        BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-aarch64-apple-darwin-1.0.0.zip"
-      else
-        BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-macos-universal-1.0.0.zip"
-      fi
-      ;;
-    Linux)
-      BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip"
-      ;;
+      Darwin)
+        if [ "$ARCH_NAME" = "arm64" ]; then
+          BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-aarch64-apple-darwin-1.0.0.zip"
+        else
+          BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-macos-universal-1.0.0.zip"
+        fi
+        ;;
+      Linux)
+        BWS_URL="https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip"
+        ;;
     esac
 
     if [ -z "$BWS_URL" ]; then

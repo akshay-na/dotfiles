@@ -24,9 +24,10 @@ export PATH="$PATH:$HOME/bin:$HOME/.local/bin:/opt/nvim-linux64/bin" # Additiona
 export HISTSIZE=10000                                                # Shell history size
 export PODMAN_SYSTEMD_UNIT="enabled"                                 # Enable systemd unit for podman
 export PODMAN_USERNS=keep-id                                         # Keep user namespaces for podman
-export GPG_TTY=$(tty)                                                # Set GPG TTY for GPG agent
-export K9S_CONFIG_DIR="$HOME/.config/k9s"                            # K9s configuration directory
-export STERNCONFIG="$HOME/.config/stern/config.yaml"                 # stern config (multi-pod log tail)
+GPG_TTY=$(tty)                                                       # Set GPG TTY for GPG agent
+export GPG_TTY
+export K9S_CONFIG_DIR="$HOME/.config/k9s"            # K9s configuration directory
+export STERNCONFIG="$HOME/.config/stern/config.yaml" # stern config (multi-pod log tail)
 
 # Add SSH keys to the agent
 for key in ~/.ssh/id_*; do
@@ -65,26 +66,26 @@ export LS_COLORS='di=38;5;33:fi=38;5;250:ln=38;5;110:pi=38;5;174:so=38;5;173:bd=
 # ---------------------------------------------------------------
 # Use case statement for faster Homebrew detection
 case "$(uname -s)" in
-Darwin)
-  # macOS - check Apple Silicon first, then Intel
-  if [ -x "/opt/homebrew/bin/brew" ]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
-  elif [ -x "/usr/local/bin/brew" ]; then
-    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
-  fi
-  ;;
-Linux)
-  # Linux - check multiple possible locations
-  if [ -x "$HOME/homebrew/bin/brew" ]; then
-    eval "$($HOME/homebrew/bin/brew shellenv)" 2>/dev/null || true
-  elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
-  elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
-    eval "$($HOME/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
-  elif [ -x "/usr/local/bin/brew" ]; then
-    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
-  fi
-  ;;
+  Darwin)
+    # macOS - check Apple Silicon first, then Intel
+    if [ -x "/opt/homebrew/bin/brew" ]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+    elif [ -x "/usr/local/bin/brew" ]; then
+      eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+    fi
+    ;;
+  Linux)
+    # Linux - check multiple possible locations
+    if [ -x "$HOME/homebrew/bin/brew" ]; then
+      eval "$($HOME/homebrew/bin/brew shellenv)" 2>/dev/null || true
+    elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+    elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+      eval "$($HOME/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+    elif [ -x "/usr/local/bin/brew" ]; then
+      eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+    fi
+    ;;
 esac
 
 # ---------------------------------------------------------------
@@ -95,12 +96,13 @@ esac
 # This is to preserve the SSH Agent forwarding.
 if [[ -z "$SSH_CONNECTION" || -z "$SSH_TTY" ]]; then
   if command -v gpgconf >/dev/null 2>&1; then
-    export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+    SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+    export SSH_AUTH_SOCK
     gpgconf --launch gpg-agent
     gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
   elif command -v ssh-agent >/dev/null 2>&1; then
     if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l >/dev/null 2>&1; then
-      eval $(ssh-agent) >/dev/null 2>&1
+      eval "$(ssh-agent)" >/dev/null 2>&1
     fi
   fi
 fi
@@ -128,8 +130,8 @@ if [[ -t 0 ]] &&
   if ping -c 1 -W 1 1.1.1.1 >/dev/null 2>&1; then
     PING_RESULT=true
     {
-      cd $DOTFILES_DIR || return
-      git fetch origin $(git symbolic-ref --short HEAD) -q
+      cd "$DOTFILES_DIR" || return
+      git fetch origin "$(git symbolic-ref --short HEAD)" -q
     } &
     disown
   fi

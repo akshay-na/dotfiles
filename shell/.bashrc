@@ -67,6 +67,7 @@ if [[ $- == *i* ]]; then
 
   # git-town for managing git branches
   if command -v git-town >/dev/null 2>&1; then
+    # shellcheck disable=SC1090 # process substitution; path is runtime-generated
     source <(git town completions bash)
   fi
 

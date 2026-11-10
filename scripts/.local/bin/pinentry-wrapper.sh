@@ -10,18 +10,18 @@ platform=$(uname)
 log "Detected platform: $platform"
 
 case "$platform" in
-Darwin)
-  if command -v pinentry-mac >/dev/null 2>&1; then
-    log "Using pinentry-mac"
-    exec -- pinentry-mac "$@"
-  fi
-  ;;
-MINGW* | MSYS* | CYGWIN*)
-  if command -v pinentry.exe >/dev/null 2>&1; then
-    log "Using pinentry.exe"
-    exec -- pinentry.exe "$@"
-  fi
-  ;;
+  Darwin)
+    if command -v pinentry-mac >/dev/null 2>&1; then
+      log "Using pinentry-mac"
+      exec -- pinentry-mac "$@"
+    fi
+    ;;
+  MINGW* | MSYS* | CYGWIN*)
+    if command -v pinentry.exe >/dev/null 2>&1; then
+      log "Using pinentry.exe"
+      exec -- pinentry.exe "$@"
+    fi
+    ;;
 esac
 
 # Headless (e.g., SSH) fallback

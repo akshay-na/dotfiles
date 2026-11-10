@@ -1,0 +1,33 @@
+name: shell-syntax
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  syntax:
+    name: bash -n / zsh -n
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsh
+
+      - name: zsh -n (pure zsh entrypoints)
+        run: |
+          set -euo pipefail
+          zsh -n shell/.zshrc
+          zsh -n shell/.zstyles
+
+      - name: bash -n (scripts/, shell bash files, githooks)
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(find scripts -type f -name '*.sh' ! -path 'scripts/forge/*' | sort)
+          mapfile -t hooks < <(find git/.githooks -type f ! -name '.*' | sort)
+          bash -n "${scripts[@]}"
+          bash -n shell/.aliases shell/.functions shell/.bashrc shell/.commonrc
+          bash -n "${hooks[@]}"

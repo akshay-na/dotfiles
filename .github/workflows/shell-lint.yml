@@ -1,0 +1,75 @@
+name: shell-lint
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  shellcheck-shfmt:
+    name: shellcheck + shfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck and shfmt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          curl -fsSL "https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64" \
+            -o /tmp/shfmt
+          sudo install -m 755 /tmp/shfmt /usr/local/bin/shfmt
+
+      # Broad coverage: scripts/, shell/ bash-compatible files, git/.githooks/.
+      # Pure zsh (.zshrc / .zstyles): skip shellcheck here — shell-syntax.yml uses zsh -n.
+      # shfmt also skips pure-zsh (zsh ${+var} / other syntax).
+      - name: shellcheck scripts/
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find scripts -type f -name '*.sh' ! -path 'scripts/forge/*' | sort)
+          shellcheck -s bash --severity=warning "${files[@]}"
+
+      - name: shellcheck shell/ (bash-compatible)
+        run: |
+          set -euo pipefail
+          # SC2139 handled inline where intentional ($HOME/$EDITOR in aliases).
+          shellcheck -s bash --severity=warning \
+            shell/.aliases \
+            shell/.functions \
+            shell/.bashrc \
+            shell/.commonrc
+
+      - name: shellcheck git/.githooks/
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find git/.githooks -type f ! -name '.*' | sort)
+          shellcheck -s bash --severity=warning "${files[@]}"
+
+      - name: shfmt -d
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(find scripts -type f -name '*.sh' ! -path 'scripts/forge/*' | sort)
+          mapfile -t hooks < <(find git/.githooks -type f ! -name '.*' | sort)
+          shfmt -d -i 2 -ci \
+            "${scripts[@]}" \
+            shell/.aliases \
+            shell/.functions \
+            shell/.bashrc \
+            shell/.commonrc \
+            "${hooks[@]}"
+
+  stylua:
+    name: stylua
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stylua
+        run: |
+          curl -fsSL "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.0.2/stylua-linux-x86_64.zip" \
+            -o /tmp/stylua.zip
+          sudo unzip -o /tmp/stylua.zip -d /usr/local/bin
+          sudo chmod +x /usr/local/bin/stylua
+
+      - name: stylua --check nvim/
+        run: stylua --check nvim/

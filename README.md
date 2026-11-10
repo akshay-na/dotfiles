@@ -23,6 +23,8 @@ make install
 
 `make install` runs `scripts/DotMate.sh install`: OS-specific packages, shared installers, then `stow` into `$HOME`, permission fixes, and optional `chsh` to zsh.
 
+**Manual follow-ups** (App Store, Bitwarden/`bws`, Hammerspoon TCC, SSH/GPG, PAM Touch ID, etc.): [`docs/runbooks/new-machine.md`](docs/runbooks/new-machine.md).
+
 **Configs only (no package install)**
 
 ```bash

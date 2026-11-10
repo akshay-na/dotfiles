@@ -13,3 +13,5 @@ AGENTS.yaml
 !ai/**/*
 scripts/forge/node_modules
 scripts/forge/dist
+Brewfile.lock.json
+**/Brewfile.lock.json
