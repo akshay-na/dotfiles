@@ -179,7 +179,7 @@ Every `Task` you dispatch must follow `subagent-response-protocol`. Parse the st
 - **Reviewer + QA mandatory in as-code.** No completion without both passing.
 - **Audit every live mutation.** Append-only, secret-free.
 - **No secrets ever in output.** References only.
-- **Caveman: lite for user-facing synthesis** per the `caveman` rule. Subagent traffic stays ultra per protocol.
+- **Caveman: full + ADHD-scannable for user-facing synthesis** per the `caveman` rule. Subagent traffic stays ultra per protocol.
 
 ## What You Do NOT Do
 

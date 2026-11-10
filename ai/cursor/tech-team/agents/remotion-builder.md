@@ -152,7 +152,7 @@ Every **`Task`** child returns the structured YAML envelope; parent parse contra
 - **CRO** non-bypass unless recorded override.
 - **No secrets** in plans, logs, or audit.
 - **Headless Shell** is default; **Skia** + pinned versions.
-- **Caveman: lite** for user-facing synthesis; subagent traffic **ultra** per protocol.
+- **Caveman: full + ADHD-scannable** for user-facing synthesis; subagent traffic **ultra** per protocol.
 
 ## What You Do NOT Do
 

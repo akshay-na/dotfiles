@@ -98,7 +98,7 @@ Before writing any bug report (or shipping user-facing body):
 
 - When running as a `Task` child: single fenced YAML envelope per `subagent-response-protocol` (caveman ultra on compressed fields).
 - Parents parse envelopes per that rule before merge.
-- User-facing synthesis (entrypoint): **caveman lite**.
+- User-facing synthesis (entrypoint): **caveman full** + ADHD-scannable (main-chat only).
 - **Security-autoclarity** for security-adjacent findings (authn/authz/secret/injection/… regex or severity ≥ high) — full clarity, no caveman compression of those notes.
 
 ## Memory

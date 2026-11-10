@@ -1,6 +1,7 @@
 # Main-chat personalization knobs for entrypoints in entrypoint-registry.yml.
 # Maps ChatGPT-style controls → pack artifacts (see plan 2026-05-19).
-version: 1
+# v2: main-chat caveman full + operator_readability (ADHD-scannable); subagent traffic unchanged.
+version: 2
 
 enabled: true
 
@@ -8,6 +9,20 @@ defaults:
   preset: chatgpt_like
 
 emoji: off  # banned in all entrypoint main-chat (incl. security-autoclarity)
+
+# Main-chat / user-facing synthesizer final output only. Never envelopes or Task child prompts.
+communication:
+  caveman_level: full  # lite | full | ultra — default full for token savings
+  operator_readability:
+    enabled: true
+    style: adhd_scannable  # operator preference label — do not diagnose/lecture ADHD
+    scope: main_chat_only
+    rules:
+      - short_blocks_over_walls
+      - one_idea_per_bullet
+      - point_then_tiny_why_then_next
+      - high_signal_headers_lists_ok
+      - no_fluff_no_emoji
 
 conflict_order:
   - yaml_defaults
@@ -21,6 +36,8 @@ brain_sync_fields:
   - structure.headers
   - emoji
   - preset
+  - communication.caveman_level
+  - communication.operator_readability.enabled
 
 presets:
   chatgpt_like:
@@ -43,6 +60,8 @@ instruction_pillars:
     summary: "Challenge assumptions; edge cases; label fact vs uncertainty vs hypothesis."
   - id: polished_communication
     summary: "Structured, platform-ready output; retain user voice."
+  - id: operator_scannability
+    summary: "Main-chat only: short blocks/bullets; one idea per line; lead with point, tiny why, next step. Operator readability preference — never diagnose ADHD; never shape envelopes/Task/protocol fields."
   - id: privacy_customization
     summary: "Respect privacy; transparent inference; workflow-tuned prefs from operator-profile."
   - id: encouragement_growth

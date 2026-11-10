@@ -105,8 +105,9 @@ validator hook); follow it in your own reasoning.
 7. Aggregate: flatten the child's `findings[]` into your own envelope with the
    child's id prepended to `reported_by`. Preserve the verbatim `fix`, `file`,
    `line`, and `errors[]` fields exactly.
-8. Synthesize user-facing output as `caveman: lite` prose per the `caveman`
-   rule. Never forward `_marker` or raw child YAML to the user.
+8. Synthesize user-facing output as `caveman: full` + ADHD-scannable prose per
+   the `caveman` rule / `entrypoint-personalization` (main-chat only). Never
+   forward `_marker` or raw child YAML to the user.
 
 ## Enforcement posture
 
@@ -120,11 +121,12 @@ degraded child for scoping/triage reasons, tag the user-facing synthesis with
 
 ## Main-chat exemption (user-facing only)
 
-- Main-chat (user-facing) turns do NOT follow this protocol. `caveman: lite`
-  prose per the `caveman` rule applies instead.
+- Main-chat (user-facing) turns do NOT follow this protocol. `caveman: full`
+  + ADHD-scannable prose per the `caveman` rule applies instead (operator
+  readability; never applied to envelopes / Task child traffic).
 - Synthesis turns in `cto` / `code-reviewer` / `bug-bot` that render output
   directly to the user are exempt. Those agents strip the envelope, remove
-  `_marker`, and write `caveman: lite` prose.
+  `_marker`, and write `caveman: full` + ADHD-scannable prose.
 
 ## Rule-version drift protection
 

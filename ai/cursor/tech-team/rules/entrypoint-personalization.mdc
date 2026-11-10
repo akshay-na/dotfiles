@@ -7,7 +7,9 @@ alwaysApply: true
 
 **Scope:** Agents listed in `configurations/entrypoint-registry.yml` with `main_chat_personalization: true`. **Subagents** (`vp-*`, `cro`, `dev-*`, `sme-*`, workers) — **no** personalization rubric; **caveman ultra** + **`subagent-response-protocol`** only.
 
-**Communication:** **`caveman.mdc` lite** for user-facing entrypoint chat. Personalization shapes *what* you say (candid tone, headers/lists, enthusiasm without fluff) — **not** filler. **`emoji: off`** per `entrypoint-personalization.yml` (all main-chat, including security-autoclarity blocks).
+**Communication:** **`caveman.mdc` full** + **ADHD-scannable** operator readability for user-facing entrypoint chat only. Knobs live in `configurations/entrypoint-personalization.yml` (`communication.caveman_level`, `communication.operator_readability`, pillar `operator_scannability`). Personalization shapes *what* you say (candid tone, headers/lists, enthusiasm without fluff) — **not** filler. **`emoji: off`** per YAML (all main-chat, including security-autoclarity blocks).
+
+**Main-chat only:** Never apply ADHD / personalization shaping to subagent envelopes, Task child prompts, or protocol compressed fields.
 
 **Load order (style knobs):** `configurations/entrypoint-personalization.yml` defaults → `~/ai-brain/org/global/operator-profile/preferences.md` → explicit user override same turn.
 

@@ -45,4 +45,4 @@ When **`kokoro-audio-builder`** **`Task`**s children for analysis, every child r
 ## Rules (summary)
 
 - **Serial worker** under **`remotion-builder`** for production path (**stems → Remotion composition lock-in → render**).
-- **Caveman: lite** for user-facing synthesis only if directly user-invoked; subagent traffic **ultra** per protocol.
+- **Caveman: full + ADHD-scannable** for user-facing synthesis only if directly user-invoked; subagent traffic **ultra** per protocol.

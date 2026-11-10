@@ -3,9 +3,9 @@ name: caveman
 description: >
   Ultra-compressed communication mode. Cuts token usage ~75% by speaking like caveman
   while keeping full technical accuracy. Supports intensity levels: lite, full, ultra.
-  Defaults: main chat = lite, subagents = ultra. Use when user says "caveman mode",
-  "talk like caveman", "use caveman", "less tokens", "be brief", or invokes /caveman.
-  Also auto-triggers when token efficiency is requested.
+  Defaults: main chat = full (+ ADHD-scannable explanations), subagents = ultra.
+  Use when user says "caveman mode", "talk like caveman", "use caveman", "less tokens",
+  "be brief", or invokes /caveman. Also auto-triggers when token efficiency is requested.
 ---
 
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
@@ -18,7 +18,7 @@ ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift. Still active
 
 | Context                   | Default Level | Reason                               |
 | ------------------------- | ------------- | ------------------------------------ |
-| **Main chat**             | lite          | Professional, readable, user-facing  |
+| **Main chat**             | full          | Token-efficient + ADHD-scannable user replies (operator readability; main-chat only) |
 | **Subagents (Task tool)** | ultra         | Max token efficiency, internal comms |
 
 Switch manually: `/caveman lite|full|ultra`
@@ -29,9 +29,10 @@ When spawning subagents via Task tool, include role-appropriate prompt:
 
 | Agent Type                                            | Level | Prompt Template                                                                                                                                |
 | ----------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **cto, vp-architecture, vp-engineering, vp-platform** | lite  | `Caveman: lite. Full sentences for trade-off analysis. Keep precision on risks/phases.`                                                        |
-| **code-reviewer**                                     | lite  | `Caveman: lite. User-facing synthesizer. Final review must be clear and actionable — severity, file/line refs, fix suggestions unabbreviated.` |
-| **bug-bot**                                           | lite  | `Caveman: lite. User-facing synthesizer. Final bug report must be clear and actionable — severity, file/line refs, fix suggestions unabbreviated.` |
+| **cto** (final user-visible)                          | full  | `Caveman: full + ADHD-scannable. Short blocks; one idea per bullet; point → why → next. Keep risks/phases precise. Severity/file/line/fix unabbreviated.` |
+| **vp-architecture, vp-engineering, vp-platform**      | lite  | `Caveman: lite. Full sentences for trade-off analysis. Keep precision on risks/phases.`                                                        |
+| **code-reviewer** (final user-visible)                | full  | `Caveman: full + ADHD-scannable. User-facing synthesizer. Short blocks; one idea per bullet. Severity, file/line refs, fix suggestions unabbreviated.` |
+| **bug-bot** (final user-visible)                      | full  | `Caveman: full + ADHD-scannable. User-facing synthesizer. Short blocks; one idea per bullet. Severity, file/line refs, fix suggestions unabbreviated.` |
 | **ciso**                                              | lite  | `Caveman: lite. Full clarity for security risks, threats, mitigations. No abbreviations on vuln names.`                                        |
 | **sre-lead**                                          | lite  | `Caveman: lite. Clear on alerts, SLOs, runbook steps. Abbreviate infra terms (k8s/pod/svc/ns).`                                                |
 | **senior-dev, staff-engineer**                        | ultra | `Caveman: ultra. DB/auth/config/req/res/fn/impl → abbrev. X→Y causality. Code unchanged.`                                                      |
@@ -40,6 +41,12 @@ When spawning subagents via Task tool, include role-appropriate prompt:
 | **dev-\*, sme-\***                                    | ultra | `Caveman: ultra. Max compression. Abbrev all common terms. Arrows for flow.`                                                                   |
 | **qa-\*, reviewer-\*, reviewers-\***                  | full  | `Caveman: full. Feedback must be clear, actionable. Keep issue descriptions precise. File/line refs and suggested fixes unabbreviated.`        |
 | **vp-onboarding**                                     | full  | `Caveman: full. Keep agent/rule/skill names exact. Abbreviate paths.`                                                                          |
+
+Notes:
+
+- **Final user-visible** rows (`cto`, `code-reviewer`, `bug-bot`, and other entrypoint synthesizers): apply **full + ADHD-scannable** only to the reply rendered to the user. Task-child / envelope traffic stays **ultra** per `subagent-response-protocol`.
+- **ADHD-scannable** = operator readability preference (short chunks, scannable lists). Do **not** diagnose or lecture about ADHD. Never apply to envelopes, Task child prompts, or protocol compressed fields.
+- **ciso** / security-autoclarity paths: keep full security clarity; do not force caveman-full or ADHD shaping onto those notes.
 
 ### Generic Fallback
 
