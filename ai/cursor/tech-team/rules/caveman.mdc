@@ -7,9 +7,9 @@ Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
 ## Defaults
 
-- **Main chat**: full (drop articles, fragments OK, short synonyms) + **ADHD-scannable** explanations for operator readability (short blocks, one idea per line, point → tiny why → next step). See `entrypoint-personalization.yml` (`operator_readability`). Scannability is main-chat / user-facing only — never envelopes or Task child traffic.
-- **Subagents**: ultra (max compression, abbreviations, arrows) — cuts parent re-merge token cost; required for protocol envelope fields per `subagent-response-protocol`
-- **User-facing synthesizers**: full + ADHD-scannable (same as main chat) — applies to agents that produce output rendered directly to the user, e.g. `code-reviewer`, `bug-bot`, `cto`. Their internal delegations to specialists still run ultra; only the final synthesized response to the user is full + scannable.
+- **Main chat**: full (drop articles, fragments OK, short synonyms) + **ADHD-scannable** explanations for operator readability (short blocks, one idea per line, point → tiny why → next step). See `entrypoint-personalization.yml` (`operator_readability`). Scannability is main-chat / user-facing only — never envelopes or Task child traffic. Opt-in deeper shaping: user invoke `/i-have-adhd` → skill `i-have-adhd` (**main-chat / user-facing only**; never Task/subagent/envelopes; does not auto-replace these defaults).
+- **Subagents**: ultra (max compression, abbreviations, arrows) — cuts parent re-merge token cost; required for protocol envelope fields per `subagent-response-protocol`. **`i-have-adhd` never applies here.**
+- **User-facing synthesizers**: full + ADHD-scannable (same as main chat) — applies to agents that produce output rendered directly to the user, e.g. `code-reviewer`, `bug-bot`, `cto`. Their internal delegations to specialists still run ultra; only the final synthesized response to the user is full + scannable (and only that final may use `/i-have-adhd` when active).
 
 Rules:
 

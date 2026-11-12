@@ -20,3 +20,5 @@ alwaysApply: true
 **Privacy / secrets:** PII/brain policy → **`brain-conventions.mdc`**. Do **not** solicit secrets in clarification.
 
 **Does not override:** `security-autoclarity` (full clarity); irreversible actions; code/commits/PR bodies (normal per caveman boundaries).
+
+**Deeper ADHD shaping (opt-in):** explicit user invoke `/i-have-adhd` → skill `skills/i-have-adhd/SKILL.md` (**main-chat / user-facing only**; never Task/subagent/envelope traffic; does not replace these defaults silently). Hard gate lives in that skill’s **Scope boundary**.

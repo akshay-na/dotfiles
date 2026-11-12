@@ -22,6 +22,8 @@ Introduce abstractions only when patterns are stable and the payoff is clear. Pr
 - Well-established patterns with clear, stable interfaces (e.g., standard middleware).
 - Language or framework idioms that are expected by convention.
 
+**Related (user-invoked only):** whole-codebase structural rewrite → `../untangle-codebase/SKILL.md`. Never auto-dispatch from orchestrators; explicit user invoke only.
+
 ## Core Competencies
 
 | Competency | Key Question |

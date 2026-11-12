@@ -17,7 +17,7 @@ Use this skill when orchestrating or editing the pack so **context stays small**
 | Indirection | Agents/rules cite skill path; **do not** paste full playbooks into rules or agent bodies. |
 | Task payloads | Parent **`Task` prompts**: goal, constraints, **`approved_plan_path`**, phase/shard id, **`touches[]`**, correlation ids — **not** full rules or transcripts. |
 | Reads | Batch parallel **`Read`** where independent; **one read per file** per turn unless content changed; lookup-first for **`brain-memory-kb`**. |
-| Subagent traffic | Children: **caveman-ultra** + single YAML envelope per `templates/subagent-response.yml.tmpl`; parents: **do not** paste raw child YAML to user. |
+| Subagent traffic | Children: **caveman-ultra** + single YAML envelope per `templates/subagent-response.yml.tmpl`; parents: **do not** paste raw child YAML to user. **`i-have-adhd` never applies** to this traffic (main-chat only). |
 
 **Non-claim:** Exact cache eligibility is vendor-defined; token reduction is always a win.
 

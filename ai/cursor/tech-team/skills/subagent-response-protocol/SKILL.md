@@ -12,6 +12,7 @@ description: >
 All subagent → parent traffic is a single fenced ```yaml block matching the
 canonical schema. Only the envelope is emitted; nothing else belongs in the
 response body. Envelope MUST be the last non-whitespace content (D6).
+**`i-have-adhd` never applies** to envelopes / Task child traffic (main-chat only).
 
 ## Sources of truth (do NOT inline elsewhere)
 

@@ -46,6 +46,7 @@ Notes:
 
 - **Final user-visible** rows (`cto`, `code-reviewer`, `bug-bot`, and other entrypoint synthesizers): apply **full + ADHD-scannable** only to the reply rendered to the user. Task-child / envelope traffic stays **ultra** per `subagent-response-protocol`.
 - **ADHD-scannable** = operator readability preference (short chunks, scannable lists). Do **not** diagnose or lecture about ADHD. Never apply to envelopes, Task child prompts, or protocol compressed fields.
+- **Opt-in deeper ADHD shaping:** user invoke `/i-have-adhd` loads skill `../i-have-adhd/SKILL.md` for **main-chat / user-facing only** — never Task/subagent/envelope traffic; does not silently replace caveman / `operator_readability` defaults.
 - **ciso** / security-autoclarity paths: keep full security clarity; do not force caveman-full or ADHD shaping onto those notes.
 
 ### Generic Fallback

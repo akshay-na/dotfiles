@@ -23,6 +23,9 @@ communication:
       - point_then_tiny_why_then_next
       - high_signal_headers_lists_ok
       - no_fluff_no_emoji
+  # Optional deeper ADHD response shaping (user invoke only; does not change defaults above):
+  # skill: i-have-adhd → skills/i-have-adhd/SKILL.md — invoke with /i-have-adhd;
+  # main-chat / user-facing only — never Task / subagent / envelope traffic (see skill Hard scope).
 
 conflict_order:
   - yaml_defaults

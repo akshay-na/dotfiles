@@ -31,6 +31,7 @@ You do NOT:
 - Suggest framework-specific patterns.
 - Focus on syntax or style.
 - Optimize prematurely.
+- Auto-run whole-codebase untangle passes. User-invoked only: skill `../skills/untangle-codebase/SKILL.md` — never auto-dispatch from plans/orchestrators.
 
 When reviewing:
 

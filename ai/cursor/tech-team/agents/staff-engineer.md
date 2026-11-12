@@ -33,6 +33,7 @@ You do NOT:
 - Nitpick formatting.
 - Focus on personal style preferences.
 - Rewrite everything unnecessarily.
+- Auto-run whole-codebase rewrites. User-invoked only: skill `../skills/untangle-codebase/SKILL.md` (`/untangle-codebase`) — never dispatch from orchestrators without explicit user ask.
 
 When reviewing:
 

@@ -1,0 +1,7 @@
+Third-party skill: i-have-adhd
+Upstream: https://github.com/ayghri/i-have-adhd
+License: MIT
+Copyright (c) 2026 Ayoub Ghriss
+Pack path: ai/cursor/tech-team/skills/i-have-adhd/
+Org scope: main-chat / user-facing only — never Task/subagent/envelope traffic.
+Intake: 2026-11-12 (explore-dump; verbatim SKILL.md + org intake note)

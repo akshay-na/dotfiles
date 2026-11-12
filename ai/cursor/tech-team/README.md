@@ -47,6 +47,7 @@ Reusable process playbooks and execution helpers.
 
 - Skills encode workflows (for example orchestration, verification loops, memory/KB operations, and communication patterns).
 - Agents load skills as needed to execute structured tasks consistently.
+- External intakes (user-invoked; MIT NOTICE beside each): `skills/i-have-adhd/` (`/i-have-adhd`; **main-chat / user-facing only** — never Task/subagent/envelopes), `skills/untangle-codebase/` — do not auto-replace org defaults / do not auto-dispatch.
 
 ### `templates/`
 

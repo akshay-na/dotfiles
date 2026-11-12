@@ -286,6 +286,10 @@ For any task targeting a specific repo:
 
 Cross-reference: **`cursor/.cursor/skills/team-discovery/SKILL.md`** (org skill package). Workflow: **`discover`** → **`classify`** → **`dispatch`**. Resolve multi-root or ambiguous folder layouts into target partitions **before** spawning subtasks.**Invariant (`on_ambiguous: ask_user`)** — if classification cannot prove disjoint ownership, pause for user clarification; never silently assign overlapping folder roots to concurrent work.
 
+### User-invoked structural rewrite (never auto)
+
+- Skill **`untangle-codebase`** (`skills/untangle-codebase/SKILL.md`): whole-codebase untangle — **explicit user invoke only**. Orchestrators (`tech-lead`, `cto`, `staff-engineer`, pipelines) **MUST NOT** auto-dispatch it.
+
 ### Intra-role horizontal fan-out
 
 - Skill: **`cursor/.cursor/skills/parallel-dispatch/SKILL.md`** — Level 3 covers horizontal dispatch within one role.
