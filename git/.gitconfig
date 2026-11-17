@@ -129,6 +129,7 @@
 
 [include]
   path = ~/.gitconfig_local  # Load additional user-specific configuration
+  path = ~/.config/delta/config.toml  # Delta prefs (side-by-side, etc.) for bare `delta`
 
 [init]
   defaultBranch = main  # New git repo starts with main branch

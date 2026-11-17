@@ -1,42 +1,136 @@
+quitOnTopLevelReturn: false
+
 gui:
   nerdFontsVersion: "3"
   border: rounded
   scrollHeight: 4
   scrollPastBottom: true
   sidePanelWidth: 0.20
+  splitDiff: auto
   mainPanelSplitMode: "flexible"
   showBottomLine: true
-  commandLogSize: 200
+  showListFooter: false # Less chrome in side panels
+  showFileTree: false # Flat list: path/filename (not nested folders)
+  commandLogSize: 6 # Keep command log compact
+  commitHashLength: 7 # Short hashes in commit list
+  commitAuthorLongLength: 12 # Tighter author column
   skipStashWarning: false
+  expandFocusedSidePanel: true
   mouseEvents: true
+  colorScheme: dark
+  sidePanels:
+    - [status, remotes, tags]
+    - [files]
+    - [worktrees, submodules, branches]
+    - [commits, reflog]
+    - [stash]
+  # One Dark Pro — Binaryify/OneDark-Pro (lazygit UI chrome; cannot set terminal bg)
   theme:
     activeBorderColor:
-      - green
+      - "#98c379"
       - bold
     inactiveBorderColor:
-      - red
-      - blue
+      - "#4b5263"
+    searchingActiveBorderColor:
+      - "#e5c07b"
+      - bold
     optionsTextColor:
-      - magenta
+      - "#61afef"
     selectedLineBgColor:
-      - black
-      - white
+      - "#3e4451"
+    selectedLineFgColor:
+      - "#abb2bf"
+      - bold
+    inactiveViewSelectedLineBgColor:
+      - "#2c313a"
+    cherryPickedCommitBgColor:
+      - "#c678dd"
+    cherryPickedCommitFgColor:
+      - "#abb2bf"
+    markedBaseCommitBgColor:
+      - "#d19a66"
+    markedBaseCommitFgColor:
+      - "#282c34"
+    unstagedChangesColor:
+      - "#e06c75"
+    defaultFgColor:
+      - "#abb2bf"
+    authorColors:
+      "*": "#56b6c2"
+    branchColorPatterns:
+      "^feature/": "#98c379"
+      "^fix/": "#e06c75"
+      "^chore/": "#e5c07b"
+      "^refactor/": "#61afef"
+      "^main$|^master$|^develop$": "#c678dd"
+  darkTheme:
+    activeBorderColor:
+      - "#98c379"
+      - bold
+    inactiveBorderColor:
+      - "#4b5263"
+    searchingActiveBorderColor:
+      - "#e5c07b"
+      - bold
+    optionsTextColor:
+      - "#61afef"
+    selectedLineBgColor:
+      - "#3e4451"
+    selectedLineFgColor:
+      - "#abb2bf"
+      - bold
+    inactiveViewSelectedLineBgColor:
+      - "#2c313a"
+    cherryPickedCommitBgColor:
+      - "#c678dd"
+    cherryPickedCommitFgColor:
+      - "#abb2bf"
+    markedBaseCommitBgColor:
+      - "#d19a66"
+    markedBaseCommitFgColor:
+      - "#282c34"
+    unstagedChangesColor:
+      - "#e06c75"
+    defaultFgColor:
+      - "#abb2bf"
+    authorColors:
+      "*": "#56b6c2"
+    branchColorPatterns:
+      "^feature/": "#98c379"
+      "^fix/": "#e06c75"
+      "^chore/": "#e5c07b"
+      "^refactor/": "#61afef"
+      "^main$|^master$|^develop$": "#c678dd"
 
 # Auto-fetch for productivity
 git:
   autoFetch: true
   fetchAll: true
-  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
+  autoRefresh: true
+  autoDetectExternalChanges: true
+
+  ignoreWhitespaceInDiffView: true # Hide whitespace-only changes in the diff panel
+  # Compact one-line log: hash · subject · relative date · author
+  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=format:'%C(auto)%h%C(reset) %C(bold)%s%C(reset) %C(green)(%ar)%C(reset) %C(dim)%an%C(reset)' {{branchName}} --"
+  allBranchesLogCmds:
+    - "git log --graph --all --color=always --abbrev-commit --decorate --date=relative --pretty=format:'%C(auto)%h%C(reset) %C(bold)%s%C(reset) %C(green)(%ar)%C(reset) %C(dim)%an%C(reset)'"
   commit:
-    signOff: false
+    signOff: true
   log:
     order: "date-order"
     showGraph: "always"
-  skipHookPrefix: "WIP"
+  diffRenderers:
+    - name: delta
+      command: delta --{{colorScheme}} --paging=never --width={{width}}
 
 # Performance optimizations
 update:
   method: never
+
+refresher:
+  refreshInterval: 10
+  fetchInterval: 60
+  externalChangeCheckInterval: 2
 
 # Productivity-focused keybindings
 keybinding:
@@ -170,7 +264,7 @@ customCommands:
 
   - key: "L"
     description: "View git log with graph"
-    command: "git log --graph --oneline --all --decorate -30"
+    command: "git log --graph --all --decorate --date=relative --pretty=format:'%C(auto)%h%C(reset) %C(bold)%s%C(reset) %C(green)(%ar)%C(reset) %C(dim)%an%C(reset)' -30"
     context: "global"
     loadingText: "Loading git log..."
 
